@@ -1,0 +1,349 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>vn.com.lcx</groupId>
+    <artifactId>common-lib</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>common-lib</name>
+
+    <properties>
+
+        <jdk.version>1.8</jdk.version>
+        <maven.compiler.source>${jdk.version}</maven.compiler.source>
+        <maven.compiler.target>${jdk.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>${jdk.version}</java.version>
+
+        <logback-classic-ch.qos.logback.version>1.3.15</logback-classic-ch.qos.logback.version>
+        <slf4j-api-org.slf4j.version>2.1.0-alpha1</slf4j-api-org.slf4j.version>
+        <commons-text-org.apache.commons.version>1.13.0</commons-text-org.apache.commons.version>
+        <commons-lang3-org.apache.commons.version>3.17.0</commons-lang3-org.apache.commons.version>
+        <commons-collections4-org.apache.commons.version>4.5.0-M3</commons-collections4-org.apache.commons.version>
+        <lombok-org.projectlombok.version>1.18.36</lombok-org.projectlombok.version>
+        <ojdbc8-com.oracle.database.jdbc.version>23.7.0.25.01</ojdbc8-com.oracle.database.jdbc.version>
+        <postgresql-org.postgresql.version>42.7.5</postgresql-org.postgresql.version>
+        <mysql-connector-j-com.mysql.version>9.2.0</mysql-connector-j-com.mysql.version>
+        <mssql-jdbc-com.microsoft.sqlserver.version>12.9.0.jre8-preview</mssql-jdbc-com.microsoft.sqlserver.version>
+        <gson-com.google.code.gson.version>2.12.1</gson-com.google.code.gson.version>
+        <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.2</jakarta.xml.bind-api-jakarta.xml.bind.version>
+        <jaxb-runtime-org.glassfish.jaxb.version>4.0.5</jaxb-runtime-org.glassfish.jaxb.version>
+        <jackson-module-parameter-names-com.fasterxml.jackson.module.version>2.18.3
+        </jackson-module-parameter-names-com.fasterxml.jackson.module.version>
+        <jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version>2.18.3
+        </jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version>
+        <jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version>2.18.3
+        </jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version>
+        <jackson-databind-com.fasterxml.jackson.core.version>2.18.3
+        </jackson-databind-com.fasterxml.jackson.core.version>
+        <jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>2.18.3
+        </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
+        <mail-javax.mail.version>1.5.0-b01</mail-javax.mail.version>
+        <jedis-redis.clients.version>5.2.0</jedis-redis.clients.version>
+        <micrometer-core-io.micrometer.version>1.15.0-M2</micrometer-core-io.micrometer.version>
+        <metrics-core-io.dropwizard.metrics.version>4.2.30</metrics-core-io.dropwizard.metrics.version>
+        <metrics-healthchecks-io.dropwizard.metrics.version>4.2.30</metrics-healthchecks-io.dropwizard.metrics.version>
+        <metrics-core-io.dropwizard.metrics5.version>5.0.0</metrics-core-io.dropwizard.metrics5.version>
+        <javassist-org.javassist.version>3.30.2-GA</javassist-org.javassist.version>
+        <snakeyaml-org.yaml.version>2.4</snakeyaml-org.yaml.version>
+        <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
+        <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.0
+        </maven-compiler-plugin-org.apache.maven.plugins.version>
+        <maven-resources-plugin-org.apache.maven.plugins.version>3.3.1
+        </maven-resources-plugin-org.apache.maven.plugins.version>
+        <maven-dependency-plugin-org.apache.maven.plugins.version>3.8.1
+        </maven-dependency-plugin-org.apache.maven.plugins.version>
+        <maven-clean-plugin-org.apache.maven.plugins.version>3.4.1</maven-clean-plugin-org.apache.maven.plugins.version>
+        <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.2
+        </maven-surefire-plugin-org.apache.maven.plugins.version>
+        <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
+        <maven-install-plugin-org.apache.maven.plugins.version>3.1.4
+        </maven-install-plugin-org.apache.maven.plugins.version>
+
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-classic-ch.qos.logback.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j-api-org.slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text-org.apache.commons.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3-org.apache.commons.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>${commons-collections4-org.apache.commons.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok-org.projectlombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <version>${ojdbc8-com.oracle.database.jdbc.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql-org.postgresql.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql-connector-j-com.mysql.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>${mssql-jdbc-com.microsoft.sqlserver.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson-com.google.code.gson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${jakarta.xml.bind-api-jakarta.xml.bind.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${jaxb-runtime-org.glassfish.jaxb.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-parameter-names</artifactId>
+            <version>${jackson-module-parameter-names-com.fasterxml.jackson.module.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jdk8</artifactId>
+            <version>${jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson-databind-com.fasterxml.jackson.core.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>${jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>${mail-javax.mail.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${jedis-redis.clients.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${micrometer-core-io.micrometer.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics-core-io.dropwizard.metrics.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-healthchecks</artifactId>
+            <version>${metrics-healthchecks-io.dropwizard.metrics.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard.metrics5</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics-core-io.dropwizard.metrics5.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>${javassist-org.javassist.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml-org.yaml.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>${jbcrypt-org.mindrot.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin-org.apache.maven.plugins.version}</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin-org.apache.maven.plugins.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-java-to-classes</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/java</directory>
+                                    <includes>
+                                        <include>**/*.java</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin-org.apache.maven.plugins.version}</version>
+                <executions>
+                    <execution>
+                        <id>download-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <!-- <goal>sources</goal>-->
+                            <!-- <goal>resolve</goal>-->
+                            <goal>resolve-sources</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>download-javadocs</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>resolve-plugins</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+
+        <pluginManagement>
+
+            <plugins>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${maven-clean-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>${maven-install-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+            </plugins>
+
+        </pluginManagement>
+
+    </build>
+
+</project>

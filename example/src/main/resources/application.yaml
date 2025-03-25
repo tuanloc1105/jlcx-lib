@@ -1,0 +1,15 @@
+server:
+  api-key: lBu032NHh416sKg664oLM591URX779uM
+  port: 8123
+  enable-http-2: true
+  database:
+    host: localhost
+    port: '5432'
+    username: postgres
+    password: postgres
+    driver_class_name: org.postgresql.Driver
+    name: my_database
+    max_pool_size: 10
+    initial_pool_size: 5
+    max_timeout: 10
+    type: POSTGRESQL

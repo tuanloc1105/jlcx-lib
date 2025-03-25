@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>vn.com.lcx</groupId>
+    <artifactId>base-vertx</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>base-vertx</name>
+
+    <properties>
+
+        <jdk.version>1.8</jdk.version>
+        <maven.compiler.source>${jdk.version}</maven.compiler.source>
+        <maven.compiler.target>${jdk.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>${jdk.version}</java.version>
+
+        <lombok-org.projectlombok.version>1.18.36</lombok-org.projectlombok.version>
+        <vertx-core-io.vertx.version>4.5.13</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>4.5.13</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>4.5.13</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>4.5.13</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>4.5.13</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>4.5.13</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>4.5.13</vertx-auth-jwt-io.vertx.version>
+        <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.0
+        </maven-compiler-plugin-org.apache.maven.plugins.version>
+        <maven-resources-plugin-org.apache.maven.plugins.version>3.3.1
+        </maven-resources-plugin-org.apache.maven.plugins.version>
+        <maven-dependency-plugin-org.apache.maven.plugins.version>3.8.1
+        </maven-dependency-plugin-org.apache.maven.plugins.version>
+        <maven-clean-plugin-org.apache.maven.plugins.version>3.4.1</maven-clean-plugin-org.apache.maven.plugins.version>
+        <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.2
+        </maven-surefire-plugin-org.apache.maven.plugins.version>
+        <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
+        <maven-install-plugin-org.apache.maven.plugins.version>3.1.4
+        </maven-install-plugin-org.apache.maven.plugins.version>
+
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>vn.com.lcx</groupId>
+            <artifactId>common-lib</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok-org.projectlombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>${vertx-core-io.vertx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web</artifactId>
+            <version>${vertx-web-io.vertx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web-client</artifactId>
+            <version>${vertx-web-client-io.vertx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-json-schema</artifactId>
+            <version>${vertx-json-schema-io.vertx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-codegen</artifactId>
+            <version>${vertx-codegen-io.vertx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-unit</artifactId>
+            <version>${vertx-unit-io.vertx.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-auth-jwt</artifactId>
+            <version>${vertx-auth-jwt-io.vertx.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin-org.apache.maven.plugins.version}</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin-org.apache.maven.plugins.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-java-to-classes</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/java</directory>
+                                    <includes>
+                                        <include>**/*.java</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin-org.apache.maven.plugins.version}</version>
+                <executions>
+                    <execution>
+                        <id>download-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>resolve-sources</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>download-javadocs</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>resolve-plugins</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+        <pluginManagement>
+
+            <plugins>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${maven-clean-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>${maven-install-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+            </plugins>
+
+        </pluginManagement>
+    </build>
+
+</project>
