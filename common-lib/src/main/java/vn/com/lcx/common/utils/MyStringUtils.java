@@ -414,7 +414,7 @@ public final class MyStringUtils {
                                     wordsInLine.toArray()
                             ),
                             "    "
-                    )
+                    ).trim()
             );
         }
         return listOfResult;
