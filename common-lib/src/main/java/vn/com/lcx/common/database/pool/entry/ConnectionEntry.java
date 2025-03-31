@@ -162,6 +162,18 @@ public final class ConnectionEntry implements AutoCloseable {
         }
     }
 
+    public void commitNoClose() {
+        try {
+            if (this.transactionIsOpen()) {
+                this.connection.commit();
+                this.connectionLog.info("Committed but not closing");
+            }
+        } catch (SQLException e) {
+            this.connectionLog.error(e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public void rollback() {
         try {
             if (this.transactionIsOpen()) {
