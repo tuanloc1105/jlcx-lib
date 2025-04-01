@@ -42,6 +42,15 @@ public class ServiceProxy<T> implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // Handle Object methods
+        switch (method.getName()) {
+            case "toString":
+                return "Proxy for " + target.getClass().getName();
+            case "hashCode":
+                return System.identityHashCode(proxy);
+            case "equals":
+                return proxy == args[0];
+        }
         ConnectionEntry connection = null;
         boolean openConnection = true;
         // Check if the connection can be closed

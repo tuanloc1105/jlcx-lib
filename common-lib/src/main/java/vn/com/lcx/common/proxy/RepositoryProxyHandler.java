@@ -1,5 +1,6 @@
 package vn.com.lcx.common.proxy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Repository;
@@ -34,12 +35,26 @@ public class RepositoryProxyHandler<T> implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // Handle Object methods
+        switch (method.getName()) {
+            case "toString":
+                return "Proxy for " + repositoryInterface.getName();
+            case "hashCode":
+                return System.identityHashCode(proxy);
+            case "equals":
+                return proxy == args[0];
+        }
         Repository repositoryAnnotation = repositoryInterface.getAnnotation(Repository.class);
         ConnectionEntry connection = ConnectionContext.get(repositoryAnnotation.connectionInstanceName());
         boolean closeAfterExecuted = false;
         if (connection == null) {
             closeAfterExecuted = true;
-            LCXDataSource dataSource = ClassPool.getInstance(repositoryAnnotation.connectionInstanceName(), LCXDataSource.class);
+            LCXDataSource dataSource;
+            if (StringUtils.isNotBlank(repositoryAnnotation.connectionInstanceName())) {
+                dataSource = ClassPool.getInstance(repositoryAnnotation.connectionInstanceName(), LCXDataSource.class);
+            } else {
+                dataSource = ClassPool.getInstance(LCXDataSource.class);
+            }
             connection = dataSource.getConnection();
         }
         ConnectionContext.set(connection);
