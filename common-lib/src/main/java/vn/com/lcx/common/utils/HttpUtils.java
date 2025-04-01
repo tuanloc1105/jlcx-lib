@@ -26,6 +26,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
@@ -264,10 +266,11 @@ public class HttpUtils {
             stream.write(out);
             stream.close();
         }
+        InputStream stream = http.getResponseCode() == 200 ? http.getInputStream() : http.getErrorStream();
         try (
                 BufferedReader bufferedReader = new BufferedReader(
                         new InputStreamReader(
-                                http.getResponseCode() == 200 ? http.getInputStream() : http.getErrorStream(),
+                                stream == null ? new ByteArrayInputStream(new byte[0]) : stream,
                                 StandardCharsets.UTF_8
                         )
                 )
