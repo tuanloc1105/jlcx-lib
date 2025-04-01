@@ -113,8 +113,8 @@ public class ServiceProxy<T> implements InvocationHandler {
         } finally {
             if (ableToCloseConnection && connection != null) {
                 connection.close();
+                ConnectionContext.clear(connectionName);
             }
-            ConnectionContext.clear(connectionName);
         }
     }
 
