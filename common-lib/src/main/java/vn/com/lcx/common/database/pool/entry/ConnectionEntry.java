@@ -97,14 +97,19 @@ public final class ConnectionEntry implements AutoCloseable {
     }
 
     public void activate() {
-        if (this.idle.get()) {
-            this.lock();
+        // if (this.idle.get()) {
+        //     this.lock();
+        //     this.lastActiveTime = DateTimeUtils.generateCurrentTimeDefault();
+        //     this.getConnectionLog().info("Activated connection entry: {}", this);
+        //     return;
+        // }
+        // throw new RuntimeException("Connection is not idling");
+        if (this.idle.compareAndSet(true, false)) {
             this.lastActiveTime = DateTimeUtils.generateCurrentTimeDefault();
-            this.idle.set(false);
-            this.getConnectionLog().info("Activated connection entry: {}", this);
-            return;
+            this.connectionLog.info("Activated connection entry: {}", this);
+        } else {
+            throw new RuntimeException("Connection is not idling");
         }
-        throw new RuntimeException("Connection is not idling");
     }
 
     public void deactivate() {
@@ -115,7 +120,6 @@ public final class ConnectionEntry implements AutoCloseable {
         if (transactionIsOpen()) {
             this.commit();
         }
-        this.idle.set(true);
         this.releaseLock();
         this.getConnectionLog().info("Deactivated connection entry: {}", this);
     }

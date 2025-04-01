@@ -44,6 +44,11 @@ public class ServiceProxy<T> implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         ConnectionEntry connection = null;
         boolean openConnection = true;
+        // Check if the connection can be closed
+        // In case there are 2 more methods that annotated with `Transaction`
+        // For example, method A calling method B that both of them annotated with `Transaction`
+        // The current connection will not be close after the method B was executed, but will happen after method A finished
+        boolean ableToCloseConnection = false;
         String connectionName = "";
         Method implementMethod = Arrays.stream(target.getClass().getMethods())
                 .filter(
@@ -80,14 +85,19 @@ public class ServiceProxy<T> implements InvocationHandler {
             if (dataSource == null) {
                 throw new Exception("Cannot find datasource");
             }
-            connection = dataSource.getConnection();
+            if (ConnectionContext.get(connectionName) == null) {
+                ableToCloseConnection = true;
+                connection = dataSource.getConnection();
+                ConnectionContext.set(connectionName, connection);
+            } else {
+                connection = ConnectionContext.get(connectionName);
+            }
         }
-        ConnectionContext.set(connectionName, connection);
 
         try {
             return method.invoke(target, args);
         } catch (InvocationTargetException e) {
-            if (openConnection && connection != null) {
+            if (openConnection && ableToCloseConnection && connection != null) {
                 connection.rollback();
             }
             Throwable targetException = e.getCause();
@@ -96,12 +106,12 @@ public class ServiceProxy<T> implements InvocationHandler {
             }
             throw new RuntimeException("Exception in method " + method.getName(), targetException);
         } catch (Exception e) {
-            if (openConnection && connection != null) {
+            if (openConnection && ableToCloseConnection && connection != null) {
                 connection.rollback();
             }
             throw new RuntimeException("Unexpected error invoking method " + method.getName(), e);
         } finally {
-            if (connection != null) {
+            if (ableToCloseConnection && connection != null) {
                 connection.close();
             }
             ConnectionContext.clear(connectionName);

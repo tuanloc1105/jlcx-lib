@@ -27,17 +27,17 @@ public class ConnectionContext {
 
     public static void set(String key, ConnectionEntry connection) {
         Thread t = Thread.currentThread();
-        connectionMap.put(CommonConstant.EMPTY_STRING + t.getName() + key, connection);
+        connectionMap.put(CommonConstant.EMPTY_STRING + t.getId() + key, connection);
     }
 
     public static ConnectionEntry get(String key) {
         Thread t = Thread.currentThread();
-        return connectionMap.get(CommonConstant.EMPTY_STRING + t.getName() + key);
+        return connectionMap.get(CommonConstant.EMPTY_STRING + t.getId() + key);
     }
 
     public static void clear(String key) {
         Thread t = Thread.currentThread();
-        connectionMap.remove(CommonConstant.EMPTY_STRING + t.getName() + key);
+        connectionMap.remove(CommonConstant.EMPTY_STRING + t.getId() + key);
     }
 
 }
