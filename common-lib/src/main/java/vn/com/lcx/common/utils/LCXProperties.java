@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.util.Properties;
+import java.util.function.Function;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,6 +20,15 @@ public class LCXProperties {
             return yamlProperties.getProperty(key);
         }
         return CommonConstant.EMPTY_STRING;
+    }
+
+    public <T> T getProperty(String key, Function<String, T> function) {
+        if (properties != null) {
+            return function.apply(properties.getProperty(key));
+        } else if (yamlProperties != null) {
+            return function.apply(yamlProperties.getProperty(key));
+        }
+        return null;
     }
 
 }
