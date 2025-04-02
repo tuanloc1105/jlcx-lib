@@ -25,6 +25,7 @@ import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import vn.com.lcx.vertx.base.http.request.BaseRequest;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
+import vn.com.lcx.vertx.base.model.SimpleUserAuthenticationInfo;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
 import java.time.format.DateTimeFormatter;
@@ -429,6 +430,15 @@ public class BaseController {
         return this.gson.fromJson(
                 jsonObject.encode(),
                 typeToken.getType()
+        );
+    }
+
+    protected SimpleUserAuthenticationInfo getUser(RoutingContext context) {
+        final JsonObject jsonObject = context.user().get("accessToken");
+        return this.gson.fromJson(
+                jsonObject.encode(),
+                new TypeToken<SimpleUserAuthenticationInfo>() {
+                }
         );
     }
 
