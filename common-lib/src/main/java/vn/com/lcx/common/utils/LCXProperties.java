@@ -46,7 +46,7 @@ public class LCXProperties {
             final String valueFromEnvVariableName = System.getenv(envVariableName);
             return StringUtils.isNotBlank(valueFromEnvVariableName) ? valueFromEnvVariableName : envDefaultValue;
         } else {
-            return CommonConstant.EMPTY_STRING;
+            return valueReadFromFile + CommonConstant.EMPTY_STRING;
         }
     }
 

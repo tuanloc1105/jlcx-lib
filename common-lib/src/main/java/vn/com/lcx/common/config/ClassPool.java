@@ -260,38 +260,38 @@ public class ClassPool {
     }
 
     private static void createDatasource() {
-        String host = CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.host");
+        String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.host");
         int port;
         try {
-            port = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.port"));
+            port = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.port"));
         } catch (NumberFormatException e) {
             port = 0;
         }
-        String username = CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.username");
-        String password = CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.password");
-        String name = CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.name");
-        String driverClassName = CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.driver_class_name");
+        String username = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.username");
+        String password = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.password");
+        String name = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.name");
+        String driverClassName = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.driver_class_name");
         int initialPoolSize;
         try {
-            initialPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.initial_pool_size"));
+            initialPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.initial_pool_size"));
         } catch (NumberFormatException e) {
             initialPoolSize = 0;
         }
         int maxPoolSize;
         try {
-            maxPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.max_pool_size"));
+            maxPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_pool_size"));
         } catch (NumberFormatException e) {
             maxPoolSize = 0;
         }
         int maxTimeout;
         try {
-            maxTimeout = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.max_timeout"));
+            maxTimeout = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_timeout"));
         } catch (NumberFormatException e) {
             maxTimeout = 0;
         }
         DBTypeEnum type;
         try {
-            type = DBTypeEnum.valueOf(CommonConstant.EMPTY_STRING + applicationConfig.getProperty("server.database.type"));
+            type = DBTypeEnum.valueOf(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.type"));
         } catch (IllegalArgumentException e) {
             type = null;
         }
