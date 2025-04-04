@@ -135,6 +135,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                 try {
                     result.add(future.get());
                 } catch (Throwable e) {
+                    LogUtils.writeLog(e.getMessage(), e);
                     future.cancel(true);
                     futures.forEach(this::cancelFutureTasks);
                     // throw new RuntimeException("Task failed due to " + e, e);

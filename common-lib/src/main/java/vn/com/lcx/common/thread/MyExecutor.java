@@ -51,6 +51,7 @@ public class MyExecutor<T> {
                 try {
                     results.add(future.get());
                 } catch (Throwable e) {
+                    LogUtils.writeLog(e.getMessage(), e);
                     future.cancel(true);
                     if (skipIfTaskFailed) {
                         if (needToLogExecutionInfo) {
