@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -32,7 +33,7 @@ public final class PropertiesUtils {
                 // noinspection RedundantTypeArguments
                 return new LCXProperties(new YamlProperties(yaml.<Map<String, Object>>load(inputStream)), null);
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtils.writeLog(e.getMessage(), e);
             }
         } else {
             val properties = new Properties();
@@ -52,15 +53,19 @@ public final class PropertiesUtils {
             Yaml yaml = new Yaml();
             try (InputStream inputStream = classLoader.getResourceAsStream(resourceFilePath)) {
                 // Load YAML
-                // noinspection RedundantTypeArguments
+                if (inputStream == null) {
+                    return new LCXProperties(new YamlProperties(new HashMap<>()), null);
+                }
                 return new LCXProperties(new YamlProperties(yaml.<Map<String, Object>>load(inputStream)), null);
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtils.writeLog(e.getMessage(), e);
             }
         } else {
             val properties = new Properties();
             try (InputStream input = classLoader.getResourceAsStream(resourceFilePath)) {
-                properties.load(input);
+                if (input != null) {
+                    properties.load(input);
+                }
             } catch (IOException ex) {
                 LogUtils.writeLog(ex.getMessage(), ex);
             }
@@ -68,25 +73,5 @@ public final class PropertiesUtils {
         }
         return new LCXProperties();
     }
-
-    // public static Properties getProperties(final String filePath) {
-    //     val properties = new Properties();
-    //     try (InputStream input = Files.newInputStream(Paths.get(filePath))) {
-    //         properties.load(input);
-    //     } catch (IOException ex) {
-    //         LogUtils.writeLog(ex.getMessage(), ex);
-    //     }
-    //     return properties;
-    // }
-
-    // public static Properties getProperties(final ClassLoader classLoader, final String resourceFilePath) {
-    //     val properties = new Properties();
-    //     try (InputStream input = classLoader.getResourceAsStream(resourceFilePath)) {
-    //         properties.load(input);
-    //     } catch (IOException ex) {
-    //         LogUtils.writeLog(ex.getMessage(), ex);
-    //     }
-    //     return properties;
-    // }
 
 }
