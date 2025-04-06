@@ -343,6 +343,8 @@ public final class EntityUtils {
                                                             .map(constraint -> {
                                                                 if (constraint.toLowerCase().contains("unique")) {
                                                                     return String.format("ADD CONSTRAINT %1$s_unique UNIQUE (%1$s)", fieldColumnName);
+                                                                } else if (constraint.equalsIgnoreCase("null")) {
+                                                                    return String.format("ALTER COLUMN %s DROP NOT NULL", fieldColumnName);
                                                                 } else {
                                                                     return String.format("ALTER COLUMN %s SET %s", fieldColumnName, constraint);
                                                                 }
