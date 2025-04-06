@@ -70,7 +70,7 @@ public final class EntityUtils {
 
         val tableNameArr = Arrays.asList(finalTableName.split("_"));
         tableNameArr.forEach(word -> firstCharArr.add(String.valueOf(word.charAt(0))));
-        return String.join("", firstCharArr);
+        return String.join(CommonConstant.EMPTY_STRING, firstCharArr);
     }
 
     public static String getTableShortenedName(Class<?> entityClass) {
@@ -136,6 +136,7 @@ public final class EntityUtils {
             String createSequenceStatement = CommonConstant.EMPTY_STRING;
             List<List<String>> columnDefinitionLines = new ArrayList<>();
 
+            List<String> renameColumnList = new ArrayList<>();
             List<String> alterAddColumnList = new ArrayList<>();
             List<String> alterDropColumnList = new ArrayList<>();
             List<String> alterModifyColumnList = new ArrayList<>();
@@ -152,7 +153,7 @@ public final class EntityUtils {
                             continue;
                         }
                         String fieldDataTypeName = fieldDataTypeClass.getName();
-                        String sqlDataType = "";
+                        String sqlDataType = CommonConstant.EMPTY_STRING;
 
                         Map<String, String> databaseDatatypeMap;
 
@@ -183,9 +184,10 @@ public final class EntityUtils {
                             sqlDataType = columnNameAnnotation.columnDataTypeDefinition();
                         }
 
-                        String alterAddColumn = "";
-                        String alterDropColumn = "";
-                        String alterModifyColumn = "";
+                        String renameColumn;
+                        String alterAddColumn;
+                        String alterDropColumn;
+                        String alterModifyColumn = CommonConstant.EMPTY_STRING;
 
                         if (
                                 idField.getName().equals(field.getName())
@@ -201,6 +203,7 @@ public final class EntityUtils {
                                     case "mssql":
                                         columnDefinitionLines.add(new ArrayList<>(Arrays.asList(fieldColumnName, "INT", "IDENTITY(1,1)", "PRIMARY KEY")));
                                         break;
+                                    case "oracle":
                                     default:
                                         createSequenceStatement = String.format(
                                                 "CREATE SEQUENCE %1$s_SEQ START WITH 1 INCREMENT BY 1 CACHE 20;\n" +
@@ -248,7 +251,7 @@ public final class EntityUtils {
                             columnDefinitionLines.add(columnDefinitionList);
 
                             if (columnNameAnnotation.index()) {
-                                String createIndex = "", dropIndex = "";
+                                String createIndex = CommonConstant.EMPTY_STRING, dropIndex = CommonConstant.EMPTY_STRING;
                                 switch (databaseType) {
                                     case "postgresql":
                                     case "mysql":
@@ -313,6 +316,11 @@ public final class EntityUtils {
 
                             switch (databaseType) {
                                 case "postgresql": {
+                                    renameColumn = String.format(
+                                            "ALTER TABLE %1$s RENAME COLUMN %2$s TO %2$s_new;\n",
+                                            finalTableName,
+                                            fieldColumnName
+                                    );
                                     alterAddColumn = String.format(
                                             "ALTER TABLE %s\n  ADD COLUMN %s %s %s;\n",
                                             finalTableName,
@@ -335,6 +343,11 @@ public final class EntityUtils {
                                     break;
                                 }
                                 case "mysql": {
+                                    renameColumn = String.format(
+                                            "ALTER TABLE %1$s RENAME COLUMN %2$s TO %2$s_new;\n",
+                                            finalTableName,
+                                            fieldColumnName
+                                    );
                                     alterAddColumn = String.format(
                                             "ALTER TABLE %s\n  ADD %s %s %s;\n",
                                             finalTableName,
@@ -357,6 +370,11 @@ public final class EntityUtils {
                                     break;
                                 }
                                 case "mssql": {
+                                    renameColumn = String.format(
+                                            "EXEC sp_rename '%1$s.%2$s', '%2$s_new', 'COLUMN';\n",
+                                            finalTableName,
+                                            fieldColumnName
+                                    );
                                     alterAddColumn = String.format(
                                             "ALTER TABLE %s\n  ADD %s %s %s;\n",
                                             finalTableName,
@@ -371,7 +389,13 @@ public final class EntityUtils {
                                     );
                                     break;
                                 }
+                                case "oracle":
                                 default: {
+                                    renameColumn = String.format(
+                                            "ALTER TABLE %1$s RENAME COLUMN %2$s TO %2$s_new;\n",
+                                            finalTableName,
+                                            fieldColumnName
+                                    );
                                     alterAddColumn = String.format(
                                             "ALTER TABLE %s\n  ADD (%s %s %s);\n",
                                             finalTableName,
@@ -394,6 +418,7 @@ public final class EntityUtils {
                                     break;
                                 }
                             }
+                            renameColumnList.add(renameColumn);
                             alterAddColumnList.add(alterAddColumn);
                             alterDropColumnList.add(alterDropColumn);
                             alterModifyColumnList.add(alterModifyColumn);
@@ -425,6 +450,9 @@ public final class EntityUtils {
                             "-- ################# MODIFY COLUMN ####################### --\n" +
                             "\n" +
                             "%s\n" +
+                            "-- ################# RENAME COLUMN ####################### --\n" +
+                            "\n" +
+                            "%s\n" +
                             "-- ################# CREATE TABLE ####################### --\n" +
                             "%s\n" +
                             "%s",
@@ -433,6 +461,7 @@ public final class EntityUtils {
                     String.join(System.lineSeparator(), alterAddColumnList),
                     String.join(System.lineSeparator(), alterDropColumnList),
                     String.join(System.lineSeparator(), alterModifyColumnList),
+                    String.join(System.lineSeparator(), renameColumnList),
                     (StringUtils.isBlank(createSequenceStatement) ? CommonConstant.EMPTY_STRING : "\n" + createSequenceStatement + "\n"),
                     String.format(
                             CREATE_TABLE_TEMPLATE_NO_PRIMARY_KEY,
