@@ -103,7 +103,7 @@ public final class EntityUtils {
     }
 
     public static void analyzeEntityClass(Class<?> aClass, String databaseType, String folderPath) {
-        if (!aClass.isInterface())  {
+        if (!aClass.isInterface()) {
             TableName tableNameAnnotation = aClass.getAnnotation(TableName.class);
             if (tableNameAnnotation == null) {
                 return;
@@ -334,11 +334,20 @@ public final class EntityUtils {
                                             fieldColumnName
                                     );
                                     alterModifyColumn = String.format(
-                                            "ALTER TABLE %s\n  ALTER COLUMN %s TYPE %s, ALTER COLUMN %2$s SET %s;\n",
+                                            "ALTER TABLE %s\n  ALTER COLUMN %s TYPE %s%s;\n",
                                             finalTableName,
                                             fieldColumnName,
                                             sqlDataType,
-                                            String.join(" ", alterTableConstraint)
+                                            alterTableConstraint.isEmpty() ? CommonConstant.EMPTY_STRING :
+                                                    ",\n  " + alterTableConstraint.stream()
+                                                            .map(constraint -> {
+                                                                if (constraint.toLowerCase().contains("unique")) {
+                                                                    return String.format("ADD CONSTRAINT %1$s_unique UNIQUE (%1$s)", fieldColumnName);
+                                                                } else {
+                                                                    return String.format("ALTER COLUMN %s SET %s", fieldColumnName, constraint);
+                                                                }
+                                                            })
+                                                            .collect(Collectors.joining(",\n  "))
                                     );
                                     break;
                                 }
