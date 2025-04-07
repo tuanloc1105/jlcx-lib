@@ -366,7 +366,7 @@ public final class EntityUtils {
                                                 fieldColumnName
                                         );
                                         alterDropColumn += String.format(
-                                                "ALTER TABLE %1$s\n  DROP CONSTRAINT [IF EXISTS] %2$s_unique;\n",
+                                                "ALTER TABLE %1$s\n  DROP CONSTRAINT IF EXISTS %2$s_unique;\n",
                                                 finalTableName,
                                                 fieldColumnName
                                         );
