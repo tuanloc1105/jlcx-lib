@@ -434,8 +434,7 @@ public final class EntityUtils {
                                             sqlDataType,
                                             alterTableConstraint.stream()
                                                     .filter(constraint ->
-                                                            !constraint.toLowerCase().contains("null") &&
-                                                                    !constraint.toLowerCase().contains("unique"))
+                                                            !constraint.toLowerCase().contains("unique"))
                                                     .collect(Collectors.joining(" "))
                                     );
                                     alterDropColumn = String.format(
@@ -460,11 +459,6 @@ public final class EntityUtils {
                                                         .stream()
                                                         .anyMatch(constraint -> constraint.equalsIgnoreCase("null"))
                                         ) {
-                                            alterAddColumn += String.format(
-                                                    "ALTER TABLE %s\n  MODIFY (%s NULL);\n",
-                                                    finalTableName,
-                                                    fieldColumnName
-                                            );
                                             alterModifyColumn += String.format(
                                                     "ALTER TABLE %s\n  MODIFY (%s NULL);\n",
                                                     finalTableName,
@@ -476,11 +470,6 @@ public final class EntityUtils {
                                                         .stream()
                                                         .anyMatch(constraint -> constraint.equalsIgnoreCase("not null"))
                                         ) {
-                                            alterAddColumn += String.format(
-                                                    "ALTER TABLE %s\n  MODIFY (%s NOT NULL);\n",
-                                                    finalTableName,
-                                                    fieldColumnName
-                                            );
                                             alterModifyColumn += String.format(
                                                     "ALTER TABLE %s\n  MODIFY (%s NOT NULL);\n",
                                                     finalTableName,
