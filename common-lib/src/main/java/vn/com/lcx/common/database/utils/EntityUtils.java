@@ -326,7 +326,10 @@ public final class EntityUtils {
                                             finalTableName,
                                             fieldColumnName,
                                             sqlDataType,
-                                            String.join(" ", alterTableConstraint)
+                                            alterTableConstraint.stream()
+                                                    .filter(constraint ->
+                                                            !constraint.equalsIgnoreCase("unique"))
+                                                    .collect(Collectors.joining(" "))
                                     );
                                     alterDropColumn = String.format(
                                             "ALTER TABLE %s\n  DROP COLUMN %s;\n",
@@ -351,6 +354,23 @@ public final class EntityUtils {
                                                             })
                                                             .collect(Collectors.joining(",\n  "))
                                     );
+                                    if (
+                                            alterTableConstraint.stream().anyMatch(
+                                                    constraint ->
+                                                            constraint.equalsIgnoreCase("unique")
+                                            )
+                                    ) {
+                                        alterAddColumn += String.format(
+                                                "ALTER TABLE %1$s\n  ADD CONSTRAINT %2$s_unique UNIQUE (%2$s);\n",
+                                                finalTableName,
+                                                fieldColumnName
+                                        );
+                                        alterDropColumn += String.format(
+                                                "ALTER TABLE %1$s\n  DROP CONSTRAINT [IF EXISTS] %2$s_unique;\n",
+                                                finalTableName,
+                                                fieldColumnName
+                                        );
+                                    }
                                     break;
                                 }
                                 case "mysql": {
@@ -412,20 +432,84 @@ public final class EntityUtils {
                                             finalTableName,
                                             fieldColumnName,
                                             sqlDataType,
-                                            String.join(" ", alterTableConstraint)
+                                            alterTableConstraint.stream()
+                                                    .filter(constraint ->
+                                                            !constraint.toLowerCase().contains("null") &&
+                                                                    !constraint.toLowerCase().contains("unique"))
+                                                    .collect(Collectors.joining(" "))
                                     );
                                     alterDropColumn = String.format(
                                             "ALTER TABLE %s\n  DROP COLUMN %s;\n",
                                             finalTableName,
                                             fieldColumnName
                                     );
-                                    alterModifyColumn = String.format(
+                                    alterModifyColumn += String.format(
                                             "ALTER TABLE %s\n  MODIFY (%s %s %s);\n",
                                             finalTableName,
                                             fieldColumnName,
                                             sqlDataType,
-                                            String.join(" ", alterTableConstraint)
+                                            alterTableConstraint.stream()
+                                                    .filter(constraint ->
+                                                            !constraint.toLowerCase().contains("null") &&
+                                                                    !constraint.toLowerCase().contains("unique"))
+                                                    .collect(Collectors.joining(" "))
                                     );
+                                    if (!alterTableConstraint.isEmpty()) {
+                                        if (
+                                                alterTableConstraint
+                                                        .stream()
+                                                        .anyMatch(constraint -> constraint.equalsIgnoreCase("null"))
+                                        ) {
+                                            alterAddColumn += String.format(
+                                                    "ALTER TABLE %s\n  MODIFY (%s NULL);\n",
+                                                    finalTableName,
+                                                    fieldColumnName
+                                            );
+                                            alterModifyColumn += String.format(
+                                                    "ALTER TABLE %s\n  MODIFY (%s NULL);\n",
+                                                    finalTableName,
+                                                    fieldColumnName
+                                            );
+                                        }
+                                        if (
+                                                alterTableConstraint
+                                                        .stream()
+                                                        .anyMatch(constraint -> constraint.equalsIgnoreCase("not null"))
+                                        ) {
+                                            alterAddColumn += String.format(
+                                                    "ALTER TABLE %s\n  MODIFY (%s NOT NULL);\n",
+                                                    finalTableName,
+                                                    fieldColumnName
+                                            );
+                                            alterModifyColumn += String.format(
+                                                    "ALTER TABLE %s\n  MODIFY (%s NOT NULL);\n",
+                                                    finalTableName,
+                                                    fieldColumnName
+                                            );
+                                        }
+                                        if (
+                                                alterTableConstraint
+                                                        .stream()
+                                                        .anyMatch(constraint -> constraint.equalsIgnoreCase("unique"))
+                                        ) {
+                                            alterAddColumn += String.format(
+                                                    "ALTER TABLE %s\n  ADD CONSTRAINT %2$s_unique UNIQUE (%2$s);\n",
+                                                    finalTableName,
+                                                    fieldColumnName
+                                            );
+                                            alterModifyColumn += String.format(
+                                                    "ALTER TABLE %s\n  ADD CONSTRAINT %2$s_unique UNIQUE (%2$s);\n",
+                                                    finalTableName,
+                                                    fieldColumnName
+                                            );
+                                            alterDropColumn += String.format(
+                                                    "ALTER TABLE %1$s\n  DROP CONSTRAINT %2$s_unique;\n",
+                                                    finalTableName,
+                                                    fieldColumnName
+                                            );
+                                        }
+                                    }
+                                    System.out.println();
                                     break;
                                 }
                             }
