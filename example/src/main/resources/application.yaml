@@ -13,3 +13,6 @@ server:
     initial_pool_size: 5
     max_timeout: 10
     type: POSTGRESQL
+database:
+  generate_sql: true
+  source_type: postgresql
