@@ -18,14 +18,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>${jdk.version}</java.version>
 
-        <lombok-org.projectlombok.version>1.18.36</lombok-org.projectlombok.version>
-        <vertx-core-io.vertx.version>4.5.13</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>4.5.13</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>4.5.13</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>4.5.13</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>4.5.13</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>4.5.13</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>4.5.13</vertx-auth-jwt-io.vertx.version>
+        <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
+        <vertx-core-io.vertx.version>4.5.14</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>4.5.14</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>4.5.14</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>4.5.14</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>4.5.14</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>4.5.14</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>4.5.14</vertx-auth-jwt-io.vertx.version>
         <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.0
         </maven-compiler-plugin-org.apache.maven.plugins.version>
         <maven-resources-plugin-org.apache.maven.plugins.version>3.3.1
@@ -33,7 +33,7 @@
         <maven-dependency-plugin-org.apache.maven.plugins.version>3.8.1
         </maven-dependency-plugin-org.apache.maven.plugins.version>
         <maven-clean-plugin-org.apache.maven.plugins.version>3.4.1</maven-clean-plugin-org.apache.maven.plugins.version>
-        <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.2
+        <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.3
         </maven-surefire-plugin-org.apache.maven.plugins.version>
         <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
         <maven-install-plugin-org.apache.maven.plugins.version>3.1.4
