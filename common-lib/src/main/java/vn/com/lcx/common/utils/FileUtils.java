@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
+import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.io.BufferedReader;
@@ -81,12 +82,25 @@ public final class FileUtils {
         return MyStringUtils.removeSuffixOfString(result, suffixWillBeRemoved);
     }
 
-    // public static String pathJoining(List<String> input) {
-    //     return Optional.ofNullable(input)
-    //             .filter(l -> !l.isEmpty())
-    //             .map(l -> String.join(File.separator, l))
-    //             .orElse(EMPTY_STRING);
-    // }
+    public static List<String> readToList(String pathOfTheSqlFileToRead) {
+        val result = new ArrayList<String>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(pathOfTheSqlFileToRead));
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                val lineAfterTrim = line.trim();
+                if (StringUtils.isNotBlank(lineAfterTrim)) {
+                    result.add(lineAfterTrim);
+                }
+            }
+
+            reader.close();
+        } catch (IOException e) {
+            LogUtils.writeLog(e.getMessage(), e);
+        }
+        return result;
+    }
 
     public static String pathJoining(String... input) {
         if (input == null || input.length == 0) {
