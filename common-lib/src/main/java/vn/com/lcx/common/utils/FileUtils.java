@@ -458,6 +458,11 @@ public final class FileUtils {
         }
     }
 
+    public static boolean checkIfExist(String path) {
+        File file = new File(path);
+        return file.exists();
+    }
+
     @SuppressWarnings("JavaExistingMethodCanBeUsed")
     public static String getFileExtension(File file) {
         String fileName = file.getName();
