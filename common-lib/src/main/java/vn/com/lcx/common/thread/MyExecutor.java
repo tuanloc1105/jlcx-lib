@@ -62,7 +62,6 @@ public class MyExecutor<T> {
                     }
                 }
             }
-            executor.shutdown();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
