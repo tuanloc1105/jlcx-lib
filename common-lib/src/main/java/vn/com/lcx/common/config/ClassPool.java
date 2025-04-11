@@ -1,5 +1,8 @@
 package vn.com.lcx.common.config;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.gson.Gson;
 import lombok.val;
 import lombok.var;
 import org.slf4j.LoggerFactory;
@@ -65,6 +68,11 @@ public class ClassPool {
                 } catch (Exception ignore) {
                 }
             });
+
+            // create default gson
+            CLASS_POOL.put(Gson.class.getName(), BuildGson.getGson());
+            CLASS_POOL.put(JsonMapper.class.getName(), BuildObjectMapper.getJsonMapper());
+            CLASS_POOL.put(XmlMapper.class.getName(), BuildObjectMapper.getXMLMapper());
 
             val setOfClassInPackage = new ArrayList<>(new HashSet<>(listOfClassInPackage));
             listOfClassInPackage.clear();
