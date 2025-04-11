@@ -28,7 +28,9 @@ import vn.com.lcx.common.proxy.ServiceProxy;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.FileUtils;
+import vn.com.lcx.common.utils.HttpUtils;
 import vn.com.lcx.common.utils.PropertiesUtils;
+import vn.com.lcx.common.utils.SocketUtils;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -73,6 +75,8 @@ public class ClassPool {
             CLASS_POOL.put(Gson.class.getName(), BuildGson.getGson());
             CLASS_POOL.put(JsonMapper.class.getName(), BuildObjectMapper.getJsonMapper());
             CLASS_POOL.put(XmlMapper.class.getName(), BuildObjectMapper.getXMLMapper());
+            CLASS_POOL.put(HttpUtils.class.getName(), new HttpUtils());
+            CLASS_POOL.put(SocketUtils.class.getName(), new SocketUtils());
 
             val setOfClassInPackage = new ArrayList<>(new HashSet<>(listOfClassInPackage));
             listOfClassInPackage.clear();
