@@ -132,9 +132,10 @@ public class HttpUtils {
             stream.close();
         }
         try (
+                final InputStream responseStream = http.getResponseCode() == 200 ? http.getInputStream() : http.getErrorStream();
                 BufferedReader bufferedReader = new BufferedReader(
                         new InputStreamReader(
-                                http.getResponseCode() == 200 ? http.getInputStream() : http.getErrorStream(),
+                                responseStream == null ? new ByteArrayInputStream(new byte[0]) : responseStream,
                                 StandardCharsets.UTF_8
                         )
                 )
