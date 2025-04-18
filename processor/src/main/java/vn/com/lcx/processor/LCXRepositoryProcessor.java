@@ -128,6 +128,8 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
         final String code4 = parser.parseQueryAnnotationMethod();
         final String code5 = parser.parseQueryAnnotationMethodWithModifying();
         final String code6 = parser.parseReturnIdSaveMethod();
+        final String code7 = parser.parseSpecification();
+        final String code8 = parser.parseSpecificationWithPagination();
         try (Writer writer = builderFile.openWriter()) {
             writer.write("package " + packageName + ";\n\n");
             writer.write("import java.math.BigDecimal;\n");
@@ -155,6 +157,8 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
             writer.write(code4);
             writer.write(code5);
             writer.write(code6);
+            writer.write(code7);
+            writer.write(code8);
             writer.write("\n}\n");
         } catch (IOException e) {
             e.printStackTrace();
@@ -330,7 +334,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                                     method.getMethodName().startsWith("count")
                                     ) && (
                                             !method.isModifying() && StringUtils.isBlank(method.getNativeQueryValue())
-                                    )
+                                    ) && !method.getMethodName().equals("find")
                     )
                     .collect(Collectors.toList());
 
@@ -462,7 +466,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                         }
                     }
                     if (methodInfo.getMethodName().startsWith("count")) {
-                        databaseExecutorCode =                                 "" +
+                        databaseExecutorCode = "" +
                                 "executor.executeQuery(\n" +
                                 "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
                                 "                sql,\n" +
@@ -555,7 +559,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                             "java.util.List<Integer> countResult = executor.executeQuery(\n" +
                                                     "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
                                                     "                vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%s.class).build(\"%s\"%s),\n" +
-                                                    "                null,\n" +
+                                                    "                map,\n" +
                                                     "                resultSet -> {\n" +
                                                     "                    try {\n" +
                                                     "                        return resultSet.getInt(1);\n" +
@@ -1207,6 +1211,86 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
             return listOfCodeLine.isEmpty() ?
                     CommonConstant.EMPTY_STRING :
                     String.join(System.lineSeparator(), listOfCodeLine);
+        }
+
+        public String parseSpecificationWithPagination() {
+            return String.format(
+                    "\n\n" +
+                            "    public vn.com.lcx.common.database.pageable.Page<%1$s> find(vn.com.lcx.common.database.specification.Specification specification, vn.com.lcx.common.database.pageable.Pageable pageable) {\n" +
+                            "        String sql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"findAll\") + \" WHERE \" + specification.getFinalSQL() + \" \" + pageable.toSql();\n" +
+                            "        String countSql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"countAll\") + \" WHERE \" + specification.getFinalSQL();\n" +
+                            "        java.util.Map<Integer, Object> map = new java.util.HashMap<>();\n" +
+                            "        int startingPosition = 0;\n" +
+                            "        for (Object param : specification.getParameters()) {\n" +
+                            "            map.put(++startingPosition, param);\n" +
+                            "        }\n" +
+                            "        java.util.List<%1$s> sqlResult = executor.executeQuery(\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                sql,\n" +
+                            "                map,\n" +
+                            "                %1$sBuilder::resultSetMapping\n" +
+                            "        );\n" +
+                            "        if (sqlResult == null) {\n" +
+                            "            throw new java.lang.RuntimeException(\"Data source exception\");\n" +
+                            "        }\n" +
+                            "\n" +
+                            "        if (sqlResult != null && sqlResult.size() > 1) {\n" +
+                            "            throw new java.lang.RuntimeException(\"Result return more than 1\");\n" +
+                            "        }\n" +
+                            "        java.util.List<Integer> countResult = executor.executeQuery(\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                countSql,\n" +
+                            "                null,\n" +
+                            "                resultSet -> {\n" +
+                            "                    try {\n" +
+                            "                        return resultSet.getInt(1);\n" +
+                            "                    } catch (java.sql.SQLException sqlException) {\n" +
+                            "                        return 0;\n" +
+                            "                    }\n" +
+                            "                }\n" +
+                            "        );\n" +
+                            "        if (countResult == null) {\n" +
+                            "            throw new java.lang.RuntimeException(\"Data source exception\");\n" +
+                            "        }\n" +
+                            "        int count = countResult.isEmpty() ? 0 : countResult.get(0);\n" +
+                            "        return vn.com.lcx.common.database.pageable.Page.<%1$s>create(\n" +
+                            "                sqlResult,\n" +
+                            "                count,\n" +
+                            "                pageable.getPageNumber(),\n" +
+                            "                pageable.getPageSize()\n" +
+                            "        );\n" +
+                            "    }\n",
+                    genericEntityClass.getQualifiedName().toString()
+            );
+        }
+
+        public String parseSpecification() {
+            return String.format(
+                    "\n\n" +
+                            "    public java.util.List<%1$s> find(vn.com.lcx.common.database.specification.Specification specification) {\n" +
+                            "        String sql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"findAll\") + \" WHERE \" + specification.getFinalSQL();\n" +
+                            "        java.util.Map<Integer, Object> map = new java.util.HashMap<>();\n" +
+                            "        int startingPosition = 0;\n" +
+                            "        for (Object param : specification.getParameters()) {\n" +
+                            "            map.put(++startingPosition, param);\n" +
+                            "        }\n" +
+                            "        java.util.List<%1$s> sqlResult = executor.executeQuery(\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                sql,\n" +
+                            "                map,\n" +
+                            "                %1$sBuilder::resultSetMapping\n" +
+                            "        );\n" +
+                            "        if (sqlResult == null) {\n" +
+                            "            throw new java.lang.RuntimeException(\"Data source exception\");\n" +
+                            "        }\n" +
+                            "\n" +
+                            "        if (sqlResult != null && sqlResult.size() > 1) {\n" +
+                            "            throw new java.lang.RuntimeException(\"Result return more than 1\");\n" +
+                            "        }\n" +
+                            "        return sqlResult.isEmpty() ? new ArrayList<>() : sqlResult;\n" +
+                            "    }\n",
+                    genericEntityClass.getQualifiedName().toString()
+            );
         }
 
         private String findColumnNameOfField(HashSet<Element> allElementsOfReturnClass, final String fieldName) {

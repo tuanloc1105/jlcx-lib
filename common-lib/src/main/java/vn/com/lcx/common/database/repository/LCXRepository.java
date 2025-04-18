@@ -1,5 +1,9 @@
 package vn.com.lcx.common.database.repository;
 
+import vn.com.lcx.common.database.pageable.Page;
+import vn.com.lcx.common.database.pageable.Pageable;
+import vn.com.lcx.common.database.specification.Specification;
+
 import java.util.List;
 import java.util.Map;
 
@@ -18,5 +22,9 @@ public interface LCXRepository<T> {
     Map<String, Integer> update(List<T> entities);
 
     Map<String, Integer> delete(List<T> entities);
+
+    Page<T> find(Specification specification, Pageable pageable);
+
+    List<T> find(Specification specification);
 
 }

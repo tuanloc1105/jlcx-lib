@@ -151,7 +151,7 @@ public class SelectStatementBuilder {
         } else {
             statement = this.generateSqlStatement();
         }
-        if (StringUtils.isNotBlank(methodName) && !methodName.equals("findAll")) {
+        if (StringUtils.isNotBlank(methodName) && !methodName.equals("findAll") && !methodName.equals("countAll")) {
             return String.format(
                     "%s\nWHERE\n    %s",
                     statement,
