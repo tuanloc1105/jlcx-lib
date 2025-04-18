@@ -3,21 +3,21 @@ package vn.com.lcx.common.database.context;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
 
+import java.sql.Connection;
 import java.util.concurrent.ConcurrentHashMap;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConnectionContext {
 
-    private static final ThreadLocal<ConnectionEntry> connetionThreadLocal = new ThreadLocal<>();
-    private static final ConcurrentHashMap<String, ConnectionEntry> connectionMap = new ConcurrentHashMap<>();
+    private static final ThreadLocal<Connection> connetionThreadLocal = new ThreadLocal<>();
+    private static final ConcurrentHashMap<String, Connection> connectionMap = new ConcurrentHashMap<>();
 
-    public static void set(ConnectionEntry connection) {
+    public static void set(Connection connection) {
         connetionThreadLocal.set(connection);
     }
 
-    public static ConnectionEntry get() {
+    public static Connection get() {
         return connetionThreadLocal.get();
     }
 
@@ -25,12 +25,12 @@ public class ConnectionContext {
         connetionThreadLocal.remove();
     }
 
-    public static void set(String key, ConnectionEntry connection) {
+    public static void set(String key, Connection connection) {
         Thread t = Thread.currentThread();
         connectionMap.put(CommonConstant.EMPTY_STRING + t.getId() + key, connection);
     }
 
-    public static ConnectionEntry get(String key) {
+    public static Connection get(String key) {
         Thread t = Thread.currentThread();
         return connectionMap.get(CommonConstant.EMPTY_STRING + t.getId() + key);
     }

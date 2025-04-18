@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.sql.Connection;
 
 public class RepositoryProxyHandler<T> implements InvocationHandler {
     private final Logger log = LoggerFactory.getLogger("proxy");
@@ -45,7 +46,7 @@ public class RepositoryProxyHandler<T> implements InvocationHandler {
                 return proxy == args[0];
         }
         Repository repositoryAnnotation = repositoryInterface.getAnnotation(Repository.class);
-        ConnectionEntry connection = ConnectionContext.get(repositoryAnnotation.connectionInstanceName());
+        Connection connection = ConnectionContext.get(repositoryAnnotation.connectionInstanceName());
         boolean closeAfterExecuted = false;
         if (connection == null) {
             closeAfterExecuted = true;
@@ -55,7 +56,7 @@ public class RepositoryProxyHandler<T> implements InvocationHandler {
             } else {
                 dataSource = ClassPool.getInstance(LCXDataSource.class);
             }
-            connection = dataSource.getConnection();
+            connection = dataSource.get();
         }
         ConnectionContext.set(connection);
 

@@ -36,7 +36,6 @@ public class LCXConnection implements Connection {
 
     @Override
     public void close() throws SQLException {
-        // Thay vì đóng kết nối, ta trả connection về pool
         this.connectionEntry.deactivate();
     }
 
@@ -45,7 +44,6 @@ public class LCXConnection implements Connection {
         return getRealConnection().isClosed();
     }
 
-    // Forward tất cả các phương thức còn lại
     @Override
     public Statement createStatement() throws SQLException {
         return getRealConnection().createStatement();

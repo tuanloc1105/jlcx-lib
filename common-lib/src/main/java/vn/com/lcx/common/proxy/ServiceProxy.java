@@ -7,12 +7,12 @@ import vn.com.lcx.common.annotation.Transaction;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.database.context.ConnectionContext;
 import vn.com.lcx.common.database.pool.LCXDataSource;
-import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.sql.Connection;
 import java.util.Arrays;
 
 @AllArgsConstructor
@@ -51,7 +51,7 @@ public class ServiceProxy<T> implements InvocationHandler {
             case "equals":
                 return proxy == args[0];
         }
-        ConnectionEntry connection = null;
+        Connection connection = null;
         boolean openConnection = true;
         // Check if the connection can be closed
         // In case there are 2 more methods that annotated with `Transaction`
@@ -96,11 +96,12 @@ public class ServiceProxy<T> implements InvocationHandler {
             }
             if (ConnectionContext.get(connectionName) == null) {
                 ableToCloseConnection = true;
-                connection = dataSource.getConnection();
+                connection = dataSource.get();
                 ConnectionContext.set(connectionName, connection);
             } else {
                 connection = ConnectionContext.get(connectionName);
             }
+            connection.setAutoCommit(false);
         }
 
         try {

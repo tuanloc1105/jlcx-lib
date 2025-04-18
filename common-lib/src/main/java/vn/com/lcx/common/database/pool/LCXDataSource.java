@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.database.DatabaseProperty;
 import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
+import vn.com.lcx.common.database.pool.wrapper.LCXConnection;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.exception.LCXDataSourceException;
 import vn.com.lcx.common.exception.LCXDataSourcePropertiesException;
@@ -149,6 +150,7 @@ public class LCXDataSource {
         this.pool.addAll(pool);
     }
 
+    @Deprecated
     public ConnectionEntry getConnection() {
         LogUtils.writeLog2(
                 LogUtils.Level.INFO,
@@ -224,6 +226,88 @@ public class LCXDataSource {
                 entry.get().deactivate();
                 entry.get().activate();
                 return entry.get();
+            }
+            throw new LCXDataSourceException("All connection in pool is busy");
+        } catch (Exception e) {
+            throw new LCXDataSourceException(e);
+        }
+    }
+
+    public Connection get() {
+        LogUtils.writeLog2(
+                LogUtils.Level.INFO,
+                String.format(
+                        "Pool status:\n    - Total connections:   %d\n    - Active connections:  %d\n    - Idle connections:    %d",
+                        this.getTotalConnections(),
+                        this.getActiveConnections(),
+                        this.getIdleConnections()
+                )
+        );
+        try {
+            for (ConnectionEntry connectionEntry : this.pool) {
+                if (!connectionEntry.isActive() && !connectionEntry.isCriticalLock()) {
+                    connectionEntry.activate();
+                    if (connectionEntry.isValid()) {
+                        connectionEntry.getConnectionLog().info("Connection is valid");
+                        return new LCXConnection(connectionEntry);
+                    }
+                    connectionEntry.setConnection(
+                            createConnection(
+                                    this.property.getConnectionString(),
+                                    this.property.getUsername(),
+                                    this.property.getPassword(),
+                                    this.property.getMaxTimeout()
+                            )
+                    );
+                    connectionEntry.getConnectionLog().info("Recreating connection");
+                    return new LCXConnection(connectionEntry);
+                }
+            }
+            if (this.pool.size() < this.property.getMaxPoolSize()) {
+                val entry = ConnectionEntry.init(
+                        createConnection(
+                                this.property.getConnectionString(),
+                                this.property.getUsername(),
+                                this.property.getPassword(),
+                                this.property.getMaxTimeout()
+                        ),
+                        this.dbType,
+                        String.format("%s-%s", this.dbType.name().toLowerCase(), generateRandomString(8))
+                );
+                this.pool.add(entry);
+                entry.activate();
+                return new LCXConnection(entry);
+            }
+            LogUtils.writeLog(LogUtils.Level.INFO, "All connections in pool are being used");
+            long startTime = System.currentTimeMillis();
+            long waitedTime = System.currentTimeMillis() - startTime;
+            while (waitedTime < maxPoolWaitingTime) {
+                waitedTime = System.currentTimeMillis() - startTime;
+                LogUtils.writeLog(LogUtils.Level.INFO, "Waited {} ms", waitedTime);
+                val currentTime = DateTimeUtils.generateCurrentTimeDefault();
+                val entry = this.pool.stream()
+                        .sorted(Comparator.comparing(ConnectionEntry::getLastActiveTime))
+                        .filter(e -> {
+                            val durationBetweenLastTimeActiveAndCurrentTime = Duration.between(e.getLastActiveTime(), currentTime);
+                            return durationBetweenLastTimeActiveAndCurrentTime.compareTo(Duration.of(30, ChronoUnit.SECONDS)) >= 0 && !e.isCriticalLock();
+                        })
+                        .findFirst();
+                if (!entry.isPresent()) {
+                    continue;
+                }
+                entry.get().commit();
+                entry.get().shutdown();
+                entry.get().setConnection(
+                        createConnection(
+                                this.property.getConnectionString(),
+                                this.property.getUsername(),
+                                this.property.getPassword(),
+                                this.property.getMaxTimeout()
+                        )
+                );
+                entry.get().deactivate();
+                entry.get().activate();
+                return new LCXConnection(entry.get());
             }
             throw new LCXDataSourceException("All connection in pool is busy");
         } catch (Exception e) {
