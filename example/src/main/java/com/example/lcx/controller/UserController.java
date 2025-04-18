@@ -30,6 +30,19 @@ public class UserController extends BaseController {
         this.userService = userService;
     }
 
+    /**
+     * Example:
+     * <pre>
+     *     curl --location --request POST 'http://localhost:8123/user/save' \
+     *     --header 'Content-Type: application/json' \
+     *     --data '{
+     *         "firstName": "1744969003302",
+     *         "lastName": "1f287066-893d-48ed-8ecb-6a22dc5ccd2e",
+     *         "age": 6205
+     *     }'
+     * </pre>
+     * @param routingContext
+     */
     @Post(path = "/save")
     public void save(RoutingContext routingContext) {
         this.executeThreadBlock(
@@ -40,6 +53,13 @@ public class UserController extends BaseController {
         );
     }
 
+    /**
+     * Example:
+     * <pre>
+     *     curl --location --request GET 'http://localhost:8123/user/find_by_id?id=22'
+     * </pre>
+     * @param routingContext
+     */
     @Get(path = "/find_by_id")
     public void findById(RoutingContext routingContext) {
         this.executeThreadBlock(
@@ -58,6 +78,13 @@ public class UserController extends BaseController {
         );
     }
 
+    /**
+     * Example:
+     * <pre>
+     *     curl --location --request GET 'http://localhost:8123/user/find_all?pageNumber=1&pageSize=10'
+     * </pre>
+     * @param routingContext
+     */
     @Get(path = "/find_all")
     public void findAll(RoutingContext routingContext) {
         this.executeThreadBlock(
@@ -83,6 +110,19 @@ public class UserController extends BaseController {
         );
     }
 
+    /**
+     * Example:
+     * <pre>
+     *     curl --location --request POST 'http://localhost:8123/user/find_user' \
+     *     --header 'Content-Type: application/json' \
+     *     --data '{
+     *         "firstName": "1741844188294",
+     *         "lastName": "ba89b2b5-8016-437c-a74b-36d251338605",
+     *         "age": 38286
+     *     }'
+     * </pre>
+     * @param routingContext
+     */
     @Post(path = "/find_user")
     public void findUser(RoutingContext routingContext) {
         this.executeThreadBlock(
@@ -93,6 +133,20 @@ public class UserController extends BaseController {
         );
     }
 
+    /**
+     * Example:
+     * <pre>
+     *     curl --location --request PUT 'http://localhost:8123/user/update' \
+     *     --header 'Content-Type: application/json' \
+     *     --data '{
+     *         "id": 22,
+     *         "firstName": "1744969003302",
+     *         "lastName": "1f287066-893d-48ed-8ecb-6a22dc5ccd2e",
+     *         "age": 6205
+     *     }'
+     * </pre>
+     * @param routingContext
+     */
     @Put(path = "/update")
     public void update(RoutingContext routingContext) {
         this.executeThreadBlock(
@@ -103,6 +157,13 @@ public class UserController extends BaseController {
         );
     }
 
+    /**
+     * Example:
+     * <pre>
+     *     curl --location --request DELETE 'http://localhost:8123/user/delete?id=28'
+     * </pre>
+     * @param routingContext
+     */
     @Delete(path = "/delete")
     public void delete(RoutingContext routingContext) {
         this.executeThreadBlock(
