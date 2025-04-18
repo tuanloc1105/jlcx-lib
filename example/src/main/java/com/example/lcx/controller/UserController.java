@@ -1,6 +1,7 @@
 package com.example.lcx.controller;
 
 import com.example.lcx.http.request.CreateUserRequest;
+import com.example.lcx.http.request.FindUserRequest;
 import com.example.lcx.http.request.UpdateUserRequest;
 import com.example.lcx.http.response.UserListResponse;
 import com.example.lcx.http.response.UserResponse;
@@ -62,9 +63,33 @@ public class UserController extends BaseController {
         this.executeThreadBlock(
                 routingContext,
                 (routingContext1, o) -> {
-                    return new UserListResponse(this.userService.findAll());
+                    final int pageNumber = this.getRequestQueryParam(routingContext, "pageNumber", i -> {
+                        try {
+                            return Integer.parseInt(i);
+                        } catch (Exception e) {
+                            return 1;
+                        }
+                    });
+                    final int pageSize = this.getRequestQueryParam(routingContext, "pageSize", i -> {
+                        try {
+                            return Integer.parseInt(i);
+                        } catch (Exception e) {
+                            return 10;
+                        }
+                    });
+                    return new UserListResponse(this.userService.findAll(pageNumber, pageSize));
                 },
                 VOID
+        );
+    }
+
+    @Post(path = "/find_user")
+    public void findUser(RoutingContext routingContext) {
+        this.executeThreadBlock(
+                routingContext,
+                (routingContext1, o) -> userService.findUser(o),
+                new TypeToken<FindUserRequest>() {
+                }
         );
     }
 

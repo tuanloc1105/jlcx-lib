@@ -1240,7 +1240,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "        java.util.List<Integer> countResult = executor.executeQuery(\n" +
                             "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                countSql,\n" +
-                            "                null,\n" +
+                            "                map,\n" +
                             "                resultSet -> {\n" +
                             "                    try {\n" +
                             "                        return resultSet.getInt(1);\n" +

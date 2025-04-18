@@ -79,7 +79,7 @@ public class SimpleSpecificationImpl implements Specification {
         List<Object> inputParameters = specification.getParameters();
         parameters.addAll(inputParameters);
         if (finalSQL.length() != 0) {
-            finalSQL.append(" AND (").append(inputFinalSQL).append(")");
+            finalSQL.append(" AND ( ").append(inputFinalSQL).append(" )");
         } else {
             finalSQL.append(inputFinalSQL);
         }
@@ -91,7 +91,7 @@ public class SimpleSpecificationImpl implements Specification {
         List<Object> inputParameters = specification.getParameters();
         parameters.addAll(inputParameters);
         if (finalSQL.length() != 0) {
-            finalSQL.append(" OR (").append(inputFinalSQL).append(")");
+            finalSQL.append(" OR ( ").append(inputFinalSQL).append(" )");
         } else {
             finalSQL.append(inputFinalSQL);
         }
