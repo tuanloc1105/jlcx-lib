@@ -391,7 +391,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                     if (methodInfo.getMethodName().startsWith("count")) {
                         databaseExecutorCode = "" +
                                 "executor.executeQuery(\n" +
-                                "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                sql,\n" +
                                 "                null,\n" +
                                 "                resultSet -> {\n" +
@@ -407,7 +407,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                         databaseExecutorCode = String.format(
                                 "" +
                                         "executor.executeQuery(\n" +
-                                        "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                        "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                         "                sql,\n" +
                                         "                null,\n" +
                                         "                %s::resultSetMapping\n" +
@@ -468,7 +468,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                     if (methodInfo.getMethodName().startsWith("count")) {
                         databaseExecutorCode = "" +
                                 "executor.executeQuery(\n" +
-                                "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                sql,\n" +
                                 "                map,\n" +
                                 "                resultSet -> {\n" +
@@ -484,7 +484,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                         databaseExecutorCode = String.format(
                                 "" +
                                         "executor.executeQuery(\n" +
-                                        "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                        "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                         "                sql,\n" +
                                         "                map,\n" +
                                         "                %s::resultSetMapping\n" +
@@ -557,7 +557,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             havePageableParameter && isReturnPage ?
                                     String.format(
                                             "java.util.List<Integer> countResult = executor.executeQuery(\n" +
-                                                    "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                                    "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                                     "                vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%s.class).build(\"%s\"%s),\n" +
                                                     "                map,\n" +
                                                     "                resultSet -> {\n" +
@@ -621,7 +621,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "    public int save(%1$s entity) {\n" +
                             "        String sql = %1$sBuilder.insertSql();\n" +
                             "        int rowAffected = executor.executeMutation(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
                             "                %1$sBuilder.insertMapInputParameter(entity)\n" +
                             "        );\n" +
@@ -635,7 +635,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "    public int update(%1$s entity) {\n" +
                             "        String sql = %1$sBuilder.updateSql();\n" +
                             "        int rowAffected = executor.executeMutation(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
                             "                %1$sBuilder.updateMapInputParameter(entity)\n" +
                             "        );\n" +
@@ -649,7 +649,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "    public int delete(%1$s entity) {\n" +
                             "        String sql = %1$sBuilder.deleteSql();\n" +
                             "        int rowAffected = executor.executeMutation(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
                             "                %1$sBuilder.deleteMapInputParameter(entity)\n" +
                             "        );\n" +
@@ -704,20 +704,20 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                 "        try {\n" +
                                 "            String sql = %1$sBuilder.insertSql();\n" +
                                 "\n" +
-                                "            vn.com.lcx.common.database.type.DBTypeEnum dbTypeEnum = vn.com.lcx.common.database.context.ConnectionContext.get().getDbType();\n" +
+                                "            vn.com.lcx.common.database.type.DBTypeEnum dbTypeEnum = ((vn.com.lcx.common.database.pool.wrapper.LCXConnection) vn.com.lcx.common.database.context.ConnectionContext.get()).getDBType();\n" +
                                 "\n" +
                                 "            Long id = 0L;\n" +
                                 "\n" +
                                 "            if (dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.MSSQL) || dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.MYSQL)) {\n" +
                                 "                int rowAffected = executor.executeMutation(\n" +
-                                "                        vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                "                        vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                        sql,\n" +
                                 "                        %1$sBuilder.insertMapInputParameter(entity)\n" +
                                 "                );\n" +
                                 "                if (rowAffected == 0) {\n" +
                                 "                    throw new RuntimeException(\"Can not insert\");\n" +
                                 "                }\n" +
-                                "                try (Statement stmt = vn.com.lcx.common.database.context.ConnectionContext.get().getConnection().createStatement()) {\n" +
+                                "                try (Statement stmt = vn.com.lcx.common.database.context.ConnectionContext.get().createStatement()) {\n" +
                                 "                    // final String getLatestIdStatement = dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.MSSQL) ? \"SELECT SCOPE_IDENTITY()\" : \"SELECT LAST_INSERT_ID()\";\n" +
                                 "                    final String getLatestIdStatement = dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.MSSQL) ? \"SELECT @@IDENTITY\" : \"SELECT LAST_INSERT_ID()\";\n" +
                                 "                    try (ResultSet rs = stmt.executeQuery(getLatestIdStatement)) {\n" +
@@ -730,7 +730,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                 "                }\n" +
                                 "            } else {\n" +
                                 "                BigDecimal newId = executor.executeInsertReturnId(\n" +
-                                "                        vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                "                        vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                        dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.ORACLE) ? sql + \" RETURNING %3$s INTO ?\" : sql + \" RETURNING %3$s\",\n" +
                                 "                        %1$sBuilder.insertMapInputParameter(entity),\n" +
                                 "                        dbTypeEnum\n" +
@@ -753,20 +753,20 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                 "        try {\n" +
                                 "            String sql = %1$sBuilder.insertSql();\n" +
                                 "\n" +
-                                "            vn.com.lcx.common.database.type.DBTypeEnum dbTypeEnum = vn.com.lcx.common.database.context.ConnectionContext.get().getDbType();\n" +
+                                "            vn.com.lcx.common.database.type.DBTypeEnum dbTypeEnum = ((vn.com.lcx.common.database.pool.wrapper.LCXConnection) vn.com.lcx.common.database.context.ConnectionContext.get()).getDBType();\n" +
                                 "\n" +
                                 "            BigDecimal id = BigDecimal.ZERO;\n" +
                                 "\n" +
                                 "            if (dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.MSSQL) || dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.MYSQL)) {\n" +
                                 "                int rowAffected = executor.executeMutation(\n" +
-                                "                        vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                "                        vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                        sql,\n" +
                                 "                        %1$sBuilder.insertMapInputParameter(entity)\n" +
                                 "                );\n" +
                                 "                if (rowAffected == 0) {\n" +
                                 "                    throw new RuntimeException(\"Can not insert\");\n" +
                                 "                }\n" +
-                                "                try (Statement stmt = vn.com.lcx.common.database.context.ConnectionContext.get().getConnection().createStatement()) {\n" +
+                                "                try (Statement stmt = vn.com.lcx.common.database.context.ConnectionContext.get().createStatement()) {\n" +
                                 "                    // final String getLatestIdStatement = dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.MSSQL) ? \"SELECT SCOPE_IDENTITY()\" : \"SELECT LAST_INSERT_ID()\";\n" +
                                 "                    final String getLatestIdStatement = dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.MSSQL) ? \"SELECT @@IDENTITY\" : \"SELECT LAST_INSERT_ID()\";\n" +
                                 "                    try (ResultSet rs = stmt.executeQuery(getLatestIdStatement)) {\n" +
@@ -779,7 +779,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                 "                }\n" +
                                 "            } else {\n" +
                                 "                id = executor.executeInsertReturnId(\n" +
-                                "                        vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                "                        vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                        dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.ORACLE) ? sql + \" RETURNING %3$s INTO ?\" : sql + \" RETURNING %3$s\"," +
                                 "                        %1$sBuilder.insertMapInputParameter(entity),\n" +
                                 "                        dbTypeEnum\n" +
@@ -811,7 +811,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "    public Map<String, Integer> save(List<%1$s> entities) {\n" +
                             "        String sql = %1$sBuilder.insertSql();\n" +
                             "        Map<String, Integer> batchExecutationResult = executor.executeMutationBatch(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
                             "                entities.stream().map(entity -> %1$sBuilder.insertMapInputParameter(entity)).collect(Collectors.toList())\n" +
                             "        );\n" +
@@ -831,7 +831,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "    public Map<String, Integer> update(List<%1$s> entities) {\n" +
                             "        String sql = %1$sBuilder.updateSql();\n" +
                             "        Map<String, Integer> batchExecutationResult = executor.executeMutationBatch(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
                             "                entities.stream().map(entity -> %1$sBuilder.updateMapInputParameter(entity)).collect(Collectors.toList())\n" +
                             "        );\n" +
@@ -851,7 +851,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "    public Map<String, Integer> delete(List<%1$s> entities) {\n" +
                             "        String sql = %1$sBuilder.deleteSql();\n" +
                             "        Map<String, Integer> batchExecutationResult = executor.executeMutationBatch(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
                             "                entities.stream().map(entity -> %1$sBuilder.deleteMapInputParameter(entity)).collect(Collectors.toList())\n" +
                             "        );\n" +
@@ -990,7 +990,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                         ) {
                             databaseExecutionCode = String.format(
                                     "executor.executeQuery(\n" +
-                                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                             "                sql,\n" +
                                             "                %s,\n" +
                                             "                %s\n" +
@@ -1001,7 +1001,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                         } else {
                             databaseExecutionCode = String.format(
                                     "executor.executeQuery(\n" +
-                                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                             "                sql,\n" +
                                             "                %s,\n" +
                                             "                %sBuilder::resultSetMapping\n" +
@@ -1013,7 +1013,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                     } else {
                         databaseExecutionCode = String.format(
                                 "executor.executeQuery(\n" +
-                                        "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                        "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                         "                sql,\n" +
                                         "                %s,\n" +
                                         "                %sBuilder::resultSetMapping\n" +
@@ -1169,7 +1169,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                         String databaseExecutionCode =
                                 String.format(
                                         "executor.executeMutation(\n" +
-                                                "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                                                "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                                 "                sql,\n" +
                                                 "                %s\n" +
                                                 "        );",
@@ -1225,7 +1225,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "            map.put(++startingPosition, param);\n" +
                             "        }\n" +
                             "        java.util.List<%1$s> sqlResult = executor.executeQuery(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
                             "                map,\n" +
                             "                %1$sBuilder::resultSetMapping\n" +
@@ -1238,7 +1238,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "            throw new java.lang.RuntimeException(\"Result return more than 1\");\n" +
                             "        }\n" +
                             "        java.util.List<Integer> countResult = executor.executeQuery(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                countSql,\n" +
                             "                null,\n" +
                             "                resultSet -> {\n" +
@@ -1275,7 +1275,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "            map.put(++startingPosition, param);\n" +
                             "        }\n" +
                             "        java.util.List<%1$s> sqlResult = executor.executeQuery(\n" +
-                            "                vn.com.lcx.common.database.context.ConnectionContext.get().getConnection(),\n" +
+                            "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
                             "                map,\n" +
                             "                %1$sBuilder::resultSetMapping\n" +

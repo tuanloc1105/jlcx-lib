@@ -1,6 +1,8 @@
 package vn.com.lcx.common.database.pool.wrapper;
 
 import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
+import vn.com.lcx.common.database.type.DBType;
+import vn.com.lcx.common.database.type.DBTypeEnum;
 
 import java.sql.Array;
 import java.sql.Blob;
@@ -32,6 +34,10 @@ public class LCXConnection implements Connection {
 
     private Connection getRealConnection() {
         return connectionEntry.getConnection();
+    }
+
+    public DBTypeEnum getDBType() {
+        return connectionEntry.getDbType();
     }
 
     @Override
