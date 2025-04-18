@@ -7,6 +7,7 @@ import vn.com.lcx.common.annotation.Transaction;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.database.context.ConnectionContext;
 import vn.com.lcx.common.database.pool.LCXDataSource;
+import vn.com.lcx.common.utils.ObjectUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -72,7 +73,9 @@ public class ServiceProxy<T> implements InvocationHandler {
                                 return false;
                             }
                             for (int i = 0; i < args.length; i++) {
-                                if (!m.getParameterTypes()[i].isAssignableFrom(args[i].getClass())) {
+                                Class<?> type1 = ObjectUtils.wrapPrimitive(m.getParameterTypes()[i]);
+                                Class<?> type2 = ObjectUtils.wrapPrimitive(args[i].getClass());
+                                if (!type1.isAssignableFrom(type2)) {
                                     return false;
                                 }
                             }

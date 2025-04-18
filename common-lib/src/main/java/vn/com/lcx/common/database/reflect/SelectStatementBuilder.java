@@ -158,7 +158,10 @@ public class SelectStatementBuilder {
                     this.parseMethodNameIntoConditionStatement(methodName, new ArrayList<>(Arrays.asList(parameters)))
             );
         } else {
-            return statement;
+            return statement + (
+                    parameters.length != 0 && Pageable.class.isAssignableFrom(parameters[0].getClass()) ?
+                            ((Pageable) parameters[0]).toSql() : CommonConstant.EMPTY_STRING
+            );
         }
     }
 
