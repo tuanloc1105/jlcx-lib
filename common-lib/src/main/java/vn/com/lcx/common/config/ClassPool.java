@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -143,7 +144,7 @@ public class ClassPool {
                 val componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
                     val fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
-                    if (fieldsOfComponent.isEmpty()) {
+                    if (fieldsOfComponent.isEmpty() && !Optional.ofNullable(aClass.getAnnotation(Service.class)).isPresent()) {
                         val component = aClass.getDeclaredConstructor().newInstance();
                         CLASS_POOL.put(aClass.getName(), component);
                     } else {
