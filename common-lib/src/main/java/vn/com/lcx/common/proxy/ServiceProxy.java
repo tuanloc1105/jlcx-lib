@@ -73,6 +73,9 @@ public class ServiceProxy<T> implements InvocationHandler {
                                 return false;
                             }
                             for (int i = 0; i < args.length; i++) {
+                                if (args[i] == null) {
+                                    continue;
+                                }
                                 Class<?> type1 = ObjectUtils.wrapPrimitive(m.getParameterTypes()[i]);
                                 Class<?> type2 = ObjectUtils.wrapPrimitive(args[i].getClass());
                                 if (!type1.isAssignableFrom(type2)) {
