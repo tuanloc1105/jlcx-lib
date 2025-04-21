@@ -146,8 +146,12 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
             writer.write("    }\n\n");
             writer.write("    public static " + className + " getInstance(vn.com.lcx.common.database.DatabaseExecutor executor) {\n");
             writer.write("        if (instance == null) {\n");
-            writer.write("            instance = new " + className + "(executor);" + "\n");
-            writer.write("        }\n");
+            writer.write("            synchronized (" + className + ".class) {\n");
+            writer.write("                if (instance == null) {\n");
+            writer.write("                    instance = new " + className + "(executor);\n");
+            writer.write("                }\n");
+            writer.write("            }\n");
+            writer.write("        }");
             writer.write("        return instance;\n");
             writer.write("    }\n");
             writer.write("\n");
@@ -160,6 +164,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
             writer.write(code7);
             writer.write(code8);
             writer.write("\n}\n");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
