@@ -8,6 +8,8 @@ public interface Specification {
 
     List<Object> getParameters();
 
+    int getTimes();
+
     SimpleSpecificationImpl where(String fieldName, Object value);
 
     SimpleSpecificationImpl and(String fieldName, Object value);
