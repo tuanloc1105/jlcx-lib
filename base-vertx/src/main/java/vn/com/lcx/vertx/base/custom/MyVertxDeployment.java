@@ -91,7 +91,6 @@ public class MyVertxDeployment {
                         LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s);
                     });
                     listOfVerticleFuture.add(applicationVerticleFuture);
-                    break;
                 }
             }
             if (!listOfVerticleFuture.isEmpty()) {
