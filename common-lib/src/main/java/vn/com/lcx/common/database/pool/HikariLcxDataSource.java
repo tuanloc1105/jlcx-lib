@@ -4,7 +4,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.val;
 import lombok.var;
+import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.database.DatabaseProperty;
+import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
 import vn.com.lcx.common.database.pool.wrapper.HikariConnectionWrapper;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.exception.HikariLcxDataSourceException;
@@ -78,13 +80,15 @@ public class HikariLcxDataSource extends LCXDataSource {
                 config.setIdleTimeout(30000);
                 config.setConnectionTimeout(30000);
                 config.setLeakDetectionThreshold(15000);
+                val hikariDs = new HikariDataSource(config);
                 val pool = new HikariLcxDataSource(
                         databaseName,
                         property.getDriverClassName(),
                         property,
                         dbType,
-                        new HikariDataSource(config)
+                        hikariDs
                 );
+                Runtime.getRuntime().addShutdownHook(new Thread(hikariDs::close));
                 return pool;
             }
             throw new LCXDataSourcePropertiesException("Database properties is not all set");
