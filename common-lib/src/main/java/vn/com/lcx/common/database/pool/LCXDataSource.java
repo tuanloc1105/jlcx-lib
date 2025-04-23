@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static vn.com.lcx.common.utils.RandomUtils.generateRandomString;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class LCXDataSource {
 
     private final String poolName;
@@ -41,6 +41,7 @@ public class LCXDataSource {
     private final String showDbVersionSqlStatement;
     private final DatabaseProperty property;
     private final SimpleExecutor<Boolean> myExecutor;
+    @Getter
     private final DBTypeEnum dbType;
     private final int maxPoolWaitingTime;
     @Getter(AccessLevel.PRIVATE)
@@ -150,6 +151,10 @@ public class LCXDataSource {
         this.pool.addAll(pool);
     }
 
+    /**
+     * @deprecated this method will not be removed but I no longer maintain this method anymore
+     * @return
+     */
     @Deprecated
     public ConnectionEntry getConnection() {
         LogUtils.writeLog2(

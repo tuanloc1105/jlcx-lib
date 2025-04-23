@@ -50,6 +50,7 @@
         <javassist-org.javassist.version>3.30.2-GA</javassist-org.javassist.version>
         <snakeyaml-org.yaml.version>2.4</snakeyaml-org.yaml.version>
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
+        <HikariCP-com.zaxxer.version>4.0.3</HikariCP-com.zaxxer.version>
         <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.0
         </maven-compiler-plugin-org.apache.maven.plugins.version>
         <maven-resources-plugin-org.apache.maven.plugins.version>3.3.1
@@ -243,6 +244,12 @@
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
             <version>${jbcrypt-org.mindrot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${HikariCP-com.zaxxer.version}</version>
         </dependency>
 
     </dependencies>

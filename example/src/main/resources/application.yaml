@@ -3,6 +3,7 @@ server:
   port: 8123
   enable-http-2: true
   database:
+    hikari: true
     host: localhost
     port: '5432'
     username: postgres

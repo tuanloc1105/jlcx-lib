@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.gson.Gson;
 import lombok.val;
 import lombok.var;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
@@ -19,6 +20,7 @@ import vn.com.lcx.common.annotation.mapper.MapperClass;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.DatabaseExecutor;
 import vn.com.lcx.common.database.DatabaseExecutorImpl;
+import vn.com.lcx.common.database.pool.HikariLcxDataSource;
 import vn.com.lcx.common.database.pool.LCXDataSource;
 import vn.com.lcx.common.database.repository.LCXRepository;
 import vn.com.lcx.common.database.type.DBTypeEnum;
@@ -322,20 +324,38 @@ public class ClassPool {
         ) {
             return;
         }
+        boolean hikari = Boolean.parseBoolean(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.hikari"));
+        LCXDataSource dataSource;
+        if (hikari) {
+            dataSource = HikariLcxDataSource.init(
+                    host,
+                    port,
+                    username,
+                    password,
+                    name,
+                    driverClassName,
+                    initialPoolSize,
+                    maxPoolSize,
+                    maxTimeout,
+                    type
+            );
+        } else {
+            dataSource = LCXDataSource.init(
+                    host,
+                    port,
+                    username,
+                    password,
+                    name,
+                    driverClassName,
+                    initialPoolSize,
+                    maxPoolSize,
+                    maxTimeout,
+                    type
+            );
+        }
         CLASS_POOL.put(
                 LCXDataSource.class.getName(),
-                LCXDataSource.init(
-                        host,
-                        port,
-                        username,
-                        password,
-                        name,
-                        driverClassName,
-                        initialPoolSize,
-                        maxPoolSize,
-                        maxTimeout,
-                        type
-                )
+                dataSource
         );
     }
 
