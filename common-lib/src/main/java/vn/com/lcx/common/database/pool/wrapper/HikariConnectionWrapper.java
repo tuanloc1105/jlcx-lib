@@ -1,6 +1,7 @@
 package vn.com.lcx.common.database.pool.wrapper;
 
 import vn.com.lcx.common.database.type.DBTypeEnum;
+import vn.com.lcx.common.utils.LogUtils;
 
 import java.sql.Array;
 import java.sql.Blob;
@@ -38,6 +39,13 @@ public class HikariConnectionWrapper extends LCXConnection {
 
     @Override
     public void close() throws SQLException {
+        try {
+            if (!realHikariConnection.getAutoCommit()) {
+                realHikariConnection.commit();
+            }
+        } catch (SQLException e) {
+            LogUtils.writeLog(e.getMessage(), e);
+        }
         realHikariConnection.close();
     }
 
