@@ -151,7 +151,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
             writer.write("                    instance = new " + className + "(executor);\n");
             writer.write("                }\n");
             writer.write("            }\n");
-            writer.write("        }");
+            writer.write("        }\n");
             writer.write("        return instance;\n");
             writer.write("    }\n");
             writer.write("\n");
