@@ -277,7 +277,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             "            router.get(\"/starting_probe\").handler(routingContext -> {\n" +
                             "                routingContext.response().end(\"OK\");\n" +
                             "            });\n\n" +
-                            "            %s" +
+                            "            %s\n" +
                             "            final String portString = CommonConstant.applicationConfig.getProperty(\"server.port\");\n" +
                             "            int port;\n" +
                             "            if (MyStringUtils.isNotBlank(portString) && MyStringUtils.isNumeric(portString)) {\n" +
@@ -319,7 +319,7 @@ public class ControllerProcessor extends AbstractProcessor {
                     classProperties.stream().collect(Collectors.joining(";\n    ", CommonConstant.EMPTY_STRING, ";")),
                     applicationHaveAuthentication ? "    private final JWTAuth jwtAuth;\n" : CommonConstant.EMPTY_STRING,
                     constructor,
-                    routerConfigures.stream().collect(Collectors.joining("\n            ", CommonConstant.EMPTY_STRING, "\n")),
+                    routerConfigures.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining("\n            ", CommonConstant.EMPTY_STRING, "\n")),
                     applicationHaveAuthentication ? "    private void authenticate(RoutingContext ctx) {\n" +
                             "        String authHeader = ctx.request().getHeader(\"Authorization\");\n" +
                             "        if (authHeader == null || !authHeader.startsWith(\"Bearer \")) {\n" +
