@@ -13,6 +13,8 @@ import static vn.com.lcx.common.constant.CommonConstant.TRACE_ID_MDC_KEY_NAME;
 public class VertxBaseVerticle extends AbstractVerticle {
 
     public void createUUIDHandler(RoutingContext context) {
+        LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());
+        LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
         val traceFromInput = (String) context.get(TRACE_ID_MDC_KEY_NAME);
         if (StringUtils.isBlank(traceFromInput)) {
             val trace = UUIDv7.randomUUID().toString().replace(CommonConstant.HYPHEN, CommonConstant.EMPTY_STRING);
