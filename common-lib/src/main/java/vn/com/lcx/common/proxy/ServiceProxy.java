@@ -107,7 +107,9 @@ public class ServiceProxy<T> implements InvocationHandler {
             } else {
                 connection = ConnectionContext.get(connectionName);
             }
-            connection.setAutoCommit(false);
+            if (openConnection) {
+                connection.setAutoCommit(false);
+            }
         }
 
         try {
