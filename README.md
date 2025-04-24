@@ -1,2 +1,3 @@
 # jlcx-lib
-Java common module
+
+A Java common module that support connection pool, ORM, auto-generate SQL statement and more
