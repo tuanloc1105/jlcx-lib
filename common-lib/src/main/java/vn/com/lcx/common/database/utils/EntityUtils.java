@@ -1,7 +1,6 @@
 package vn.com.lcx.common.database.utils;
 
 import lombok.val;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.IdColumn;

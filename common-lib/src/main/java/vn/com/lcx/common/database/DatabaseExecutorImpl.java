@@ -1,7 +1,6 @@
 package vn.com.lcx.common.database;
 
 import lombok.val;
-import lombok.var;
 import oracle.jdbc.OraclePreparedStatement;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.handler.statement.SqlStatementHandler;

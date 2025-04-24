@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.val;
-import lombok.var;
 import vn.com.lcx.common.config.BuildGson;
 import vn.com.lcx.common.config.BuildObjectMapper;
 import vn.com.lcx.common.constant.CommonConstant;

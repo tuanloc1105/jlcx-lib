@@ -1,7 +1,6 @@
 package vn.com.lcx.common.utils;
 
 import lombok.NoArgsConstructor;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
