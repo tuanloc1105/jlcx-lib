@@ -636,6 +636,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             );
 
         } catch (SQLException e) {
+            LogUtils.writeLog(e.getMessage(), e);
             throw new RuntimeException("Cannot insert");
         } finally {
             this.closeStatementAndResultSet(statement, null);
