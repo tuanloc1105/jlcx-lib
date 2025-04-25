@@ -13,7 +13,6 @@ import vn.com.lcx.common.utils.ExceptionUtils;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
@@ -336,6 +335,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
             writer.write(SqlStatementBuilder.insertStatementBuilder(typeElement, classElements));
             writer.write(SqlStatementBuilder.updateStatementBuilder(typeElement, classElements));
             writer.write(SqlStatementBuilder.deleteStatementBuilder(typeElement, classElements));
+            writer.write(SqlStatementBuilder.insertStatementBuilderV2(typeElement, classElements));
+            writer.write(SqlStatementBuilder.updateStatementBuilderV2(typeElement, classElements));
             // writer.write(SqlStatementBuilder.selectStatementBuilder(typeElement, classElements));
             writer.write("}\n");
         }
@@ -472,6 +473,78 @@ public class SQLMappingProcessor extends AbstractProcessor {
             return result;
         }
 
+        public static String insertStatementBuilderV2(TypeElement typeElement, List<Element> classElements) {
+
+            TableName tableNameAnnotation = typeElement.getAnnotation(TableName.class);
+
+            if (tableNameAnnotation == null) {
+                return "";
+            }
+            String tableName;
+            String tableNameValue = tableNameAnnotation.value();
+
+            if (StringUtils.isNotBlank(tableNameAnnotation.schema())) {
+                String schemaName = tableNameAnnotation.schema() + ".";
+                if (tableNameValue.contains(".")) {
+                    final String[] tableNameValueArray = tableNameValue.split(DOT);
+                    tableName = schemaName + tableNameValueArray[tableNameValueArray.length - 1];
+                } else {
+                    tableName = schemaName + tableNameValue;
+                }
+            } else {
+                tableName = tableNameValue;
+            }
+
+            String insertStatement = "INSERT INTO\\n    " + tableName;
+            String entityFieldGetCode = CommonConstant.EMPTY_STRING;
+            ArrayList<String> codeLines = new ArrayList<>();
+            ArrayList<String> putEntityFieldIntoMapCodeLines = new ArrayList<>();
+            String idColumnFieldName = CommonConstant.EMPTY_STRING;
+            boolean idColumnIsNumber = false;
+
+            for (Element classElement : classElements) {
+                ColumnName columnNameAnnotation = classElement.getAnnotation(ColumnName.class);
+                if (columnNameAnnotation == null || StringUtils.isBlank(columnNameAnnotation.name())) {
+                    continue;
+                }
+                codeLines.add(String.format(
+                        "        if (entity.get%s() != null) {\n            cols.add(\"\\n        %s\");\n        }\n",
+                        capitalize(classElement.getSimpleName().toString()),
+                        columnNameAnnotation.name()
+                ));
+                codeLines.add(String.format(
+                        "        if (entity.get%s() != null) {\n            params.add(\"\\n        ?\");\n        }\n",
+                        capitalize(classElement.getSimpleName().toString())
+                ));
+                putEntityFieldIntoMapCodeLines.add(String.format(
+                        "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, entity.get%1$s());\n        }\n",
+                        capitalize(classElement.getSimpleName().toString())
+                ));
+            }
+            return String.format(
+                    "" +
+                            "    public static String insertSqlV2(%s entity) {\n" +
+                            "        java.util.List<String> cols = new java.util.ArrayList<>();\n" +
+                            "        java.util.List<String> params = new java.util.ArrayList<>();\n" +
+                            "%s\n" +
+                            "        return \"INSERT INTO\\n    \" + \"%s\" + \"(\" + String.join(\",\", cols) + \"\\n)\\n\" + \"VALUES\\n    \" + \"(\" + String.join(\",\", params) + \"\\n    )\";\n" +
+                            "    }\n",
+                    typeElement.getSimpleName(),
+                    String.join("", codeLines),
+                    tableName
+            ) + "\n" + String.format(
+                    "" +
+                            "\n    public static java.util.Map<Integer, Object> insertMapInputParameterV2(%s entity) {" +
+                            "\n        java.util.Map<Integer, Object> map = new java.util.HashMap<>();" +
+                            "\n        int startingPosition = 0;" +
+                            "\n%s" +
+                            "\n        return map;" +
+                            "\n    }\n",
+                    typeElement.getSimpleName(),
+                    String.join("", putEntityFieldIntoMapCodeLines)
+            );
+        }
+
         public static String updateStatementBuilder(TypeElement typeElement, List<Element> classElements) {
 
             String result = CommonConstant.EMPTY_STRING;
@@ -576,6 +649,89 @@ public class SQLMappingProcessor extends AbstractProcessor {
             return result;
         }
 
+        public static String updateStatementBuilderV2(TypeElement typeElement, List<Element> classElements) {
+
+            TableName tableNameAnnotation = typeElement.getAnnotation(TableName.class);
+
+            if (tableNameAnnotation == null) {
+                return "";
+            }
+            String tableName;
+            String tableNameValue = tableNameAnnotation.value();
+
+            if (StringUtils.isNotBlank(tableNameAnnotation.schema())) {
+                String schemaName = tableNameAnnotation.schema() + ".";
+                if (tableNameValue.contains(".")) {
+                    final String[] tableNameValueArray = tableNameValue.split(DOT);
+                    tableName = schemaName + tableNameValueArray[tableNameValueArray.length - 1];
+                } else {
+                    tableName = schemaName + tableNameValue;
+                }
+            } else {
+                tableName = tableNameValue;
+            }
+
+            String insertStatement = "INSERT INTO\\n    " + tableName;
+            String entityFieldGetCode = CommonConstant.EMPTY_STRING;
+            ArrayList<String> codeLines = new ArrayList<>();
+            ArrayList<String> putEntityFieldIntoMapCodeLines = new ArrayList<>();
+            boolean idColumnIsNumber = false;
+
+            String idColumnColumnName = CommonConstant.EMPTY_STRING;
+            String idColumnFieldName = CommonConstant.EMPTY_STRING;
+
+            for (Element classElement : classElements) {
+                ColumnName columnNameAnnotation = classElement.getAnnotation(ColumnName.class);
+                if (columnNameAnnotation == null || StringUtils.isBlank(columnNameAnnotation.name())) {
+                    continue;
+                }
+                IdColumn idColumnAnnotation = classElement.getAnnotation(IdColumn.class);
+                if (idColumnAnnotation != null) {
+                    idColumnColumnName = columnNameAnnotation.name();
+                    idColumnFieldName = classElement.getSimpleName().toString();
+                    continue;
+                }
+                codeLines.add(String.format(
+                        "        if (entity.get%s() != null) {\n            cols.add(\"\\n    %s = ?\");\n        }\n",
+                        capitalize(classElement.getSimpleName().toString()),
+                        columnNameAnnotation.name()
+                ));
+                putEntityFieldIntoMapCodeLines.add(String.format(
+                        "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, entity.get%1$s());\n        }\n",
+                        capitalize(classElement.getSimpleName().toString())
+                ));
+            }
+            if (StringUtils.isNotBlank(idColumnFieldName) && StringUtils.isNotBlank(idColumnColumnName)) {
+                putEntityFieldIntoMapCodeLines.add(String.format(
+                        "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, entity.get%1$s());\n        }\n",
+                        capitalize(idColumnFieldName)
+                ));
+                return String.format(
+                        "" +
+                                "    public static String updateSqlV2(%s entity) {\n" +
+                                "        java.util.List<String> cols = new java.util.ArrayList<>();\n" +
+                                "%s\n" +
+                                "        return \"UPDATE\\n    \" + \"%s\" + \"\\nSET\" + String.join(\",\", cols) + \"\\nWHERE %s = ?\";\n" +
+                                "    }\n",
+                        typeElement.getSimpleName(),
+                        String.join("", codeLines),
+                        tableName,
+                        idColumnColumnName
+                ) + "\n" + String.format(
+                        "" +
+                                "\n    public static java.util.Map<Integer, Object> updateMapInputParameterV2(%s entity) {" +
+                                "\n        java.util.Map<Integer, Object> map = new java.util.HashMap<>();" +
+                                "\n        int startingPosition = 0;" +
+                                "\n%s" +
+                                "\n        return map;" +
+                                "\n    }\n",
+                        typeElement.getSimpleName(),
+                        String.join("", putEntityFieldIntoMapCodeLines)
+                );
+            }
+            return "// no id field to generate";
+        }
+
         public static String deleteStatementBuilder(TypeElement typeElement, List<Element> classElements) {
 
             String result = CommonConstant.EMPTY_STRING;
@@ -670,38 +826,6 @@ public class SQLMappingProcessor extends AbstractProcessor {
             return result;
         }
 
-        public static String selectStatementBuilder(TypeElement typeElement, List<Element> classElements) {
-
-            String result = CommonConstant.EMPTY_STRING;
-
-            TableName tableNameAnnotation = typeElement.getAnnotation(TableName.class);
-
-            if (tableNameAnnotation == null) {
-                return result;
-            }
-
-            String tableName = tableNameAnnotation.value();
-
-            String selectStatement = "SELECT";
-            List<String> columnList = new ArrayList<>();
-
-            for (Element classElement : classElements) {
-                ColumnName columnNameAnnotation = classElement.getAnnotation(ColumnName.class);
-                if (columnNameAnnotation == null || StringUtils.isBlank(columnNameAnnotation.name())) {
-                    continue;
-                }
-                columnList.add(columnNameAnnotation.name());
-            }
-            // selectStatement += "\\n    " + String.join(",\\n    ", columnList) + "\\nFROM\\n    " + tableName;
-            selectStatement += "\\n    " + String.join(", ", columnList) + "\\nFROM\\n    " + tableName;
-
-            // selectStatement = "\n    public static String selectSql() {\n        " + "return \"" + selectStatement + "\";" + "\n    }";
-            selectStatement = "\n    public static String selectSql() {\n        " + "return \"" + selectStatement + "\";" + "\n    }";
-
-            // System.out.println(selectStatement);
-            result += selectStatement + "\n";
-            return result;
-        }
     }
 
 }
