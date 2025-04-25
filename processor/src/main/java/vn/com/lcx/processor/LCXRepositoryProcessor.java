@@ -624,11 +624,11 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                     "\n" +
                             "    @Override\n" +
                             "    public int save(%1$s entity) {\n" +
-                            "        String sql = %1$sBuilder.insertSql();\n" +
+                            "        String sql = %1$sBuilder.insertSqlV2(entity);\n" +
                             "        int rowAffected = executor.executeMutation(\n" +
                             "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
-                            "                %1$sBuilder.insertMapInputParameter(entity)\n" +
+                            "                %1$sBuilder.insertMapInputParameterV2(entity)\n" +
                             "        );\n" +
                             "        return rowAffected;\n" +
                             "    }\n",
@@ -638,11 +638,11 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                     "\n" +
                             "    @Override\n" +
                             "    public int update(%1$s entity) {\n" +
-                            "        String sql = %1$sBuilder.updateSql();\n" +
+                            "        String sql = %1$sBuilder.updateSqlV2(entity);\n" +
                             "        int rowAffected = executor.executeMutation(\n" +
                             "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                sql,\n" +
-                            "                %1$sBuilder.updateMapInputParameter(entity)\n" +
+                            "                %1$sBuilder.updateMapInputParameterV2(entity)\n" +
                             "        );\n" +
                             "        return rowAffected;\n" +
                             "    }\n",
@@ -707,7 +707,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                         "\n" +
                                 "    public void save2(%1$s entity) {\n" +
                                 "        try {\n" +
-                                "            String sql = %1$sBuilder.insertSql();\n" +
+                                "            String sql = %1$sBuilder.insertSqlV2(entity);\n" +
                                 "\n" +
                                 "            vn.com.lcx.common.database.type.DBTypeEnum dbTypeEnum = ((vn.com.lcx.common.database.pool.wrapper.LCXConnection) vn.com.lcx.common.database.context.ConnectionContext.get()).getDBType();\n" +
                                 "\n" +
@@ -717,7 +717,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                 "                int rowAffected = executor.executeMutation(\n" +
                                 "                        vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                        sql,\n" +
-                                "                        %1$sBuilder.insertMapInputParameter(entity)\n" +
+                                "                        %1$sBuilder.insertMapInputParameterV2(entity)\n" +
                                 "                );\n" +
                                 "                if (rowAffected == 0) {\n" +
                                 "                    throw new RuntimeException(\"Can not insert\");\n" +
@@ -737,7 +737,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                 "                BigDecimal newId = executor.executeInsertReturnId(\n" +
                                 "                        vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                        dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.ORACLE) ? sql + \" RETURNING %3$s INTO ?\" : sql + \" RETURNING %3$s\",\n" +
-                                "                        %1$sBuilder.insertMapInputParameter(entity),\n" +
+                                "                        %1$sBuilder.insertMapInputParameterV2(entity),\n" +
                                 "                        dbTypeEnum\n" +
                                 "                );\n" +
                                 "                id = newId.longValue();\n" +
@@ -756,7 +756,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                         "\n" +
                                 "    public void save2(%1$s entity) {\n" +
                                 "        try {\n" +
-                                "            String sql = %1$sBuilder.insertSql();\n" +
+                                "            String sql = %1$sBuilder.insertSqlV2(entity);\n" +
                                 "\n" +
                                 "            vn.com.lcx.common.database.type.DBTypeEnum dbTypeEnum = ((vn.com.lcx.common.database.pool.wrapper.LCXConnection) vn.com.lcx.common.database.context.ConnectionContext.get()).getDBType();\n" +
                                 "\n" +
@@ -766,7 +766,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                 "                int rowAffected = executor.executeMutation(\n" +
                                 "                        vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                        sql,\n" +
-                                "                        %1$sBuilder.insertMapInputParameter(entity)\n" +
+                                "                        %1$sBuilder.insertMapInputParameterV2(entity)\n" +
                                 "                );\n" +
                                 "                if (rowAffected == 0) {\n" +
                                 "                    throw new RuntimeException(\"Can not insert\");\n" +
@@ -786,7 +786,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                                 "                id = executor.executeInsertReturnId(\n" +
                                 "                        vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                                 "                        dbTypeEnum.equals(vn.com.lcx.common.database.type.DBTypeEnum.ORACLE) ? sql + \" RETURNING %3$s INTO ?\" : sql + \" RETURNING %3$s\"," +
-                                "                        %1$sBuilder.insertMapInputParameter(entity),\n" +
+                                "                        %1$sBuilder.insertMapInputParameterV2(entity),\n" +
                                 "                        dbTypeEnum\n" +
                                 "                );\n" +
                                 "            }\n" +
