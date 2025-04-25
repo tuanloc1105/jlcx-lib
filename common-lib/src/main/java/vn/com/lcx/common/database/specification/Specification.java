@@ -10,38 +10,42 @@ public interface Specification {
 
     int getTimes();
 
-    SimpleSpecificationImpl where(String fieldName, Object value);
+    Specification where(String fieldName, Object value);
 
-    SimpleSpecificationImpl and(String fieldName, Object value);
+    Specification and(String fieldName, Object value);
 
-    SimpleSpecificationImpl or(String fieldName, Object value);
+    Specification or(String fieldName, Object value);
 
-    SimpleSpecificationImpl where(Specification specification);
+    Specification where(Specification specification);
 
-    SimpleSpecificationImpl and(Specification specification);
+    Specification and(Specification specification);
 
-    SimpleSpecificationImpl or(Specification specification);
+    Specification or(Specification specification);
 
-    SimpleSpecificationImpl equal(String fieldName, Object value);
+    Specification equal(String fieldName, Object value);
 
-    SimpleSpecificationImpl notEqual(String fieldName, Object value);
+    Specification notEqual(String fieldName, Object value);
 
-    SimpleSpecificationImpl in(String fieldName, List<Object> values);
+    Specification in(String fieldName, List<Object> values);
 
-    SimpleSpecificationImpl like(String fieldName, Object value);
+    Specification like(String fieldName, Object value);
 
-    SimpleSpecificationImpl between(String fieldName, Object value1, Object value2);
+    Specification between(String fieldName, Object value1, Object value2);
 
-    SimpleSpecificationImpl lessThan(String fieldName, Object value);
+    Specification lessThan(String fieldName, Object value);
 
-    SimpleSpecificationImpl lessThanOrEqual(String fieldName, Object value);
+    Specification lessThanOrEqual(String fieldName, Object value);
 
-    SimpleSpecificationImpl greaterThan(String fieldName, Object value);
+    Specification greaterThan(String fieldName, Object value);
 
-    SimpleSpecificationImpl greaterThanOrEqual(String fieldName, Object value);
+    Specification greaterThanOrEqual(String fieldName, Object value);
 
-    SimpleSpecificationImpl isNull(String fieldName);
+    Specification isNull(String fieldName);
 
-    SimpleSpecificationImpl isNotNull(String fieldName);
+    Specification isNotNull(String fieldName);
+
+    default Specification create(Class<?> clz) {
+        return SimpleSpecificationImpl.of(clz);
+    }
 
 }
