@@ -1,6 +1,5 @@
 package vn.com.lcx.common.task.retry;
 
-import lombok.var;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.time.Duration;

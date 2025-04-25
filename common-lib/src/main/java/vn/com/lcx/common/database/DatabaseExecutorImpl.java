@@ -1,7 +1,6 @@
 package vn.com.lcx.common.database;
 
 import lombok.val;
-import lombok.var;
 import oracle.jdbc.OraclePreparedStatement;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.handler.statement.SqlStatementHandler;
@@ -637,6 +636,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             );
 
         } catch (SQLException e) {
+            LogUtils.writeLog(e.getMessage(), e);
             throw new RuntimeException("Cannot insert");
         } finally {
             this.closeStatementAndResultSet(statement, null);

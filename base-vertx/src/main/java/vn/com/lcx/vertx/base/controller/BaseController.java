@@ -180,6 +180,8 @@ public class BaseController {
     }
 
     protected <T extends CommonResponse, B> void executeThreadBlock(RoutingContext context, RequestHandler<T, B> requestHandler, TypeToken<B> requestBodyClass) {
+        LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());
+        LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
         val startingTime = (double) System.currentTimeMillis();
         val trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
 
@@ -305,6 +307,8 @@ public class BaseController {
     }
 
     protected <T extends CommonResponse, B> void execute(RoutingContext context, RequestHandler<T, B> requestHandler, TypeToken<B> requestBodyClass) {
+        LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());
+        LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
         val startingTime = (double) System.currentTimeMillis();
         val trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
         MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);

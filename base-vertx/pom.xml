@@ -12,12 +12,13 @@
 
     <properties>
 
-        <jdk.version>1.8</jdk.version>
+        <jdk.version>11</jdk.version>
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>${jdk.version}</java.version>
 
+        <common-lib-vn.com.lcx.version>1.0.0</common-lib-vn.com.lcx.version>
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
         <vertx-core-io.vertx.version>4.5.14</vertx-core-io.vertx.version>
         <vertx-web-io.vertx.version>4.5.14</vertx-web-io.vertx.version>
@@ -46,7 +47,7 @@
         <dependency>
             <groupId>vn.com.lcx</groupId>
             <artifactId>common-lib</artifactId>
-            <version>1.0.0</version>
+            <version>${common-lib-vn.com.lcx.version}</version>
         </dependency>
 
         <dependency>

@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.val;
-import lombok.var;
 import vn.com.lcx.vertx.base.annotation.GreaterThan;
 import vn.com.lcx.vertx.base.annotation.LessThan;
 import vn.com.lcx.vertx.base.annotation.NotNull;

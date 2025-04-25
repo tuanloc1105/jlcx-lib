@@ -1,6 +1,5 @@
 package vn.com.lcx.common.annotation.mapper;
 
-import lombok.var;
 import vn.com.lcx.common.scanner.PackageScanner;
 
 import java.io.IOException;

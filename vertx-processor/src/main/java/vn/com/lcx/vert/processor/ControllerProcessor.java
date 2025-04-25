@@ -3,6 +3,7 @@ package vn.com.lcx.vert.processor;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.ExceptionUtils;
+import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.annotation.process.APIKey;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
@@ -14,7 +15,6 @@ import vn.com.lcx.vertx.base.annotation.process.Put;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -71,8 +71,23 @@ public class ControllerProcessor extends AbstractProcessor {
                             })
                             .map(member -> (ExecutableElement) member).collect(Collectors.toList());
                     classMap.put(typeElement, allMethodsOfClass);
-
-
+                } catch (Exception e) {
+                    this.processingEnv.
+                            getMessager().
+                            printMessage(
+                                    Diagnostic.Kind.ERROR,
+                                    ExceptionUtils.getStackTrace(e)
+                            );
+                }
+            }
+        }
+        boolean serveStaticResource = false;
+        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(VertxApplication.class)) {
+            if (annotatedElement instanceof TypeElement) {
+                TypeElement typeElement = (TypeElement) annotatedElement;
+                try {
+                    VertxApplication vertxApplicationAnnotation = typeElement.getAnnotation(VertxApplication.class);
+                    serveStaticResource = vertxApplicationAnnotation.staticResource();
                 } catch (Exception e) {
                     this.processingEnv.
                             getMessager().
@@ -269,6 +284,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             "    public void start(Promise<Void> startPromise) {\n" +
                             "        try {\n" +
                             "            io.vertx.ext.web.Router router = MyRouter.router(super.vertx);\n" +
+                            "%s\n" +
                             "\n" +
                             "            // Enable parsing of request bodies\n" +
                             "            router.route().handler(BodyHandler.create());\n" +
@@ -277,7 +293,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             "            router.get(\"/starting_probe\").handler(routingContext -> {\n" +
                             "                routingContext.response().end(\"OK\");\n" +
                             "            });\n\n" +
-                            "            %s" +
+                            "%s\n" +
                             "            final String portString = CommonConstant.applicationConfig.getProperty(\"server.port\");\n" +
                             "            int port;\n" +
                             "            if (MyStringUtils.isNotBlank(portString) && MyStringUtils.isNumeric(portString)) {\n" +
@@ -319,7 +335,15 @@ public class ControllerProcessor extends AbstractProcessor {
                     classProperties.stream().collect(Collectors.joining(";\n    ", CommonConstant.EMPTY_STRING, ";")),
                     applicationHaveAuthentication ? "    private final JWTAuth jwtAuth;\n" : CommonConstant.EMPTY_STRING,
                     constructor,
-                    routerConfigures.stream().collect(Collectors.joining("\n            ", CommonConstant.EMPTY_STRING, "\n")),
+                    serveStaticResource ?
+                            "            router.route(\"/*\").handler(io.vertx.ext.web.handler.StaticHandler.create(\"webroot\"));\n" +
+                                    "            router.route().last().handler(ctx -> {\n" +
+                                    "                ctx.response()\n" +
+                                    "                        .putHeader(\"Content-Type\", \"text/html\")\n" +
+                                    "                        .sendFile(\"webroot/index.html\");\n" +
+                                    "            });\n" :
+                            CommonConstant.EMPTY_STRING,
+                    routerConfigures.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining("\n            ", "            ", "\n")),
                     applicationHaveAuthentication ? "    private void authenticate(RoutingContext ctx) {\n" +
                             "        String authHeader = ctx.request().getHeader(\"Authorization\");\n" +
                             "        if (authHeader == null || !authHeader.startsWith(\"Bearer \")) {\n" +
@@ -336,7 +360,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             "                );\n" +
                             "    }\n" : CommonConstant.EMPTY_STRING,
                     applicationHaveAPIKeyAuthentication ?
-                                    "    public void validateApiKey(RoutingContext context) {\n" +
+                            "    public void validateApiKey(RoutingContext context) {\n" +
                                     "        String apiKey = context.request().getHeader(\"x-api-key\");\n" +
                                     "        String validApiKey = CommonConstant.applicationConfig.getProperty(\"server.api-key\");\n" +
                                     "        if (!((apiKey + CommonConstant.EMPTY_STRING).equals(validApiKey))) {\n" +

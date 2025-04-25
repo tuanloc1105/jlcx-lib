@@ -3,7 +3,6 @@ package vn.com.lcx.common.database.pool;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.val;
-import lombok.var;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.database.DatabaseProperty;
 import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
