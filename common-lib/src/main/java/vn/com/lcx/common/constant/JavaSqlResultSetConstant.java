@@ -9,6 +9,7 @@ public class JavaSqlResultSetConstant {
         put("BigDecimal", "getBigDecimal");
         put("Blob", "getBlob");
         put("boolean", "getBoolean");
+        put("Boolean", "getBoolean");
         put("byte", "getByte");
         put("byte[]", "getBytes");
         put("Clob", "getClob");
