@@ -1222,8 +1222,8 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
             return String.format(
                     "\n\n" +
                             "    public vn.com.lcx.common.database.pageable.Page<%1$s> find(vn.com.lcx.common.database.specification.Specification specification, vn.com.lcx.common.database.pageable.Pageable pageable) {\n" +
-                            "        String sql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"findAll\") + \" WHERE \" + specification.getFinalSQL() + \" \" + pageable.toSql();\n" +
-                            "        String countSql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"countAll\") + \" WHERE \" + specification.getFinalSQL();\n" +
+                            "        String sql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"findAll\") + (specification.getTimes() > 0 ? \" WHERE \" : \"\") + specification.getFinalSQL() + \" \" + pageable.toSql();\n" +
+                            "        String countSql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"countAll\") + (specification.getTimes() > 0 ? \" WHERE \" : \"\") + specification.getFinalSQL();\n" +
                             "        java.util.Map<Integer, Object> map = new java.util.HashMap<>();\n" +
                             "        int startingPosition = 0;\n" +
                             "        for (Object param : specification.getParameters()) {\n" +
@@ -1273,7 +1273,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
             return String.format(
                     "\n\n" +
                             "    public java.util.List<%1$s> find(vn.com.lcx.common.database.specification.Specification specification) {\n" +
-                            "        String sql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"findAll\") + \" WHERE \" + specification.getFinalSQL();\n" +
+                            "        String sql = vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%1$s.class).build(\"findAll\") + (specification.getTimes() > 0 ? \" WHERE \" : \"\") + specification.getFinalSQL();\n" +
                             "        java.util.Map<Integer, Object> map = new java.util.HashMap<>();\n" +
                             "        int startingPosition = 0;\n" +
                             "        for (Object param : specification.getParameters()) {\n" +
