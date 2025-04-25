@@ -230,8 +230,13 @@ public final class EntityUtils {
                             List<String> alterTableConstraint = new ArrayList<>();
 
                             if (columnNameAnnotation.nullable()) {
-                                columnDefinitionList.add("NULL");
-                                alterTableConstraint.add("NULL");
+                                if (StringUtils.isBlank(columnNameAnnotation.defaultValue())) {
+                                    columnDefinitionList.add("NULL");
+                                    alterTableConstraint.add("NULL");
+                                } else {
+                                    columnDefinitionList.add("DEFAULT " + columnNameAnnotation.defaultValue());
+                                    alterTableConstraint.add("DEFAULT " + columnNameAnnotation.defaultValue());
+                                }
                             } else {
                                 if (StringUtils.isBlank(columnNameAnnotation.defaultValue())) {
                                     columnDefinitionList.add("NOT NULL");
