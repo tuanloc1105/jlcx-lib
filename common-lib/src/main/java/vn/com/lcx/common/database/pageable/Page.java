@@ -3,6 +3,7 @@ package vn.com.lcx.common.database.pageable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import vn.com.lcx.common.constant.CommonConstant;
 
 import java.io.Serializable;
 import java.util.List;
@@ -28,7 +29,12 @@ public class Page<T> implements Serializable {
         page.setContent(list);
         page.setPageNumber(pageNumber);
         page.setPageSize(pageSize);
-        page.setTotalPages(list.isEmpty() ? 0 : Math.round((float) totalElements / (float) pageSize));
+        // page.setTotalPages(list.isEmpty() ? 0 : Math.round((float) totalElements / (float) pageSize));
+        page.setTotalPages(
+                list.isEmpty() ?
+                        0 :
+                        Integer.parseInt(Math.round(Math.ceil((float) totalElements / (float) pageSize)) + CommonConstant.EMPTY_STRING)
+        );
         page.setNumberOfElements(list.size());
         page.setTotalElements((long) totalElements);
         page.setFirstPage(pageNumber == 1);
