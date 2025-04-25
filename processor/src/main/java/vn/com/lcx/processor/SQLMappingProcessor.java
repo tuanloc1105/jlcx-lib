@@ -438,7 +438,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             // insertStatement += "\\nVALUES\\n    " + "(" + String.join(", ", columnList.stream().map(v -> "?").toList()) + ")";
             if (idColumnIsNumber) {
                 entityFieldGetCode += String.format(
-                        "" +
+                        "\n" +
                                 "\n    public static java.util.Map<Integer, Object> insertMapInputParameter(%s entity) {" +
                                 "\n        java.util.Map<Integer, Object> map = new java.util.HashMap<>();" +
                                 "\n        int startingPosition = 0;" +
@@ -451,7 +451,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             } else {
                 entityFieldGetCode += String.format(
                         "" +
-                                "\n    public static java.util.Map<Integer, Object> insertMapInputParameter(%s entity) {" +
+                                "    public static java.util.Map<Integer, Object> insertMapInputParameter(%s entity) {" +
                                 "\n        if (entity.get%s() == null) {" +
                                 "\n            throw new RuntimeException(\"ID is null\");" +
                                 "\n        }" +
@@ -522,7 +522,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 ));
             }
             return String.format(
-                    "" +
+                    "\n" +
                             "    public static String insertSqlV2(%s entity) {\n" +
                             "        java.util.List<String> cols = new java.util.ArrayList<>();\n" +
                             "        java.util.List<String> params = new java.util.ArrayList<>();\n" +
@@ -532,14 +532,14 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     typeElement.getSimpleName(),
                     String.join("", codeLines),
                     tableName
-            ) + "\n" + String.format(
-                    "" +
-                            "\n    public static java.util.Map<Integer, Object> insertMapInputParameterV2(%s entity) {" +
+            ) + String.format(
+                    "\n" +
+                            "    public static java.util.Map<Integer, Object> insertMapInputParameterV2(%s entity) {" +
                             "\n        java.util.Map<Integer, Object> map = new java.util.HashMap<>();" +
                             "\n        int startingPosition = 0;" +
                             "\n%s" +
                             "\n        return map;" +
-                            "\n    }\n",
+                            "\n    }\n\n",
                     typeElement.getSimpleName(),
                     String.join("", putEntityFieldIntoMapCodeLines)
             );
@@ -712,13 +712,13 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 "        java.util.List<String> cols = new java.util.ArrayList<>();\n" +
                                 "%s\n" +
                                 "        return \"UPDATE\\n    \" + \"%s\" + \"\\nSET\" + String.join(\",\", cols) + \"\\nWHERE %s = ?\";\n" +
-                                "    }\n",
+                                "    }",
                         typeElement.getSimpleName(),
                         String.join("", codeLines),
                         tableName,
                         idColumnColumnName
-                ) + "\n" + String.format(
-                        "" +
+                ) + String.format(
+                        "\n" +
                                 "\n    public static java.util.Map<Integer, Object> updateMapInputParameterV2(%s entity) {" +
                                 "\n        java.util.Map<Integer, Object> map = new java.util.HashMap<>();" +
                                 "\n        int startingPosition = 0;" +
