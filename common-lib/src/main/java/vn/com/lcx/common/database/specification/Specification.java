@@ -44,7 +44,7 @@ public interface Specification {
 
     Specification isNotNull(String fieldName);
 
-    default Specification create(Class<?> clz) {
+    static Specification create(Class<?> clz) {
         return SimpleSpecificationImpl.of(clz);
     }
 
