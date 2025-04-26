@@ -160,7 +160,7 @@ public class SimpleSpecificationImpl implements Specification {
             throw new IllegalArgumentException(String.format("Cannot find the column name of [%s]", fieldName));
         }
         parameters.add(value);
-        finalSQL.append(tableShortenName).append(".").append(columnNameOfField).append(" LIKE ?");
+        finalSQL.append(tableShortenName).append(".").append(columnNameOfField).append(" LIKE '%' || ? || '%'");
         times++;
         return this;
     }
