@@ -1,23 +1,13 @@
 package com.example.lcx.service;
 
-import com.example.lcx.dto.UserDTO;
-import com.example.lcx.http.request.CreateUserRequest;
-import com.example.lcx.http.request.FindUserRequest;
-import com.example.lcx.http.request.UpdateUserRequest;
-import com.example.lcx.http.response.FindUserResponse;
-
-import java.util.List;
+import com.example.lcx.object.request.CreateNewUserRequest;
+import com.example.lcx.object.request.UserLoginRequest;
+import com.example.lcx.object.response.UserLoginResponse;
 
 public interface UserService {
-    UserDTO save(CreateUserRequest request);
 
-    UserDTO findById(Long id);
+    void createNew(final CreateNewUserRequest request);
 
-    List<UserDTO> findAll(int pageNumber, int pageSize);
+    UserLoginResponse login(final UserLoginRequest request);
 
-    FindUserResponse findUser(FindUserRequest request);
-
-    void deleteById(Long id);
-
-    UserDTO update(UpdateUserRequest request);
 }

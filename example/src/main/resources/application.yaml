@@ -1,15 +1,14 @@
 server:
-  api-key: lBu032NHh416sKg664oLM591URX779uM
-  port: 8123
+  port: 6060
   enable-http-2: true
   database:
     hikari: true
-    host: localhost
-    port: '5432'
+    host: 192.168.1.196
+    port: 5432
     username: postgres
-    password: postgres
+    password: yfM478rEK207BBA355stk059joK399CX
     driver_class_name: org.postgresql.Driver
-    name: my_database
+    name: todo_app
     max_pool_size: 10
     initial_pool_size: 5
     max_timeout: 10

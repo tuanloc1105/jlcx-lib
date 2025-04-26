@@ -14,29 +14,35 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Data
 @SQLMapping
-@TableName(value = "user", schema = "lcx")
-public class User {
+@TableName(value = "task", schema = "lcx")
+public class Task {
 
     @IdColumn
     @ColumnName(name = "id")
     private Long id;
 
-    @ColumnName(name = "username", nullable = false)
-    private String username;
+    @ColumnName(name = "task_name", nullable = false)
+    private String taskName;
 
-    @ColumnName(name = "password", nullable = false)
-    private String password;
+    @ColumnName(name = "task_detail", defaultValue = "''")
+    private String taskDetail;
 
-    @ColumnName(name = "full_name")
-    private String fullName;
-
-    @ColumnName(name = "active", defaultValue = "false")
-    private Boolean active;
+    @ColumnName(name = "remind_at", nullable = false)
+    private LocalDateTime remindAt;
 
     @ColumnName(name = "created_time", defaultValue = "current_timestamp")
     private LocalDateTime createdTime;
 
     @ColumnName(name = "updated_time", defaultValue = "current_timestamp")
     private LocalDateTime updatedTime;
+
+    @ColumnName(name = "finished", defaultValue = "false")
+    private Boolean finished;
+
+    @ColumnName(name = "created_by", nullable = false)
+    private String createdBy;
+
+    @ColumnName(name = "updated_by", defaultValue = "''")
+    private String updatedBy;
 
 }
