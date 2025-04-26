@@ -93,7 +93,8 @@ const Home: React.FC = () => {
                 }
             );
             if (createTaskResult.code === 401) {
-                navigateTo("/");
+                navigateTo("/login");
+                return;
             }
             const isSuccess: boolean = createTaskResult.code === 200 && createTaskResult.response.errorCode === API_SUCCESS_CODE;
             openNotificationWithIcon(
@@ -128,7 +129,8 @@ const Home: React.FC = () => {
                 }
             );
             if (listAllTasksResult.code === 401) {
-                navigateTo("/");
+                navigateTo("/login");
+                return;
             }
             setTotalTasksCount(listAllTasksResult.response.tasks.totalElements);
             if (listAllTasksResult.response.tasks.totalElements > 0) {
@@ -157,7 +159,8 @@ const Home: React.FC = () => {
                 }
             );
             if (removeTaskResult.code === 401) {
-                navigateTo("/");
+                navigateTo("/login");
+                return;
             }
             const isSuccess: boolean = removeTaskResult.code === 200 && removeTaskResult.response.errorCode === API_SUCCESS_CODE;
             openNotificationWithIcon(
@@ -187,7 +190,8 @@ const Home: React.FC = () => {
                 }
             );
             if (removeTaskResult.code === 401) {
-                navigateTo("/");
+                navigateTo("/login");
+                return;
             }
             const isSuccess: boolean = removeTaskResult.code === 200 && removeTaskResult.response.errorCode === API_SUCCESS_CODE;
             openNotificationWithIcon(
@@ -206,6 +210,7 @@ const Home: React.FC = () => {
         if (!localStorage.getItem("access_token")) {
             openNotificationWithIcon("warning", "You have not logged in");
             navigateTo("/login");
+            return;
         }
         handleGetTasks(0).then();
     }, []);
