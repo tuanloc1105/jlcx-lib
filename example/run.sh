@@ -14,4 +14,4 @@ java \
  -Duser.timezone=Asia/Ho_Chi_Minh \
  -Dfile.encoding=UTF8 \
  -jar \
- target/main-app-jar-with-dependencies.jar
+ target/todo-app-example-1.0.0-jar-with-dependencies.jar

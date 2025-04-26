@@ -51,7 +51,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>${maven-assembly-plugin-org.apache.maven.plugins.version}</version>
                 <configuration>
-                    <finalName>main-app</finalName>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
                     <archive>
                         <manifest>
                             <mainClass>${main.class}</mainClass>
