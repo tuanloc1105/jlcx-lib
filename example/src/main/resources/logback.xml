@@ -6,7 +6,7 @@
 
     <property name="APPLICATION_NAME" value="${APPLICATION_NAME}" scope="context"/>
     <property name="basePath" value="./data/log"/>
-    <property name="fileName" value="lms-vertx"/>
+    <property name="fileName" value="app"/>
 
     <property name="LOG_PATTERN"
               value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%25t] [%-40.40logger{1}] %m%n\n"/>
@@ -47,10 +47,5 @@
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE-AUDIT"/>
     </root>
-
-    <!-- <root level="debug"> -->
-    <!-- <appender-ref ref="STDOUT"/> -->
-    <!-- <appender-ref ref="FILE-AUDIT"/> -->
-    <!-- </root> -->
 
 </configuration>
