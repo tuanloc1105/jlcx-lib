@@ -1,0 +1,6 @@
+apiVersion: v2
+name: todo-app-example
+description: A Helm chart for Kubernetes to deploy the todo-app-example service
+type: application
+version: 1.0.0
+appVersion: 1.0.0

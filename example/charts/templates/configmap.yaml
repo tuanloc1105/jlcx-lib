@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-cf
+  namespace: {{ .Release.Namespace }}
+data:
+  database_hikari: {{ .Values.database_hikari | quote }}
+  database_host: {{ .Values.database_host | quote }}
+  database_port: {{ .Values.database_port | quote }}
+  database_driver_class_name: {{ .Values.database_driver_class_name | quote }}
+  database_name: {{ .Values.database_name | quote }}
+  database_max_pool_size: {{ .Values.database_max_pool_size | quote }}
+  database_initial_pool_size: {{ .Values.database_initial_pool_size | quote }}
+  database_max_timeout: {{ .Values.database_max_timeout | quote }}
+  database_type: {{ .Values.database_type | quote }}

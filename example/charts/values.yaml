@@ -1,0 +1,16 @@
+image:
+  name: tuanloc
+  tag: service
+port: 6060
+target_port: 6060
+database_hikari: true
+database_host: 192.168.1.196
+database_port: 5432
+database_username: cG9zdGdyZXM=
+database_password: eWZNNDc4ckVLMjA3QkJBMzU1c3RrMDU5am9LMzk5Q1g=
+database_driver_class_name: org.postgresql.Driver
+database_name: todo_app
+database_max_pool_size: 10
+database_initial_pool_size: 5
+database_max_timeout: 10
+database_type: POSTGRESQL
