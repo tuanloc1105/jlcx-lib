@@ -1239,9 +1239,6 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "            throw new java.lang.RuntimeException(\"Data source exception\");\n" +
                             "        }\n" +
                             "\n" +
-                            "        if (sqlResult != null && sqlResult.size() > 1) {\n" +
-                            "            throw new java.lang.RuntimeException(\"Result return more than 1\");\n" +
-                            "        }\n" +
                             "        java.util.List<Integer> countResult = executor.executeQuery(\n" +
                             "                vn.com.lcx.common.database.context.ConnectionContext.get(),\n" +
                             "                countSql,\n" +
@@ -1289,9 +1286,6 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             "            throw new java.lang.RuntimeException(\"Data source exception\");\n" +
                             "        }\n" +
                             "\n" +
-                            "        if (sqlResult != null && sqlResult.size() > 1) {\n" +
-                            "            throw new java.lang.RuntimeException(\"Result return more than 1\");\n" +
-                            "        }\n" +
                             "        return sqlResult.isEmpty() ? new ArrayList<>() : sqlResult;\n" +
                             "    }\n",
                     genericEntityClass.getQualifiedName().toString()
