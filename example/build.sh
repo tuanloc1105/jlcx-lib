@@ -1,7 +1,5 @@
 #!/bin/bash
 
-clear
-
 export JAVA_HOME="/home/loc/dev-kit/jdk-11"
 export MAVEN_HOME="/home/loc/dev-kit/maven"
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin"
