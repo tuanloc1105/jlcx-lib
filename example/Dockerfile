@@ -12,6 +12,6 @@ ENTRYPOINT [ \
     "-Duser.timezone=Asia/Ho_Chi_Minh", \
     "-Dfile.encoding=UTF8", \
     "-Xlog:gc*:file=data/gc.log:time,uptime,level,tags:filecount=5,filesize=10m", \
-    "-cp", \
+    "-jar", \
     "app.jar" \
 ]
