@@ -79,8 +79,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-secret
                   key: database_password
-            - name: "DATE_FORMAT_TYPE"
-              value: "VN"
+            # - name: "DATE_FORMAT_TYPE"
+            #   value: "VN"
           ports:
             - containerPort: {{ .Values.port }}
               protocol: TCP
