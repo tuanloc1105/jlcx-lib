@@ -151,6 +151,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         return result;
     }
 
+    @Override
     public void executeTasksWithCountDownLatch() {
         LogUtils.writeLog(
                 LogUtils.Level.INFO,

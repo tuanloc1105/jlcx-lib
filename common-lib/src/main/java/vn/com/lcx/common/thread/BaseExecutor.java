@@ -19,6 +19,8 @@ public interface BaseExecutor<RETURN_TYPE> {
 
     List<RETURN_TYPE> executeTasks();
 
+    void executeTasksWithCountDownLatch();
+
     void cancelFutureTasks(Future<RETURN_TYPE> futureTasks);
 
 }
