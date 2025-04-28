@@ -9,6 +9,7 @@ import vn.com.lcx.common.utils.LogUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -148,6 +149,51 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
             executor.shutdown();
         }
         return result;
+    }
+
+    public void executeTasksWithCountDownLatch() {
+        LogUtils.writeLog(
+                LogUtils.Level.INFO,
+                "Execution info:\n" +
+                        "    - Task list: {}\n" +
+                        "    - Rejected execution handler: {}\n" +
+                        "    - Min number of thread(s): {}\n" +
+                        "    - Max number of thread(s): {}\n" +
+                        "    - Timeout: {}\n" +
+                        "    - Time unit: {}",
+                this.taskList.size(),
+                this.rejectedExecutionHandler.getClass().getSimpleName(),
+                this.minThread,
+                this.maxThread,
+                this.timeout,
+                this.unit.toString()
+        );
+        ExecutorService executor = this.createExecutorService();
+        final CountDownLatch latch = new CountDownLatch(this.taskList.size());
+        for (Callable<T> tCallable : this.taskList) {
+            executor.submit(() -> {
+                try {
+                    tCallable.call();
+                } catch (Exception e) {
+                    LogUtils.writeLog(e.getMessage(), e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        executor.shutdown();
+        try {
+            final var finishedInTime = latch.await(this.timeout, this.unit);
+            if (finishedInTime) {
+                LogUtils.writeLog(LogUtils.Level.INFO, "All tasks finished in time");
+            } else {
+                LogUtils.writeLog(LogUtils.Level.WARN, "Some task has not been done");
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            // Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
