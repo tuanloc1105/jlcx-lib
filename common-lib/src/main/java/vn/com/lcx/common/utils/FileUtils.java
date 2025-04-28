@@ -193,7 +193,13 @@ public final class FileUtils {
                 "" + ownerPermission.handlePermission() + groupPermission.handlePermission() + otherUserPermission.handlePermission(),
                 file.getAbsolutePath()
         );
-        ShellCommandRunningUtils.runWithProcessBuilder(changeFilePermissionCommand, CommonConstant.ROOT_DIRECTORY_PROJECT_PATH);
+        ShellCommandRunningUtils.runWithProcessBuilder(
+                changeFilePermissionCommand,
+                CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                10,
+                null,
+                false
+        );
     }
 
     /**

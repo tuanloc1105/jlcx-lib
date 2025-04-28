@@ -60,23 +60,28 @@
 
     </dependencies>
 
-    <build>
+    <!-- <build> -->
 
-        <plugins>
-            <plugin>
-                <groupId>vn.com.lcx</groupId>
-                <artifactId>grpc-proto-plugin</artifactId>
-                <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>list-files</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
+    <!-- <plugins> -->
+    <!-- <plugin> -->
+    <!-- <groupId>vn.com.lcx</groupId> -->
+    <!-- <artifactId>grpc-proto-plugin</artifactId> -->
+    <!-- <version>1.0.0</version> -->
+    <!-- <executions> -->
+    <!-- <execution> -->
+    <!-- <goals> -->
+    <!-- <goal>list-files</goal> -->
+    <!-- <goal>generate-code</goal> -->
+    <!-- </goals> -->
+    <!-- <configuration> -->
+    <!-- <protocFilePath>/home/loc/dev-kit/protoc/bin</protocFilePath> -->
+    <!-- <protocGenGrpcJavaFilePath>/home/loc/dev-kit/tool</protocGenGrpcJavaFilePath> -->
+    <!-- </configuration> -->
+    <!-- </execution> -->
+    <!-- </executions> -->
+    <!-- </plugin> -->
+    <!-- </plugins> -->
 
-    </build>
+    <!-- </build> -->
 
 </project>

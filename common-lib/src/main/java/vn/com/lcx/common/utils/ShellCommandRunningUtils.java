@@ -1,7 +1,10 @@
 package vn.com.lcx.common.utils;
 
+import lombok.Data;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
@@ -23,17 +26,28 @@ public final class ShellCommandRunningUtils {
     private ShellCommandRunningUtils() {
     }
 
-    public static List<String> runWithProcessBuilder(String cmd, String directory, int... timeoutSecond) {
+    public static ShellCommandOutput runWithProcessBuilder(String cmd,
+                                                           String directory,
+                                                           int timeoutSecond,
+                                                           List<ProcessEnvironment> environments,
+                                                           boolean showLog) {
+        Process process = null;
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        int exitCode = -999;
+        final var stdOut = new ArrayList<String>();
+        final var stdErr = new ArrayList<String>();
         try {
             if (StringUtils.isBlank(directory)) {
                 directory = CommonConstant.ROOT_DIRECTORY_PROJECT_PATH;
             }
-            LogUtils.writeLog(
-                    LogUtils.Level.INFO,
-                    "executing a command:\n    - command: {}\n    - directory: {}",
-                    cmd,
-                    directory
-            );
+            if (showLog) {
+                LogUtils.writeLog(
+                        LogUtils.Level.INFO,
+                        "executing a command:\n    - command: {}\n    - directory: {}",
+                        cmd,
+                        directory
+                );
+            }
             boolean isWindows = System
                     .getProperty("os.name")
                     .toLowerCase()
@@ -45,34 +59,38 @@ public final class ShellCommandRunningUtils {
                 builder.command("bash", "-c", cmd);
                 // builder.command("sh", "-c", cmd);
             }
+            if (CollectionUtils.isNotEmpty(environments)) {
+                environments
+                        .forEach(
+                                environment ->
+                                        builder.environment().put(environment.getEnvName(), environment.getEnvValue())
+                        );
+            }
             builder.directory(new File(directory));
-            Process process = builder.start();
+            process = builder.start();
             StreamGobbler stdOutStreamGobbler = new StreamGobbler(process.getInputStream(), String::trim);
             StreamGobbler errOutStreamGobbler = new StreamGobbler(process.getErrorStream(), String::trim);
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
             Future<?> stdOutFuture = executorService.submit(stdOutStreamGobbler);
             Future<?> errOutFuture = executorService.submit(errOutStreamGobbler);
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                LogUtils.writeLog(
-                        LogUtils.Level.WARN,
-                        "\n" + String.join("\n", errOutStreamGobbler.getResult())
-                );
-                return new ArrayList<>();
+            boolean executedSuccess = process.waitFor(timeoutSecond > 0 ? timeoutSecond : 10, TimeUnit.SECONDS);
+            if (executedSuccess) {
+                exitCode = process.exitValue();
+                stdOutFuture.get(timeoutSecond > 0 ? timeoutSecond : 10, TimeUnit.SECONDS);
+                errOutFuture.get(timeoutSecond > 0 ? timeoutSecond : 10, TimeUnit.SECONDS);
+                stdErr.addAll(errOutStreamGobbler.getResult());
+                stdOut.addAll(stdOutStreamGobbler.getResult());
             }
-            stdOutFuture.get(timeoutSecond.length == 1 ? timeoutSecond[0] : 10, TimeUnit.SECONDS);
-            errOutFuture.get(timeoutSecond.length == 1 ? timeoutSecond[0] : 10, TimeUnit.SECONDS);
-            process.destroy();
-            executorService.shutdown();
-            LogUtils.writeLog(
-                    LogUtils.Level.INFO,
-                    "\n" + String.join("\n", stdOutStreamGobbler.getResult())
-            );
-            return stdOutStreamGobbler.getResult();
         } catch (Exception e) {
             LogUtils.writeLog(e.getMessage(), e);
-            return new ArrayList<>();
+            exitCode = -999;
+            stdErr.add(ExceptionUtils.getStackTrace(e));
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
+            executorService.shutdown();
         }
+        return new ShellCommandOutput(exitCode, stdOut, stdErr);
     }
 
     @Setter
@@ -98,4 +116,20 @@ public final class ShellCommandRunningUtils {
                     .map(consumer).collect(Collectors.toList()));
         }
     }
+
+    @Data
+    @RequiredArgsConstructor
+    public static class ProcessEnvironment {
+        private final String envName;
+        private final String envValue;
+    }
+
+    @Data
+    @RequiredArgsConstructor
+    public static class ShellCommandOutput {
+        private final int exitCode;
+        private final List<String> stdOut;
+        private final List<String> stdErr;
+    }
+
 }
