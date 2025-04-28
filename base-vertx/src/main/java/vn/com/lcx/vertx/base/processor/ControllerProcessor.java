@@ -1,4 +1,4 @@
-package vn.com.lcx.vert.processor;
+package vn.com.lcx.vertx.base.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;

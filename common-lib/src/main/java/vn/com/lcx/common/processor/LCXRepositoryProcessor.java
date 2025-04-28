@@ -1,4 +1,4 @@
-package vn.com.lcx.processor;
+package vn.com.lcx.common.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;

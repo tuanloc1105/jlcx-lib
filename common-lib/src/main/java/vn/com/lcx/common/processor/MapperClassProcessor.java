@@ -1,4 +1,4 @@
-package vn.com.lcx.processor;
+package vn.com.lcx.common.processor;
 
 import vn.com.lcx.common.annotation.mapper.MapperClass;
 import vn.com.lcx.common.annotation.mapper.Mapping;

@@ -2,6 +2,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>vn.com.lcx</groupId>
+        <artifactId>lcx-lib</artifactId>
+        <version>1.0</version>
+    </parent>
+
     <groupId>vn.com.lcx</groupId>
     <artifactId>common-lib</artifactId>
     <version>1.0.0</version>
@@ -50,18 +56,6 @@
         <snakeyaml-org.yaml.version>2.4</snakeyaml-org.yaml.version>
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>6.3.0</HikariCP-com.zaxxer.version>
-        <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.0
-        </maven-compiler-plugin-org.apache.maven.plugins.version>
-        <maven-resources-plugin-org.apache.maven.plugins.version>3.3.1
-        </maven-resources-plugin-org.apache.maven.plugins.version>
-        <maven-dependency-plugin-org.apache.maven.plugins.version>3.8.1
-        </maven-dependency-plugin-org.apache.maven.plugins.version>
-        <maven-clean-plugin-org.apache.maven.plugins.version>3.4.1</maven-clean-plugin-org.apache.maven.plugins.version>
-        <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.3
-        </maven-surefire-plugin-org.apache.maven.plugins.version>
-        <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
-        <maven-install-plugin-org.apache.maven.plugins.version>3.1.4
-        </maven-install-plugin-org.apache.maven.plugins.version>
 
     </properties>
 
@@ -270,105 +264,5 @@
         </dependency>
 
     </dependencies>
-
-    <build>
-
-        <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin-org.apache.maven.plugins.version}</version>
-                <configuration>
-                    <source>${jdk.version}</source>
-                    <target>${jdk.version}</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin-org.apache.maven.plugins.version}</version>
-                <executions>
-                    <execution>
-                        <id>copy-java-to-classes</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/java</directory>
-                                    <includes>
-                                        <include>**/*.java</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>${maven-dependency-plugin-org.apache.maven.plugins.version}</version>
-                <executions>
-                    <execution>
-                        <id>download-sources</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <!-- <goal>sources</goal>-->
-                            <!-- <goal>resolve</goal>-->
-                            <goal>resolve-sources</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>download-javadocs</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>resolve-plugins</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-        </plugins>
-
-        <pluginManagement>
-
-            <plugins>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>${maven-clean-plugin-org.apache.maven.plugins.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven-surefire-plugin-org.apache.maven.plugins.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>${maven-jar-plugin-org.apache.maven.plugins.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-install-plugin</artifactId>
-                    <version>${maven-install-plugin-org.apache.maven.plugins.version}</version>
-                </plugin>
-
-            </plugins>
-
-        </pluginManagement>
-
-    </build>
 
 </project>
