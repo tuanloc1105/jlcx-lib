@@ -43,7 +43,7 @@ public class GenerateCodeMojo extends AbstractMojo {
             return;
         }
         final var protoFilePaths = FileUtils.listFiles(protoFolderPath);
-        final var outputGrpcCodeFolderPath = FileUtils.pathJoining(projectBaseDir.getAbsolutePath(), "target", "grpc-generated-sources", "annotations");
+        final var outputGrpcCodeFolderPath = FileUtils.pathJoining(projectBaseDir.getAbsolutePath(), "target", "generated-sources");
         FileUtils.createFolderIfNotExists(outputGrpcCodeFolderPath);
         if (StringUtils.isNotBlank(protocFilePath) && StringUtils.isNotBlank(protocGenGrpcJavaFilePath)) {
             for (String protoFilePath : protoFilePaths) {
