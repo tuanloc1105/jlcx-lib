@@ -9,7 +9,7 @@
         <version>1.0</version>
     </parent>
 
-    <groupId>vn.com.lcx</groupId>
+    <!-- <groupId>vn.com.lcx</groupId> -->
     <artifactId>base-vertx</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
