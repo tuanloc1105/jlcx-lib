@@ -175,7 +175,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             apiPath = CommonConstant.EMPTY_STRING;
                         }
                         routerConfigureCode = String.format(
-                                "router.get(\"%s\").handler(this::createUUIDHandler)",
+                                "router.get(\"%s\")",
                                 basePath + apiPath
                         );
                     }
@@ -192,7 +192,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             apiPath = CommonConstant.EMPTY_STRING;
                         }
                         routerConfigureCode = String.format(
-                                "router.post(\"%s\").handler(this::createUUIDHandler)",
+                                "router.post(\"%s\")",
                                 basePath + apiPath
                         );
                     }
@@ -209,7 +209,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             apiPath = CommonConstant.EMPTY_STRING;
                         }
                         routerConfigureCode = String.format(
-                                "router.put(\"%s\").handler(this::createUUIDHandler)",
+                                "router.put(\"%s\")",
                                 basePath + apiPath
                         );
                     }
@@ -226,19 +226,19 @@ public class ControllerProcessor extends AbstractProcessor {
                             apiPath = CommonConstant.EMPTY_STRING;
                         }
                         routerConfigureCode = String.format(
-                                "router.delete(\"%s\").handler(this::createUUIDHandler)",
+                                "router.delete(\"%s\")",
                                 basePath + apiPath
                         );
                     }
                     if (StringUtils.isNotBlank(routerConfigureCode)) {
                         if (isAuthMethod) {
-                            routerConfigureCode += ".handler(this::authenticate)";
+                            routerConfigureCode += ".handler(authHandler)";
                         }
                         if (isAPIKeyMethod) {
                             routerConfigureCode += ".handler(this::validateApiKey)";
                         }
                         routerConfigureCode += String.format(
-                                ".handler(this.controller%d::%s);",
+                                ".handler(this::createUUIDHandler).handler(this.controller%d::%s);",
                                 count,
                                 e.getSimpleName() + CommonConstant.EMPTY_STRING
                         );
@@ -258,14 +258,14 @@ public class ControllerProcessor extends AbstractProcessor {
                     constructorBody.stream().collect(Collectors.joining("\n       ", "       ", CommonConstant.EMPTY_STRING))
             );
             String codeToWrite = String.format(
-                    "" +
-                            "package vn.com.lcx.vertx.verticle;\n" +
+                    "package vn.com.lcx.vertx.verticle;\n" +
                             "\n" +
                             "import io.vertx.core.Promise;\n" +
                             "import io.vertx.ext.auth.authentication.TokenCredentials;\n" +
                             "import io.vertx.ext.auth.jwt.JWTAuth;\n" +
                             "import io.vertx.ext.web.RoutingContext;\n" +
                             "import io.vertx.ext.web.handler.BodyHandler;\n" +
+                            "import io.vertx.ext.web.handler.JWTAuthHandler;\n" +
                             "import vn.com.lcx.common.annotation.Verticle;\n" +
                             "import vn.com.lcx.common.constant.CommonConstant;\n" +
                             "import vn.com.lcx.common.utils.LogUtils;\n" +
@@ -283,6 +283,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             "    @Override\n" +
                             "    public void start(Promise<Void> startPromise) {\n" +
                             "        try {\n" +
+                            "%s" +
                             "            io.vertx.ext.web.Router router = MyRouter.router(super.vertx);\n" +
                             "%s\n" +
                             "\n" +
@@ -329,12 +330,12 @@ public class ControllerProcessor extends AbstractProcessor {
                             "    }\n" +
                             "\n" +
                             "%s" +
-                            "%s" +
                             "\n" +
                             "}\n",
                     classProperties.stream().collect(Collectors.joining(";\n    ", CommonConstant.EMPTY_STRING, ";")),
                     applicationHaveAuthentication ? "    private final JWTAuth jwtAuth;\n" : CommonConstant.EMPTY_STRING,
                     constructor,
+                    applicationHaveAuthentication ? "            JWTAuthHandler authHandler = JWTAuthHandler.create(this.jwtAuth);\n" : CommonConstant.EMPTY_STRING,
                     serveStaticResource ?
                             "            router.route(\"/*\").handler(io.vertx.ext.web.handler.StaticHandler.create(\"webroot\"));\n" +
                                     "            router.route().last().handler(ctx -> {\n" +
@@ -344,21 +345,6 @@ public class ControllerProcessor extends AbstractProcessor {
                                     "            });\n" :
                             CommonConstant.EMPTY_STRING,
                     routerConfigures.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining("\n            ", "            ", "\n")),
-                    applicationHaveAuthentication ? "    private void authenticate(RoutingContext ctx) {\n" +
-                            "        String authHeader = ctx.request().getHeader(\"Authorization\");\n" +
-                            "        if (authHeader == null || !authHeader.startsWith(\"Bearer \")) {\n" +
-                            "            ctx.response().setStatusCode(401).end(\"Missing or invalid Authorization header\");\n" +
-                            "            return;\n" +
-                            "        }\n" +
-                            "        String token = authHeader.substring(7);  // Remove \"Bearer \" prefix\n" +
-                            "        this.jwtAuth.authenticate(new TokenCredentials(token))\n" +
-                            "                .onSuccess(user -> {\n" +
-                            "                    ctx.setUser(user);\n" +
-                            "                    ctx.next();  // Continue to the next handler\n" +
-                            "                })\n" +
-                            "                .onFailure(err -> ctx.response().setStatusCode(401).end(\"Invalid token\")\n" +
-                            "                );\n" +
-                            "    }\n" : CommonConstant.EMPTY_STRING,
                     applicationHaveAPIKeyAuthentication ?
                             "    public void validateApiKey(RoutingContext context) {\n" +
                                     "        String apiKey = context.request().getHeader(\"x-api-key\");\n" +
