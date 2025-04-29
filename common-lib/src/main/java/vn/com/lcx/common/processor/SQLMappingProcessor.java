@@ -730,7 +730,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         String.join("", putEntityFieldIntoMapCodeLines)
                 );
             }
-            return "// no id field to generate";
+            return "// no id field to generate\n";
         }
 
         public static String deleteStatementBuilder(TypeElement typeElement, List<Element> classElements) {
