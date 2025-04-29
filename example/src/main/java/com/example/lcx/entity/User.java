@@ -8,6 +8,7 @@ import vn.com.lcx.common.annotation.IdColumn;
 import vn.com.lcx.common.annotation.SQLMapping;
 import vn.com.lcx.common.annotation.TableName;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -15,7 +16,8 @@ import java.time.LocalDateTime;
 @Data
 @SQLMapping
 @TableName(value = "user", schema = "lcx")
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 2675938794277420417L;
 
     @IdColumn
     @ColumnName(name = "id")
