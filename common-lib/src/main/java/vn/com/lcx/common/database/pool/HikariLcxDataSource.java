@@ -79,6 +79,7 @@ public class HikariLcxDataSource extends LCXDataSource {
                 config.setIdleTimeout(30000);
                 config.setConnectionTimeout(30000);
                 config.setLeakDetectionThreshold(15000);
+                config.setDriverClassName(driverClassName);
                 val hikariDs = new HikariDataSource(config);
                 val pool = new HikariLcxDataSource(
                         databaseName,
