@@ -6,6 +6,7 @@
         <groupId>vn.com.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
         <version>1.0</version>
+        <relativePath/>
     </parent>
 
     <groupId>com.example.lcx</groupId>
