@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import vn.com.lcx.common.exception.CacheException;
 
+import java.lang.ref.SoftReference;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -13,7 +14,8 @@ import java.util.concurrent.TimeUnit;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CacheUtils<K, V> {
     private final int capacity;
-    private final ConcurrentHashMap<K, V> cache;
+    // Use soft reference to ensure memory usage
+    private final ConcurrentHashMap<K, SoftReference<V>> cache;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public static <K, V> CacheUtils<K, V> create(int capacity) {
@@ -30,7 +32,7 @@ public class CacheUtils<K, V> {
         if (this.cache.size() >= this.capacity) {
             throw new CacheException("Cache is full");
         }
-        this.cache.put(key, value);
+        this.cache.put(key, new SoftReference<>(value));
     }
 
     // Method to add items to the cache
@@ -48,12 +50,12 @@ public class CacheUtils<K, V> {
         //         DateTimeUtils.localDateTimeToDate(DateTimeUtils.generateCurrentTimeDefault().plus(duration))
         // );
         this.scheduler.schedule(() -> this.cache.remove(key), duration.toMillis(), TimeUnit.MILLISECONDS);
-        this.cache.put(key, value);
+        this.cache.put(key, new SoftReference<>(value));
     }
 
     // Method to retrieve items from the cache
-    public Object get(K key) {
-        return this.cache.get(key);
+    public V get(K key) {
+        return this.cache.get(key).get();
     }
 
     // Method to remove items from the cache
