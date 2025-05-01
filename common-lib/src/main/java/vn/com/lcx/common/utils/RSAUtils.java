@@ -7,6 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import javax.crypto.Cipher;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -18,6 +21,29 @@ import java.util.Base64;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RSAUtils {
+
+    public static String readKeyFromResource(String resourcePath, boolean isPrivate) throws IOException {
+        final var classLoader = RSAUtils.class.getClassLoader();
+        try (InputStream inputStream = classLoader.getResourceAsStream(resourcePath)) {
+            if (inputStream == null) {
+                throw new IOException("File not found in resources: " + resourcePath);
+            }
+            return convertToPEM(inputStream, isPrivate);
+        }
+    }
+
+    public static String readKey(String resourcePath, boolean isPrivate) throws IOException {
+        try (InputStream inputStream = new FileInputStream(resourcePath)) {
+            return convertToPEM(inputStream, isPrivate);
+        }
+    }
+
+    private static String convertToPEM(InputStream inputStream, boolean isPrivate) throws IOException {
+        byte[] keyBytes = inputStream.readAllBytes();
+        String base64 = Base64.getMimeEncoder(64, "\n".getBytes()).encodeToString(keyBytes);
+        final var headerName = isPrivate ? "PRIVATE KEY" : "PUBLIC KEY";
+        return "-----BEGIN " + headerName + "-----\n" + base64 + "\n-----END " + headerName + "-----";
+    }
 
     public static RSAPublicKey getPublicKey(String key) throws Exception {
         String publicKeyPEM = key
