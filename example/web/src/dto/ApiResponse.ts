@@ -30,6 +30,10 @@ export interface ListAllTasksResponse extends ApiResponse {
     tasks: PageResponse<TaskItem>;
 }
 
+export interface SearchTaskResponse extends ApiResponse {
+    tasks: PageResponse<TaskItem>;
+}
+
 export interface TaskItem {
     id: number;
     taskName: string;

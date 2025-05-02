@@ -5,7 +5,6 @@ import {
     ConfigProvider,
     DatePicker,
     FloatButton,
-    GetProps,
     Input,
     Modal,
     notification,
@@ -21,10 +20,11 @@ import {
     CreateTaskRequest,
     DeleteTasksRequest,
     ListAllTasksRequest,
-    MarkTaskAsDoneRequest
+    MarkTaskAsDoneRequest,
+    SearchTaskRequest
 } from "../../dto/ApiRequest.ts";
 import {sendRequestJson} from "../../utils/api-utils.ts";
-import {ApiResponse, ListAllTasksResponse, TaskItem} from "../../dto/ApiResponse.ts";
+import {ApiResponse, ListAllTasksResponse, SearchTaskResponse, TaskItem} from "../../dto/ApiResponse.ts";
 import {API_SUCCESS_CODE} from "../../utils/constant.ts";
 
 // type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
@@ -34,11 +34,8 @@ const Home: React.FC = () => {
     const navigateTo = useNavigateTo();
     const [api, contextHolder] = notification.useNotification();
     type NotificationType = 'success' | 'info' | 'warning' | 'error';
-    type SearchProps = GetProps<typeof Input.Search>;
     const {Search} = Input;
     const {lightTheme, setLightTheme} = useAppContext();
-    const onSearch: SearchProps['onSearch'] = (value, _e, info) =>
-        console.log(info?.source, value);
     const [loading, setLoading] = useState<boolean>(false);
     const [tasksListPageNumber, setTasksListPageNumber] = useState(1);
     const [totalTasksCount, setTotalTasksCount] = useState(0);
@@ -48,6 +45,39 @@ const Home: React.FC = () => {
     const [newTaskDataTaskName, setNewTaskDataTaskName] = useState("");
     const [newTaskDataTaskDetail, setNewTaskDataTaskDetail] = useState("");
     const [newTaskDataRemindAt, setNewTaskDataRemindAt] = useState("");
+    const [searchTaskInput, setSearchTaskInput] = useState("");
+
+    const onSearch = async (value: string, pageNum: number | 0) => {
+        setLoading(true);
+        try {
+            const request: SearchTaskRequest = {
+                pageNumber: pageNum === 0 ? tasksListPageNumber : pageNum,
+                searchContent: value
+            }
+            const searchTaskResult = await sendRequestJson<SearchTaskResponse>(
+                request,
+                `${import.meta.env.VITE_BACKEND_API_URL}/task/search_tasks_by_name`,
+                "POST",
+                {
+                    "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+                }
+            );
+            if (searchTaskResult.code === 401) {
+                navigateTo("/login");
+                return;
+            }
+            setTotalTasksCount(searchTaskResult.response.tasks.totalElements);
+            if (searchTaskResult.response.tasks.totalElements > 0) {
+                setTasksData(searchTaskResult.response.tasks.content);
+                console.log(tasksData);
+            }
+        } catch (error) {
+            console.log(error);
+            openNotificationWithIcon("error", "An unexpected error occurred.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const openNotificationWithIcon = (type: NotificationType, contentL: string) => {
         api[type]({
@@ -345,7 +375,14 @@ const Home: React.FC = () => {
                                     height: "100%",
                                 }}
                                 placeholder="Enter your search to find task..."
-                                onSearch={onSearch}
+                                onSearch={async (value, _e, _info) => {
+                                    if (value) {
+                                        setSearchTaskInput(value);
+                                        await onSearch(value, 0);
+                                    } else {
+                                        await handleGetTasks(0);
+                                    }
+                                }}
                                 enterButton
                             />
                             <Button
@@ -377,7 +414,11 @@ const Home: React.FC = () => {
                                 onChange: async (page, pageSize) => {
                                     console.log("reload - " + page + " - " + pageSize);
                                     setTasksListPageNumber(page);
-                                    await handleGetTasks(page);
+                                    if (!searchTaskInput) {
+                                        await handleGetTasks(page);
+                                    } else {
+                                        await onSearch(searchTaskInput, page);
+                                    }
                                 },
                             }}
                         />

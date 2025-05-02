@@ -26,3 +26,8 @@ export interface DeleteTasksRequest {
 export interface MarkTaskAsDoneRequest {
     id: number;
 }
+
+export interface SearchTaskRequest {
+    searchContent: string;
+    pageNumber: number;
+}

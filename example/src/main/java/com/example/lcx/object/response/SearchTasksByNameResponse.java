@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import vn.com.lcx.common.database.pageable.Page;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
 
 import java.util.List;
@@ -16,5 +17,5 @@ import java.util.List;
 public class SearchTasksByNameResponse extends CommonResponse {
     private static final long serialVersionUID = 6349372107723396610L;
 
-    private List<TaskDTO> tasks;
+    private Page<TaskDTO> tasks;
 }

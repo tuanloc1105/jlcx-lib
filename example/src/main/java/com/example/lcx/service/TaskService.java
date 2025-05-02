@@ -17,7 +17,7 @@ public interface TaskService {
 
     TaskDTO getTaskDetail(final GetTaskDetailRequest request);
 
-    List<TaskDTO> searchTasksByName(final SearchTasksByNameRequest request);
+    Page<TaskDTO> searchTasksByName(final SearchTasksByNameRequest request);
 
     Page<TaskDTO> getAllTask(final GetAllTaskRequest request);
 

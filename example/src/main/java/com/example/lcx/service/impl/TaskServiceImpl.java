@@ -61,7 +61,13 @@ public class TaskServiceImpl implements TaskService {
         );
     }
 
-    public List<TaskDTO> searchTasksByName(final SearchTasksByNameRequest request) {
+    public Page<TaskDTO> searchTasksByName(final SearchTasksByNameRequest request) {
+        final var page = PostgreSQLPageable.builder()
+                .entityClass(Task.class)
+                .pageNumber(request.getPageNumber())
+                .pageSize(10)
+                .build();
+        page.add("id", Direction.DESC);
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
         final var result = taskRepository.find(
                 Specification.create(Task.class)
@@ -69,9 +75,10 @@ public class TaskServiceImpl implements TaskService {
                         .and(
                                 Specification.create(Task.class)
                                         .equal("createdBy", currentUser.getUsername())
-                        )
+                        ),
+                page
         );
-        return result.stream().map(taskMapper::map).collect(Collectors.toList());
+        return Page.<Task, TaskDTO>create(result, taskMapper::map);
     }
 
     public Page<TaskDTO> getAllTask(final GetAllTaskRequest request) {
