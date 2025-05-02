@@ -96,6 +96,8 @@ const Home: React.FC = () => {
 
     const handleSignOutOk = () => {
         setIsSignOutModalOpen(false);
+        localStorage.removeItem("access_token");
+        navigateTo("/login");
     }
 
     const handleSignOutCancel = () => {
