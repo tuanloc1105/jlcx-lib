@@ -14,5 +14,5 @@ server:
     max_timeout: ${DATABASE_MAX_TIMEOUT:10}
     type: ${DATABASE_TYPE:POSTGRESQL}
 database:
-  generate_sql: false
+  generate_sql: true
   source_type: postgresql

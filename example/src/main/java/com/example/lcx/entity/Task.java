@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import vn.com.lcx.common.annotation.ColumnName;
+import vn.com.lcx.common.annotation.ForeignKey;
 import vn.com.lcx.common.annotation.IdColumn;
 import vn.com.lcx.common.annotation.SQLMapping;
 import vn.com.lcx.common.annotation.TableName;
@@ -37,6 +38,10 @@ public class Task implements Serializable {
 
     @ColumnName(name = "updated_time", defaultValue = "current_timestamp")
     private LocalDateTime updatedTime;
+
+    @ColumnName(name = "user_id")
+    @ForeignKey(referenceTable = "user", referenceColumn = "id", cascade = true)
+    private Long userId;
 
     @ColumnName(name = "finished", defaultValue = "false")
     private Boolean finished;

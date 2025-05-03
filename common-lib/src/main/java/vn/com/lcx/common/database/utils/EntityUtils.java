@@ -231,7 +231,7 @@ public final class EntityUtils {
 
                             List<String> alterTableConstraint = new ArrayList<>();
 
-                            if (columnNameAnnotation.nullable() && field.getAnnotation(ForeignKey.class) == null) {
+                            if (columnNameAnnotation.nullable()) {
                                 if (StringUtils.isBlank(columnNameAnnotation.defaultValue())) {
                                     columnDefinitionList.add("NULL");
                                     alterTableConstraint.add("NULL");
@@ -589,7 +589,7 @@ public final class EntityUtils {
                             "-- ################# CREATE TABLE ####################### --\n" +
                             "%s\n" +
                             "%s\n" +
-                            "-- ################# FOREIGN KEY ####################### --\n" +
+                            "\n-- ################# FOREIGN KEY ####################### --\n" +
                             "\n%s",
                     String.join(System.lineSeparator(), createIndexList),
                     String.join(System.lineSeparator(), dropIndexList),
