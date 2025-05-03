@@ -3,6 +3,7 @@ package vn.com.lcx.common.database.utils;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;
+import vn.com.lcx.common.annotation.ForeignKey;
 import vn.com.lcx.common.annotation.IdColumn;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.constant.CommonConstant;
@@ -137,10 +138,28 @@ public final class EntityUtils {
 
             List<String> renameColumnList = new ArrayList<>();
             List<String> alterAddColumnList = new ArrayList<>();
+            List<String> addForeignKeyList = new ArrayList<>();
             List<String> alterDropColumnList = new ArrayList<>();
             List<String> alterModifyColumnList = new ArrayList<>();
             List<String> createIndexList = new ArrayList<>();
             List<String> dropIndexList = new ArrayList<>();
+
+            Map<String, String> databaseDatatypeMap;
+
+            switch (databaseType) {
+                case "postgresql":
+                    databaseDatatypeMap = POSTGRESQL_DATATYPE_MAP;
+                    break;
+                case "mysql":
+                    databaseDatatypeMap = MYSQL_DATATYPE_MAP;
+                    break;
+                case "mssql":
+                    databaseDatatypeMap = MSSQL_DATATYPE_MAP;
+                    break;
+                default:
+                    databaseDatatypeMap = ORACLE_DATATYPE_MAP;
+                    break;
+            }
 
             for (Field field : entityClassFieldList) {
                 if (!Modifier.isFinal(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
@@ -153,23 +172,6 @@ public final class EntityUtils {
                         }
                         String fieldDataTypeName = fieldDataTypeClass.getName();
                         String sqlDataType = CommonConstant.EMPTY_STRING;
-
-                        Map<String, String> databaseDatatypeMap;
-
-                        switch (databaseType) {
-                            case "postgresql":
-                                databaseDatatypeMap = POSTGRESQL_DATATYPE_MAP;
-                                break;
-                            case "mysql":
-                                databaseDatatypeMap = MYSQL_DATATYPE_MAP;
-                                break;
-                            case "mssql":
-                                databaseDatatypeMap = MSSQL_DATATYPE_MAP;
-                                break;
-                            default:
-                                databaseDatatypeMap = ORACLE_DATATYPE_MAP;
-                                break;
-                        }
                         if (StringUtils.isBlank(columnNameAnnotation.columnDataTypeDefinition())) {
                             for (Map.Entry<String, String> entry : databaseDatatypeMap.entrySet()) {
                                 String k = entry.getKey();
@@ -229,7 +231,7 @@ public final class EntityUtils {
 
                             List<String> alterTableConstraint = new ArrayList<>();
 
-                            if (columnNameAnnotation.nullable()) {
+                            if (columnNameAnnotation.nullable() && field.getAnnotation(ForeignKey.class) == null) {
                                 if (StringUtils.isBlank(columnNameAnnotation.defaultValue())) {
                                     columnDefinitionList.add("NULL");
                                     alterTableConstraint.add("NULL");
@@ -506,12 +508,55 @@ public final class EntityUtils {
                                     break;
                                 }
                             }
+
+                            ForeignKey foreignKeyAnnotation = field.getAnnotation(ForeignKey.class);
+                            if (foreignKeyAnnotation != null) {
+                                final var referenceColumn = foreignKeyAnnotation.referenceColumn();
+                                final var referenceTable = foreignKeyAnnotation.referenceTable();
+                                final var cascade = foreignKeyAnnotation.cascade();
+                                var alterStatement = String.format(
+                                        "ALTER TABLE\n" +
+                                                "    %1$s\n" +
+                                                "ADD\n" +
+                                                "    CONSTRAINT FK_%2$s FOREIGN KEY (%3$s) REFERENCES %4$s%5$s(%6$s)",
+                                        finalTableName,
+                                        String.format("%s_%s", referenceTable.toUpperCase(), referenceColumn.toUpperCase()),
+                                        fieldColumnName,
+                                        StringUtils.isNotBlank(tableNameAnnotation.schema()) ? tableNameAnnotation.schema() + "." : CommonConstant.EMPTY_STRING,
+                                        referenceTable,
+                                        referenceColumn
+                                );
+                                String cascadeStatement = ";";
+                                switch (databaseType) {
+                                    case "postgresql":
+                                        if (cascade) {
+                                            cascadeStatement = "\nON DELETE SET NULL\nON UPDATE CASCADE;";
+                                        }
+                                        break;
+                                    case "mysql":
+                                        if (cascade) {
+                                            cascadeStatement = "\nON DELETE CASCADE\nON UPDATE RESTRICT;";
+                                        }
+                                        break;
+                                    case "mssql":
+                                        if (cascade) {
+                                            cascadeStatement = "\nON DELETE CASCADE\nON UPDATE CASCADE;";
+                                        }
+                                        break;
+                                    case "oracle":
+                                    default:
+                                        if (cascade) {
+                                            cascadeStatement = "\nON DELETE CASCADE;";
+                                        }
+                                        break;
+                                }
+                                addForeignKeyList.add(alterStatement + cascadeStatement + "\n");
+                            }
                             renameColumnList.add(renameColumn);
                             alterAddColumnList.add(alterAddColumn);
                             alterDropColumnList.add(alterDropColumn);
                             alterModifyColumnList.add(alterModifyColumn);
                         }
-
                     }
                 }
             }
@@ -543,7 +588,9 @@ public final class EntityUtils {
                             "%s\n" +
                             "-- ################# CREATE TABLE ####################### --\n" +
                             "%s\n" +
-                            "%s",
+                            "%s\n" +
+                            "-- ################# FOREIGN KEY ####################### --\n" +
+                            "\n%s",
                     String.join(System.lineSeparator(), createIndexList),
                     String.join(System.lineSeparator(), dropIndexList),
                     String.join(System.lineSeparator(), alterAddColumnList),
@@ -555,7 +602,8 @@ public final class EntityUtils {
                             CREATE_TABLE_TEMPLATE_NO_PRIMARY_KEY,
                             finalTableName,
                             MyStringUtils.formatStringSpace2(columnDefinitionLines, ",\n    ")
-                    )
+                    ),
+                    String.join(System.lineSeparator(), addForeignKeyList)
             );
             writeContentToFile(
                     FileUtils.pathJoining(folderPath, tableNameAnnotation.value() + ".sql"),
