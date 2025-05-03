@@ -37,7 +37,7 @@
         <module>processor</module>
         <module>base-vertx</module>
         <module>vertx-processor</module>
-        <module>example</module>
+        <!-- <module>example</module> -->
     </modules>
 
     <groupId>vn.com.lcx</groupId>
