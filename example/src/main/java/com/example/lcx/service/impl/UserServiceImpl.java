@@ -2,6 +2,8 @@ package com.example.lcx.service.impl;
 
 import com.example.lcx.entity.User;
 import com.example.lcx.enums.AppError;
+import com.example.lcx.mapper.UserMapper;
+import com.example.lcx.object.dto.UserDTO;
 import com.example.lcx.object.dto.UserJWTTokenInfo;
 import com.example.lcx.object.request.CreateNewUserRequest;
 import com.example.lcx.object.request.UserLoginRequest;
@@ -27,6 +29,7 @@ import vn.com.lcx.vertx.base.exception.InternalServiceException;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final JWTAuth jwtAuth;
     private final Gson gson;
 
@@ -75,6 +78,11 @@ public class UserServiceImpl implements UserService {
         } catch (IllegalArgumentException e) {
             throw new InternalServiceException(AppError.INCORRECT_PASSWORD);
         }
+    }
+
+    @Transaction
+    public UserDTO getUserByUsername(final String username) {
+        return userMapper.map(userRepository.findByUsernameAndActive(username, true));
     }
 
 }

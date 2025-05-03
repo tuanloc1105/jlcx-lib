@@ -6,4 +6,7 @@ import vn.com.lcx.common.database.repository.LCXRepository;
 
 @Repository
 public interface UserRepository extends LCXRepository<User> {
+
+    User findByUsernameAndActive(String username, Boolean active);
+
 }

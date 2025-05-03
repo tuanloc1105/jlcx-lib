@@ -14,6 +14,7 @@ import com.example.lcx.object.request.SearchTasksByNameRequest;
 import com.example.lcx.object.request.UpdateTaskRequest;
 import com.example.lcx.respository.TaskRepository;
 import com.example.lcx.service.TaskService;
+import com.example.lcx.service.UserService;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Service;
@@ -36,6 +37,7 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
+    private final UserService userService;
 
     @Transaction
     public void createTask(final CreateTaskRequest request) {
@@ -44,7 +46,9 @@ public class TaskServiceImpl implements TaskService {
             throw new InternalServiceException(AppError.INVALID_REMIND_TIME);
         }
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
+        final var user = userService.getUserByUsername(currentUser.getUsername());
         final var newTask = taskMapper.map(request);
+        newTask.setUserId(user.getId());
         newTask.setCreatedBy(currentUser.getUsername());
         newTask.setUpdatedBy(currentUser.getUsername());
         taskRepository.save2(newTask);
