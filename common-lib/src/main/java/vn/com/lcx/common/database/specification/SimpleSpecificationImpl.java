@@ -77,11 +77,12 @@ public class SimpleSpecificationImpl implements Specification {
         StringBuilder inputFinalSQL = specification.getFinalSQL();
         List<Object> inputParameters = specification.getParameters();
         parameters.addAll(inputParameters);
+        final var prefix = this.getTimes() > 0 ? " AND" : CommonConstant.EMPTY_STRING;
         if (finalSQL.length() != 0) {
             if (specification.getTimes() < 2) {
-                finalSQL.append(" AND ").append(inputFinalSQL);
+                finalSQL.append(prefix).append(" ").append(inputFinalSQL);
             } else {
-                finalSQL.append(" AND ( ").append(inputFinalSQL).append(" )");
+                finalSQL.append(prefix).append(" ( ").append(inputFinalSQL).append(" )");
             }
         } else {
             finalSQL.append(inputFinalSQL);
@@ -94,11 +95,12 @@ public class SimpleSpecificationImpl implements Specification {
         StringBuilder inputFinalSQL = specification.getFinalSQL();
         List<Object> inputParameters = specification.getParameters();
         parameters.addAll(inputParameters);
+        final var prefix = this.getTimes() > 0 ? " OR" : CommonConstant.EMPTY_STRING;
         if (finalSQL.length() != 0) {
             if (specification.getTimes() < 2) {
-                finalSQL.append(" OR ").append(inputFinalSQL);
+                finalSQL.append(prefix).append(" ").append(inputFinalSQL);
             } else {
-                finalSQL.append(" OR ( ").append(inputFinalSQL).append(" )");
+                finalSQL.append(prefix).append(" ( ").append(inputFinalSQL).append(" )");
             }
         } else {
             finalSQL.append(inputFinalSQL);
