@@ -31,7 +31,7 @@
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
         <ojdbc11-com.oracle.database.jdbc.version>23.7.0.25.01</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.5</postgresql-org.postgresql.version>
-        <mysql-connector-j-com.mysql.version>9.2.0</mysql-connector-j-com.mysql.version>
+        <mysql-connector-j-com.mysql.version>9.3.0</mysql-connector-j-com.mysql.version>
         <mssql-jdbc-com.microsoft.sqlserver.version>12.10.0.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
         <gson-com.google.code.gson.version>2.13.1</gson-com.google.code.gson.version>
         <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.2</jakarta.xml.bind-api-jakarta.xml.bind.version>
