@@ -36,18 +36,18 @@
         <gson-com.google.code.gson.version>2.13.1</gson-com.google.code.gson.version>
         <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.2</jakarta.xml.bind-api-jakarta.xml.bind.version>
         <jaxb-runtime-org.glassfish.jaxb.version>4.0.5</jaxb-runtime-org.glassfish.jaxb.version>
-        <jackson-module-parameter-names-com.fasterxml.jackson.module.version>2.19.0-rc2
+        <jackson-module-parameter-names-com.fasterxml.jackson.module.version>2.19.0
         </jackson-module-parameter-names-com.fasterxml.jackson.module.version>
-        <jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version>2.19.0-rc2
+        <jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version>2.19.0
         </jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version>
-        <jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version>2.19.0-rc2
+        <jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version>2.19.0
         </jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version>
-        <jackson-databind-com.fasterxml.jackson.core.version>2.19.0-rc2
+        <jackson-databind-com.fasterxml.jackson.core.version>2.19.0
         </jackson-databind-com.fasterxml.jackson.core.version>
-        <jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>2.19.0-rc2
+        <jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>2.19.0
         </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
         <mail-javax.mail.version>1.5.0-b01</mail-javax.mail.version>
-        <jedis-redis.clients.version>5.2.0</jedis-redis.clients.version>
+        <jedis-redis.clients.version>6.0.0</jedis-redis.clients.version>
         <micrometer-core-io.micrometer.version>1.15.0-RC1</micrometer-core-io.micrometer.version>
         <metrics-core-io.dropwizard.metrics.version>4.2.30</metrics-core-io.dropwizard.metrics.version>
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.30</metrics-healthchecks-io.dropwizard.metrics.version>
