@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.gson.Gson;
 import lombok.val;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
@@ -34,7 +33,6 @@ import vn.com.lcx.common.utils.PropertiesUtils;
 import vn.com.lcx.common.utils.SocketUtils;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -161,6 +159,7 @@ public class ClassPool {
                 if (limit == count) {
                     break;
                 }
+                boolean aClassHasNotBeenAddedToPool = true;
                 for (Class<?> aClass : postHandleComponent) {
                     if (handledPostHandleComponent.stream().anyMatch(c -> c.isAssignableFrom(aClass))) {
                         continue;
@@ -247,9 +246,14 @@ public class ClassPool {
                             }
                         }
                         handledPostHandleComponent.add(aClass);
+                        aClassHasNotBeenAddedToPool = false;
                     }
                 }
-                ++count;
+                if (aClassHasNotBeenAddedToPool) {
+                    ++count;
+                } else {
+                    --count;
+                }
             }
             if (limit == count && postHandleComponent.size() != handledPostHandleComponent.size()) {
                 throw new RuntimeException(
@@ -356,20 +360,6 @@ public class ClassPool {
                 LCXDataSource.class.getName(),
                 dataSource
         );
-    }
-
-    public static Constructor<?> getConstructorWithMostParameters(Class<?> clazz) {
-        Constructor<?> maxParamConstructor = null;
-        int maxParams = -1;
-
-        for (Constructor<?> constructor : clazz.getConstructors()) {
-            int paramCount = constructor.getParameterCount();
-            if (paramCount > maxParams) {
-                maxParams = paramCount;
-                maxParamConstructor = constructor;
-            }
-        }
-        return maxParamConstructor;
     }
 
     public static Object getInstance(String name) {
