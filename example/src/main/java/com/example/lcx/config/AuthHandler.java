@@ -25,9 +25,11 @@ public class AuthHandler implements VertxContextHandler {
             try {
                 final JsonObject jsonObject = routingContext.user().get("accessToken");
                 final var userInfo = gson.fromJson(jsonObject.encode(), UserJWTTokenInfo.class);
+                routingContext.put(OPERATION_NAME_MDC_KEY_NAME, userInfo.getUsername());
                 AuthContext.set(userInfo);
                 routingContext.next();
                 AuthContext.clear();
+                routingContext.remove(OPERATION_NAME_MDC_KEY_NAME);
             } catch (Exception e) {
                 routingContext.end(e.getMessage());
             }
