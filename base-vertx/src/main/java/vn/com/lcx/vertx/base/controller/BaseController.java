@@ -21,6 +21,7 @@ import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
+import vn.com.lcx.vertx.base.context.AuthContext;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import vn.com.lcx.vertx.base.http.request.BaseRequest;
@@ -186,7 +187,10 @@ public class BaseController {
         val trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
         val operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
 
+        Object authInfo = AuthContext.get();
+
         final Future<@Nullable CommonResponse> blockingFutureTask = vertx.executeBlocking(() -> {
+            AuthContext.set(authInfo);
             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
             final MultiMap requestHeader = context.request().headers();
@@ -233,6 +237,7 @@ public class BaseController {
             response.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
             response.setHttpCode(200);
 
+            AuthContext.clear();
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
 
