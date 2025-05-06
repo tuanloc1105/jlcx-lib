@@ -315,7 +315,7 @@ public class ControllerProcessor extends AbstractProcessor {
             }
             final String constructor = String.format(
                     "\n    public ApplicationVerticle(%s) {\n%s\n    }\n",
-                    String.join(", ", constructorParameters),
+                    String.join(",\n                               ", constructorParameters),
                     constructorBody.stream().collect(Collectors.joining("\n       ", "       ", CommonConstant.EMPTY_STRING))
             );
             String codeToWrite = String.format(
