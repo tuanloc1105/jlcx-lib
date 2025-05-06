@@ -184,9 +184,11 @@ public class BaseController {
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
         val startingTime = (double) System.currentTimeMillis();
         val trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+        val operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
 
         final Future<@Nullable CommonResponse> blockingFutureTask = vertx.executeBlocking(() -> {
             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
             final MultiMap requestHeader = context.request().headers();
 
             val headerLogMsg = new ArrayList<String>();
@@ -232,11 +234,13 @@ public class BaseController {
             response.setHttpCode(200);
 
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
 
             return response;
         }, false);
         blockingFutureTask.onSuccess(response -> {
             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
             val endingTime = (double) System.currentTimeMillis();
             val duration = (endingTime - startingTime) / 1000D;
             String responseBody = gson.toJson(response);
@@ -259,9 +263,11 @@ public class BaseController {
                     responseBody
             );
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
         });
         blockingFutureTask.onFailure(e -> {
             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
             val endingTime = (double) System.currentTimeMillis();
             val duration = (endingTime - startingTime) / 1000D;
             BaseController.this.exceptionLogger.error("[{}] - {}", trace, e.getMessage(), e);
@@ -303,6 +309,7 @@ public class BaseController {
                     responseBody
             );
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
         });
     }
 
@@ -311,7 +318,9 @@ public class BaseController {
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
         val startingTime = (double) System.currentTimeMillis();
         val trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+        val operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
         MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+        MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
         String responseBody = CommonConstant.EMPTY_STRING;
         int httpStatusCode = 200;
         try {
@@ -427,6 +436,7 @@ public class BaseController {
             }
         }
         MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+        MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
     }
 
     protected <T> T getUser(RoutingContext context, TypeToken<T> typeToken) {
