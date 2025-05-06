@@ -40,9 +40,6 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var tokenInfo = this.getUser(routingContext, new TypeToken<UserJWTTokenInfo>() {
-                    });
-                    AuthContext.set(tokenInfo);
                     taskService.createTask(o);
                     return new CommonResponse();
                 },
@@ -57,9 +54,6 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var tokenInfo = this.getUser(routingContext, new TypeToken<UserJWTTokenInfo>() {
-                    });
-                    AuthContext.set(tokenInfo);
                     final var data = taskService.getTaskDetail(o);
                     return new GetTaskDetailResponse(data);
                 },
@@ -74,9 +68,6 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var tokenInfo = this.getUser(routingContext, new TypeToken<UserJWTTokenInfo>() {
-                    });
-                    AuthContext.set(tokenInfo);
                     final var data = taskService.searchTasksByName(o);
                     return new SearchTasksByNameResponse(data);
                 },
@@ -91,9 +82,6 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var tokenInfo = this.getUser(routingContext, new TypeToken<UserJWTTokenInfo>() {
-                    });
-                    AuthContext.set(tokenInfo);
                     final var data = taskService.getAllTask(o);
                     return new GetAllTaskResponse(data);
                 },
@@ -108,9 +96,6 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var tokenInfo = this.getUser(routingContext, new TypeToken<UserJWTTokenInfo>() {
-                    });
-                    AuthContext.set(tokenInfo);
                     taskService.updateTask(o);
                     return new CommonResponse();
                 },
@@ -125,9 +110,6 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var tokenInfo = this.getUser(routingContext, new TypeToken<UserJWTTokenInfo>() {
-                    });
-                    AuthContext.set(tokenInfo);
                     taskService.deleteTask(o);
                     return new CommonResponse();
                 },
@@ -142,9 +124,6 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var tokenInfo = this.getUser(routingContext, new TypeToken<UserJWTTokenInfo>() {
-                    });
-                    AuthContext.set(tokenInfo);
                     taskService.markTaskAsFinished(o);
                     return new CommonResponse();
                 },
