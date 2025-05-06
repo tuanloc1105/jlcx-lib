@@ -3,6 +3,7 @@ package vn.com.lcx.vertx.base.processor;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.ExceptionUtils;
+import vn.com.lcx.vertx.base.annotation.app.ContextHandler;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.annotation.process.APIKey;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
@@ -26,10 +27,13 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes("vn.com.lcx.vertx.base.annotation.process.Controller")
@@ -103,12 +107,66 @@ public class ControllerProcessor extends AbstractProcessor {
         boolean applicationHaveAPIKeyAuthentication = false;
 
         if (!classMap.isEmpty()) {
+
+            final var contextHandlerOrderAndClassListMap = new TreeMap<Integer, LinkedList<TypeElement>>();
+
+            for (Element contextHandlerElement : roundEnv.getElementsAnnotatedWith(ContextHandler.class)) {
+                if (contextHandlerElement instanceof TypeElement) {
+                    TypeElement typeElement = (TypeElement) contextHandlerElement;
+                    ContextHandler contextHandler = typeElement.getAnnotation(ContextHandler.class);
+                    var mapElement = contextHandlerOrderAndClassListMap.get(contextHandler.order());
+                    if (mapElement == null) {
+                        contextHandlerOrderAndClassListMap.put(contextHandler.order(), new LinkedList<>(Collections.singleton(typeElement)));
+                    } else {
+                        mapElement.addLast(typeElement);
+                    }
+                }
+            }
+
             int count = 1;
 
-            List<String> classProperties = new ArrayList<>();
-            List<String> routerConfigures = new ArrayList<>();
-            List<String> constructorParameters = new ArrayList<>();
-            List<String> constructorBody = new ArrayList<>();
+            final List<String> classProperties = new ArrayList<>();
+            final List<String> routerConfigures = new ArrayList<>();
+            final List<String> constructorParameters = new ArrayList<>();
+            final List<String> constructorBody = new ArrayList<>();
+            final var routerHandleCodeForFilter = new StringBuilder();
+
+            if (!contextHandlerOrderAndClassListMap.isEmpty()) {
+                contextHandlerOrderAndClassListMap.forEach((integer, typeElements) -> {
+                    typeElements.forEach(typeElement -> {
+                        constructorParameters.add(
+                                String.format(
+                                        "%s filter%s%d",
+                                        typeElement.getQualifiedName() + CommonConstant.EMPTY_STRING,
+                                        typeElement.getSimpleName() + CommonConstant.EMPTY_STRING,
+                                        integer
+                                )
+                        );
+                        constructorBody.add(
+                                String.format(
+                                        "this.filter%1$s%2$d = filter%1$s%2$d;",
+                                        typeElement.getSimpleName() + CommonConstant.EMPTY_STRING,
+                                        integer
+                                )
+                        );
+                        classProperties.add(
+                                String.format(
+                                        "private final %s filter%s%d",
+                                        typeElement.getQualifiedName() + CommonConstant.EMPTY_STRING,
+                                        typeElement.getSimpleName() + CommonConstant.EMPTY_STRING,
+                                        integer
+                                )
+                        );
+                        routerHandleCodeForFilter.append(
+                                String.format(
+                                        "\n                    .handler(filter%1$s%2$d::handle)",
+                                        typeElement.getSimpleName() + CommonConstant.EMPTY_STRING,
+                                        integer
+                                )
+                        );
+                    });
+                });
+            }
 
             for (Map.Entry<TypeElement, List<ExecutableElement>> currentClass : classMap.entrySet()) {
                 System.out.printf("Configuring route for controller : %s\n", currentClass.getKey().getQualifiedName());
@@ -232,13 +290,16 @@ public class ControllerProcessor extends AbstractProcessor {
                     }
                     if (StringUtils.isNotBlank(routerConfigureCode)) {
                         if (isAuthMethod) {
-                            routerConfigureCode += ".handler(authHandler)";
+                            routerConfigureCode += "\n                    .handler(authHandler)";
                         }
                         if (isAPIKeyMethod) {
-                            routerConfigureCode += ".handler(this::validateApiKey)";
+                            routerConfigureCode += "\n                    .handler(this::validateApiKey)";
+                        }
+                        if (!contextHandlerOrderAndClassListMap.isEmpty()) {
+                            routerConfigureCode += routerHandleCodeForFilter.toString();
                         }
                         routerConfigureCode += String.format(
-                                ".handler(this::createUUIDHandler).handler(this.controller%d::%s);",
+                                "\n                    .handler(this::createUUIDHandler)\n                    .handler(this.controller%d::%s);",
                                 count,
                                 e.getSimpleName() + CommonConstant.EMPTY_STRING
                         );
