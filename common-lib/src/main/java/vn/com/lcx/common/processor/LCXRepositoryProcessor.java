@@ -553,7 +553,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
                             mapPutCode,
                             returnDatatype,
                             databaseExecutorCode,
-                            !returnClass.contains(".List<") ?
+                            !returnClass.contains(".List<") && !returnClass.contains(".Page<") ?
                                     "\n" +
                                             "        if (sqlResult != null && sqlResult.size() > 1) {\n" +
                                             "            throw new java.lang.RuntimeException(\"Result return more than 1\");\n" +
