@@ -43,10 +43,11 @@ public void removeClient(final BigDecimal id) {
             }
         }
     } catch (SQLException e) {
-        ConnectionContext.clear("way4");
-        ConnectionContext.clear("eocd");
         LogUtils.writeLog(e.getMessage(), e);
         throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR);
+    } finally {
+        ConnectionContext.clear("way4");
+        ConnectionContext.clear("eocd");
     }
 }
 ```
