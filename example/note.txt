@@ -1,0 +1,52 @@
+Example of a manual connection handling
+
+```java
+public void removeClient(final BigDecimal id) {
+    try (
+            final var way4Con = way4.get();
+            final var eocCon = eocd.get();
+    ) {
+        ConnectionContext.set("way4", way4Con);
+        ConnectionContext.set("eocd", eocCon);
+        way4Con.setAutoCommit(false);
+        eocCon.setAutoCommit(false);
+        try {
+            // do something
+            try {
+                way4Con.commit();
+                eocCon.commit();
+            } catch (SQLException e) {
+                LogUtils.writeLog(e.getMessage(), e);
+                throw e;
+            }
+        } catch (Exception e) {
+            try {
+                way4Con.rollback();
+            } catch (SQLException sqlException) {
+                LogUtils.writeLog(sqlException.getMessage(), sqlException);
+            }
+            try {
+                eocCon.rollback();
+            } catch (SQLException sqlException) {
+                LogUtils.writeLog(sqlException.getMessage(), sqlException);
+            }
+        } finally {
+            try {
+                way4Con.setAutoCommit(true);
+            } catch (SQLException e) {
+                LogUtils.writeLog(e.getMessage(), e);
+            }
+            try {
+                eocCon.setAutoCommit(true);
+            } catch (SQLException e) {
+                LogUtils.writeLog(e.getMessage(), e);
+            }
+        }
+    } catch (SQLException e) {
+        ConnectionContext.clear("way4");
+        ConnectionContext.clear("eocd");
+        LogUtils.writeLog(e.getMessage(), e);
+        throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR);
+    }
+}
+```
