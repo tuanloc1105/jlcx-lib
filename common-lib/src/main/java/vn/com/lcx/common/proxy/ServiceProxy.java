@@ -130,11 +130,11 @@ public class ServiceProxy<T> implements InvocationHandler {
             throw new RuntimeException("Unexpected error invoking method " + method.getName(), e);
         } finally {
             if (ableToCloseConnection && connection != null) {
-                connection.close();
-                ConnectionContext.clear(connectionName);
                 if (openConnection) {
                     connection.setAutoCommit(true);
                 }
+                connection.close();
+                ConnectionContext.clear(connectionName);
             }
         }
     }
