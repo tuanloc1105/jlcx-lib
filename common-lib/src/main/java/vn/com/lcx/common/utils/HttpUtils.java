@@ -154,7 +154,10 @@ public class HttpUtils {
                     .append(this.isBeautifyPrinting ? "" : "\t")
                     .append(this.isBeautifyPrinting ? this.formatJSON(stringBuilder.toString()) : stringBuilder.toString());
             LogUtils.writeLog2(LogUtils.Level.INFO, httpLogMessage.toString());
-            T result = this.gson.fromJson(stringBuilder.toString(), targetClass.getType());
+            T result = null;
+            if (MyStringUtils.stringIsJsonFormat(stringBuilder.toString())) {
+                result = this.gson.fromJson(stringBuilder.toString(), targetClass.getType());
+            }
             // http.disconnect();
             responseBuilder.code(http.getResponseCode())
                     .msg(http.getResponseMessage())
