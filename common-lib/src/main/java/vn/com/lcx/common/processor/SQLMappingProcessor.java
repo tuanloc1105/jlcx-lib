@@ -158,22 +158,25 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 valueCodeLine,
                                 exceptionLoggingCodeLine
                         );
-                        String resultSetMappingCodeLine2 = String.format("" +
-                                        "        try {" +
-                                        "\n            %s value = resultSet.%s(\"%s\");" +
-                                        "\n            instance.%s(%s);" +
-                                        "\n        } catch (java.sql.SQLException sqlException) {" +
-                                        "\n            // %s" +
-                                        "\n        }" +
-                                        "\n",
-                                fieldType,
-                                resultSetFunctionWillBeUse,
-                                databaseColumnName,
-                                fieldName,
-                                valueCodeLine,
-                                exceptionLoggingCodeLine
-                        );
-                        resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n").append(resultSetMappingCodeLine2).append("\n");
+                        resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n");
+                        if (tableNameAnnotation.isPresent()) {
+                            String resultSetMappingCodeLine2 = String.format("" +
+                                            "        try {" +
+                                            "\n            %s value = resultSet.%s(\"%s\");" +
+                                            "\n            instance.%s(%s);" +
+                                            "\n        } catch (java.sql.SQLException sqlException) {" +
+                                            "\n            // %s" +
+                                            "\n        }" +
+                                            "\n",
+                                    fieldType,
+                                    resultSetFunctionWillBeUse,
+                                    databaseColumnName,
+                                    fieldName,
+                                    valueCodeLine,
+                                    exceptionLoggingCodeLine
+                            );
+                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine2).append("\n");
+                        }
                     } else {
                         if (LocalDateTime.class.getSimpleName().equals(dataTypeSimpleName)) {
                             String resultSetMappingCodeLine = String.format(
@@ -189,20 +192,23 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                     fieldName,
                                     exceptionLoggingCodeLine
                             );
-                            String resultSetMappingCodeLine2 = String.format(
-                                    "" +
-                                            "        try {" +
-                                            "\n            java.sql.Timestamp time = resultSet.getTimestamp(\"%s\");" +
-                                            "\n            instance.%s(time != null ? time.toLocalDateTime() : null);" +
-                                            "\n        } catch (java.sql.SQLException sqlException) {" +
-                                            "\n            // %s" +
-                                            "\n        }" +
-                                            "\n",
-                                    databaseColumnName,
-                                    fieldName,
-                                    exceptionLoggingCodeLine
-                            );
-                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n").append(resultSetMappingCodeLine2).append("\n");
+                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n");
+                            if (tableNameAnnotation.isPresent()) {
+                                String resultSetMappingCodeLine2 = String.format(
+                                        "" +
+                                                "        try {" +
+                                                "\n            java.sql.Timestamp time = resultSet.getTimestamp(\"%s\");" +
+                                                "\n            instance.%s(time != null ? time.toLocalDateTime() : null);" +
+                                                "\n        } catch (java.sql.SQLException sqlException) {" +
+                                                "\n            // %s" +
+                                                "\n        }" +
+                                                "\n",
+                                        databaseColumnName,
+                                        fieldName,
+                                        exceptionLoggingCodeLine
+                                );
+                                resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine2).append("\n");
+                            }
                         }
                         if (LocalDate.class.getSimpleName().equals(dataTypeSimpleName)) {
                             String resultSetMappingCodeLine = String.format(
@@ -218,20 +224,23 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                     fieldName,
                                     exceptionLoggingCodeLine
                             );
-                            String resultSetMappingCodeLine2 = String.format(
-                                    "" +
-                                            "        try {" +
-                                            "\n            java.sql.Date time = resultSet.getDate(\"%s\");" +
-                                            "\n            instance.%s(time != null ? time.toLocalDate() : null);" +
-                                            "\n        } catch (java.sql.SQLException sqlException) {" +
-                                            "\n            // %s" +
-                                            "\n        }" +
-                                            "\n",
-                                    databaseColumnName,
-                                    fieldName,
-                                    exceptionLoggingCodeLine
-                            );
-                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n").append(resultSetMappingCodeLine2).append("\n");
+                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n");
+                            if (tableNameAnnotation.isPresent()) {
+                                String resultSetMappingCodeLine2 = String.format(
+                                        "" +
+                                                "        try {" +
+                                                "\n            java.sql.Date time = resultSet.getDate(\"%s\");" +
+                                                "\n            instance.%s(time != null ? time.toLocalDate() : null);" +
+                                                "\n        } catch (java.sql.SQLException sqlException) {" +
+                                                "\n            // %s" +
+                                                "\n        }" +
+                                                "\n",
+                                        databaseColumnName,
+                                        fieldName,
+                                        exceptionLoggingCodeLine
+                                );
+                                resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine2).append("\n");
+                            }
                         }
                         if (BigDecimal.class.getSimpleName().equals(dataTypeSimpleName)) {
                             String resultSetMappingCodeLine = String.format(
@@ -247,20 +256,23 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                     fieldName,
                                     exceptionLoggingCodeLine
                             );
-                            String resultSetMappingCodeLine2 = String.format(
-                                    "" +
-                                            "        try {" +
-                                            "\n            String resultNumberInString = resultSet.getString(\"%s\");" +
-                                            "\n            instance.%s(resultNumberInString != null && !resultNumberInString.isEmpty() ? new java.math.BigDecimal(resultNumberInString) : new java.math.BigDecimal(\"0\"));" +
-                                            "\n        } catch (java.sql.SQLException sqlException) {" +
-                                            "\n            // %s" +
-                                            "\n        }" +
-                                            "\n",
-                                    databaseColumnName,
-                                    fieldName,
-                                    exceptionLoggingCodeLine
-                            );
-                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n").append(resultSetMappingCodeLine2).append("\n");
+                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n");
+                            if (tableNameAnnotation.isPresent()) {
+                                String resultSetMappingCodeLine2 = String.format(
+                                        "" +
+                                                "        try {" +
+                                                "\n            String resultNumberInString = resultSet.getString(\"%s\");" +
+                                                "\n            instance.%s(resultNumberInString != null && !resultNumberInString.isEmpty() ? new java.math.BigDecimal(resultNumberInString) : new java.math.BigDecimal(\"0\"));" +
+                                                "\n        } catch (java.sql.SQLException sqlException) {" +
+                                                "\n            // %s" +
+                                                "\n        }" +
+                                                "\n",
+                                        databaseColumnName,
+                                        fieldName,
+                                        exceptionLoggingCodeLine
+                                );
+                                resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine2).append("\n");
+                            }
                         }
                         if (BigInteger.class.getSimpleName().equals(dataTypeSimpleName)) {
                             String resultSetMappingCodeLine = String.format("" +
@@ -274,18 +286,21 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                     databaseColumnNameToBeGet,
                                     fieldName,
                                     exceptionLoggingCodeLine);
-                            String resultSetMappingCodeLine2 = String.format("" +
-                                            "        try {" +
-                                            "\n            String resultNumberInString = resultSet.getString(\"%s\");" +
-                                            "\n            instance.%s(resultNumberInString != null && !resultNumberInString.isEmpty() ? new java.math.BigInteger(resultNumberInString) : new java.math.BigInteger(\"0\"));" +
-                                            "\n        } catch (java.sql.SQLException sqlException) {" +
-                                            "\n            // %s" +
-                                            "\n        }" +
-                                            "\n",
-                                    databaseColumnName,
-                                    fieldName,
-                                    exceptionLoggingCodeLine);
-                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n").append(resultSetMappingCodeLine2).append("\n");
+                            resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine).append("\n");
+                            if (tableNameAnnotation.isPresent()) {
+                                String resultSetMappingCodeLine2 = String.format("" +
+                                                "        try {" +
+                                                "\n            String resultNumberInString = resultSet.getString(\"%s\");" +
+                                                "\n            instance.%s(resultNumberInString != null && !resultNumberInString.isEmpty() ? new java.math.BigInteger(resultNumberInString) : new java.math.BigInteger(\"0\"));" +
+                                                "\n        } catch (java.sql.SQLException sqlException) {" +
+                                                "\n            // %s" +
+                                                "\n        }" +
+                                                "\n",
+                                        databaseColumnName,
+                                        fieldName,
+                                        exceptionLoggingCodeLine);
+                                resultSetMappingCodeLineStringBuilder.append(resultSetMappingCodeLine2).append("\n");
+                            }
                         }
                     }
                     try {
