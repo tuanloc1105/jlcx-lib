@@ -237,7 +237,7 @@ public class HttpUtils {
                                                      String url,
                                                      HttpMethod method,
                                                      Map<String, String> requestHeader,
-                                                     TypeReference<T> targetClass) throws Exception {
+                                                     TypeToken<T> targetClass) throws Exception {
         val httpLogMessage = new StringBuilder("\nURL: ").append(url);
         HttpURLConnection http = this.generateConnection(url);
         val responseBuilder = Response.<T>builder();
