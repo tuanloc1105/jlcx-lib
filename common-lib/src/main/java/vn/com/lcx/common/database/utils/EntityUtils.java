@@ -504,7 +504,6 @@ public final class EntityUtils {
                                             );
                                         }
                                     }
-                                    System.out.println();
                                     break;
                                 }
                             }
