@@ -237,7 +237,7 @@ public class HttpUtils {
                                                      String url,
                                                      HttpMethod method,
                                                      Map<String, String> requestHeader,
-                                                     Class<T> targetClass) throws Exception {
+                                                     TypeReference<T> targetClass) throws Exception {
         val httpLogMessage = new StringBuilder("\nURL: ").append(url);
         HttpURLConnection http = this.generateConnection(url);
         val responseBuilder = Response.<T>builder();
@@ -290,10 +290,10 @@ public class HttpUtils {
             httpLogMessage.append("\n- Response body: ");
             httpLogMessage.append("\n\t").append(stringBuilder);
             LogUtils.writeLog2(LogUtils.Level.INFO, httpLogMessage.toString());
-            if (targetClass.isAssignableFrom(String.class)) {
-                throw new RuntimeException("Input casting type can not be String.class");
+            T result = null;
+            if (MyStringUtils.stringIsJsonFormat(stringBuilder.toString())) {
+                result = this.gson.fromJson(stringBuilder.toString(), targetClass.getType());
             }
-            T result = this.gson.fromJson(stringBuilder.toString(), targetClass);
             // http.disconnect();
             responseBuilder.code(http.getResponseCode())
                     .msg(http.getResponseMessage())
