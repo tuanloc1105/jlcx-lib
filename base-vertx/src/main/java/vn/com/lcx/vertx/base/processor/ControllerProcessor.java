@@ -342,7 +342,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             "%s" +
                             "%s\n" +
                             "    @Override\n" +
-                            "    public void start(Promise<Void> startPromise) {\n" +
+                            "    public io.vertx.core.Future<io.vertx.core.http.HttpServer> start() {\n" +
                             "        try {\n" +
                             "%s" +
                             "            io.vertx.ext.web.Router router = MyRouter.router(super.vertx);\n" +
@@ -365,28 +365,26 @@ public class ControllerProcessor extends AbstractProcessor {
                             "            }\n" +
                             "\n" +
                             "            final boolean enableHttp2 = Boolean.parseBoolean(CommonConstant.applicationConfig.getProperty(\"server.enable-http-2\") + CommonConstant.EMPTY_STRING);\n" +
-                            "\n" +
+                            "            io.vertx.core.Future<io.vertx.core.http.HttpServer> future;\n" +
                             "            if (enableHttp2) {\n" +
-                            "                super.vertx.createHttpServer(HttpOption.configureHttp2H2C(port))\n" +
+                            "                future = vertx.createHttpServer(HttpOption.configureHttp2H2C(port))\n" +
                             "                        .requestHandler(router)\n" +
                             "                        .listen()\n" +
                             "                        .onSuccess(server -> {\n" +
                             "                            LogUtils.writeLog(LogUtils.Level.INFO, \"HTTP2 server started on port \" + port);\n" +
-                            "                            startPromise.complete();\n" +
-                            "                        })\n" +
-                            "                        .onFailure(startPromise::fail);\n" +
+                            "                        });\n" +
                             "            } else {\n" +
-                            "                super.vertx.createHttpServer()\n" +
+                            "                future = vertx.createHttpServer()\n" +
                             "                        .requestHandler(router)\n" +
                             "                        .listen(port)\n" +
                             "                        .onSuccess(server -> {\n" +
                             "                            LogUtils.writeLog(LogUtils.Level.INFO, \"HTTP server started on port \" + port);\n" +
-                            "                            startPromise.complete();\n" +
-                            "                        })\n" +
-                            "                        .onFailure(startPromise::fail);\n" +
+                            "                        });\n" +
                             "            }\n" +
+                            "            return future;\n" +
                             "        } catch (Throwable e) {\n" +
                             "            LogUtils.writeLog(e.getMessage(), e);\n" +
+                            "            throw e;\n" +
                             "        }\n" +
                             "    }\n" +
                             "\n" +

@@ -1,6 +1,6 @@
 package vn.com.lcx.vertx.base.verticle;
 
-import io.vertx.core.AbstractVerticle;
+import io.vertx.core.VerticleBase;
 import io.vertx.ext.web.RoutingContext;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -10,7 +10,7 @@ import vn.com.lcx.common.utils.UUIDv7;
 
 import static vn.com.lcx.common.constant.CommonConstant.TRACE_ID_MDC_KEY_NAME;
 
-public class VertxBaseVerticle extends AbstractVerticle {
+public class VertxBaseVerticle extends VerticleBase {
 
     public void createUUIDHandler(RoutingContext context) {
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());

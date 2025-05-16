@@ -29,7 +29,7 @@
         <commons-lang3-org.apache.commons.version>3.17.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
-        <ojdbc11-com.oracle.database.jdbc.version>23.7.0.25.01</ojdbc11-com.oracle.database.jdbc.version>
+        <ojdbc11-com.oracle.database.jdbc.version>23.8.0.25.04</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.5</postgresql-org.postgresql.version>
         <mysql-connector-j-com.mysql.version>9.3.0</mysql-connector-j-com.mysql.version>
         <mssql-jdbc-com.microsoft.sqlserver.version>12.10.0.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
@@ -48,7 +48,7 @@
         </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
         <mail-javax.mail.version>1.5.0-b01</mail-javax.mail.version>
         <jedis-redis.clients.version>6.0.0</jedis-redis.clients.version>
-        <micrometer-core-io.micrometer.version>1.15.0-RC1</micrometer-core-io.micrometer.version>
+        <micrometer-core-io.micrometer.version>1.15.0</micrometer-core-io.micrometer.version>
         <metrics-core-io.dropwizard.metrics.version>4.2.30</metrics-core-io.dropwizard.metrics.version>
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.30</metrics-healthchecks-io.dropwizard.metrics.version>
         <metrics-core-io.dropwizard.metrics5.version>5.0.0</metrics-core-io.dropwizard.metrics5.version>

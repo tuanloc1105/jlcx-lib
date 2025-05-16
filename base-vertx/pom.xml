@@ -26,13 +26,13 @@
 
         <common-lib-vn.com.lcx.version>1.0.0</common-lib-vn.com.lcx.version>
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
-        <vertx-core-io.vertx.version>4.5.14</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>4.5.14</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>4.5.14</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>4.5.14</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>4.5.14</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>4.5.14</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>4.5.14</vertx-auth-jwt-io.vertx.version>
+        <vertx-core-io.vertx.version>5.0.0</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>5.0.0</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>5.0.0</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>5.0.0</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>5.0.0</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>5.0.0</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>5.0.0</vertx-auth-jwt-io.vertx.version>
 
     </properties>
 
