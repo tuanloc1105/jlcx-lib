@@ -28,13 +28,20 @@ build:
 	@echo ">> Building project with Maven"
 	@echo ""
 	mvn \
-	 -Dmaven.wagon.http.ssl.insecure=true \
-	 -Dmaven.wagon.http.ssl.allowall=true \
-	 -Dmaven.wagon.http.ssl.ignore.validity.dates=true \
-	 -Dmaven.resolver.transport=wagon \
 	 dependency:resolve \
 	 clean \
 	 install \
+	 -DskipTests=true \
+	 -Dfile.encoding=UTF8 \
+	 -f pom.xml
+
+nexus-deploy:
+	@echo ""
+	@echo ">> Deploy to Nexus"
+	@echo ""
+	mvn \
+	 deploy \
+	 -DaltDeploymentRepository=nexus::default::http://192.168.1.196:8081/repository/maven-releases/ \
 	 -DskipTests=true \
 	 -Dfile.encoding=UTF8 \
 	 -f pom.xml
