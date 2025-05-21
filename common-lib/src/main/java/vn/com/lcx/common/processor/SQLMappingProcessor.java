@@ -144,17 +144,20 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             .orElse("value");
 
                     if (resultSetFunctionWillBeUse != null && !resultSetFunctionWillBeUse.isEmpty()) {
+                        var getValueFromResultSetCode = "resultSet." + resultSetFunctionWillBeUse + "(\"%s\")";
+                        if (element.getAnnotation(Clob.class) != null) {
+                            getValueFromResultSetCode = "vn.com.lcx.common.database.handler.resultset.SqlClobReader.parseClobToString(resultSet.getClob(\"%s\"))";
+                        }
                         String resultSetMappingCodeLine = String.format("" +
                                         "        try {" +
-                                        "\n            %s value = resultSet.%s(\"%s\");" +
+                                        "\n            %s value = %s;" +
                                         "\n            instance.%s(%s);" +
                                         "\n        } catch (java.sql.SQLException sqlException) {" +
                                         "\n            // %s" +
                                         "\n        }" +
                                         "\n",
                                 fieldType,
-                                resultSetFunctionWillBeUse,
-                                databaseColumnNameToBeGet,
+                                String.format(getValueFromResultSetCode, databaseColumnNameToBeGet),
                                 fieldName,
                                 valueCodeLine,
                                 exceptionLoggingCodeLine
@@ -163,15 +166,14 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         if (tableNameAnnotation.isPresent()) {
                             String resultSetMappingCodeLine2 = String.format("" +
                                             "        try {" +
-                                            "\n            %s value = resultSet.%s(\"%s\");" +
+                                            "\n            %s value = %s;" +
                                             "\n            instance.%s(%s);" +
                                             "\n        } catch (java.sql.SQLException sqlException) {" +
                                             "\n            // %s" +
                                             "\n        }" +
                                             "\n",
                                     fieldType,
-                                    resultSetFunctionWillBeUse,
-                                    databaseColumnName,
+                                    String.format(getValueFromResultSetCode, databaseColumnName),
                                     fieldName,
                                     valueCodeLine,
                                     exceptionLoggingCodeLine
