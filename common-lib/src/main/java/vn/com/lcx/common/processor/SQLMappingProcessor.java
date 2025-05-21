@@ -2,6 +2,7 @@ package vn.com.lcx.common.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.AdditionalCode;
+import vn.com.lcx.common.annotation.Clob;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.IdColumn;
 import vn.com.lcx.common.annotation.SecondaryIdColumn;
@@ -532,10 +533,17 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         "        if (entity.get%s() != null) {\n            params.add(\"\\n        ?\");\n        }\n",
                         capitalize(classElement.getSimpleName().toString())
                 ));
-                putEntityFieldIntoMapCodeLines.add(String.format(
-                        "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, entity.get%1$s());\n        }\n",
-                        capitalize(classElement.getSimpleName().toString())
-                ));
+                if (classElement.getAnnotation(Clob.class) == null) {
+                    putEntityFieldIntoMapCodeLines.add(String.format(
+                            "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, entity.get%1$s());\n        }\n",
+                            capitalize(classElement.getSimpleName().toString())
+                    ));
+                } else {
+                    putEntityFieldIntoMapCodeLines.add(String.format(
+                            "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, vn.com.lcx.common.database.handler.resultset.SqlClobReader.convertStringToClob(vn.com.lcx.common.database.context.ConnectionContext.get(), entity.get%1$s()));\n        }\n",
+                            capitalize(classElement.getSimpleName().toString())
+                    ));
+                }
             }
             return String.format(
                     "\n" +
@@ -712,10 +720,17 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         capitalize(classElement.getSimpleName().toString()),
                         columnNameAnnotation.name()
                 ));
-                putEntityFieldIntoMapCodeLines.add(String.format(
-                        "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, entity.get%1$s());\n        }\n",
-                        capitalize(classElement.getSimpleName().toString())
-                ));
+                if (classElement.getAnnotation(Clob.class) == null) {
+                    putEntityFieldIntoMapCodeLines.add(String.format(
+                            "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, entity.get%1$s());\n        }\n",
+                            capitalize(classElement.getSimpleName().toString())
+                    ));
+                } else {
+                    putEntityFieldIntoMapCodeLines.add(String.format(
+                            "        if (entity.get%1$s() != null) {\n            map.put(++startingPosition, vn.com.lcx.common.database.handler.resultset.SqlClobReader.convertStringToClob(vn.com.lcx.common.database.context.ConnectionContext.get(), entity.get%1$s()));\n        }\n",
+                            capitalize(classElement.getSimpleName().toString())
+                    ));
+                }
             }
             if (StringUtils.isNotBlank(idColumnFieldName) && StringUtils.isNotBlank(idColumnColumnName)) {
                 putEntityFieldIntoMapCodeLines.add(String.format(

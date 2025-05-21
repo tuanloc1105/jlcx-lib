@@ -3,6 +3,7 @@ package vn.com.lcx.common.constant;
 import com.google.gson.reflect.TypeToken;
 import vn.com.lcx.common.database.handler.statement.BigDecimalHandler;
 import vn.com.lcx.common.database.handler.statement.BooleanHandler;
+import vn.com.lcx.common.database.handler.statement.ClobHandler;
 import vn.com.lcx.common.database.handler.statement.DateHandler;
 import vn.com.lcx.common.database.handler.statement.DoubleHandler;
 import vn.com.lcx.common.database.handler.statement.FloatHandler;
@@ -51,6 +52,8 @@ public final class CommonConstant {
             put("Long", LongHandler.getInstance());
             put("String", StringHandler.getInstance());
             put("BigDecimal", BigDecimalHandler.getInstance());
+            put("Clob", ClobHandler.getInstance());
+            put("CLOB", ClobHandler.getInstance());
         }
     };
     public static final String ROOT_DIRECTORY_PROJECT_PATH = FileSystems.
