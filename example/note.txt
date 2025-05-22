@@ -51,3 +51,53 @@ public void removeClient(final BigDecimal id) {
     }
 }
 ```
+
+Socket
+
+```java
+import io.vertx.core.Vertx;
+import io.vertx.core.net.NetServer;
+import io.vertx.core.net.NetSocket;
+
+public class TcpServerVertx {
+    public static void main(String[] args) {
+        Vertx vertx = Vertx.vertx();
+
+        NetServer server = vertx.createNetServer();
+
+        server.connectHandler(socket -> handleClient(socket));
+
+        server.listen(1234, res -> {
+            if (res.succeeded()) {
+                System.out.println("Server is now listening on port 1234");
+            } else {
+                System.out.println("Failed to bind: " + res.cause());
+            }
+        });
+    }
+
+    private static void handleClient(NetSocket socket) {
+        String clientInfo = socket.remoteAddress().host() + ":" + socket.remoteAddress().port();
+        System.out.println("New client connected: " + clientInfo);
+
+        // Read data from client
+        socket.handler(buffer -> {
+            String data = buffer.toString();
+            System.out.println("Received from " + clientInfo + ": " + data);
+
+            // Send response data to client
+            socket.write("Echo: " + data);
+        });
+
+        // Handle client disconnection event
+        socket.closeHandler(v -> {
+            System.out.println("Client disconnected: " + clientInfo);
+        });
+
+        // Handle exception
+        socket.exceptionHandler(err -> {
+            System.err.println("Error with client " + clientInfo + ": " + err.getMessage());
+        });
+    }
+}
+```
