@@ -1,12 +1,12 @@
 #!/bin/bash
 
-export JAVA_HOME="/home/loc/dev-kit/jdk-11"
-export MAVEN_HOME="/home/loc/dev-kit/maven"
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin"
+export JAVA_HOME="$HOME/dev-kit/jdk-11"
+export MAVEN_HOME="$HOME/dev-kit/maven"
+export PATH="$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
 
 printf "\n\n >> Checking java version \n\n\n"
 
-java -version
+java -version 2>&1
 
 printf "\n\n >> Checking maven version \n\n\n"
 
