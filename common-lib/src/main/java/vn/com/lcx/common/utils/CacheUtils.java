@@ -46,6 +46,8 @@ public class CacheUtils<K, V> {
 
         cancelOldTask(key);
 
+        cache.put(key, new SoftReference<>(value));
+
         final ScheduledFuture<SoftReference<V>> schedule = scheduler.schedule(
                 () -> {
                     removeExpiredKeyTasks.remove(key);
@@ -55,7 +57,6 @@ public class CacheUtils<K, V> {
                 TimeUnit.MILLISECONDS
         );
         removeExpiredKeyTasks.put(key, schedule);
-        cache.put(key, new SoftReference<>(value));
     }
 
     // Method to retrieve items from the cache
