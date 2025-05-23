@@ -6,6 +6,7 @@ import vn.com.lcx.common.exception.CacheException;
 
 import java.lang.ref.SoftReference;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,46 +32,63 @@ public class CacheUtils<K, V> {
 
     // Method to add items to the cache
     public void put(K key, V value) {
-        if (this.cache.size() >= this.capacity) {
+        if (cache.size() >= capacity) {
             throw new CacheException("Cache is full");
         }
-        this.cache.put(key, new SoftReference<>(value));
+        cache.put(key, new SoftReference<>(value));
     }
 
     // Method to add items to the cache
     public void put(K key, V value, Duration duration) {
-        if (this.cache.size() >= this.capacity) {
+        if (cache.size() >= capacity) {
             throw new CacheException("Cache is full");
         }
 
-        final var oldTask = removeExpiredKeyTasks.remove(key);
-        if (oldTask != null) {
-            oldTask.cancel(false);
-        }
+        cancelOldTask(key);
 
-        final ScheduledFuture<SoftReference<V>> schedule = scheduler.schedule(() -> this.cache.remove(key), duration.toMillis(), TimeUnit.MILLISECONDS);
+        final ScheduledFuture<SoftReference<V>> schedule = scheduler.schedule(
+                () -> {
+                    removeExpiredKeyTasks.remove(key);
+                    return cache.remove(key);
+                },
+                duration.toMillis(),
+                TimeUnit.MILLISECONDS
+        );
         removeExpiredKeyTasks.put(key, schedule);
-        this.cache.put(key, new SoftReference<>(value));
+        cache.put(key, new SoftReference<>(value));
     }
 
     // Method to retrieve items from the cache
     public V get(K key) {
-        final var ref = this.cache.get(key);
+        final var ref = cache.get(key);
         return ref == null ? null : ref.get();
     }
 
     // Method to remove items from the cache
     public void remove(K key) {
-        this.cache.remove(key);
+        cache.remove(key);
+        cancelOldTask(key);
     }
 
     // Method to check if the cache contains a key
     public boolean containsKey(K key) {
-        return this.cache.containsKey(key);
+        return cache.containsKey(key);
     }
 
     // Method to clear the entire cache
     public void clear() {
-        this.cache.clear();
+        cache.clear();
+        for (Map.Entry<K, ScheduledFuture<SoftReference<V>>> entry : removeExpiredKeyTasks.entrySet()) {
+            ScheduledFuture<SoftReference<V>> task = entry.getValue();
+            task.cancel(false);
+        }
+        removeExpiredKeyTasks.clear();
+    }
+
+    private void cancelOldTask(K key) {
+        final var oldTask = removeExpiredKeyTasks.remove(key);
+        if (oldTask != null) {
+            oldTask.cancel(false);
+        }
     }
 }
