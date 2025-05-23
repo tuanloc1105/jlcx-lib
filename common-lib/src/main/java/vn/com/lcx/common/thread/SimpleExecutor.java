@@ -122,31 +122,33 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                 this.unit.toString()
         );
         List<T> result = new ArrayList<>(this.taskList.size());
-        ExecutorService executor = this.createExecutorService();
-        try {
-            List<Future<T>> futures;
-            if (this.timeout <= 0 || this.unit == null) {
-                futures = executor.invokeAll(this.taskList);
-            } else {
-                futures = executor.invokeAll(this.taskList, this.timeout, this.unit);
-            }
-
-            while (!futures.isEmpty()) {
-                val future = futures.remove(0);
-                try {
-                    result.add(future.get());
-                } catch (Throwable e) {
-                    LogUtils.writeLog(e.getMessage(), e);
-                    future.cancel(true);
-                    futures.forEach(this::cancelFutureTasks);
-                    // throw new RuntimeException("Task failed due to " + e, e);
+        try (ExecutorService executor = this.createExecutorService()) {
+            try {
+                List<Future<T>> futures;
+                if (this.timeout <= 0 || this.unit == null) {
+                    futures = executor.invokeAll(this.taskList);
+                } else {
+                    futures = executor.invokeAll(this.taskList, this.timeout, this.unit);
                 }
+
+                while (!futures.isEmpty()) {
+                    val future = futures.remove(0);
+                    try {
+                        result.add(future.get());
+                    } catch (Throwable e) {
+                        LogUtils.writeLog(e.getMessage(), e);
+                        future.cancel(true);
+                        futures.forEach(this::cancelFutureTasks);
+                        // throw new RuntimeException("Task failed due to " + e, e);
+                    }
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                // Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            } finally {
+                executor.shutdown();
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        } finally {
-            executor.shutdown();
         }
         return result;
     }
@@ -169,31 +171,32 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                 this.timeout,
                 this.unit.toString()
         );
-        ExecutorService executor = this.createExecutorService();
-        final CountDownLatch latch = new CountDownLatch(this.taskList.size());
-        for (Callable<T> tCallable : this.taskList) {
-            executor.submit(() -> {
-                try {
-                    tCallable.call();
-                } catch (Exception e) {
-                    LogUtils.writeLog(e.getMessage(), e);
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-        executor.shutdown();
-        try {
-            final var finishedInTime = latch.await(this.timeout, this.unit);
-            if (finishedInTime) {
-                LogUtils.writeLog(LogUtils.Level.INFO, "All tasks finished in time");
-            } else {
-                LogUtils.writeLog(LogUtils.Level.WARN, "Some task has not been done");
+        try (ExecutorService executor = this.createExecutorService()) {
+            final CountDownLatch latch = new CountDownLatch(this.taskList.size());
+            for (Callable<T> tCallable : this.taskList) {
+                executor.submit(() -> {
+                    try {
+                        tCallable.call();
+                    } catch (Exception e) {
+                        LogUtils.writeLog(e.getMessage(), e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
             }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            // Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            executor.shutdown();
+            try {
+                final var finishedInTime = latch.await(this.timeout, this.unit);
+                if (finishedInTime) {
+                    LogUtils.writeLog(LogUtils.Level.INFO, "All tasks finished in time");
+                } else {
+                    LogUtils.writeLog(LogUtils.Level.WARN, "Some task has not been done");
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                // Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
         }
     }
 

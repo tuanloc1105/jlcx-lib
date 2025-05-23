@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -16,7 +17,8 @@ public class CacheUtils<K, V> {
     private final int capacity;
     // Use soft reference to ensure memory usage
     private final ConcurrentHashMap<K, SoftReference<V>> cache;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ConcurrentHashMap<K, ScheduledFuture<SoftReference<V>>> removeExpiredKeyTasks = new ConcurrentHashMap<>();
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public static <K, V> CacheUtils<K, V> create(int capacity) {
 
@@ -40,22 +42,21 @@ public class CacheUtils<K, V> {
         if (this.cache.size() >= this.capacity) {
             throw new CacheException("Cache is full");
         }
-        // new Timer().schedule(
-        //         new TimerTask() {
-        //             @Override
-        //             public void run() {
-        //                 CacheUtils.this.remove(key);
-        //             }
-        //         },
-        //         DateTimeUtils.localDateTimeToDate(DateTimeUtils.generateCurrentTimeDefault().plus(duration))
-        // );
-        this.scheduler.schedule(() -> this.cache.remove(key), duration.toMillis(), TimeUnit.MILLISECONDS);
+
+        final var oldTask = removeExpiredKeyTasks.remove(key);
+        if (oldTask != null) {
+            oldTask.cancel(false);
+        }
+
+        final ScheduledFuture<SoftReference<V>> schedule = scheduler.schedule(() -> this.cache.remove(key), duration.toMillis(), TimeUnit.MILLISECONDS);
+        removeExpiredKeyTasks.put(key, schedule);
         this.cache.put(key, new SoftReference<>(value));
     }
 
     // Method to retrieve items from the cache
     public V get(K key) {
-        return this.cache.get(key).get();
+        final var ref = this.cache.get(key);
+        return ref == null ? null : ref.get();
     }
 
     // Method to remove items from the cache
