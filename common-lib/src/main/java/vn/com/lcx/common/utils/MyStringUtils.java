@@ -2,22 +2,24 @@ package vn.com.lcx.common.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -431,6 +433,16 @@ public final class MyStringUtils {
 
     public static boolean isNotBlank(String str) {
         return !isBlank(str);
+    }
+
+    public static String normalizeString(String s) {
+        if (StringUtils.isBlank(s)) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        String temp = Normalizer.normalize(s, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        temp = pattern.matcher(temp).replaceAll("");
+        return temp.replaceAll("đ", "d").replaceAll("Đ", "D");
     }
 
     public enum ParagraphMode {
