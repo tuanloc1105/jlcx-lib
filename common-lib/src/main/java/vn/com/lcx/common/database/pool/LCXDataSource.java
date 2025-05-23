@@ -146,7 +146,7 @@ public class LCXDataSource {
                     }
             );
         }
-        this.myExecutor.executeTasks();
+        this.myExecutor.executeTasksWithCountDownLatch();
         this.pool.addAll(pool);
     }
 
