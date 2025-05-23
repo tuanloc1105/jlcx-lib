@@ -1,7 +1,6 @@
-# Định nghĩa biến
-JAVA_HOME := /home/loc/dev-kit/jdk-11
-MAVEN_HOME := /home/loc/dev-kit/maven
-PATH := /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$(JAVA_HOME)/bin:$(MAVEN_HOME)/bin
+JAVA_HOME := $(HOME)/dev-kit/jdk-11
+MAVEN_HOME := $(HOME)/dev-kit/maven
+PATH := $(JAVA_HOME)/bin:$(MAVEN_HOME)/bin:$(PATH)
 
 export JAVA_HOME
 export MAVEN_HOME
