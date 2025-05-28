@@ -442,7 +442,7 @@ public final class MyStringUtils {
         String temp = Normalizer.normalize(s, Normalizer.Form.NFD);
         Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
         temp = pattern.matcher(temp).replaceAll("");
-        return temp.replaceAll("đ", "d").replaceAll("Đ", "D");
+        return temp.replace("đ", "d").replace("Đ", "D");
     }
 
     public enum ParagraphMode {

@@ -16,7 +16,6 @@ public final class SqlClobReader {
 
     public static String parseClobToString(Clob clob) {
         if (clob == null) {
-            // throw new NullPointerException("clob is null");
             return CommonConstant.EMPTY_STRING;
         }
         StringBuilder clobString = new StringBuilder();
