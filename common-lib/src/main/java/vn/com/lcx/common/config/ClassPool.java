@@ -1,5 +1,7 @@
 package vn.com.lcx.common.config;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.val;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
@@ -46,6 +48,7 @@ import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 
 public class ClassPool {
 
+    public static final List<Class<?>> ENTITIES = new ArrayList<>();
     private static final ConcurrentHashMap<String, Object> CLASS_POOL = new ConcurrentHashMap<>();
 
     public static void init(final List<String> packagesToScan, final List<Class<?>> verticleClass) {
@@ -85,6 +88,12 @@ public class ClassPool {
             val postHandleComponent = new ArrayList<Class<?>>();
             val handledPostHandleComponent = new ArrayList<Class<?>>();
             createDatasource();
+            ENTITIES.addAll(
+                    listOfClassInPackage.stream()
+                            .filter(aClass -> aClass.getAnnotation(Entity.class) != null ||
+                                    aClass.getAnnotation(Table.class) != null)
+                            .collect(Collectors.toCollection(ArrayList::new))
+            );
             for (Class<?> aClass : listOfClassInPackage) {
 
                 if (aClass.getAnnotation(TableName.class) != null) {
@@ -211,7 +220,7 @@ public class ClassPool {
                 }
             }
             if (limit == count && postHandleComponent.size() != handledPostHandleComponent.size()) {
-                throw new RuntimeException(
+                throw new ExceptionInInitializerError(
                         String.format(
                                 "Cannot create instance of classes %s",
                                 postHandleComponent.stream().map(Class::getName).collect(Collectors.joining(", ", "[", "]"))

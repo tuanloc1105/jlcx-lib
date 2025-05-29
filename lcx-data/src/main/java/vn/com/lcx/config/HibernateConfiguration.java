@@ -12,8 +12,10 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.cfg.JdbcSettings;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.PostConstruct;
+import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.type.DBTypeEnum;
+import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.util.HashMap;
@@ -76,7 +78,7 @@ public class HibernateConfiguration {
         ) {
             return;
         }
-        createSessionFactory(
+        final var sessionFactory = createSessionFactory(
                 host,
                 port,
                 username,
@@ -89,6 +91,7 @@ public class HibernateConfiguration {
                 maxTimeout,
                 type
         );
+        ClassPool.setInstance(sessionFactory);
     }
 
     public SessionFactory createSessionFactory(String host,
@@ -104,6 +107,7 @@ public class HibernateConfiguration {
                                                DBTypeEnum dbType) {
         StandardServiceRegistry registry = null;
         SessionFactory sessionFactory = null;
+        HikariDataSource dataSource = null;
         try {
             StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder();
             Map<String, Object> settings = new HashMap<>();
@@ -125,8 +129,9 @@ public class HibernateConfiguration {
             hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
             hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
-            HikariDataSource dataSource = new HikariDataSource(hikariConfig);
+            dataSource = new HikariDataSource(hikariConfig);
             settings.put(JdbcSettings.JAKARTA_JTA_DATASOURCE, "dataSource");
+            // settings.put(JdbcSettings.JAKARTA_NON_JTA_DATASOURCE, "dataSource");
             settings.put(
                     Environment.DIALECT,
                     StringUtils.isBlank(dialectName) ||
@@ -134,7 +139,7 @@ public class HibernateConfiguration {
             );
             settings.put(Environment.SHOW_SQL, "true");
             settings.put(Environment.FORMAT_SQL, "true");
-            settings.put(Environment.HBM2DDL_AUTO, "none"); // validate | update | create | create-drop | none
+            settings.put(Environment.HBM2DDL_AUTO, "update"); // validate | update | create | create-drop | none
 
             registryBuilder.applySettings(settings);
             registryBuilder.applySetting(JdbcSettings.JAKARTA_JTA_DATASOURCE, dataSource);
@@ -142,6 +147,11 @@ public class HibernateConfiguration {
             registry = registryBuilder.build();
             MetadataSources sources = new MetadataSources(registry);
             // sources.addAnnotatedClass(AnotherEntity.class);
+            if (!ClassPool.ENTITIES.isEmpty()) {
+                for (Class<?> entity : ClassPool.ENTITIES) {
+                    sources.addAnnotatedClass(entity);
+                }
+            }
             Metadata metadata = sources.getMetadataBuilder().build();
 
             sessionFactory = metadata.getSessionFactoryBuilder().build();
@@ -154,11 +164,13 @@ public class HibernateConfiguration {
         }
         StandardServiceRegistry finalRegistry = registry;
         SessionFactory finalSessionFactory = sessionFactory;
+        HikariDataSource finalDataSource = dataSource;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            StandardServiceRegistryBuilder.destroy(finalRegistry);
             if (finalSessionFactory != null && !finalSessionFactory.isClosed()) {
                 finalSessionFactory.close();
             }
+            StandardServiceRegistryBuilder.destroy(finalRegistry);
+            finalDataSource.close();
         }));
         return sessionFactory;
     }

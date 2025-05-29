@@ -3,10 +3,10 @@ server:
   enable-http-2: true
   database:
     hikari: ${DATABASE_HIKARI:true}
-    host: ${DATABASE_HOST:localhost}
+    host: ${DATABASE_HOST:192.168.1.196}
     port: ${DATABASE_PORT:5432}
     username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:postgres}
+    password: ${DATABASE_PASSWORD:yfM478rEK207BBA355stk059joK399CX}
     driver_class_name: ${DATABASE_DRIVER_CLASS_NAME:org.postgresql.Driver}
     name: ${DATABASE_NAME:todo_app}
     max_pool_size: ${DATABASE_MAX_POOL_SIZE:10}
