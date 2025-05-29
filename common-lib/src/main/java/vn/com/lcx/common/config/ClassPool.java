@@ -1,8 +1,5 @@
 package vn.com.lcx.common.config;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.gson.Gson;
 import lombok.val;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
@@ -28,9 +25,7 @@ import vn.com.lcx.common.proxy.ServiceProxy;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.FileUtils;
-import vn.com.lcx.common.utils.HttpUtils;
 import vn.com.lcx.common.utils.PropertiesUtils;
-import vn.com.lcx.common.utils.SocketUtils;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -51,7 +46,7 @@ import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 
 public class ClassPool {
 
-    public static final ConcurrentHashMap<String, Object> CLASS_POOL = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Object> CLASS_POOL = new ConcurrentHashMap<>();
 
     public static void init(final List<String> packagesToScan, final List<Class<?>> verticleClass) {
         packagesToScan.add("vn.com.lcx");
@@ -306,53 +301,19 @@ public class ClassPool {
         } catch (IllegalArgumentException e) {
             type = null;
         }
-        if (
-                host.equals(CommonConstant.NULL_STRING) ||
-                        username.equals(CommonConstant.NULL_STRING) ||
-                        password.equals(CommonConstant.NULL_STRING) ||
-                        name.equals(CommonConstant.NULL_STRING) ||
-                        // driverClassName.equals(CommonConstant.NULL_STRING) ||
-                        port == 0 ||
-                        initialPoolSize == 0 ||
-                        maxPoolSize == 0 ||
-                        maxTimeout == 0 ||
-                        type == null
-        ) {
+        if (host.equals(CommonConstant.NULL_STRING) || username.equals(CommonConstant.NULL_STRING) || password.equals(CommonConstant.NULL_STRING) || name.equals(CommonConstant.NULL_STRING) ||
+                // driverClassName.equals(CommonConstant.NULL_STRING) ||
+                port == 0 || initialPoolSize == 0 || maxPoolSize == 0 || maxTimeout == 0 || type == null) {
             return;
         }
         boolean hikari = Boolean.parseBoolean(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.hikari"));
         LCXDataSource dataSource;
         if (hikari) {
-            dataSource = HikariLcxDataSource.init(
-                    host,
-                    port,
-                    username,
-                    password,
-                    name,
-                    driverClassName,
-                    initialPoolSize,
-                    maxPoolSize,
-                    maxTimeout,
-                    type
-            );
+            dataSource = HikariLcxDataSource.init(host, port, username, password, name, driverClassName, initialPoolSize, maxPoolSize, maxTimeout, type);
         } else {
-            dataSource = LCXDataSource.init(
-                    host,
-                    port,
-                    username,
-                    password,
-                    name,
-                    driverClassName,
-                    initialPoolSize,
-                    maxPoolSize,
-                    maxTimeout,
-                    type
-            );
+            dataSource = LCXDataSource.init(host, port, username, password, name, driverClassName, initialPoolSize, maxPoolSize, maxTimeout, type);
         }
-        CLASS_POOL.put(
-                LCXDataSource.class.getName(),
-                dataSource
-        );
+        CLASS_POOL.put(LCXDataSource.class.getName(), dataSource);
     }
 
     public static Object getInstance(String name) {
@@ -365,6 +326,19 @@ public class ClassPool {
 
     public static <T> T getInstance(Class<T> clazz) {
         return clazz.cast(CLASS_POOL.get(clazz.getName()));
+    }
+
+    public static void setInstance(String name, Object instance) {
+        CLASS_POOL.put(name, instance);
+        CLASS_POOL.put(instance.getClass().getName(), instance);
+        // final var iFaces = instance.getClass().getInterfaces();
+        // for (Class<?> iFaceClass : iFaces) {
+        //     CLASS_POOL.put(iFaceClass.getName(), instance);
+        // }
+    }
+
+    public static void setInstance(Object instance) {
+        CLASS_POOL.put(instance.getClass().getName(), instance);
     }
 
 }

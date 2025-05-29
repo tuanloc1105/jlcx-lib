@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static vn.com.lcx.common.config.ClassPool.CLASS_POOL;
-
 @Slf4j
 public class MyVertxDeployment {
 
@@ -35,8 +33,8 @@ public class MyVertxDeployment {
 
     private MyVertxDeployment() {
         vertx = Vertx.vertx();
-        CLASS_POOL.put("vertx", vertx);
-        CLASS_POOL.put(VertxBaseVerticle.class.getName(), vertx);
+        ClassPool.setInstance("vertx", vertx);
+        ClassPool.setInstance(VertxBaseVerticle.class.getName(), vertx);
     }
 
     public static MyVertxDeployment getInstance() {
@@ -77,11 +75,11 @@ public class MyVertxDeployment {
                     final Class<?>[] fieldArr = fields.stream().map(Field::getType).toArray(Class[]::new);
                     final Object[] args = fields.stream().map(
                             f -> {
-                                Object o1 = CLASS_POOL.get(f.getName());
+                                Object o1 = ClassPool.getInstance(f.getName());
                                 if (o1 != null) {
                                     return o1;
                                 }
-                                return CLASS_POOL.get(f.getType().getName());
+                                return ClassPool.getInstance(f.getType().getName());
                             }
                     ).toArray(Object[]::new);
                     final VertxBaseVerticle verticle = (VertxBaseVerticle) aClass.getDeclaredConstructor(fieldArr).newInstance(args);
