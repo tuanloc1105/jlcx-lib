@@ -71,13 +71,6 @@ public class ClassPool {
                 }
             });
 
-            // create default gson
-            CLASS_POOL.put(Gson.class.getName(), BuildGson.getGson());
-            CLASS_POOL.put(JsonMapper.class.getName(), BuildObjectMapper.getJsonMapper());
-            CLASS_POOL.put(XmlMapper.class.getName(), BuildObjectMapper.getXMLMapper());
-            CLASS_POOL.put(HttpUtils.class.getName(), new HttpUtils());
-            CLASS_POOL.put(SocketUtils.class.getName(), new SocketUtils());
-
             val setOfClassInPackage = new ArrayList<>(new HashSet<>(listOfClassInPackage));
             listOfClassInPackage.clear();
             listOfClassInPackage.addAll(setOfClassInPackage);
