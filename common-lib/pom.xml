@@ -57,7 +57,7 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>6.3.0</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>7.0.0.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.17.Final</hibernate-core-org.hibernate.orm.version>
 
     </properties>
 
