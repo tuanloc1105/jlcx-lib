@@ -25,6 +25,7 @@
         <java.version>${jdk.version}</java.version>
 
         <common-lib-vn.com.lcx.version>2.0.0</common-lib-vn.com.lcx.version>
+        <lcx-data-vn.com.lcx.version>1.0.0</lcx-data-vn.com.lcx.version>
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
 
     </properties>
@@ -35,6 +36,12 @@
             <groupId>vn.com.lcx</groupId>
             <artifactId>common-lib</artifactId>
             <version>${common-lib-vn.com.lcx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>vn.com.lcx</groupId>
+            <artifactId>lcx-data</artifactId>
+            <version>${lcx-data-vn.com.lcx.version}</version>
         </dependency>
 
         <dependency>

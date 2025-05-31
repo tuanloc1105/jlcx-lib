@@ -2,6 +2,8 @@ package vn.com.lcx.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
@@ -42,6 +44,7 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 import org.hibernate.cfg.AvailableSettings; // Import này cần thiết cho các thuộc tính JPA schema generation
+import vn.com.lcx.common.utils.RandomUtils;
 
 @Component
 public class HibernateConfiguration {
@@ -109,26 +112,28 @@ public class HibernateConfiguration {
                 initialPoolSize,
                 maxPoolSize,
                 maxTimeout,
-                type
+                type,
+                null
         );
         ClassPool.setInstance(sessionFactory);
         ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
     }
 
-    public SessionFactory createSessionFactory(String host,
-                                               int port,
-                                               String username,
-                                               String password,
-                                               String name,
-                                               String driverClassName,
-                                               String dialectName,
-                                               int initialPoolSize,
-                                               int maxPoolSize,
-                                               int maxTimeout,
-                                               DBTypeEnum dbType) {
+    public SessionFactory createSessionFactory(final String host,
+                                               final int port,
+                                               final String username,
+                                               final String password,
+                                               final String name,
+                                               final String driverClassName,
+                                               final String dialectName,
+                                               final int initialPoolSize,
+                                               final int maxPoolSize,
+                                               final int maxTimeout,
+                                               final DBTypeEnum dbType,
+                                               final String entityPackage) {
         StandardServiceRegistry registry = null;
-        SessionFactory sessionFactory = null;
-        HikariDataSource dataSource = null;
+        SessionFactory sessionFactory;
+        HikariDataSource dataSource;
         try {
             StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder();
             Map<String, Object> settings = new HashMap<>();
@@ -158,33 +163,28 @@ public class HibernateConfiguration {
             //         StringUtils.isBlank(dialectName) ||
             //                 dialectName.equals(CommonConstant.NULL_STRING) ? dbType.getDialectClass() : dialectName
             // );
-            settings.put(Environment.SHOW_SQL, true);
+            // settings.put(Environment.SHOW_SQL, true);
             settings.put(Environment.FORMAT_SQL, true);
+            // settings.put(JdbcSettings.HIGHLIGHT_SQL, true);
+            settings.put(JdbcSettings.DIALECT_NATIVE_PARAM_MARKERS, true);
             settings.put(Environment.HBM2DDL_AUTO, "update"); // validate | update | create | create-drop | none
 
             settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_UPDATE);
 
-            final var generatedCreateDdlFilePath = FileUtils.pathJoining(
+            final var generatedDdlFilePath = FileUtils.pathJoining(
                     CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
                     "data",
-                    "generated_create_ddl.sql"
+                    "generated-ddl.sql"
             );
-            final var generatedDropDdlFilePath = FileUtils.pathJoining(
-                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
-                    "data",
-                    "generated_drop_ddl.sql"
-            );
-            FileUtils.delete(generatedCreateDdlFilePath);
-            FileUtils.delete(generatedDropDdlFilePath);
-            FileUtils.createFile(generatedCreateDdlFilePath);
-            FileUtils.createFile(generatedDropDdlFilePath);
+            FileUtils.delete(generatedDdlFilePath);
+            FileUtils.createFile(generatedDdlFilePath);
             settings.put(
                     SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET,
-                    generatedCreateDdlFilePath
+                    generatedDdlFilePath
             );
             settings.put(
                     SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET,
-                    generatedDropDdlFilePath
+                    generatedDdlFilePath
             );
 
             registryBuilder.applySettings(settings);
@@ -192,9 +192,13 @@ public class HibernateConfiguration {
 
             registry = registryBuilder.build();
             MetadataSources sources = new MetadataSources(registry);
-            // sources.addAnnotatedClass(AnotherEntity.class);
-            if (!ClassPool.ENTITIES.isEmpty()) {
+            if (StringUtils.isBlank(entityPackage)) {
                 for (Class<?> entity : ClassPool.ENTITIES) {
+                    sources.addAnnotatedClass(entity);
+                }
+            } else {
+                final var entitiesInPackage = PackageScanner.findClasses(entityPackage);
+                for (Class<?> entity : entitiesInPackage) {
                     sources.addAnnotatedClass(entity);
                 }
             }
@@ -202,7 +206,7 @@ public class HibernateConfiguration {
 
             try {
                 SchemaExport schemaExport = new SchemaExport();
-                schemaExport.setOutputFile(generatedCreateDdlFilePath);
+                schemaExport.setOutputFile(generatedDdlFilePath);
                 schemaExport.setFormat(true);
                 schemaExport.setDelimiter(";");
                 schemaExport.create(EnumSet.of(TargetType.SCRIPT), metadata);
@@ -218,7 +222,7 @@ public class HibernateConfiguration {
                 StandardServiceRegistryBuilder.destroy(registry);
             }
             LogUtils.writeLog(e.getMessage(), e);
-            throw new ExceptionInInitializerError("Failed to initialize Hibernate SessionFactory.");
+            throw new ExceptionInInitializerError("Failed to initialize Hibernate SessionFactory");
         }
         StandardServiceRegistry finalRegistry = registry;
         SessionFactory finalSessionFactory = sessionFactory;
