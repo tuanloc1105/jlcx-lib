@@ -13,6 +13,7 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.cfg.SchemaToolingSettings;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.schema.Action;
 import org.hibernate.tool.schema.TargetType;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.PostConstruct;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
@@ -160,9 +162,30 @@ public class HibernateConfiguration {
             settings.put(Environment.FORMAT_SQL, true);
             settings.put(Environment.HBM2DDL_AUTO, "update"); // validate | update | create | create-drop | none
 
-            settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, "export");
-            settings.put(SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET, "generated_create_ddl.sql");
-            settings.put(SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET, "generated_drop_ddl.sql");
+            settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_UPDATE);
+
+            final var generatedCreateDdlFilePath = FileUtils.pathJoining(
+                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                    "data",
+                    "generated_create_ddl.sql"
+            );
+            final var generatedDropDdlFilePath = FileUtils.pathJoining(
+                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                    "data",
+                    "generated_drop_ddl.sql"
+            );
+            FileUtils.delete(generatedCreateDdlFilePath);
+            FileUtils.delete(generatedDropDdlFilePath);
+            FileUtils.createFile(generatedCreateDdlFilePath);
+            FileUtils.createFile(generatedDropDdlFilePath);
+            settings.put(
+                    SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET,
+                    generatedCreateDdlFilePath
+            );
+            settings.put(
+                    SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET,
+                    generatedDropDdlFilePath
+            );
 
             registryBuilder.applySettings(settings);
             registryBuilder.applySetting(JdbcSettings.JAKARTA_JTA_DATASOURCE, dataSource);
@@ -178,23 +201,15 @@ public class HibernateConfiguration {
             Metadata metadata = sources.getMetadataBuilder().build();
 
             try {
-                // Tạo một đối tượng SchemaExport
                 SchemaExport schemaExport = new SchemaExport();
-                schemaExport.setFormat(true); // Định dạng SQL cho dễ đọc
-                schemaExport.setDelimiter(";"); // Đặt dấu phân cách cho các câu lệnh SQL
-
-                // Xuất các câu lệnh CREATE DDL ra file
-                // TargetType.SCRIPT chỉ định rằng đầu ra sẽ được ghi vào file đã cấu hình
+                schemaExport.setOutputFile(generatedCreateDdlFilePath);
+                schemaExport.setFormat(true);
+                schemaExport.setDelimiter(";");
                 schemaExport.create(EnumSet.of(TargetType.SCRIPT), metadata);
-                System.out.println("Hibernate DDL (CREATE) đã được xuất ra: " + new File("generated_create_ddl.sql").getAbsolutePath());
-
-                // Xuất các câu lệnh DROP DDL ra file
                 schemaExport.drop(EnumSet.of(TargetType.SCRIPT), metadata);
-                System.out.println("Hibernate DDL (DROP) đã được xuất ra: " + new File("generated_drop_ddl.sql").getAbsolutePath());
 
             } catch (Exception ddlException) {
-                // Ghi log lỗi nếu quá trình xuất DDL gặp vấn đề, nhưng không làm dừng ứng dụng
-                LogUtils.writeLog("Lỗi trong quá trình xuất DDL: " + ddlException.getMessage(), ddlException);
+                LogUtils.writeLog("An error occurred while exporting DDL script: " + ddlException.getMessage(), ddlException);
             }
 
             sessionFactory = metadata.getSessionFactoryBuilder().build();

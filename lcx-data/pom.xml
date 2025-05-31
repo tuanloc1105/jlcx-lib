@@ -25,7 +25,6 @@
 
         <common-lib-vn.com.lcx.version>2.0.0</common-lib-vn.com.lcx.version>
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.17.Final</hibernate-core-org.hibernate.orm.version>
         <hibernate-tools-orm-org.hibernate.tool.version>6.6.15.Final</hibernate-tools-orm-org.hibernate.tool.version>
 
     </properties>
@@ -43,12 +42,6 @@
             <artifactId>lombok</artifactId>
             <version>${lombok-org.projectlombok.version}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>${hibernate-core-org.hibernate.orm.version}</version>
         </dependency>
 
         <dependency>
