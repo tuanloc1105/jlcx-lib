@@ -220,10 +220,19 @@ public class ClassPool {
                 }
             }
             if (limit == count && postHandleComponent.size() != handledPostHandleComponent.size()) {
+                final var classCannotBeCreated = new ArrayList<Class<?>>();
+                for (Class<?> aClass : postHandleComponent) {
+                    if (handledPostHandleComponent.stream().noneMatch(handledClass -> handledClass.isAssignableFrom(aClass))) {
+                        classCannotBeCreated.add(aClass);
+                    }
+                }
                 throw new ExceptionInInitializerError(
                         String.format(
                                 "Cannot create instance of classes %s",
-                                postHandleComponent.stream().map(Class::getName).collect(Collectors.joining(", ", "[", "]"))
+                                classCannotBeCreated
+                                        .stream()
+                                        .map(Class::getName)
+                                        .collect(Collectors.joining(", ", "[", "]"))
                         )
                 );
             }
