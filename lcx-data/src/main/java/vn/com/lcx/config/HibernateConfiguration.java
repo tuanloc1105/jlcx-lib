@@ -8,20 +8,38 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
 import org.hibernate.cfg.JdbcSettings;
+import org.hibernate.cfg.SchemaToolingSettings;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.schema.TargetType;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.scanner.PackageScanner;
+import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
 
+import java.io.File;
+import java.sql.Connection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Environment;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.schema.TargetType;
+import org.hibernate.cfg.AvailableSettings; // Import này cần thiết cho các thuộc tính JPA schema generation
 
 @Component
 public class HibernateConfiguration {
@@ -92,6 +110,7 @@ public class HibernateConfiguration {
                 type
         );
         ClassPool.setInstance(sessionFactory);
+        ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
     }
 
     public SessionFactory createSessionFactory(String host,
@@ -132,14 +151,18 @@ public class HibernateConfiguration {
             dataSource = new HikariDataSource(hikariConfig);
             settings.put(JdbcSettings.JAKARTA_JTA_DATASOURCE, "dataSource");
             // settings.put(JdbcSettings.JAKARTA_NON_JTA_DATASOURCE, "dataSource");
-            settings.put(
-                    Environment.DIALECT,
-                    StringUtils.isBlank(dialectName) ||
-                            dialectName.equals(CommonConstant.NULL_STRING) ? dbType.getDialectClass() : dialectName
-            );
-            settings.put(Environment.SHOW_SQL, "true");
-            settings.put(Environment.FORMAT_SQL, "true");
+            // settings.put(
+            //         Environment.DIALECT,
+            //         StringUtils.isBlank(dialectName) ||
+            //                 dialectName.equals(CommonConstant.NULL_STRING) ? dbType.getDialectClass() : dialectName
+            // );
+            settings.put(Environment.SHOW_SQL, true);
+            settings.put(Environment.FORMAT_SQL, true);
             settings.put(Environment.HBM2DDL_AUTO, "update"); // validate | update | create | create-drop | none
+
+            settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, "export");
+            settings.put(SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET, "generated_create_ddl.sql");
+            settings.put(SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET, "generated_drop_ddl.sql");
 
             registryBuilder.applySettings(settings);
             registryBuilder.applySetting(JdbcSettings.JAKARTA_JTA_DATASOURCE, dataSource);
@@ -153,6 +176,26 @@ public class HibernateConfiguration {
                 }
             }
             Metadata metadata = sources.getMetadataBuilder().build();
+
+            try {
+                // Tạo một đối tượng SchemaExport
+                SchemaExport schemaExport = new SchemaExport();
+                schemaExport.setFormat(true); // Định dạng SQL cho dễ đọc
+                schemaExport.setDelimiter(";"); // Đặt dấu phân cách cho các câu lệnh SQL
+
+                // Xuất các câu lệnh CREATE DDL ra file
+                // TargetType.SCRIPT chỉ định rằng đầu ra sẽ được ghi vào file đã cấu hình
+                schemaExport.create(EnumSet.of(TargetType.SCRIPT), metadata);
+                System.out.println("Hibernate DDL (CREATE) đã được xuất ra: " + new File("generated_create_ddl.sql").getAbsolutePath());
+
+                // Xuất các câu lệnh DROP DDL ra file
+                schemaExport.drop(EnumSet.of(TargetType.SCRIPT), metadata);
+                System.out.println("Hibernate DDL (DROP) đã được xuất ra: " + new File("generated_drop_ddl.sql").getAbsolutePath());
+
+            } catch (Exception ddlException) {
+                // Ghi log lỗi nếu quá trình xuất DDL gặp vấn đề, nhưng không làm dừng ứng dụng
+                LogUtils.writeLog("Lỗi trong quá trình xuất DDL: " + ddlException.getMessage(), ddlException);
+            }
 
             sessionFactory = metadata.getSessionFactoryBuilder().build();
         } catch (Exception e) {
