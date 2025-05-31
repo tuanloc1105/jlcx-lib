@@ -1,6 +1,6 @@
 package com.example.lcx.service.impl;
 
-import com.example.lcx.entity.User;
+import com.example.lcx.entity.UserEntity;
 import com.example.lcx.enums.AppError;
 import com.example.lcx.mapper.UserMapper;
 import com.example.lcx.object.dto.UserDTO;
@@ -14,59 +14,69 @@ import com.google.gson.Gson;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.annotation.Service;
-import vn.com.lcx.common.annotation.Transaction;
-import vn.com.lcx.common.database.specification.SimpleSpecificationImpl;
-import vn.com.lcx.common.database.specification.Specification;
 import vn.com.lcx.common.utils.BCryptUtils;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
-@Service
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final SessionFactory sessionFactory;
     private final UserMapper userMapper;
     private final JWTAuth jwtAuth;
     private final Gson gson;
 
-    @Transaction
     public void createNew(final CreateNewUserRequest request) {
-        Specification specification = SimpleSpecificationImpl.of(User.class).equal("username", request.getUsername());
-        final var userExistedInDB = userRepository.find(specification);
-        if (!userExistedInDB.isEmpty()) {
-            throw new InternalServiceException(AppError.USER_EXISTED);
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            final var query = session.createQuery("select u from UserEntity u where u.username = :username", UserEntity.class);
+            query.setParameter("username", request.getUsername());
+            if (Optional.ofNullable(query.uniqueResult()).isPresent()) {
+                throw new InternalServiceException(AppError.USER_EXISTED);
+            }
+            UserEntity user = new UserEntity();
+            user.setUsername(request.getUsername());
+            user.setPassword(BCryptUtils.hashPassword(request.getPassword()));
+            user.setFullName(request.getFullName());
+            session.persist(user);
+            transaction.commit();
+        } catch (InternalServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw new RuntimeException(e);
         }
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(BCryptUtils.hashPassword(request.getPassword()));
-        user.setFullName(request.getFullName());
-        user.setActive(true);
-        userRepository.save2(user);
     }
 
     public UserLoginResponse login(final UserLoginRequest request) {
-        Specification specification = SimpleSpecificationImpl.of(User.class)
-                .equal("username", request.getUsername());
-        final var userExistedInDB = userRepository.find(specification);
-        if (userExistedInDB.isEmpty()) {
-            throw new InternalServiceException(AppError.USER_NOT_EXIST);
-        }
-        if (userExistedInDB.size() > 1) {
-            throw new InternalServiceException(AppError.UNKNOWN_USER);
-        }
-        final var user = userExistedInDB.get(0);
-        if (!user.getActive()) {
-            throw new InternalServiceException(AppError.USER_IS_NOT_ACTIVE);
-        }
-        try {
+        try (Session session = sessionFactory.openSession()) {
+            final HibernateCriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+            final CriteriaQuery<UserEntity> criteriaQuery = criteriaBuilder.createQuery(UserEntity.class);
+            Root<UserEntity> root = criteriaQuery.from(UserEntity.class);
+            criteriaQuery.select(root);
+            Predicate usernamePredicate = criteriaBuilder.equal(root.get("username"), request.getUsername());
+            criteriaQuery.where(usernamePredicate);
+            Query<UserEntity> query = session.createQuery(criteriaQuery);
+            var user = Optional.ofNullable(query.uniqueResult()).orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
             BCryptUtils.comparePassword(request.getPassword(), user.getPassword());
             final var tokenInfo = UserJWTTokenInfo.builder()
-                    .id(user.getId())
-                    .active(user.getActive())
+                    .id(user.getId().longValue())
                     .username(user.getUsername())
                     .fullName(user.getFullName())
                     .build();
@@ -75,12 +85,11 @@ public class UserServiceImpl implements UserService {
                     new JWTOptions().setAlgorithm("RS256").setExpiresInMinutes(14400)
             );
             return new UserLoginResponse(token, user.getFullName());
-        } catch (IllegalArgumentException e) {
-            throw new InternalServiceException(AppError.INCORRECT_PASSWORD);
+        } catch (InternalServiceException e) {
+            throw e;
         }
     }
 
-    @Transaction
     public UserDTO getUserByUsername(final String username) {
         return userMapper.map(userRepository.findByUsernameAndActive(username, true));
     }

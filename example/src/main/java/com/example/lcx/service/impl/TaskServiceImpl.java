@@ -30,7 +30,6 @@ import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
 @Component
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {

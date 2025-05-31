@@ -212,13 +212,11 @@ public final class FileUtils {
         Path path = Paths.get(filePath);
         try {
             if (Files.exists(path)) {
-                System.out.println("Tệp đã tồn tại: " + filePath);
                 return false;
             }
             Files.createFile(path);
             return true;
         } catch (IOException e) {
-            System.err.println("Lỗi khi tạo tệp: " + e.getMessage());
             return false;
         }
     }
@@ -233,13 +231,11 @@ public final class FileUtils {
         Path path = Paths.get(dirPath);
         try {
             if (Files.exists(path)) {
-                System.out.println("Thư mục đã tồn tại: " + dirPath);
                 return false;
             }
             Files.createDirectories(path);
             return true;
         } catch (IOException e) {
-            System.err.println("Lỗi khi tạo thư mục: " + e.getMessage());
             return false;
         }
     }
@@ -254,7 +250,6 @@ public final class FileUtils {
         Path path = Paths.get(pathStr);
         try {
             if (!Files.exists(path)) {
-                System.out.println("Đường dẫn không tồn tại: " + pathStr);
                 return false;
             }
             // Duyệt theo post-order để xóa file trước, sau đó xóa thư mục
@@ -277,7 +272,6 @@ public final class FileUtils {
             });
             return true;
         } catch (IOException e) {
-            System.err.println("Lỗi khi xóa: " + e.getMessage());
             return false;
         }
     }
@@ -295,7 +289,6 @@ public final class FileUtils {
         Path destPath = Paths.get(destPathStr);
         try {
             if (!Files.exists(sourcePath)) {
-                System.out.println("Đường dẫn nguồn không tồn tại: " + sourcePathStr);
                 return false;
             }
             if (Files.isDirectory(sourcePath)) {
@@ -327,7 +320,6 @@ public final class FileUtils {
             }
             return true;
         } catch (IOException e) {
-            System.err.println("Lỗi khi copy: " + e.getMessage());
             return false;
         }
     }
@@ -344,13 +336,11 @@ public final class FileUtils {
         Path destPath = Paths.get(destPathStr);
         try {
             if (!Files.exists(sourcePath)) {
-                System.out.println("Đường dẫn nguồn không tồn tại: " + sourcePathStr);
                 return false;
             }
             Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
             return true;
         } catch (IOException e) {
-            System.err.println("Lỗi khi di chuyển: " + e.getMessage());
             return false;
         }
     }
@@ -367,19 +357,16 @@ public final class FileUtils {
         Path sourcePath = Paths.get(sourcePathStr);
         try {
             if (!Files.exists(sourcePath)) {
-                System.out.println("Đường dẫn nguồn không tồn tại: " + sourcePathStr);
                 return false;
             }
             Path parentPath = sourcePath.getParent();
             if (parentPath == null) {
-                System.out.println("Không thể đổi tên thư mục gốc.");
                 return false;
             }
             Path newPath = parentPath.resolve(newName);
             Files.move(sourcePath, newPath, StandardCopyOption.REPLACE_EXISTING);
             return true;
         } catch (IOException e) {
-            System.err.println("Lỗi khi đổi tên: " + e.getMessage());
             return false;
         }
     }
@@ -400,8 +387,6 @@ public final class FileUtils {
                     list.add(file.getName());
                 }
             }
-        } else {
-            System.out.println("Đường dẫn không phải là thư mục hoặc không tồn tại: " + dirPathStr);
         }
         return list;
     }
@@ -417,7 +402,6 @@ public final class FileUtils {
         try {
             return Files.readAllBytes(path);
         } catch (IOException e) {
-            System.err.println("Lỗi khi đọc tệp: " + e.getMessage());
             return new byte[0];
         }
     }
@@ -437,7 +421,6 @@ public final class FileUtils {
             Files.write(path, data, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             return true;
         } catch (IOException e) {
-            System.err.println("Lỗi khi ghi dữ liệu vào tệp: " + e.getMessage());
             return false;
         }
     }

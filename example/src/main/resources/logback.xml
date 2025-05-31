@@ -9,7 +9,7 @@
     <property name="fileName" value="app"/>
 
     <property name="LOG_PATTERN"
-              value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%25t] [%-40.40logger{1}] [%X{operation_name}] %m%n\n"/>
+              value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%25t] [%-40.40logger{1}] [%X{trace_id}] [%X{operation_name}] %m%n\n"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
@@ -48,17 +48,14 @@
         <appender-ref ref="FILE-AUDIT"/>
     </root>
 
-    <logger name="org.hibernate.SQL" additivity="false">
-        <level value="DEBUG"/>
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE-AUDIT"/>
-    </logger>
+    <logger name="org.hibernate.SQL" level="debug"/>
 
-    <logger name="org.hibernate.type" additivity="false">
-        <level value="TRACE"/>
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE-AUDIT"/>
-    </logger>
+    <logger name="org.hibernate.orm.jdbc.bind" level="trace"/>
+    <logger name="org.hibernate.orm.jdbc.extract" level="trace"/>
+
+    <logger name="org.hibernate" level="info"/>
+
+    <logger name="com.p6spy" level="debug"/>
 
 
 </configuration>

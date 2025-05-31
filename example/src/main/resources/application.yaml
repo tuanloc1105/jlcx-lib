@@ -2,7 +2,6 @@ server:
   port: 6060
   enable-http-2: true
   database:
-    hikari: ${DATABASE_HIKARI:true}
     host: ${DATABASE_HOST:192.168.1.196}
     port: ${DATABASE_PORT:5432}
     username: ${DATABASE_USERNAME:postgres}

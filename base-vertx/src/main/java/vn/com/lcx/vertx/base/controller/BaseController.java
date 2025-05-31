@@ -210,8 +210,7 @@ public class BaseController {
             val requestBody = MyStringUtils.minifyJsonString(context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
 
             BaseController.this.requestLogger.info(
-                    "[{}] Request:\n    - URL: {}\n    - Header:\n{}\n    - Payload:\n        {}",
-                    trace,
+                    "Request:\n    - URL: {}\n    - Header:\n{}\n    - Payload:\n        {}",
                     context.request().uri(),
                     String.join("\n", headerLogMsg),
                     requestBody
@@ -262,8 +261,7 @@ public class BaseController {
                     .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, trace)
                     .end(responseBody);
             BaseController.this.responseLogger.info(
-                    "[{}] Response ({} second(s)):\n    - Payload:\n        {}",
-                    trace,
+                    "Response ({} second(s)):\n    - Payload:\n        {}",
                     duration,
                     responseBody
             );
@@ -275,7 +273,7 @@ public class BaseController {
             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
             val endingTime = (double) System.currentTimeMillis();
             val duration = (endingTime - startingTime) / 1000D;
-            BaseController.this.exceptionLogger.error("[{}] - {}", trace, e.getMessage(), e);
+            BaseController.this.exceptionLogger.error("- {}", e.getMessage(), e);
             CommonResponse response;
             int httpCode = 500;
             if (e instanceof InternalServiceException) {
@@ -308,8 +306,7 @@ public class BaseController {
                     .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, trace)
                     .end(responseBody);
             BaseController.this.responseLogger.warn(
-                    "[{}] Response ({} second(s)):\n    - Payload:\n        {}",
-                    trace,
+                    "Response ({} second(s)):\n    - Payload:\n        {}",
                     duration,
                     responseBody
             );

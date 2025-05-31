@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
@@ -156,8 +157,7 @@ public class HibernateConfiguration {
             hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
             dataSource = new HikariDataSource(hikariConfig);
-            settings.put(JdbcSettings.JAKARTA_JTA_DATASOURCE, "dataSource");
-            // settings.put(JdbcSettings.JAKARTA_NON_JTA_DATASOURCE, "dataSource");
+            settings.put(JdbcSettings.JAKARTA_JTA_DATASOURCE, dataSource);
             // settings.put(
             //         Environment.DIALECT,
             //         StringUtils.isBlank(dialectName) ||
@@ -167,8 +167,9 @@ public class HibernateConfiguration {
             settings.put(Environment.FORMAT_SQL, true);
             // settings.put(JdbcSettings.HIGHLIGHT_SQL, true);
             settings.put(JdbcSettings.DIALECT_NATIVE_PARAM_MARKERS, true);
-            settings.put(Environment.HBM2DDL_AUTO, "update"); // validate | update | create | create-drop | none
+            settings.put(Environment.HBM2DDL_AUTO, Action.ACTION_UPDATE);
 
+            settings.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, PhysicalNamingStrategyStandardImpl.class.getName());
             settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_UPDATE);
 
             final var generatedDdlFilePath = FileUtils.pathJoining(
@@ -178,17 +179,25 @@ public class HibernateConfiguration {
             );
             FileUtils.delete(generatedDdlFilePath);
             FileUtils.createFile(generatedDdlFilePath);
+            final var schemaExportDdlFilePath = FileUtils.pathJoining(
+                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                    "data",
+                    "schema-export-ddl.sql"
+            );
+            FileUtils.delete(schemaExportDdlFilePath);
+            FileUtils.createFile(schemaExportDdlFilePath);
+
             settings.put(
                     SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET,
                     generatedDdlFilePath
             );
+
             settings.put(
                     SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET,
                     generatedDdlFilePath
             );
 
             registryBuilder.applySettings(settings);
-            registryBuilder.applySetting(JdbcSettings.JAKARTA_JTA_DATASOURCE, dataSource);
 
             registry = registryBuilder.build();
             MetadataSources sources = new MetadataSources(registry);
@@ -205,12 +214,12 @@ public class HibernateConfiguration {
             Metadata metadata = sources.getMetadataBuilder().build();
 
             try {
+
                 SchemaExport schemaExport = new SchemaExport();
-                schemaExport.setOutputFile(generatedDdlFilePath);
+                schemaExport.setOutputFile(schemaExportDdlFilePath);
                 schemaExport.setFormat(true);
                 schemaExport.setDelimiter(";");
                 schemaExport.create(EnumSet.of(TargetType.SCRIPT), metadata);
-                schemaExport.drop(EnumSet.of(TargetType.SCRIPT), metadata);
 
             } catch (Exception ddlException) {
                 LogUtils.writeLog("An error occurred while exporting DDL script: " + ddlException.getMessage(), ddlException);

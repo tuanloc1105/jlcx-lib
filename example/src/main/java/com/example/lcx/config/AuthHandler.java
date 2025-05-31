@@ -21,7 +21,8 @@ public class AuthHandler implements VertxContextHandler {
 
     @Override
     public void handle(RoutingContext routingContext) {
-        if (routingContext.request().path().contains("login")) {
+        if (routingContext.request().path().contains("login") ||
+                routingContext.request().path().contains("create_new")) {
             routingContext.next();
         } else {
             try {
