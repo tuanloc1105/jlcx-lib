@@ -27,6 +27,7 @@ import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.utils.BCryptUtils;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
+import java.sql.Connection;
 import java.util.Optional;
 
 @Component
@@ -43,7 +44,13 @@ public class UserServiceImpl implements UserService {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
-            final var query = session.createQuery("select u from UserEntity u where u.username = :username", UserEntity.class);
+            session.doWork(connection ->
+                    connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE)
+            );
+            final var query = session.createQuery(
+                    "select u from UserEntity u where u.username = :username",
+                    UserEntity.class
+            );
             query.setParameter("username", request.getUsername());
             if (Optional.ofNullable(query.uniqueResult()).isPresent()) {
                 throw new InternalServiceException(AppError.USER_EXISTED);

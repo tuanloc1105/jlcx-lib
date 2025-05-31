@@ -51,7 +51,7 @@
     <logger name="org.hibernate.SQL" level="debug"/>
 
     <logger name="org.hibernate.orm.jdbc.bind" level="trace"/>
-    <logger name="org.hibernate.orm.jdbc.extract" level="trace"/>
+    <!-- <logger name="org.hibernate.orm.jdbc.extract" level="trace"/> -->
 
     <logger name="org.hibernate" level="info"/>
 
