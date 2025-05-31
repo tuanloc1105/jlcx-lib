@@ -1,5 +1,7 @@
 package vn.com.lcx.common.config;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.val;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
@@ -46,6 +48,7 @@ import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 
 public class ClassPool {
 
+    public static final List<Class<?>> ENTITIES = new ArrayList<>();
     private static final ConcurrentHashMap<String, Object> CLASS_POOL = new ConcurrentHashMap<>();
 
     public static void init(final List<String> packagesToScan, final List<Class<?>> verticleClass) {
@@ -84,7 +87,13 @@ public class ClassPool {
             }
             val postHandleComponent = new ArrayList<Class<?>>();
             val handledPostHandleComponent = new ArrayList<Class<?>>();
-            createDatasource();
+            // createDatasource();
+            ENTITIES.addAll(
+                    listOfClassInPackage.stream()
+                            .filter(aClass -> aClass.getAnnotation(Entity.class) != null ||
+                                    aClass.getAnnotation(Table.class) != null)
+                            .collect(Collectors.toCollection(ArrayList::new))
+            );
             for (Class<?> aClass : listOfClassInPackage) {
 
                 if (aClass.getAnnotation(TableName.class) != null) {
@@ -134,6 +143,7 @@ public class ClassPool {
                     if (fieldsOfComponent.isEmpty() && !Optional.ofNullable(aClass.getAnnotation(Service.class)).isPresent()) {
                         val component = aClass.getDeclaredConstructor().newInstance();
                         CLASS_POOL.put(aClass.getName(), component);
+                        handlePostConstructMethod(aClass, component);
                     } else {
                         postHandleComponent.add(aClass);
                     }
@@ -198,41 +208,7 @@ public class ClassPool {
                                 ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
                             }
                         }
-
-                        val postConstructMethods = Arrays.stream(aClass.getDeclaredMethods()).filter(m -> m.getAnnotation(PostConstruct.class) != null).collect(Collectors.toList());
-                        val hasMoreThanOnePostConstructMethod = postConstructMethods.size() > 1;
-                        if (hasMoreThanOnePostConstructMethod) {
-                            throw new RuntimeException(
-                                    String.format(
-                                            "Cannot create instance of %s because there are more than one PostConstruct method",
-                                            aClass.getName()
-                                    )
-                            );
-                        }
-                        if (!postConstructMethods.isEmpty()) {
-                            val postConstructMethod = postConstructMethods.get(0);
-
-                            if (postConstructMethod.getReturnType().equals(void.class)) {
-
-                                if (postConstructMethod.getParameterCount() > 0) {
-                                    throw new RuntimeException(
-                                            String.format(
-                                                    "Cannot create instance of %s. Does not accept parameters",
-                                                    aClass.getName()
-                                            )
-                                    );
-                                }
-
-                                postConstructMethod.invoke(instance);
-                            } else {
-                                throw new RuntimeException(
-                                        String.format(
-                                                "Post construct of %s must be a void method",
-                                                aClass.getName()
-                                        )
-                                );
-                            }
-                        }
+                        handlePostConstructMethod(aClass, instance);
                         handledPostHandleComponent.add(aClass);
                         aClassHasNotBeenAddedToPool = false;
                     }
@@ -244,7 +220,7 @@ public class ClassPool {
                 }
             }
             if (limit == count && postHandleComponent.size() != handledPostHandleComponent.size()) {
-                throw new RuntimeException(
+                throw new ExceptionInInitializerError(
                         String.format(
                                 "Cannot create instance of classes %s",
                                 postHandleComponent.stream().map(Class::getName).collect(Collectors.joining(", ", "[", "]"))
@@ -314,6 +290,44 @@ public class ClassPool {
             dataSource = LCXDataSource.init(host, port, username, password, name, driverClassName, initialPoolSize, maxPoolSize, maxTimeout, type);
         }
         CLASS_POOL.put(LCXDataSource.class.getName(), dataSource);
+    }
+
+    public static void handlePostConstructMethod(Class<?> aClass, Object instance) throws Exception {
+
+        val postConstructMethods = Arrays.stream(aClass.getDeclaredMethods()).filter(m -> m.getAnnotation(PostConstruct.class) != null).collect(Collectors.toList());
+        val hasMoreThanOnePostConstructMethod = postConstructMethods.size() > 1;
+        if (hasMoreThanOnePostConstructMethod) {
+            throw new RuntimeException(
+                    String.format(
+                            "Cannot create instance of %s because there are more than one PostConstruct method",
+                            aClass.getName()
+                    )
+            );
+        }
+        if (!postConstructMethods.isEmpty()) {
+            val postConstructMethod = postConstructMethods.get(0);
+
+            if (postConstructMethod.getReturnType().equals(void.class)) {
+
+                if (postConstructMethod.getParameterCount() > 0) {
+                    throw new RuntimeException(
+                            String.format(
+                                    "Cannot create instance of %s. Does not accept parameters",
+                                    aClass.getName()
+                            )
+                    );
+                }
+
+                postConstructMethod.invoke(instance);
+            } else {
+                throw new RuntimeException(
+                        String.format(
+                                "Post construct of %s must be a void method",
+                                aClass.getName()
+                        )
+                );
+            }
+        }
     }
 
     public static Object getInstance(String name) {

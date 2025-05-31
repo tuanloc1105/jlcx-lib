@@ -10,7 +10,7 @@
 
     <!-- <groupId>vn.com.lcx</groupId> -->
     <artifactId>common-lib</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <packaging>jar</packaging>
 
     <name>common-lib</name>
@@ -57,6 +57,7 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>6.3.0</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.17.Final</hibernate-core-org.hibernate.orm.version>
 
     </properties>
 
@@ -268,6 +269,12 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <version>${kafka-clients-org.apache.kafka.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate-core-org.hibernate.orm.version}</version>
         </dependency>
 
     </dependencies>

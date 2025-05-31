@@ -9,12 +9,11 @@
         <version>1.0</version>
     </parent>
 
-    <!-- <groupId>vn.com.lcx</groupId> -->
-    <artifactId>processor</artifactId>
-    <version>2.0.0</version>
+    <artifactId>lcx-data</artifactId>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>processor</name>
+    <name>lcx-data</name>
 
     <properties>
 
@@ -25,8 +24,8 @@
         <java.version>${jdk.version}</java.version>
 
         <common-lib-vn.com.lcx.version>2.0.0</common-lib-vn.com.lcx.version>
-        <lcx-data-vn.com.lcx.version>1.0.0</lcx-data-vn.com.lcx.version>
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.15.Final</hibernate-tools-orm-org.hibernate.tool.version>
 
     </properties>
 
@@ -39,16 +38,16 @@
         </dependency>
 
         <dependency>
-            <groupId>vn.com.lcx</groupId>
-            <artifactId>lcx-data</artifactId>
-            <version>${lcx-data-vn.com.lcx.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok-org.projectlombok.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.tool</groupId>
+            <artifactId>hibernate-tools-orm</artifactId>
+            <version>${hibernate-tools-orm-org.hibernate.tool.version}</version>
         </dependency>
 
     </dependencies>

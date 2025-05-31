@@ -22,6 +22,11 @@ public enum DBTypeEnum implements DBType {
         public String getShowDbVersionSqlStatement() {
             return "SELECT * FROM v$version";
         }
+
+        @Override
+        public String getDialectClass() {
+            return "org.hibernate.dialect.OracleDialect";
+        }
     },
     POSTGRESQL {
         @Override
@@ -37,6 +42,11 @@ public enum DBTypeEnum implements DBType {
         @Override
         public String getShowDbVersionSqlStatement() {
             return "SHOW server_version";
+        }
+
+        @Override
+        public String getDialectClass() {
+            return "org.hibernate.dialect.PostgreSQLDialect";
         }
     },
     MYSQL {
@@ -54,6 +64,11 @@ public enum DBTypeEnum implements DBType {
         public String getShowDbVersionSqlStatement() {
             return "SELECT VERSION()";
         }
+
+        @Override
+        public String getDialectClass() {
+            return "org.hibernate.dialect.MySQLDialect";
+        }
     },
     MSSQL {
         @Override
@@ -69,6 +84,11 @@ public enum DBTypeEnum implements DBType {
         @Override
         public String getShowDbVersionSqlStatement() {
             return "SELECT @@VERSION";
+        }
+
+        @Override
+        public String getDialectClass() {
+            return "org.hibernate.dialect.SQLServerDialect";
         }
     },
 

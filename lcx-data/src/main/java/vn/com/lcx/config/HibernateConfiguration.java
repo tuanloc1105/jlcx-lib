@@ -1,0 +1,240 @@
+package vn.com.lcx.config;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.cfg.Environment;
+import org.hibernate.cfg.JdbcSettings;
+import org.hibernate.cfg.SchemaToolingSettings;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.schema.Action;
+import org.hibernate.tool.schema.TargetType;
+import vn.com.lcx.common.annotation.Component;
+import vn.com.lcx.common.annotation.PostConstruct;
+import vn.com.lcx.common.config.ClassPool;
+import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
+import vn.com.lcx.common.database.type.DBTypeEnum;
+import vn.com.lcx.common.scanner.PackageScanner;
+import vn.com.lcx.common.utils.FileUtils;
+import vn.com.lcx.common.utils.LogUtils;
+
+import java.io.File;
+import java.sql.Connection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+
+import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
+
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Environment;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.schema.TargetType;
+import org.hibernate.cfg.AvailableSettings; // Import này cần thiết cho các thuộc tính JPA schema generation
+import vn.com.lcx.common.utils.RandomUtils;
+
+@Component
+public class HibernateConfiguration {
+
+    @PostConstruct
+    public void getSessionFactory() {
+        String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.host");
+        int port;
+        try {
+            port = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.port"));
+        } catch (NumberFormatException e) {
+            port = 0;
+        }
+        String username = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.username");
+        String password = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.password");
+        String name = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.name");
+        String driverClassName = applicationConfig.getPropertyWithEnvironment("server.database.driver_class_name");
+        String dialectName = applicationConfig.getPropertyWithEnvironment("server.database.dialect");
+        int initialPoolSize;
+        try {
+            initialPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.initial_pool_size"));
+        } catch (NumberFormatException e) {
+            initialPoolSize = 0;
+        }
+        int maxPoolSize;
+        try {
+            maxPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_pool_size"));
+        } catch (NumberFormatException e) {
+            maxPoolSize = 0;
+        }
+        int maxTimeout;
+        try {
+            maxTimeout = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_timeout"));
+        } catch (NumberFormatException e) {
+            maxTimeout = 0;
+        }
+        DBTypeEnum type;
+        try {
+            type = DBTypeEnum.valueOf(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.type"));
+        } catch (IllegalArgumentException e) {
+            type = null;
+        }
+        if (
+                host.equals(CommonConstant.NULL_STRING) ||
+                        username.equals(CommonConstant.NULL_STRING) ||
+                        password.equals(CommonConstant.NULL_STRING) ||
+                        name.equals(CommonConstant.NULL_STRING) ||
+                        // driverClassName.equals(CommonConstant.NULL_STRING) ||
+                        port == 0 ||
+                        initialPoolSize == 0 ||
+                        maxPoolSize == 0 ||
+                        maxTimeout == 0 ||
+                        type == null
+        ) {
+            return;
+        }
+        final var sessionFactory = createSessionFactory(
+                host,
+                port,
+                username,
+                password,
+                name,
+                driverClassName,
+                dialectName,
+                initialPoolSize,
+                maxPoolSize,
+                maxTimeout,
+                type,
+                null
+        );
+        ClassPool.setInstance(sessionFactory);
+        ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
+    }
+
+    public SessionFactory createSessionFactory(final String host,
+                                               final int port,
+                                               final String username,
+                                               final String password,
+                                               final String name,
+                                               final String driverClassName,
+                                               final String dialectName,
+                                               final int initialPoolSize,
+                                               final int maxPoolSize,
+                                               final int maxTimeout,
+                                               final DBTypeEnum dbType,
+                                               final String entityPackage) {
+        StandardServiceRegistry registry = null;
+        SessionFactory sessionFactory;
+        HikariDataSource dataSource;
+        try {
+            StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder();
+            Map<String, Object> settings = new HashMap<>();
+            final String connectionString = String.format(dbType.getTemplateUrlConnectionString(), host, port, name);
+            HikariConfig hikariConfig = new HikariConfig();
+            hikariConfig.setJdbcUrl(connectionString);
+            hikariConfig.setUsername(username);
+            hikariConfig.setPassword(password);
+            hikariConfig.setDriverClassName(
+                    StringUtils.isBlank(driverClassName) ||
+                            driverClassName.equals(CommonConstant.NULL_STRING) ? dbType.getDefaultDriverClassName() : driverClassName
+            );
+            hikariConfig.setMaximumPoolSize(maxPoolSize);
+            hikariConfig.setMinimumIdle(initialPoolSize);
+            hikariConfig.setIdleTimeout(300000);
+            hikariConfig.setConnectionTimeout(maxTimeout * 1000L);
+            hikariConfig.setMaxLifetime(1800000);
+            hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
+            hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
+            hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
+            dataSource = new HikariDataSource(hikariConfig);
+            settings.put(JdbcSettings.JAKARTA_JTA_DATASOURCE, "dataSource");
+            // settings.put(JdbcSettings.JAKARTA_NON_JTA_DATASOURCE, "dataSource");
+            // settings.put(
+            //         Environment.DIALECT,
+            //         StringUtils.isBlank(dialectName) ||
+            //                 dialectName.equals(CommonConstant.NULL_STRING) ? dbType.getDialectClass() : dialectName
+            // );
+            // settings.put(Environment.SHOW_SQL, true);
+            settings.put(Environment.FORMAT_SQL, true);
+            // settings.put(JdbcSettings.HIGHLIGHT_SQL, true);
+            settings.put(JdbcSettings.DIALECT_NATIVE_PARAM_MARKERS, true);
+            settings.put(Environment.HBM2DDL_AUTO, "update"); // validate | update | create | create-drop | none
+
+            settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_UPDATE);
+
+            final var generatedDdlFilePath = FileUtils.pathJoining(
+                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                    "data",
+                    "generated-ddl.sql"
+            );
+            FileUtils.delete(generatedDdlFilePath);
+            FileUtils.createFile(generatedDdlFilePath);
+            settings.put(
+                    SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET,
+                    generatedDdlFilePath
+            );
+            settings.put(
+                    SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET,
+                    generatedDdlFilePath
+            );
+
+            registryBuilder.applySettings(settings);
+            registryBuilder.applySetting(JdbcSettings.JAKARTA_JTA_DATASOURCE, dataSource);
+
+            registry = registryBuilder.build();
+            MetadataSources sources = new MetadataSources(registry);
+            if (StringUtils.isBlank(entityPackage)) {
+                for (Class<?> entity : ClassPool.ENTITIES) {
+                    sources.addAnnotatedClass(entity);
+                }
+            } else {
+                final var entitiesInPackage = PackageScanner.findClasses(entityPackage);
+                for (Class<?> entity : entitiesInPackage) {
+                    sources.addAnnotatedClass(entity);
+                }
+            }
+            Metadata metadata = sources.getMetadataBuilder().build();
+
+            try {
+                SchemaExport schemaExport = new SchemaExport();
+                schemaExport.setOutputFile(generatedDdlFilePath);
+                schemaExport.setFormat(true);
+                schemaExport.setDelimiter(";");
+                schemaExport.create(EnumSet.of(TargetType.SCRIPT), metadata);
+                schemaExport.drop(EnumSet.of(TargetType.SCRIPT), metadata);
+
+            } catch (Exception ddlException) {
+                LogUtils.writeLog("An error occurred while exporting DDL script: " + ddlException.getMessage(), ddlException);
+            }
+
+            sessionFactory = metadata.getSessionFactoryBuilder().build();
+        } catch (Exception e) {
+            if (registry != null) {
+                StandardServiceRegistryBuilder.destroy(registry);
+            }
+            LogUtils.writeLog(e.getMessage(), e);
+            throw new ExceptionInInitializerError("Failed to initialize Hibernate SessionFactory");
+        }
+        StandardServiceRegistry finalRegistry = registry;
+        SessionFactory finalSessionFactory = sessionFactory;
+        HikariDataSource finalDataSource = dataSource;
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (finalSessionFactory != null && !finalSessionFactory.isClosed()) {
+                finalSessionFactory.close();
+            }
+            StandardServiceRegistryBuilder.destroy(finalRegistry);
+            finalDataSource.close();
+        }));
+        return sessionFactory;
+    }
+
+}

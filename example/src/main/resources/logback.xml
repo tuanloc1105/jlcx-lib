@@ -48,4 +48,17 @@
         <appender-ref ref="FILE-AUDIT"/>
     </root>
 
+    <logger name="org.hibernate.SQL" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE-AUDIT"/>
+    </logger>
+
+    <logger name="org.hibernate.type" additivity="false">
+        <level value="TRACE"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE-AUDIT"/>
+    </logger>
+
+
 </configuration>
