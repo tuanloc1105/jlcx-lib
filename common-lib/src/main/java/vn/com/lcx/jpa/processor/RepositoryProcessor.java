@@ -16,6 +16,8 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
+import java.io.Writer;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,7 +70,7 @@ public class RepositoryProcessor extends AbstractProcessor {
         return true;
     }
 
-    public void generateCode(ProcessorClassInfo processorClassInfo) {
+    public void generateCode(ProcessorClassInfo processorClassInfo) throws Exception {
         // get generic type of interface
         List<TypeMirror> genericClasses =
                 typeAnalyzer.getGenericTypeOfExtendingInterface(
@@ -133,7 +135,10 @@ public class RepositoryProcessor extends AbstractProcessor {
                                 "\n"
                         )
                 );
-        System.out.println(code);
+        JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
+        try (Writer writer = builderFile.openWriter()) {
+            writer.write(code);
+        }
     }
 
 }

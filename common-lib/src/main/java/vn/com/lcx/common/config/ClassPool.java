@@ -27,10 +27,12 @@ import vn.com.lcx.common.proxy.ServiceProxy;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.FileUtils;
+import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.common.utils.PropertiesUtils;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.time.format.DateTimeFormatter;
@@ -180,24 +182,26 @@ public class ClassPool {
                                         .map(ClassPool::getInstanceOfField)
                                         .toArray(Object[]::new)
                         );
-                        ClassPool.CLASS_POOL.put(aClass.getName(), instance);
+                        handlePostConstructMethod(aClass, instance);
+                        if (!checkProxy(instance)) {
+                            ClassPool.CLASS_POOL.put(aClass.getName(), instance);
 
-                        val superClass = aClass.getSuperclass();
+                            val superClass = aClass.getSuperclass();
 
-                        if (superClass != null && superClass != Object.class) {
-                            ClassPool.CLASS_POOL.put(superClass.getName(), instance);
-                        }
+                            if (superClass != null && superClass != Object.class) {
+                                ClassPool.CLASS_POOL.put(superClass.getName(), instance);
+                            }
 
-                        val iFace = aClass.getInterfaces();
+                            val iFace = aClass.getInterfaces();
 
-                        for (Class<?> iFaceClass : iFace) {
-                            if (aClass.getAnnotation(Service.class) != null) {
-                                ClassPool.CLASS_POOL.put(iFaceClass.getName(), ServiceProxy.create(iFaceClass, instance));
-                            } else {
-                                ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
+                            for (Class<?> iFaceClass : iFace) {
+                                if (aClass.getAnnotation(Service.class) != null) {
+                                    ClassPool.CLASS_POOL.put(iFaceClass.getName(), ServiceProxy.create(iFaceClass, instance));
+                                } else {
+                                    ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
+                                }
                             }
                         }
-                        handlePostConstructMethod(aClass, instance);
                         handledPostHandleComponent.add(aClass);
                         aClassHasNotBeenAddedToPool = false;
                     }
@@ -229,6 +233,23 @@ public class ClassPool {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    private static boolean checkProxy(Object instance) {
+        final var proxyClassName = instance.getClass().getName() + "Proxy";
+        try {
+            Class<?> proxyClass = Class.forName(proxyClassName);
+            Object proxyInstance = proxyClass.getDeclaredConstructor(instance.getClass()).newInstance(instance);
+            var superClasses = ObjectUtils.getExtendAndInterfaceClasses(proxyClass);
+            setInstance(proxyInstance);
+            for (Class<?> superClass : superClasses) {
+                setInstance(superClass.getName(), proxyInstance);
+            }
+            return true;
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException ignore) {
+        }
+        return false;
     }
 
     private static Object getInstanceOfField(Field field) {

@@ -95,4 +95,17 @@ public final class ObjectUtils {
         return type;
     }
 
+    public static List<Class<?>> getExtendAndInterfaceClasses(Class<?> target) {
+        List<Class<?>> result = new ArrayList<>();
+        Class<?> extendingClass = target.getSuperclass();
+        if (!Object.class.getName().equals(extendingClass.getName())) {
+            result.add(extendingClass);
+            result.addAll(
+                    Arrays.stream(extendingClass.getInterfaces())
+                            .collect(Collectors.toCollection(ArrayList::new))
+            );
+        }
+        return result;
+    }
+
 }

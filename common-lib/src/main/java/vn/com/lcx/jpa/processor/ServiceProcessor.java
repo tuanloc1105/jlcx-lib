@@ -160,9 +160,13 @@ public class ServiceProcessor extends AbstractProcessor {
                         codeLines.add("    if (isRoot) {");
                         codeLines.add("        vn.com.lcx.jpa.context.JpaContext.rollback();");
                         codeLines.add("    }");
-                        codeLines.add("    if (e instanceof java.lang.Exception) {");
-                        codeLines.add("        throw new java.lang.RuntimeException(e);");
-                        codeLines.add("    }");
+                        if (!"vn.com.lcx.vertx.base.exception.InternalServiceException".equals(exceptionClass)) {
+                            codeLines.add("    if (e instanceof java.lang.Exception) {");
+                            codeLines.add("        throw new java.lang.RuntimeException(e);");
+                            codeLines.add("    }");
+                        } else {
+                            codeLines.add("    throw e;");
+                        }
                         codeLines.add("}");
                     }
             );
