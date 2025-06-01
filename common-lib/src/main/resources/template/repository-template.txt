@@ -1,0 +1,6 @@
+package ${package-name};
+
+public class ${proxy-class-name} extends vn.com.lcx.jpa.respository.JpaRepositoryImpl<${entity-class}, ${primary-key-type}> implements ${interface-class-name} {
+
+${methods}
+}

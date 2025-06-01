@@ -2,14 +2,17 @@ package vn.com.lcx.jpa.processor;
 
 import lombok.Data;
 
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +20,7 @@ import java.util.stream.Collectors;
 public class ProcessorClassInfo {
     private final Types typeUtils;
     private final Elements elementUtils;
+    private final HashSet<Element> fields;
     private final HashMap<MethodInfo, ExecutableElement> methods;
     private final TypeElement clazz;
 
@@ -47,9 +51,29 @@ public class ProcessorClassInfo {
                     .inputParameters(method.getParameters())
                     .outputParameter(method.getReturnType())
                     .build();
-            allMethods.put(methodInfo,  method);
+            allMethods.put(methodInfo, method);
         });
-        return new ProcessorClassInfo(typeUtils, elementUtils, allMethods, clazz);
+        return new ProcessorClassInfo(typeUtils, elementUtils, getAllFields(typeUtils, clazz), allMethods, clazz);
+    }
+
+    private static HashSet<Element> getAllFields(Types typeUtils, TypeElement typeElement) {
+        // Collect fields from the current class
+        HashSet<Element> fields = new HashSet<>(ElementFilter.fieldsIn(typeElement.getEnclosedElements()));
+        // Get the superclass and repeat the process
+        TypeMirror superclass = typeElement.getSuperclass();
+        if (superclass != null && !superclass.toString().equals(Object.class.getCanonicalName())) {
+            Element superclassElement = typeUtils.asElement(superclass);
+            if (superclassElement instanceof TypeElement) {
+                fields.addAll(getAllFields(typeUtils, (TypeElement) superclassElement));
+            }
+        }
+        return fields.stream()
+                .filter(element -> {
+                    boolean elementIsField = element.getKind().isField();
+                    // boolean fieldIsNotFinalOrStatic = !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC));
+                    return elementIsField;
+                })
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
 }

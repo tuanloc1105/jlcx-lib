@@ -17,6 +17,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
@@ -36,8 +37,6 @@ import java.util.stream.Collectors;
 @SupportedAnnotationTypes("vn.com.lcx.jpa.annotation.Service")
 public class ServiceProcessor extends AbstractProcessor {
 
-    private Elements elementUtils;
-    private Types typeUtils;
     private TypeHierarchyAnalyzer typeAnalyzer;
 
     @Override
@@ -57,7 +56,6 @@ public class ServiceProcessor extends AbstractProcessor {
             if (annotatedElement instanceof TypeElement) {
                 TypeElement typeElement = (TypeElement) annotatedElement;
                 try {
-                    Service service = typeElement.getAnnotation(Service.class);
                     ProcessorClassInfo processorClassInfo = ProcessorClassInfo.init(
                             typeElement,
                             processingEnv.getTypeUtils(),
@@ -65,7 +63,6 @@ public class ServiceProcessor extends AbstractProcessor {
                     );
                     generateCode(processorClassInfo);
                 } catch (Throwable e) {
-                    System.out.println(ExceptionUtils.getStackTrace(e));
                     this.processingEnv.
                             getMessager().
                             printMessage(
@@ -236,20 +233,13 @@ public class ServiceProcessor extends AbstractProcessor {
                             )
             ).append("\n");
         });
-
-        final var interfaces = typeAnalyzer.getImplementedInterfaces(processorClassInfo.getClazz());
-
         final var packageName = processingEnv
                 .getElementUtils()
                 .getPackageOf(processorClassInfo.getClazz())
                 .getQualifiedName()
                 .toString();
-        var className = processorClassInfo.getClazz().getSimpleName() + "Proxy";
+        final var className = processorClassInfo.getClazz().getSimpleName() + "Proxy";
         String fullClassName = packageName + "." + className;
-        if (!interfaces.isEmpty()) {
-            className = className + " implements " +
-                    interfaces.stream().map(TypeElement::getQualifiedName).collect(Collectors.joining(", "));
-        }
         final var code = template
                 .replace(
                         "${package-name}",
@@ -262,6 +252,14 @@ public class ServiceProcessor extends AbstractProcessor {
                 .replace(
                         "${actual-class-name}",
                         processorClassInfo.getClazz().getSimpleName()
+                )
+                .replace(
+                        "${super-parameters}",
+                        processorClassInfo.getFields()
+                                .stream()
+                                .filter(element -> !element.getModifiers().contains(Modifier.STATIC))
+                                .map(it -> "null")
+                                .collect(Collectors.joining(", "))
                 )
                 .replace(
                         "${methods}",

@@ -1,34 +1,37 @@
 package vn.com.lcx.jpa.respository;
 
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import vn.com.lcx.jpa.context.EntityContainer;
 import vn.com.lcx.jpa.context.JpaConstant;
 import vn.com.lcx.jpa.context.JpaContext;
 import vn.com.lcx.jpa.exception.JpaException;
 import vn.com.lcx.jpa.exception.JpaMethodNotImplementException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class JpaRepositoryImpl<E, ID> implements JpaRepository<E, ID> {
+public abstract class JpaRepositoryImpl<E, ID> {
 
-    @Override
     public void save(E entity) {
         handlingTransaction(entity.getClass(), session -> session.persist(entity));
     }
 
-    @Override
     public void update(E entity) {
         handlingTransaction(entity.getClass(), session -> session.merge(entity));
     }
 
-    @Override
     public void delete(E entity) {
         handlingTransaction(entity.getClass(), session -> session.remove(entity));
     }
 
-    @Override
     public E findById(ID id) {
         throw new JpaMethodNotImplementException("This method is not implemented");
     }

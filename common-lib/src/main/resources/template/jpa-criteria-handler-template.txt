@@ -1,0 +1,16 @@
+    public java.util.List<${entity-class}> find(vn.com.lcx.jpa.respository.JpaRepository.CriteriaHandler<${entity-class}> handler) {
+        java.util.List<${entity-class}> result = new java.util.ArrayList<>();
+        handlingTransaction(
+                ${entity-class}.class,
+                session -> {
+                    final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+                    final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
+                    jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
+                    jakarta.persistence.criteria.Predicate predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
+                    criteriaQuery.where(predicate);
+                    org.hibernate.query.Query<${entity-class}> query = session.createQuery(criteriaQuery);
+                    result.addAll(query.getResultList());
+                }
+        );
+        return result;
+    }
