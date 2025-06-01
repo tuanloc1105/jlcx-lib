@@ -1,0 +1,3 @@
+    public ${return-type} ${method-name}(${list-of-parameters}) {
+        ${method-body}
+    }

@@ -1,4 +1,4 @@
-package vn.com.lcx.entity;
+package vn.com.lcx.jpa.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;

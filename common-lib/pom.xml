@@ -58,6 +58,7 @@
         <HikariCP-com.zaxxer.version>6.3.0</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
         <hibernate-core-org.hibernate.orm.version>6.6.17.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.15.Final</hibernate-tools-orm-org.hibernate.tool.version>
 
     </properties>
 
@@ -275,6 +276,12 @@
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate-core-org.hibernate.orm.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.tool</groupId>
+            <artifactId>hibernate-tools-orm</artifactId>
+            <version>${hibernate-tools-orm-org.hibernate.tool.version}</version>
         </dependency>
 
     </dependencies>

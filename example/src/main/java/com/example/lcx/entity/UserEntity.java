@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import vn.com.lcx.entity.BaseEntity;
+import vn.com.lcx.jpa.entity.BaseEntity;
 
 import java.math.BigInteger;
 import java.util.List;

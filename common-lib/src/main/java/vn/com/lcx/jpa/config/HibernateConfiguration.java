@@ -1,9 +1,7 @@
-package vn.com.lcx.config;
+package vn.com.lcx.jpa.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
@@ -22,30 +20,19 @@ import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
+import vn.com.lcx.jpa.context.EntityContainer;
 
-import java.io.File;
-import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.Metadata;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.Environment;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.hibernate.tool.schema.TargetType;
-import org.hibernate.cfg.AvailableSettings; // Import này cần thiết cho các thuộc tính JPA schema generation
-import vn.com.lcx.common.utils.RandomUtils;
 
 @Component
 public class HibernateConfiguration {
@@ -135,6 +122,7 @@ public class HibernateConfiguration {
         StandardServiceRegistry registry = null;
         SessionFactory sessionFactory;
         HikariDataSource dataSource;
+        final var entitiesClassNames = new ArrayList<String>();
         try {
             StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder();
             Map<String, Object> settings = new HashMap<>();
@@ -204,11 +192,13 @@ public class HibernateConfiguration {
             if (StringUtils.isBlank(entityPackage)) {
                 for (Class<?> entity : ClassPool.ENTITIES) {
                     sources.addAnnotatedClass(entity);
+                    entitiesClassNames.add(entity.getName());
                 }
             } else {
                 final var entitiesInPackage = PackageScanner.findClasses(entityPackage);
                 for (Class<?> entity : entitiesInPackage) {
                     sources.addAnnotatedClass(entity);
+                    entitiesClassNames.add(entity.getName());
                 }
             }
             Metadata metadata = sources.getMetadataBuilder().build();
@@ -233,9 +223,9 @@ public class HibernateConfiguration {
             LogUtils.writeLog(e.getMessage(), e);
             throw new ExceptionInInitializerError("Failed to initialize Hibernate SessionFactory");
         }
-        StandardServiceRegistry finalRegistry = registry;
-        SessionFactory finalSessionFactory = sessionFactory;
-        HikariDataSource finalDataSource = dataSource;
+        final StandardServiceRegistry finalRegistry = registry;
+        final SessionFactory finalSessionFactory = sessionFactory;
+        final HikariDataSource finalDataSource = dataSource;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (finalSessionFactory != null && !finalSessionFactory.isClosed()) {
                 finalSessionFactory.close();
@@ -243,6 +233,7 @@ public class HibernateConfiguration {
             StandardServiceRegistryBuilder.destroy(finalRegistry);
             finalDataSource.close();
         }));
+        EntityContainer.addEntityManager(entitiesClassNames, finalSessionFactory);
         return sessionFactory;
     }
 

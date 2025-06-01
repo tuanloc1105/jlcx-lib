@@ -169,27 +169,16 @@ public class ClassPool {
                     // final Class<?>[] asd = getConstructorWithMostParameters(aClass).getParameterTypes();
                     final Class<?>[] fieldArr = fieldsOfComponent.stream().map(Field::getType).toArray(Class[]::new);
 
-                    final Object[] args = fieldsOfComponent.stream().map(
-                            f -> {
-                                Object o1 = CLASS_POOL.get(f.getName());
-                                if (o1 != null) {
-                                    return o1;
-                                }
-                                return CLASS_POOL.get(f.getType().getName());
-                            }
-                    ).toArray(Object[]::new);
+                    final Object[] args = fieldsOfComponent
+                            .stream()
+                            .map(ClassPool::getInstanceOfField)
+                            .toArray(Object[]::new);
                     if (Arrays.stream(args).noneMatch(Objects::isNull)) {
                         val instance = aClass.getDeclaredConstructor(fieldArr).newInstance(
-                                fieldsOfComponent.stream()
-                                        .map(
-                                                f -> {
-                                                    Object o1 = CLASS_POOL.get(f.getName());
-                                                    if (o1 != null) {
-                                                        return o1;
-                                                    }
-                                                    return CLASS_POOL.get(f.getType().getName());
-                                                }
-                                        ).toArray(Object[]::new)
+                                fieldsOfComponent
+                                        .stream()
+                                        .map(ClassPool::getInstanceOfField)
+                                        .toArray(Object[]::new)
                         );
                         ClassPool.CLASS_POOL.put(aClass.getName(), instance);
 
@@ -240,6 +229,14 @@ public class ClassPool {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    private static Object getInstanceOfField(Field field) {
+        Object o1 = CLASS_POOL.get(field.getName());
+        if (o1 != null) {
+            return o1;
+        }
+        return CLASS_POOL.get(field.getType().getName());
     }
 
     private static void getFieldsOfClass(final ArrayList<Field> fields, Class<?> aClass) {

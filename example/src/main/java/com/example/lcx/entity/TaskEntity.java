@@ -13,8 +13,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
-import vn.com.lcx.common.annotation.ForeignKey;
-import vn.com.lcx.entity.BaseEntity;
+import vn.com.lcx.jpa.entity.BaseEntity;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;

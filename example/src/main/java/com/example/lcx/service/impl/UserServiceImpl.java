@@ -25,11 +25,15 @@ import org.hibernate.query.Query;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.utils.BCryptUtils;
+import vn.com.lcx.jpa.annotation.Service;
+import vn.com.lcx.jpa.annotation.Transactional;
+import vn.com.lcx.jpa.exception.JpaException;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
 import java.sql.Connection;
 import java.util.Optional;
 
+@Service
 @Component
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -40,6 +44,7 @@ public class UserServiceImpl implements UserService {
     private final JWTAuth jwtAuth;
     private final Gson gson;
 
+    @Transactional(onRollback = {InternalServiceException.class, JpaException.class})
     public void createNew(final CreateNewUserRequest request) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {

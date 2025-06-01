@@ -1,19 +1,19 @@
-package vn.com.lcx.dto;
+package vn.com.lcx.jpa.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class BaseUnixEntityDTO {
+public class BaseEntityDTO {
     private Long id;
-    private BigInteger createdAt;
-    private BigInteger updatedAt;
-    private BigInteger deletedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
     private String createdBy;
     private String updatedBy;
 }

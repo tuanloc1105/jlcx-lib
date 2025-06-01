@@ -1,0 +1,12 @@
+package ${package-name};
+
+public class ${class-name} {
+
+    private final ${actual-class-name} actual;
+
+    public ${class-name}(${actual-class-name} actual) {
+        this.actual = actual;
+    }
+
+${methods}
+}

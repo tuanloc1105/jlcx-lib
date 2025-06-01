@@ -1,4 +1,4 @@
-package vn.com.lcx.entity;
+package vn.com.lcx.jpa.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
@@ -6,7 +6,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
 @Data
 public abstract class BaseEntityWithAutoIncreasementId extends BaseEntity {
