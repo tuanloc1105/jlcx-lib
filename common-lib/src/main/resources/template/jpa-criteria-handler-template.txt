@@ -6,6 +6,7 @@
                     final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
                     final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
                     jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
+                    criteriaQuery.select(root);
                     jakarta.persistence.criteria.Predicate predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
                     criteriaQuery.where(predicate);
                     org.hibernate.query.Query<${entity-class}> query = session.createQuery(criteriaQuery);
@@ -13,4 +14,48 @@
                 }
         );
         return result;
+    }
+
+    public vn.com.lcx.common.database.pageable.Page<${entity-class}> find(vn.com.lcx.jpa.respository.JpaRepository.CriteriaHandler<${entity-class}> handler, vn.com.lcx.common.database.pageable.Pageable pageable) {
+        java.util.concurrent.atomic.AtomicReference<vn.com.lcx.common.database.pageable.Page<${entity-class}>> result = new java.util.concurrent.atomic.AtomicReference();
+        handlingTransaction(
+                ${entity-class}.class,
+                session -> {
+                    vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) pageable;
+                    final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+                    final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
+                    jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
+                    java.util.List<jakarta.persistence.criteria.Order> orders = new java.util.ArrayList<>();
+                    pageimpl.getFieldNameAndDirectionMap().forEach((field, direction) -> {
+                        if (vn.com.lcx.common.database.pageable.Direction.DESC.equals(direction)) {
+                            orders.add(criteriaBuilder.desc(root.get(field)));
+                        } else {
+                            orders.add(criteriaBuilder.asc(root.get(field)));
+                        }
+                    });
+                    criteriaQuery.select(root).orderBy(orders);
+                    jakarta.persistence.criteria.Predicate predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
+                    criteriaQuery.where(predicate);
+                    org.hibernate.query.Query<${entity-class}> query = session.createQuery(criteriaQuery);
+                    query.setFirstResult(pageimpl.getOffset());
+                    query.setMaxResults(pageimpl.getPageSize());
+                    java.util.List<${entity-class}> queryResult = query.getResultList();
+
+                    final jakarta.persistence.criteria.CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
+                    jakarta.persistence.criteria.Root<${entity-class}> countRoot = criteriaQuery.from(${entity-class}.class);
+                    countQuery.select(criteriaBuilder.count(countRoot))
+                            .where(predicate);
+                    Long totalItems = session.createQuery(countQuery).getSingleResult();
+
+                    result.set(
+                            vn.com.lcx.common.database.pageable.Page.<${entity-class}>create(
+                                    queryResult,
+                                    totalItems,
+                                    pageimpl.getPageNumber(),
+                                    pageimpl.getPageSize()
+                            )
+                    );
+                }
+        );
+        return result.get();
     }

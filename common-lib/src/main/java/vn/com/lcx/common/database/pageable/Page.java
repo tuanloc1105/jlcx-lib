@@ -26,20 +26,23 @@ public class Page<T> implements Serializable {
     private List<T> content;
 
     public static <V> Page<V> create(List<V> list, int totalElements, int pageNumber, int pageSize) {
+        return create(list, (long) totalElements, pageNumber, pageSize);
+    }
+
+    public static <V> Page<V> create(List<V> list, long totalElements, int pageNumber, int pageSize) {
         final Page<V> page = new Page<>();
         page.setContent(list);
         page.setPageNumber(pageNumber);
         page.setPageSize(pageSize);
-        // page.setTotalPages(list.isEmpty() ? 0 : Math.round((float) totalElements / (float) pageSize));
         page.setTotalPages(
                 list.isEmpty() ?
                         0 :
                         Integer.parseInt(Math.round(Math.ceil((float) totalElements / (float) pageSize)) + CommonConstant.EMPTY_STRING)
         );
         page.setNumberOfElements(list.size());
-        page.setTotalElements((long) totalElements);
+        page.setTotalElements(totalElements);
         page.setFirstPage(pageNumber == 1);
-        page.setLastPage(((pageNumber) * (pageSize) >= totalElements) || (pageSize > totalElements));
+        page.setLastPage(((long) (pageNumber) * (pageSize) >= totalElements) || (pageSize > totalElements));
         return page;
     }
 

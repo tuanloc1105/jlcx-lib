@@ -30,7 +30,7 @@ import static vn.com.lcx.common.database.utils.EntityUtils.getTableShortenedName
 import static vn.com.lcx.common.utils.MyStringUtils.removeSuffixOfString;
 
 @Getter
-public class SelectStatementBuilder {
+public final class SelectStatementBuilder {
 
     private static final List<String> WHERE_STATEMENT_DELIMITER_KEYWORDS = Arrays.asList(
             "NotEqual",
