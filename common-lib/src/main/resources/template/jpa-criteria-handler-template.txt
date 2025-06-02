@@ -7,8 +7,11 @@
                     final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
                     jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
                     criteriaQuery.select(root);
-                    jakarta.persistence.criteria.Predicate predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
-                    criteriaQuery.where(predicate);
+                    jakarta.persistence.criteria.Predicate predicate = null;
+                    if (handler != null) {
+                        predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
+                        criteriaQuery.where(predicate);
+                    }
                     org.hibernate.query.Query<${entity-class}> query = session.createQuery(criteriaQuery);
                     result.addAll(query.getResultList());
                 }
@@ -34,17 +37,22 @@
                         }
                     });
                     criteriaQuery.select(root).orderBy(orders);
-                    jakarta.persistence.criteria.Predicate predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
-                    criteriaQuery.where(predicate);
+                    jakarta.persistence.criteria.Predicate predicate = null;
+                    if (handler != null) {
+                        predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
+                        criteriaQuery.where(predicate);
+                    }
                     org.hibernate.query.Query<${entity-class}> query = session.createQuery(criteriaQuery);
                     query.setFirstResult(pageimpl.getOffset());
                     query.setMaxResults(pageimpl.getPageSize());
                     java.util.List<${entity-class}> queryResult = query.getResultList();
 
                     final jakarta.persistence.criteria.CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
-                    jakarta.persistence.criteria.Root<${entity-class}> countRoot = criteriaQuery.from(${entity-class}.class);
-                    countQuery.select(criteriaBuilder.count(countRoot))
-                            .where(predicate);
+                    jakarta.persistence.criteria.Root<${entity-class}> countRoot = countQuery.from(${entity-class}.class);
+                    if (predicate != null) {
+                        countQuery.select(criteriaBuilder.count(countRoot))
+                                .where(predicate);
+                    }
                     Long totalItems = session.createQuery(countQuery).getSingleResult();
 
                     result.set(
