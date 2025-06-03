@@ -147,7 +147,15 @@ public class ServiceProcessor extends AbstractProcessor {
                                     .collect(Collectors.joining(", "))
                     )
             );
-            codeLines.add("    vn.com.lcx.jpa.context.JpaContext.commit();");
+            codeLines.add(
+                    "    if (isRoot) {"
+            );
+            codeLines.add(
+                    "        vn.com.lcx.jpa.context.JpaContext.commit();"
+            );
+            codeLines.add(
+                    "    }"
+            );
             codeLines.add("}");
             exceptionClassesToRollback.forEach(
                     exceptionClass -> {
