@@ -332,9 +332,10 @@
 
             final jakarta.persistence.criteria.CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
             jakarta.persistence.criteria.Root<${entity-class}> countRoot = countQuery.from(${entity-class}.class);
-            if (predicate != null) {
+            if (handler != null) {
+                jakarta.persistence.criteria.Predicate countPredicate = handler.toPredicate(criteriaBuilder, countQuery, countRoot);
                 countQuery.select(criteriaBuilder.count(countRoot))
-                        .where(predicate);
+                        .where(countPredicate);
             }
             Long totalItems = currentSessionInContext.createQuery(countQuery).getSingleResult();
 
@@ -375,9 +376,10 @@
 
                 final jakarta.persistence.criteria.CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
                 jakarta.persistence.criteria.Root<${entity-class}> countRoot = countQuery.from(${entity-class}.class);
-                if (predicate != null) {
+                if (handler != null) {
+                    jakarta.persistence.criteria.Predicate countPredicate = handler.toPredicate(criteriaBuilder, countQuery, countRoot);
                     countQuery.select(criteriaBuilder.count(countRoot))
-                            .where(predicate);
+                            .where(countPredicate);
                 }
                 Long totalItems = currentSessionInContext.createQuery(countQuery).getSingleResult();
 
