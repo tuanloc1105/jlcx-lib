@@ -169,6 +169,9 @@ public class ServiceProcessor extends AbstractProcessor {
                         codeLines.add("        vn.com.lcx.jpa.context.JpaContext.rollback();");
                         codeLines.add("    }");
                         if (!"vn.com.lcx.vertx.base.exception.InternalServiceException".equals(exceptionClass)) {
+                            codeLines.add("    if (e instanceof java.lang.RuntimeException) {");
+                            codeLines.add("        throw e;");
+                            codeLines.add("    }");
                             codeLines.add("    if (e instanceof java.lang.Exception) {");
                             codeLines.add("        throw new java.lang.RuntimeException(e);");
                             codeLines.add("    }");
@@ -191,7 +194,7 @@ public class ServiceProcessor extends AbstractProcessor {
                     "    if (isRoot) {"
             );
             codeLines.add(
-                    "        // vn.com.lcx.jpa.context.JpaContext.commit();"
+                    "        vn.com.lcx.jpa.context.JpaContext.commit();"
             );
             codeLines.add(
                     "        vn.com.lcx.jpa.context.JpaContext.close();"
