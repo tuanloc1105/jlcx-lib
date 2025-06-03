@@ -26,4 +26,11 @@ public interface Pageable {
     void fieldToColumn();
 
     String toSql();
+
+    static PageableImpl ofPageable(int pageNumber, int pageSize) {
+        return PageableImpl.builder()
+                .pageNumber(pageNumber)
+                .pageSize(pageSize)
+                .build();
+    }
 }

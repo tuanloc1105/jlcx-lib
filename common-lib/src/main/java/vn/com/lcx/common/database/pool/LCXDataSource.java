@@ -78,8 +78,8 @@ public class LCXDataSource {
             );
             if (property.propertiesIsAllSet()) {
                 val simpleExecutor = SimpleExecutor.<Boolean>init(
-                        initialPoolSize,
-                        initialPoolSize,
+                        0,
+                        0,
                         RejectMode.ABORT_POLICY,
                         maxTimeout,
                         TimeUnit.SECONDS

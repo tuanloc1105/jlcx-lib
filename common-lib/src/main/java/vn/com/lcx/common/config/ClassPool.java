@@ -142,10 +142,12 @@ public class ClassPool {
                 val componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
                     val fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
-                    if (fieldsOfComponent.isEmpty() && !Optional.ofNullable(aClass.getAnnotation(Service.class)).isPresent()) {
-                        val component = aClass.getDeclaredConstructor().newInstance();
-                        CLASS_POOL.put(aClass.getName(), component);
-                        handlePostConstructMethod(aClass, component);
+                    if (fieldsOfComponent.isEmpty() && Optional.ofNullable(aClass.getAnnotation(Service.class)).isEmpty()) {
+                        val instance = aClass.getDeclaredConstructor().newInstance();
+                        if (!checkProxy(instance)) {
+                            putInstanceToClassPool(aClass, instance);
+                        }
+                        handlePostConstructMethod(aClass, instance);
                     } else {
                         postHandleComponent.add(aClass);
                     }
@@ -232,6 +234,22 @@ public class ClassPool {
         } catch (Exception e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private static void putInstanceToClassPool(Class<?> aClass, Object instance) {
+        CLASS_POOL.put(aClass.getName(), instance);
+
+        val superClass = aClass.getSuperclass();
+
+        if (superClass != null && superClass != Object.class) {
+            ClassPool.CLASS_POOL.put(superClass.getName(), instance);
+        }
+
+        val iFace = aClass.getInterfaces();
+
+        for (Class<?> iFaceClass : iFace) {
+            ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
         }
     }
 

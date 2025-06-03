@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.hibernate.query.sqm.mutation.internal.temptable.PersistentTableStrategy;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
@@ -93,6 +95,9 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     @SuppressWarnings("Convert2Diamond")
     @Override
     public ExecutorService createExecutorService() {
+        if (minThread == 0 || maxThread == 0) {
+            return Executors.newCachedThreadPool();
+        }
         return new ThreadPoolExecutor(
                 this.minThread,
                 this.maxThread,
@@ -103,6 +108,12 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         );
     }
 
+    /**
+     *
+     * @deprecated Use {@link SimpleExecutor#executeTasksWithCountDownLatch()}.
+     *
+     * @return List of return value of tasks.
+     */
     @Override
     @Deprecated
     public List<T> executeTasks() {

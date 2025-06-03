@@ -4,6 +4,7 @@ import com.example.lcx.entity.Task;
 import com.example.lcx.enums.AppError;
 import com.example.lcx.mapper.TaskMapper;
 import com.example.lcx.object.dto.TaskDTO;
+import com.example.lcx.object.dto.UserDTO;
 import com.example.lcx.object.dto.UserJWTTokenInfo;
 import com.example.lcx.object.request.CreateTaskRequest;
 import com.example.lcx.object.request.DeleteTaskRequest;
@@ -45,7 +46,8 @@ public class TaskServiceImpl implements TaskService {
             throw new InternalServiceException(AppError.INVALID_REMIND_TIME);
         }
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
-        final var user = userService.getUserByUsername(currentUser.getUsername());
+        // final var user = userService.getUserByUsername(currentUser.getUsername());
+        final var user = new UserDTO();
         final var newTask = taskMapper.map(request);
         newTask.setUserId(user.getId());
         newTask.setCreatedBy(currentUser.getUsername());

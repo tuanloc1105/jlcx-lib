@@ -1,5 +1,6 @@
 package vn.com.lcx.common.database.pageable;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.NotImplementedException;
@@ -16,6 +17,12 @@ public class PageableImpl implements Pageable {
     private int pageSize;
     @Getter
     private final Map<String, Direction> fieldNameAndDirectionMap;
+
+    @Builder
+    public PageableImpl(int pageSize, int pageNumber) {
+        this.pageSize = pageSize;
+        this.pageNumber = pageNumber;
+    }
 
     {
         pageNumber = 0;

@@ -183,7 +183,7 @@ public class ServiceProcessor extends AbstractProcessor {
                     "    if (isRoot) {"
             );
             codeLines.add(
-                    "        vn.com.lcx.jpa.context.JpaContext.commit();"
+                    "        // vn.com.lcx.jpa.context.JpaContext.commit();"
             );
             codeLines.add(
                     "        vn.com.lcx.jpa.context.JpaContext.close();"
