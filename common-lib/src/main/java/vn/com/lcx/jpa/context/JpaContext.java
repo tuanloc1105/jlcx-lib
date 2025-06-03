@@ -154,7 +154,9 @@ public class JpaContext {
     public static void close() {
         threadData.get().forEach((key, value) -> {
             if (value instanceof Session) {
-                ((Session) value).close();
+                if (((Session) value).isOpen()) {
+                    ((Session) value).close();
+                }
             }
         });
     }
