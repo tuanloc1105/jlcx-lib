@@ -8,6 +8,7 @@ import vn.com.lcx.common.database.pageable.Page;
 import vn.com.lcx.common.database.pageable.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface JpaRepository<E, ID> {
 
@@ -18,6 +19,8 @@ public interface JpaRepository<E, ID> {
     void delete(E entity);
 
     E findById(ID id);
+
+    Optional<E> findOne(CriteriaHandler<E> criteriaHandler);
 
     List<E> find(CriteriaHandler<E> criteriaHandler);
 

@@ -57,6 +57,7 @@ public class UserServiceImpl implements UserService {
                     UserEntity.class
             );
             query.setParameter("username", request.getUsername());
+            var op = Optional.empty();
             if (Optional.ofNullable(query.uniqueResult()).isPresent()) {
                 throw new InternalServiceException(AppError.USER_EXISTED);
             }
