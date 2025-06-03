@@ -1,12 +1,11 @@
 package com.example.lcx.respository;
 
-import com.example.lcx.entity.User;
-import vn.com.lcx.common.annotation.Repository;
-import vn.com.lcx.common.database.repository.LCXRepository;
+import com.example.lcx.entity.UserEntity;
+import vn.com.lcx.jpa.annotation.Repository;
+import vn.com.lcx.jpa.respository.JpaRepository;
+
+import java.math.BigInteger;
 
 @Repository
-public interface UserRepository extends LCXRepository<User> {
-
-    User findByUsernameAndActive(String username, Boolean active);
-
+public interface UserRepository extends JpaRepository<UserEntity, BigInteger> {
 }

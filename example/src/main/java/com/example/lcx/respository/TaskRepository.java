@@ -1,12 +1,11 @@
 package com.example.lcx.respository;
 
-import com.example.lcx.entity.Task;
-import vn.com.lcx.common.annotation.Repository;
-import vn.com.lcx.common.database.repository.LCXRepository;
+import com.example.lcx.entity.TaskEntity;
+import vn.com.lcx.jpa.annotation.Repository;
+import vn.com.lcx.jpa.respository.JpaRepository;
+
+import java.math.BigInteger;
 
 @Repository
-public interface TaskRepository extends LCXRepository<Task> {
-    Task findByIdAndFinishedAndCreatedBy(Long id, Boolean finished, String createdBy);
-
-    Task findByIdAndCreatedBy(Long id, String createdBy);
+public interface TaskRepository extends JpaRepository<TaskEntity, BigInteger> {
 }

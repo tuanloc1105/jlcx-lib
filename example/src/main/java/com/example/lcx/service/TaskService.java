@@ -10,8 +10,6 @@ import com.example.lcx.object.request.SearchTasksByNameRequest;
 import com.example.lcx.object.request.UpdateTaskRequest;
 import vn.com.lcx.common.database.pageable.Page;
 
-import java.util.List;
-
 public interface TaskService {
     void createTask(final CreateTaskRequest request);
 

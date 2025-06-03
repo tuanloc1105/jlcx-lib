@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import vn.com.lcx.common.database.pageable.Page;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
 
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor

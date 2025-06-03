@@ -1,6 +1,5 @@
 package com.example.lcx.controller;
 
-import com.example.lcx.object.dto.UserJWTTokenInfo;
 import com.example.lcx.object.request.CreateTaskRequest;
 import com.example.lcx.object.request.DeleteTaskRequest;
 import com.example.lcx.object.request.GetAllTaskRequest;
@@ -19,7 +18,6 @@ import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
 import vn.com.lcx.vertx.base.annotation.process.Post;
-import vn.com.lcx.vertx.base.context.AuthContext;
 import vn.com.lcx.vertx.base.controller.BaseController;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
 

@@ -1,10 +1,10 @@
 package com.example.lcx.service.impl;
 
-import com.example.lcx.entity.Task;
+import com.example.lcx.entity.TaskEntity;
+import com.example.lcx.entity.UserEntity;
 import com.example.lcx.enums.AppError;
 import com.example.lcx.mapper.TaskMapper;
 import com.example.lcx.object.dto.TaskDTO;
-import com.example.lcx.object.dto.UserDTO;
 import com.example.lcx.object.dto.UserJWTTokenInfo;
 import com.example.lcx.object.request.CreateTaskRequest;
 import com.example.lcx.object.request.DeleteTaskRequest;
@@ -16,21 +16,25 @@ import com.example.lcx.object.request.UpdateTaskRequest;
 import com.example.lcx.respository.TaskRepository;
 import com.example.lcx.service.TaskService;
 import com.example.lcx.service.UserService;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.annotation.Service;
-import vn.com.lcx.common.annotation.Transaction;
 import vn.com.lcx.common.database.pageable.Direction;
 import vn.com.lcx.common.database.pageable.Page;
-import vn.com.lcx.common.database.pageable.PostgreSQLPageable;
-import vn.com.lcx.common.database.specification.Specification;
+import vn.com.lcx.common.database.pageable.Pageable;
 import vn.com.lcx.common.utils.DateTimeUtils;
+import vn.com.lcx.jpa.annotation.Service;
+import vn.com.lcx.jpa.annotation.Transactional;
 import vn.com.lcx.vertx.base.context.AuthContext;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Service
 @Component
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
@@ -39,127 +43,144 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
     private final UserService userService;
 
-    @Transaction
+    @Transactional(onRollback = {Exception.class})
     public void createTask(final CreateTaskRequest request) {
         final var currentDateTime = DateTimeUtils.generateCurrentTimeDefault();
         if (request.getRemindAt().isBefore(currentDateTime)) {
             throw new InternalServiceException(AppError.INVALID_REMIND_TIME);
         }
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
-        // final var user = userService.getUserByUsername(currentUser.getUsername());
-        final var user = new UserDTO();
+        final var user = userService.getUserByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
         final var newTask = taskMapper.map(request);
-        newTask.setUserId(user.getId());
+        newTask.setUser(user);
         newTask.setCreatedBy(currentUser.getUsername());
         newTask.setUpdatedBy(currentUser.getUsername());
-        taskRepository.save2(newTask);
+        taskRepository.save(newTask);
     }
 
     public TaskDTO getTaskDetail(final GetTaskDetailRequest request) {
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
+        final var user = userService.getUserByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
         return taskMapper.map(
-                taskRepository.findByIdAndFinishedAndCreatedBy(
-                        request.getId(),
-                        false,
-                        currentUser.getUsername()
-                )
+                // taskRepository.findByIdAndFinishedAndCreatedBy(
+                //         request.getId(),
+                //         false,
+                //         currentUser.getUsername()
+                // )
+                taskRepository.findOne(
+                        (cb, cq, root) -> {
+                            Join<TaskEntity, UserEntity> joinUser = root.join("user", JoinType.LEFT);
+                            List<Predicate> predicates = new ArrayList<>();
+                            predicates.add(cb.equal(root.get("id"), BigInteger.valueOf(request.getId())));
+                            predicates.add(cb.equal(root.get("finished"), false));
+                            predicates.add(cb.equal(joinUser.get("id"), user.getId()));
+                            return cb.and(predicates.toArray(Predicate[]::new));
+                        }
+                ).orElse(new TaskEntity())
         );
     }
 
     public Page<TaskDTO> searchTasksByName(final SearchTasksByNameRequest request) {
-        final var page = PostgreSQLPageable.builder()
-                .entityClass(Task.class)
-                .pageNumber(request.getPageNumber())
-                .pageSize(10)
-                .build();
-        page.add("id", Direction.DESC);
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
-        final var result = taskRepository.find(
-                Specification.create(Task.class)
-                        .like("taskName", request.getSearchContent())
-                        .and(
-                                Specification.create(Task.class)
-                                        .equal("createdBy", currentUser.getUsername())
-                        ),
-                page
+        final var user = userService.getUserByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
+        final var searchResult = taskRepository.find(
+                (cb, cq, root) -> {
+                    Join<TaskEntity, UserEntity> joinUser = root.join("user", JoinType.LEFT);
+                    List<Predicate> predicates = new ArrayList<>();
+                    predicates.add(cb.like(root.get("taskName"), request.getSearchContent()));
+                    predicates.add(cb.isNull(root.get("deletedAt")));
+                    predicates.add(cb.equal(joinUser.get("id"), user.getId()));
+                    return cb.and(predicates.toArray(Predicate[]::new));
+                },
+                Pageable.ofPageable(request.getPageNumber(), 10).add("id", Direction.DESC)
         );
-        return Page.<Task, TaskDTO>create(result, taskMapper::map);
+        return Page.create(searchResult, taskMapper::map);
     }
 
     public Page<TaskDTO> getAllTask(final GetAllTaskRequest request) {
-        final var page = PostgreSQLPageable.builder()
-                .entityClass(Task.class)
-                .pageNumber(request.getPageNumber())
-                .pageSize(10)
-                .build();
-        page.add("id", Direction.DESC);
-        page.fieldToColumn();
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
-        final var result = taskRepository.find(
-                Specification.create(Task.class).equal("createdBy", currentUser.getUsername()),
-                page
+        final var user = userService.getUserByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
+        final var searchResult = taskRepository.find(
+                (cb, cq, root) -> {
+                    Join<TaskEntity, UserEntity> joinUser = root.join("user", JoinType.LEFT);
+                    List<Predicate> predicates = new ArrayList<>();
+                    predicates.add(cb.isNull(root.get("deletedAt")));
+                    predicates.add(cb.equal(joinUser.get("id"), user.getId()));
+                    return cb.and(predicates.toArray(Predicate[]::new));
+                },
+                Pageable.ofPageable(request.getPageNumber(), 10).add("id", Direction.DESC)
         );
-        //noinspection RedundantTypeArguments
-        return Page.<Task, TaskDTO>create(result, taskMapper::map);
+        return Page.create(searchResult, taskMapper::map);
     }
 
-    @Transaction
+    @Transactional(onRollback = {Exception.class})
     public void updateTask(final UpdateTaskRequest request) {
         final var currentDateTime = DateTimeUtils.generateCurrentTimeDefault();
         if (request.getRemindAt().isBefore(currentDateTime)) {
             throw new InternalServiceException(AppError.INVALID_REMIND_TIME);
         }
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
-        final var findTaskResult = taskRepository.find(
-                Specification.create(Task.class)
-                        .equal("createdBy", currentUser.getUsername())
-                        .and(
-                                Specification.create(Task.class)
-                                        .equal("id", request.getId())
-                        )
-                        .and(
-                                Specification.create(Task.class)
-                                        .equal("finished", false)
-                        )
-        );
-        if (findTaskResult.isEmpty()) {
-            throw new InternalServiceException(AppError.TASK_NOT_FOUND);
-        }
-        final var task = findTaskResult.get(0);
+        final var user = userService.getUserByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
+        final var task = taskRepository.findOne(
+                (cb, cq, root) -> {
+                    Join<TaskEntity, UserEntity> joinUser = root.join("user", JoinType.LEFT);
+                    List<Predicate> predicates = new ArrayList<>();
+                    predicates.add(cb.isNull(root.get("deletedAt")));
+                    predicates.add(cb.equal(root.get("id"), BigInteger.valueOf(request.getId())));
+                    predicates.add(cb.equal(joinUser.get("id"), user.getId()));
+                    return cb.and(predicates.toArray(Predicate[]::new));
+
+                }
+        ).orElseThrow(() -> new InternalServiceException(AppError.TASK_NOT_FOUND));
         task.setTaskName(request.getTaskName());
         task.setTaskDetail(request.getTaskDetail());
         task.setRemindAt(request.getRemindAt());
         task.setUpdatedBy(currentUser.getUsername());
-        task.setUpdatedTime(currentDateTime);
+        task.setUpdatedAt(currentDateTime);
         taskRepository.update(task);
     }
 
-    @Transaction
+    @Transactional(onRollback = {Exception.class})
     public void deleteTask(final DeleteTaskRequest request) {
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
-        final var task = taskRepository.findByIdAndCreatedBy(
-                request.getId(),
-                currentUser.getUsername()
-        );
-        if (task.getId() == null || task.getId() == 0L) {
-            throw new InternalServiceException(AppError.TASK_NOT_FOUND);
-        }
-        taskRepository.delete(task);
+        final var user = userService.getUserByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
+        final var task = taskRepository.findOne(
+                (cb, cq, root) -> {
+                    Join<TaskEntity, UserEntity> joinUser = root.join("user", JoinType.LEFT);
+                    List<Predicate> predicates = new ArrayList<>();
+                    predicates.add(cb.isNull(root.get("deletedAt")));
+                    predicates.add(cb.equal(root.get("id"), BigInteger.valueOf(request.getId())));
+                    predicates.add(cb.equal(joinUser.get("id"), user.getId()));
+                    return cb.and(predicates.toArray(Predicate[]::new));
+
+                }
+        ).orElseThrow(() -> new InternalServiceException(AppError.TASK_NOT_FOUND));
+        task.setDeletedAt(DateTimeUtils.generateCurrentTimeDefault());
+        taskRepository.update(task);
     }
 
-    @Transaction
+    @Transactional(onRollback = {Exception.class})
     public void markTaskAsFinished(final MarkTaskAsFinishedRequest request) {
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
-        final var task = taskRepository.findByIdAndCreatedBy(
-                request.getId(),
-                currentUser.getUsername()
-        );
-        if (task.getId() == null || task.getId() == 0L) {
-            throw new InternalServiceException(AppError.TASK_NOT_FOUND);
-        }
-        if (task.getFinished()) {
-            throw new InternalServiceException(AppError.TASK_ALREADY_FINISHED);
-        }
+        final var user = userService.getUserByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
+        final var task = taskRepository.findOne(
+                (cb, cq, root) -> {
+                    Join<TaskEntity, UserEntity> joinUser = root.join("user", JoinType.LEFT);
+                    List<Predicate> predicates = new ArrayList<>();
+                    predicates.add(cb.isNull(root.get("deletedAt")));
+                    predicates.add(cb.equal(root.get("id"), BigInteger.valueOf(request.getId())));
+                    predicates.add(cb.equal(joinUser.get("id"), user.getId()));
+                    return cb.and(predicates.toArray(Predicate[]::new));
+
+                }
+        ).orElseThrow(() -> new InternalServiceException(AppError.TASK_NOT_FOUND));
         task.setFinished(true);
         taskRepository.update(task);
     }

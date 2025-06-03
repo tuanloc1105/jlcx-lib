@@ -8,7 +8,7 @@ import vn.com.lcx.vertx.base.enums.ErrorCode;
 @AllArgsConstructor
 public enum AppError implements ErrorCode {
 
-    USER_EXISTED(503, 20001, "User already existed"),
+    USER_EXISTED(400, 20001, "User already existed"),
     USER_NOT_EXIST(404, 20002, "User does not exist"),
     UNKNOWN_USER(500, 20002, "Unknown user"),
     USER_IS_NOT_ACTIVE(403, 20003, "User has been locked"),

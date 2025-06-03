@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import vn.com.lcx.vertx.base.annotation.NotNull;
-import vn.com.lcx.vertx.base.http.request.BaseRequest;
 
 @AllArgsConstructor
 @NoArgsConstructor
