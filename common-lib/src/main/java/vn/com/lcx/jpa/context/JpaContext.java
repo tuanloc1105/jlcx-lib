@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,10 @@ public class JpaContext {
         return clazz.cast(threadData.get().get(key));
     }
 
+    public static <T> T get(String key, Class<T> clazz, T defaultValue) {
+        return clazz.cast(threadData.get().getOrDefault(key, defaultValue));
+    }
+
     public static void remove(String key) {
         threadData.get().remove(key);
     }
@@ -39,7 +44,7 @@ public class JpaContext {
     }
 
     public static boolean isTransactionOpen() {
-        return get(JpaConstant.TRANSACTION_IS_OPENED, Boolean.class);
+        return get(JpaConstant.TRANSACTION_IS_OPENED, Boolean.class, false);
     }
 
     public static void setTransactionOpen(boolean value) {
@@ -47,7 +52,7 @@ public class JpaContext {
     }
 
     public static int getTransactionIsolation() {
-        return get(JpaConstant.TRANSACTION_ISOLATION, Integer.class);
+        return get(JpaConstant.TRANSACTION_ISOLATION, Integer.class, Connection.TRANSACTION_READ_COMMITTED);
     }
 
     public static void setTransactionIsolation(int value) {
@@ -55,7 +60,7 @@ public class JpaContext {
     }
 
     public static int getTransactionMode() {
-        return get(JpaConstant.TRANSACTION_MODE, Integer.class);
+        return get(JpaConstant.TRANSACTION_MODE, Integer.class, JpaConstant.USE_EXISTING_TRANSACTION_MODE);
     }
 
     public static void setTransactionMode(int value) {

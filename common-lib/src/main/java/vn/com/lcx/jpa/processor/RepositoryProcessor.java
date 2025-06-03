@@ -105,6 +105,9 @@ public class RepositoryProcessor extends AbstractProcessor {
                         .replace(
                                 "${entity-class}",
                                 genericClasses.get(0).toString()
+                        ).replace(
+                                "${primary-key-type}",
+                                genericClasses.get(1).toString()
                         )
         );
         final var code = template

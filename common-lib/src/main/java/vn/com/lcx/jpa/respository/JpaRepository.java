@@ -23,10 +23,4 @@ public interface JpaRepository<E, ID> {
 
     Page<E> find(CriteriaHandler<E> criteriaHandler, Pageable pageable);
 
-    interface CriteriaHandler<E> {
-        // CriteriaQuery<E> handle(CriteriaBuilder cb, CriteriaQuery<E> cq, Root<E> root);
-
-        Predicate toPredicate(CriteriaBuilder cb, CriteriaQuery<E> cq, Root<E> root);
-    }
-
 }
