@@ -64,11 +64,6 @@ public class TaskServiceImpl implements TaskService {
         final var user = userService.getUserByUsername(currentUser.getUsername())
                 .orElseThrow(() -> new InternalServiceException(AppError.USER_NOT_EXIST));
         return taskMapper.map(
-                // taskRepository.findByIdAndFinishedAndCreatedBy(
-                //         request.getId(),
-                //         false,
-                //         currentUser.getUsername()
-                // )
                 taskRepository.findOne(
                         (cb, cq, root) -> {
                             Join<TaskEntity, UserEntity> joinUser = root.join("user", JoinType.LEFT);
@@ -100,6 +95,7 @@ public class TaskServiceImpl implements TaskService {
         return Page.create(searchResult, taskMapper::map);
     }
 
+    @Transactional
     public Page<TaskDTO> getAllTask(final GetAllTaskRequest request) {
         final var currentUser = (UserJWTTokenInfo) AuthContext.get();
         final var user = userService.getUserByUsername(currentUser.getUsername())

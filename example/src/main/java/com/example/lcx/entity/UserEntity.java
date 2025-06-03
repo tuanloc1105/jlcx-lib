@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import vn.com.lcx.jpa.entity.BaseEntity;
 
 import java.math.BigInteger;
@@ -40,6 +41,8 @@ public class UserEntity extends BaseEntity {
     @Column(name = "full_name")
     private String fullName;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "user", cascade = {CascadeType.ALL})
     private List<TaskEntity> tasks;
 
