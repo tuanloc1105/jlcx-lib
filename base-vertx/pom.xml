@@ -44,6 +44,7 @@
             <version>${common-lib-vn.com.lcx.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -51,36 +52,42 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
             <version>${vertx-core-io.vertx.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
             <version>${vertx-web-io.vertx.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-client -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web-client</artifactId>
             <version>${vertx-web-client-io.vertx.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-json-schema -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-json-schema</artifactId>
             <version>${vertx-json-schema-io.vertx.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-codegen -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-codegen</artifactId>
             <version>${vertx-codegen-io.vertx.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-unit -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-unit</artifactId>
@@ -88,6 +95,7 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-auth-jwt -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-auth-jwt</artifactId>
