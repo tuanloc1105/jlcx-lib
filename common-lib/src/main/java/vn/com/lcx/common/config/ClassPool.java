@@ -186,23 +186,7 @@ public class ClassPool {
                         );
                         handlePostConstructMethod(aClass, instance);
                         if (!checkProxy(instance)) {
-                            ClassPool.CLASS_POOL.put(aClass.getName(), instance);
-
-                            val superClass = aClass.getSuperclass();
-
-                            if (superClass != null && superClass != Object.class) {
-                                ClassPool.CLASS_POOL.put(superClass.getName(), instance);
-                            }
-
-                            val iFace = aClass.getInterfaces();
-
-                            for (Class<?> iFaceClass : iFace) {
-                                if (aClass.getAnnotation(Service.class) != null) {
-                                    ClassPool.CLASS_POOL.put(iFaceClass.getName(), ServiceProxy.create(iFaceClass, instance));
-                                } else {
-                                    ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
-                                }
-                            }
+                            putInstanceToClassPool(aClass, instance);
                         }
                         handledPostHandleComponent.add(aClass);
                         aClassHasNotBeenAddedToPool = false;
