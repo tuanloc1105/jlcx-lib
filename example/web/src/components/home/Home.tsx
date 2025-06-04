@@ -167,6 +167,8 @@ const Home: React.FC = () => {
             setTotalTasksCount(listAllTasksResult.response.tasks.totalElements);
             if (listAllTasksResult.response.tasks.totalElements > 0) {
                 setTasksData(listAllTasksResult.response.tasks.content);
+            } else {
+                setTasksData([]);
             }
         } catch (error) {
             console.log(error);
