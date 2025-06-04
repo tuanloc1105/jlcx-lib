@@ -96,7 +96,9 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     @Override
     public ExecutorService createExecutorService() {
         if (minThread == 0 || maxThread == 0) {
-            return Executors.newCachedThreadPool();
+            return Executors.newCachedThreadPool(
+                    new LcxThreadFactory.MyThreadFactory("lcx-worker")
+            );
         }
         return new ThreadPoolExecutor(
                 this.minThread,
@@ -104,6 +106,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                 0L,
                 TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(this.taskList.size()),
+                new LcxThreadFactory.MyThreadFactory("lcx-worker"),
                 this.rejectedExecutionHandler
         );
     }
