@@ -2,7 +2,6 @@ package vn.com.lcx.jpa.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.jpa.annotation.Service;
@@ -22,8 +21,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.Writer;
@@ -37,8 +34,6 @@ import java.util.stream.Collectors;
 @SupportedAnnotationTypes("vn.com.lcx.jpa.annotation.Service")
 public class ServiceProcessor extends AbstractProcessor {
 
-    private TypeHierarchyAnalyzer typeAnalyzer;
-
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latest();
@@ -47,7 +42,6 @@ public class ServiceProcessor extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        this.typeAnalyzer = new TypeHierarchyAnalyzer(processingEnv.getElementUtils(), processingEnv.getTypeUtils());
     }
 
     @Override

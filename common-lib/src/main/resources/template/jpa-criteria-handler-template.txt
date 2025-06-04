@@ -33,9 +33,9 @@
                 default:
                     throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            currentSessionInContext.persist(entity);
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.persist(entity);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 currentSessionInContext.persist(entity);
@@ -78,9 +78,9 @@
                 default:
                     throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            currentSessionInContext.merge(entity);
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.merge(entity);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 currentSessionInContext.merge(entity);
@@ -123,18 +123,14 @@
                 default:
                     throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            currentSessionInContext.remove(entity);
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.remove(entity);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 currentSessionInContext.remove(entity);
             }
         }
-    }
-
-    public ${entity-class} findById(${primary-key-type} id) {
-        throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException("This method is not implemented");
     }
 
     public java.util.List<${entity-class}> find(vn.com.lcx.jpa.respository.CriteriaHandler<${entity-class}> handler) {
@@ -173,6 +169,8 @@
                 default:
                     throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
+            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
             jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
@@ -184,8 +182,6 @@
             }
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             result.addAll(query.getResultList());
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
@@ -240,6 +236,8 @@
                 default:
                     throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
+            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
             jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
@@ -251,8 +249,6 @@
             }
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             result = java.util.Optional.ofNullable(query.uniqueResult());
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
@@ -307,6 +303,8 @@
                 default:
                     throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
+            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) pageable;
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
@@ -347,8 +345,6 @@
                             pageimpl.getPageSize()
                     )
             );
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) pageable;

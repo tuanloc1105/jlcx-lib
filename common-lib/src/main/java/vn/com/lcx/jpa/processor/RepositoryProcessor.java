@@ -1,5 +1,8 @@
 package vn.com.lcx.jpa.processor;
 
+import jakarta.persistence.Id;
+import org.apache.commons.lang3.StringUtils;
+import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.jpa.annotation.Repository;
@@ -12,20 +15,17 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes("vn.com.lcx.jpa.annotation.Repository")
 public class RepositoryProcessor extends AbstractProcessor {
-
-    private TypeHierarchyAnalyzer typeAnalyzer;
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -35,7 +35,6 @@ public class RepositoryProcessor extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        this.typeAnalyzer = new TypeHierarchyAnalyzer(processingEnv.getElementUtils(), processingEnv.getTypeUtils());
     }
 
     @Override
@@ -54,7 +53,6 @@ public class RepositoryProcessor extends AbstractProcessor {
                             processingEnv.getElementUtils()
                     );
                     generateCode(processorClassInfo);
-                    System.out.println();
                 } catch (Throwable e) {
                     this.processingEnv.
                             getMessager().
@@ -73,7 +71,9 @@ public class RepositoryProcessor extends AbstractProcessor {
     public void generateCode(ProcessorClassInfo processorClassInfo) throws Exception {
         // get generic type of interface
         List<TypeMirror> genericClasses =
-                typeAnalyzer.getGenericTypeOfExtendingInterface(
+                TypeHierarchyAnalyzer.getGenericTypeOfExtendingInterface(
+                        processingEnv.getElementUtils(),
+                        processingEnv.getTypeUtils(),
                         processorClassInfo.getClazz(),
                         JpaRepository.class.getName()
                 );
@@ -83,7 +83,7 @@ public class RepositoryProcessor extends AbstractProcessor {
         );
         String methodTemplate = FileUtils.readResourceFileAsText(
                 this.getClass().getClassLoader(),
-                "template/method-template.txt"
+                "template/jpa-method-template.txt"
         );
         String jpaCriteriaHandlerTemplate = FileUtils.readResourceFileAsText(
                 this.getClass().getClassLoader(),
@@ -110,6 +110,70 @@ public class RepositoryProcessor extends AbstractProcessor {
                                 genericClasses.get(1).toString()
                         )
         );
+        final var idFieldName = findIdFieldNameOfEntity(
+                TypeHierarchyAnalyzer
+                        .getTypeElementFromClassName(
+                                processingEnv.getElementUtils(),
+                                genericClasses.get(0).toString()
+                        )
+        );
+        String findByIdMethod = methodTemplate
+                .replace(
+                        "${return-type}",
+                        String.format(
+                                "java.util.Optional<%s>",
+                                genericClasses.get(0).toString()
+                        )
+                )
+                .replace(
+                        "${method-name}",
+                        "findById"
+                )
+                .replace(
+                        "${entity-class}",
+                        genericClasses.get(0).toString()
+                )
+                .replace(
+                        "${list-of-parameters}",
+                        String.format(
+                                "%s %s",
+                                genericClasses.get(1).toString(),
+                                "id"
+                        )
+                );
+        if (StringUtils.isBlank(idFieldName)) {
+            findByIdMethod = findByIdMethod
+                    .replace(
+                            "${method-body-1}",
+                            "throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException(\"This method is not implemented\");"
+                    )
+                    .replace(
+                            "${method-body-2}",
+                            "throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException(\"This method is not implemented\");"
+                    );
+        } else {
+            final var codeLines = new ArrayList<String>();
+            codeLines.add(
+                    String.format(
+                            "org.hibernate.query.Query<%1$s> query = currentSessionInContext.createQuery(\"FROM %1$s where %2$s = ?\", %1$s.class);",
+                            genericClasses.get(0).toString(),
+                            idFieldName
+                    )
+            );
+            codeLines.add(
+                    "return java.util.Optional.ofNullable(query.uniqueResult());"
+            );
+            findByIdMethod = findByIdMethod
+                    .replace(
+                            "${method-body-1}",
+                            String.join("\n            ", codeLines)
+                    )
+                    .replace(
+                            "${method-body-2}",
+                            String.join("\n                ", codeLines)
+                    );
+        }
+        methodCodeBody.append("\n").append(findByIdMethod);
         final var code = template
                 .replace(
                         "${package-name}",
@@ -142,6 +206,21 @@ public class RepositoryProcessor extends AbstractProcessor {
         try (Writer writer = builderFile.openWriter()) {
             writer.write(code);
         }
+    }
+
+    public String findIdFieldNameOfEntity(TypeElement entity) {
+        if (entity == null) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        final var fields = TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), entity);
+        if (fields.isEmpty()) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        var idFieldOptional = fields.stream().filter(field -> field.getAnnotation(Id.class) != null).findAny();
+        if (idFieldOptional.isEmpty()) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        return idFieldOptional.get().getSimpleName().toString();
     }
 
 }

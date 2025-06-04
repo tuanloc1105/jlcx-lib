@@ -53,27 +53,7 @@ public class ProcessorClassInfo {
                     .build();
             allMethods.put(methodInfo, method);
         });
-        return new ProcessorClassInfo(typeUtils, elementUtils, getAllFields(typeUtils, clazz), allMethods, clazz);
-    }
-
-    private static HashSet<Element> getAllFields(Types typeUtils, TypeElement typeElement) {
-        // Collect fields from the current class
-        HashSet<Element> fields = new HashSet<>(ElementFilter.fieldsIn(typeElement.getEnclosedElements()));
-        // Get the superclass and repeat the process
-        TypeMirror superclass = typeElement.getSuperclass();
-        if (superclass != null && !superclass.toString().equals(Object.class.getCanonicalName())) {
-            Element superclassElement = typeUtils.asElement(superclass);
-            if (superclassElement instanceof TypeElement) {
-                fields.addAll(getAllFields(typeUtils, (TypeElement) superclassElement));
-            }
-        }
-        return fields.stream()
-                .filter(element -> {
-                    boolean elementIsField = element.getKind().isField();
-                    // boolean fieldIsNotFinalOrStatic = !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC));
-                    return elementIsField;
-                })
-                .collect(Collectors.toCollection(HashSet::new));
+        return new ProcessorClassInfo(typeUtils, elementUtils, TypeHierarchyAnalyzer.getAllFields(typeUtils, clazz), allMethods, clazz);
     }
 
 }
