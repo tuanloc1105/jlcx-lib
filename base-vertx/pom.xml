@@ -33,6 +33,7 @@
         <vertx-codegen-io.vertx.version>5.0.0</vertx-codegen-io.vertx.version>
         <vertx-unit-io.vertx.version>5.0.0</vertx-unit-io.vertx.version>
         <vertx-auth-jwt-io.vertx.version>5.0.0</vertx-auth-jwt-io.vertx.version>
+        <vertx-micrometer-metrics-io.vertx.version>5.0.0</vertx-micrometer-metrics-io.vertx.version>
 
     </properties>
 
@@ -101,6 +102,13 @@
             <artifactId>vertx-auth-jwt</artifactId>
             <version>${vertx-auth-jwt-io.vertx.version}</version>
             <scope>compile</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-micrometer-metrics -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-micrometer-metrics</artifactId>
+            <version>${vertx-micrometer-metrics-io.vertx.version}</version>
         </dependency>
 
     </dependencies>

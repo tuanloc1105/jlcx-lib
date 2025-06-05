@@ -49,6 +49,7 @@
         <mail-javax.mail.version>1.5.0-b01</mail-javax.mail.version>
         <jedis-redis.clients.version>6.0.0</jedis-redis.clients.version>
         <micrometer-core-io.micrometer.version>1.15.0</micrometer-core-io.micrometer.version>
+        <micrometer-registry-prometheus-io.micrometer.version>1.15.0</micrometer-registry-prometheus-io.micrometer.version>
         <metrics-core-io.dropwizard.metrics.version>4.2.32</metrics-core-io.dropwizard.metrics.version>
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.32</metrics-healthchecks-io.dropwizard.metrics.version>
         <metrics-core-io.dropwizard.metrics5.version>5.0.0</metrics-core-io.dropwizard.metrics5.version>
@@ -222,6 +223,13 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
             <version>${micrometer-core-io.micrometer.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version>${micrometer-registry-prometheus-io.micrometer.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
