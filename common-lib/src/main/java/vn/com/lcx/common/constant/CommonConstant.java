@@ -15,6 +15,7 @@ import vn.com.lcx.common.database.handler.statement.SqlStatementHandler;
 import vn.com.lcx.common.database.handler.statement.StringHandler;
 import vn.com.lcx.common.database.reflect.SelectStatementBuilder;
 import vn.com.lcx.common.utils.LCXProperties;
+import vn.com.lcx.common.utils.PropertiesUtils;
 
 import java.nio.file.FileSystems;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public final class CommonConstant {
     public static final String TRACE_ID_MDC_KEY_NAME = "trace_id";
     public static final String OPERATION_NAME_MDC_KEY_NAME = "operation_name";
     public final static ConcurrentHashMap<String, SelectStatementBuilder> BUILDER_MAP = new ConcurrentHashMap<>();
-    public static LCXProperties applicationConfig;
+    public static volatile LCXProperties applicationConfig = PropertiesUtils.emptyProperty();
 
     private CommonConstant() {
     }

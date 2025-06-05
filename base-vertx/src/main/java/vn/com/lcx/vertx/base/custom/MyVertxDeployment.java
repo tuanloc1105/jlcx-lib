@@ -1,12 +1,22 @@
 package vn.com.lcx.vertx.base.custom;
 
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
+import io.vertx.micrometer.MicrometerMetricsFactory;
+import io.vertx.micrometer.MicrometerMetricsOptions;
+import io.vertx.micrometer.VertxPrometheusOptions;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.config.ClassPool;
+import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
@@ -29,12 +39,7 @@ public class MyVertxDeployment {
 
     private final static MyVertxDeployment INSTANCE = new MyVertxDeployment();
 
-    private final Vertx vertx;
-
     private MyVertxDeployment() {
-        vertx = Vertx.vertx();
-        ClassPool.setInstance("vertx", vertx);
-        ClassPool.setInstance(VertxBaseVerticle.class.getName(), vertx);
     }
 
     public static MyVertxDeployment getInstance() {
@@ -59,6 +64,37 @@ public class MyVertxDeployment {
 
     private void deployVerticle(final List<String> packagesToScan, Supplier<Void> preconfigure) {
         try {
+            ClassPool.loadProperties();
+            boolean enableMetric = Boolean.parseBoolean(
+                    CommonConstant.applicationConfig.getPropertyWithEnvironment("server.enable-metrics") + CommonConstant.EMPTY_STRING
+            );
+            final Vertx vertx;
+            if (enableMetric) {
+                PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+                registry.config().meterFilter(
+                        new MeterFilter() {
+                            @Override
+                            public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+                                return DistributionStatisticConfig.builder()
+                                        .percentilesHistogram(true)
+                                        .build()
+                                        .merge(config);
+                            }
+                        });
+
+                vertx = Vertx.builder()
+                        .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
+                                .setEnabled(true)
+                                .setPrometheusOptions(new VertxPrometheusOptions()
+                                        .setEnabled(true))
+                        ))
+                        .withMetrics(new MicrometerMetricsFactory(registry))
+                        .build();
+            } else {
+                vertx = Vertx.vertx();
+            }
+            ClassPool.setInstance("vertx", vertx);
+            ClassPool.setInstance(VertxBaseVerticle.class.getName(), vertx);
             if (preconfigure != null) {
                 preconfigure.get();
             }
@@ -83,7 +119,7 @@ public class MyVertxDeployment {
                             }
                     ).toArray(Object[]::new);
                     final VertxBaseVerticle verticle = (VertxBaseVerticle) aClass.getDeclaredConstructor(fieldArr).newInstance(args);
-                    final Future<String> applicationVerticleFuture = this.vertx.deployVerticle(verticle);
+                    final Future<String> applicationVerticleFuture = vertx.deployVerticle(verticle);
                     applicationVerticleFuture.onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle {}", aClass, throwable));
                     applicationVerticleFuture.onSuccess(s -> {
                         LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s);

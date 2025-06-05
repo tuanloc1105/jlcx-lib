@@ -74,4 +74,11 @@ public final class PropertiesUtils {
         return new LCXProperties();
     }
 
+    public static LCXProperties emptyProperty() {
+        return new LCXProperties(
+                null,
+                null
+        );
+    }
+
 }

@@ -25,6 +25,12 @@ public class MyRouterImpl extends RouterImpl {
     }
 
     @Override
+    public synchronized Route route(String path) {
+        LogUtils.writeLog(LogUtils.Level.INFO, "Configuring route for path [{}]", path);
+        return super.route(path);
+    }
+
+    @Override
     public Route get(String path) {
         LogUtils.writeLog(LogUtils.Level.INFO, "Configuring get path [{}]", path);
         return super.get(path);

@@ -348,7 +348,12 @@ public class ControllerProcessor extends AbstractProcessor {
                             "            io.vertx.ext.web.Router router = MyRouter.router(super.vertx);\n" +
                             "%s\n" +
                             "\n" +
-                            "            // Enable parsing of request bodies\n" +
+                            "            boolean enableMetric = Boolean.parseBoolean(\n" +
+                            "                    CommonConstant.applicationConfig.getPropertyWithEnvironment(\"server.enable-metrics\") + CommonConstant.EMPTY_STRING\n" +
+                            "            );\n" +
+                            "            if (enableMetric) {\n" +
+                            "                router.route(\"/metrics\").handler(io.vertx.micrometer.PrometheusScrapingHandler.create());\n" +
+                            "            }\n" +
                             "            router.route().handler(BodyHandler.create());\n" +
                             "\n" +
                             "            router.get(\"/health\").handler(routingContext -> routingContext.response().end(\"OK\"));\n" +

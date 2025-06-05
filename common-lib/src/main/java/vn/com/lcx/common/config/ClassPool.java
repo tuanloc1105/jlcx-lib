@@ -55,13 +55,7 @@ public class ClassPool {
 
     public static void init(final List<String> packagesToScan, final List<Class<?>> verticleClass) {
         packagesToScan.add("vn.com.lcx");
-        ClassLoader classLoader = ClassPool.class.getClassLoader();
-        val configFile = System.getProperty("application_config.file");
-        if (configFile != null) {
-            CommonConstant.applicationConfig = PropertiesUtils.getProperties(configFile);
-        } else {
-            CommonConstant.applicationConfig = PropertiesUtils.getProperties(classLoader, "application.yaml");
-        }
+        // loadProperties();
         try {
             final List<Class<?>> listOfClassInPackage = new ArrayList<>();
             packagesToScan.forEach(packageName -> {
@@ -382,6 +376,16 @@ public class ClassPool {
 
     public static void setInstance(Object instance) {
         CLASS_POOL.put(instance.getClass().getName(), instance);
+    }
+
+    public static void loadProperties() {
+        ClassLoader classLoader = ClassPool.class.getClassLoader();
+        final String configFile = System.getProperty("application_config.file");
+        if (configFile != null) {
+            CommonConstant.applicationConfig = PropertiesUtils.getProperties(configFile);
+        } else {
+            CommonConstant.applicationConfig = PropertiesUtils.getProperties(classLoader, "application.yaml");
+        }
     }
 
 }
