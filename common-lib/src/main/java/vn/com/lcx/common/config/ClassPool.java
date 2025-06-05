@@ -227,7 +227,11 @@ public class ClassPool {
         val iFace = aClass.getInterfaces();
 
         for (Class<?> iFaceClass : iFace) {
-            ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
+            if (aClass.getAnnotation(Service.class) != null) {
+                ClassPool.CLASS_POOL.put(iFaceClass.getName(), ServiceProxy.create(iFaceClass, instance));
+            } else {
+                ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
+            }
         }
     }
 
