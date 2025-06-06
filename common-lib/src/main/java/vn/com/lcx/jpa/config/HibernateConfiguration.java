@@ -107,7 +107,7 @@ public class HibernateConfiguration {
         ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
     }
 
-    public SessionFactory createSessionFactory(final String host,
+    public static SessionFactory createSessionFactory(final String host,
                                                final int port,
                                                final String username,
                                                final String password,
