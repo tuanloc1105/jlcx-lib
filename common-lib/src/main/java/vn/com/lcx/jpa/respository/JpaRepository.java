@@ -14,6 +14,12 @@ public interface JpaRepository<E, ID> {
 
     void delete(E entity);
 
+    void save(List<E> entities);
+
+    void update(List<E> entities);
+
+    void delete(List<E> entities);
+
     Optional<E> findById(ID id);
 
     Optional<E> findOne(CriteriaHandler<E> criteriaHandler);
