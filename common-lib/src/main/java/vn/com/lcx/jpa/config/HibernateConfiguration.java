@@ -207,6 +207,8 @@ public class HibernateConfiguration {
             }
             Metadata metadata = sources.getMetadataBuilder().build();
 
+            sessionFactory = metadata.getSessionFactoryBuilder().build();
+
             try {
                 if (doSchemaExport) {
                     final var schemaExportDdlFilePath = FileUtils.pathJoining(
