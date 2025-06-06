@@ -1,9 +1,5 @@
 package vn.com.lcx.jpa.respository;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import vn.com.lcx.common.database.pageable.Page;
 import vn.com.lcx.common.database.pageable.Pageable;
 
@@ -25,5 +21,7 @@ public interface JpaRepository<E, ID> {
     List<E> find(CriteriaHandler<E> criteriaHandler);
 
     Page<E> find(CriteriaHandler<E> criteriaHandler, Pageable pageable);
+
+    void findById(org.hibernate.jdbc.Work work);
 
 }
