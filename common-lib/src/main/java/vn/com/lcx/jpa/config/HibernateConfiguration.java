@@ -222,7 +222,7 @@ public class HibernateConfiguration {
                     schemaExport.setOutputFile(schemaExportDdlFilePath);
                     schemaExport.setFormat(true);
                     schemaExport.setDelimiter(";");
-                    schemaExport.createOnly(EnumSet.of(TargetType.SCRIPT), metadata);
+                    schemaExport.create(EnumSet.of(TargetType.SCRIPT), metadata);
                 }
                 if (doSchemaUpdate) {
                     final var schemaUpdateDdlFilePath = FileUtils.pathJoining(
