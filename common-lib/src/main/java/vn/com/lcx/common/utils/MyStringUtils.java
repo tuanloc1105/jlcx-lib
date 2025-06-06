@@ -404,7 +404,7 @@ public final class MyStringUtils {
         for (List<String> wordsInLine : input) {
             var result = "";
             for (int i = 0; i < wordsInLine.size(); i++) {
-                result += "%-" + lengthOfEachPart.get(i) + "s    ";
+                result += "%-" + lengthOfEachPart.get(i) + "s ";
             }
             listOfResult.add(
                     removeSuffixOfString(
@@ -412,7 +412,7 @@ public final class MyStringUtils {
                                     result,
                                     wordsInLine.toArray()
                             ),
-                            "    "
+                            " "
                     ).trim()
             );
         }
