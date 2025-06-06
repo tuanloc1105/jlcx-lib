@@ -27,6 +27,7 @@ import vn.com.lcx.common.proxy.ServiceProxy;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.FileUtils;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.common.utils.PropertiesUtils;
 
@@ -137,6 +138,7 @@ public class ClassPool {
                 if (componentAnnotation != null) {
                     val fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
                     if (fieldsOfComponent.isEmpty() && Optional.ofNullable(aClass.getAnnotation(Service.class)).isEmpty()) {
+                        LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         val instance = aClass.getDeclaredConstructor().newInstance();
                         if (!checkProxy(instance)) {
                             putInstanceToClassPool(aClass, instance);
@@ -172,12 +174,8 @@ public class ClassPool {
                             .map(ClassPool::getInstanceOfField)
                             .toArray(Object[]::new);
                     if (Arrays.stream(args).noneMatch(Objects::isNull)) {
-                        val instance = aClass.getDeclaredConstructor(fieldArr).newInstance(
-                                fieldsOfComponent
-                                        .stream()
-                                        .map(ClassPool::getInstanceOfField)
-                                        .toArray(Object[]::new)
-                        );
+                        LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
+                        val instance = aClass.getDeclaredConstructor(fieldArr).newInstance(args);
                         handlePostConstructMethod(aClass, instance);
                         if (!checkProxy(instance)) {
                             putInstanceToClassPool(aClass, instance);

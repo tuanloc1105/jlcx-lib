@@ -12,8 +12,8 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
 import org.hibernate.cfg.JdbcSettings;
-import org.hibernate.cfg.SchemaToolingSettings;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.Action;
 import org.hibernate.tool.schema.TargetType;
 import vn.com.lcx.common.annotation.Component;
@@ -101,24 +101,28 @@ public class HibernateConfiguration {
                 maxPoolSize,
                 maxTimeout,
                 type,
-                null
+                null,
+                true,
+                true
         );
         ClassPool.setInstance(sessionFactory);
         ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
     }
 
     public static SessionFactory createSessionFactory(final String host,
-                                               final int port,
-                                               final String username,
-                                               final String password,
-                                               final String name,
-                                               final String driverClassName,
-                                               final String dialectName,
-                                               final int initialPoolSize,
-                                               final int maxPoolSize,
-                                               final int maxTimeout,
-                                               final DBTypeEnum dbType,
-                                               final String entityPackage) {
+                                                      final int port,
+                                                      final String username,
+                                                      final String password,
+                                                      final String name,
+                                                      final String driverClassName,
+                                                      final String dialectName,
+                                                      final int initialPoolSize,
+                                                      final int maxPoolSize,
+                                                      final int maxTimeout,
+                                                      final DBTypeEnum dbType,
+                                                      final String entityPackage,
+                                                      final boolean doSchemaExport,
+                                                      final boolean doSchemaUpdate) {
         StandardServiceRegistry registry = null;
         SessionFactory sessionFactory;
         HikariDataSource dataSource;
@@ -155,35 +159,28 @@ public class HibernateConfiguration {
             settings.put(Environment.FORMAT_SQL, true);
             // settings.put(JdbcSettings.HIGHLIGHT_SQL, true);
             settings.put(JdbcSettings.DIALECT_NATIVE_PARAM_MARKERS, true);
-            settings.put(Environment.HBM2DDL_AUTO, Action.ACTION_UPDATE);
+            settings.put(Environment.HBM2DDL_AUTO, Action.ACTION_NONE);
 
             settings.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, PhysicalNamingStrategyStandardImpl.class.getName());
-            settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_UPDATE);
+            settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_NONE);
 
-            final var generatedDdlFilePath = FileUtils.pathJoining(
-                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
-                    "data",
-                    "generated-ddl.sql"
-            );
-            FileUtils.delete(generatedDdlFilePath);
-            FileUtils.createFile(generatedDdlFilePath);
-            final var schemaExportDdlFilePath = FileUtils.pathJoining(
-                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
-                    "data",
-                    "schema-export-ddl.sql"
-            );
-            FileUtils.delete(schemaExportDdlFilePath);
-            FileUtils.createFile(schemaExportDdlFilePath);
+            // final var generatedDdlFilePath = FileUtils.pathJoining(
+            //         CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+            //         "data",
+            //         name.toLowerCase() + "-generated-ddl.sql"
+            // );
+            // FileUtils.delete(generatedDdlFilePath);
+            // FileUtils.createFile(generatedDdlFilePath);
 
-            settings.put(
-                    SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET,
-                    generatedDdlFilePath
-            );
+            // settings.put(
+            //         SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET,
+            //         generatedDdlFilePath
+            // );
 
-            settings.put(
-                    SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET,
-                    generatedDdlFilePath
-            );
+            // settings.put(
+            //         SchemaToolingSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET,
+            //         generatedDdlFilePath
+            // );
 
             registryBuilder.applySettings(settings);
 
@@ -204,13 +201,34 @@ public class HibernateConfiguration {
             Metadata metadata = sources.getMetadataBuilder().build();
 
             try {
-
-                SchemaExport schemaExport = new SchemaExport();
-                schemaExport.setOutputFile(schemaExportDdlFilePath);
-                schemaExport.setFormat(true);
-                schemaExport.setDelimiter(";");
-                schemaExport.create(EnumSet.of(TargetType.SCRIPT), metadata);
-
+                if (doSchemaExport) {
+                    final var schemaExportDdlFilePath = FileUtils.pathJoining(
+                            CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                            "data",
+                            name.toLowerCase() + "-schema-export-ddl.sql"
+                    );
+                    FileUtils.delete(schemaExportDdlFilePath);
+                    FileUtils.createFile(schemaExportDdlFilePath);
+                    SchemaExport schemaExport = new SchemaExport();
+                    schemaExport.setOutputFile(schemaExportDdlFilePath);
+                    schemaExport.setFormat(true);
+                    schemaExport.setDelimiter(";");
+                    schemaExport.create(EnumSet.of(TargetType.SCRIPT), metadata);
+                }
+                if (doSchemaUpdate) {
+                    final var schemaUpdateDdlFilePath = FileUtils.pathJoining(
+                            CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                            "data",
+                            name.toLowerCase() + "-schema-update-ddl.sql"
+                    );
+                    FileUtils.delete(schemaUpdateDdlFilePath);
+                    FileUtils.createFile(schemaUpdateDdlFilePath);
+                    SchemaUpdate schemaUpdate = new SchemaUpdate();
+                    schemaUpdate.setOutputFile(schemaUpdateDdlFilePath);
+                    schemaUpdate.setFormat(true);
+                    schemaUpdate.setDelimiter(";");
+                    schemaUpdate.execute(EnumSet.of(TargetType.SCRIPT), metadata);
+                }
             } catch (Exception ddlException) {
                 LogUtils.writeLog("An error occurred while exporting DDL script: " + ddlException.getMessage(), ddlException);
             }
