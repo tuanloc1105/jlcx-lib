@@ -2,6 +2,7 @@ package vn.com.lcx.jpa.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.Persistence;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
@@ -49,6 +50,7 @@ public class HibernateConfiguration {
         String username = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.username");
         String password = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.password");
         String name = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.name");
+        String schemaName = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.schema_name");
         String driverClassName = applicationConfig.getPropertyWithEnvironment("server.database.driver_class_name");
         String dialectName = applicationConfig.getPropertyWithEnvironment("server.database.dialect");
         int initialPoolSize;
@@ -95,6 +97,7 @@ public class HibernateConfiguration {
                 username,
                 password,
                 name,
+                schemaName,
                 driverClassName,
                 dialectName,
                 initialPoolSize,
@@ -114,6 +117,7 @@ public class HibernateConfiguration {
                                                       final String username,
                                                       final String password,
                                                       final String name,
+                                                      final String schemaName,
                                                       final String driverClassName,
                                                       final String dialectName,
                                                       final int initialPoolSize,
@@ -160,7 +164,10 @@ public class HibernateConfiguration {
             // settings.put(JdbcSettings.HIGHLIGHT_SQL, true);
             settings.put(JdbcSettings.DIALECT_NATIVE_PARAM_MARKERS, true);
             settings.put(Environment.HBM2DDL_AUTO, Action.ACTION_NONE);
-
+            if (StringUtils.isNotBlank(schemaName)) {
+                settings.put("hibernate.default_schema", schemaName);
+                settings.put("hibernate.default_catalog", schemaName);
+            }
             settings.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, PhysicalNamingStrategyStandardImpl.class.getName());
             settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_NONE);
 
@@ -232,8 +239,6 @@ public class HibernateConfiguration {
             } catch (Exception ddlException) {
                 LogUtils.writeLog("An error occurred while exporting DDL script: " + ddlException.getMessage(), ddlException);
             }
-
-            sessionFactory = metadata.getSessionFactoryBuilder().build();
         } catch (Exception e) {
             if (registry != null) {
                 StandardServiceRegistryBuilder.destroy(registry);
