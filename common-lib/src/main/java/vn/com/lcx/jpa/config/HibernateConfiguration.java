@@ -2,6 +2,7 @@ package vn.com.lcx.jpa.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.Entity;
 import jakarta.persistence.Persistence;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -22,6 +23,7 @@ import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.type.DBTypeEnum;
+import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
@@ -106,7 +108,7 @@ public class HibernateConfiguration {
                 type,
                 null,
                 true,
-                true
+                false
         );
         ClassPool.setInstance(sessionFactory);
         ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
@@ -197,12 +199,30 @@ public class HibernateConfiguration {
                 for (Class<?> entity : ClassPool.ENTITIES) {
                     sources.addAnnotatedClass(entity);
                     entitiesClassNames.add(entity.getName());
+                    EntityUtils.analyzeEntityClass(
+                            entity,
+                            dbType.name().toLowerCase(),
+                            FileUtils.pathJoining(
+                                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                                    "data"
+                            )
+                    );
                 }
             } else {
                 final var entitiesInPackage = PackageScanner.findClasses(entityPackage);
                 for (Class<?> entity : entitiesInPackage) {
-                    sources.addAnnotatedClass(entity);
-                    entitiesClassNames.add(entity.getName());
+                    if (entity.getAnnotation(Entity.class) != null) {
+                        sources.addAnnotatedClass(entity);
+                        entitiesClassNames.add(entity.getName());
+                        EntityUtils.analyzeEntityClass(
+                                entity,
+                                dbType.name().toLowerCase(),
+                                FileUtils.pathJoining(
+                                        CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
+                                        "data"
+                                )
+                        );
+                    }
                 }
             }
             Metadata metadata = sources.getMetadataBuilder().build();

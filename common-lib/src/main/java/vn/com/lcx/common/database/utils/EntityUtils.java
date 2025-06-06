@@ -114,9 +114,9 @@ public final class EntityUtils {
                     .filter(c -> c.getAnnotation(IdColumn.class) != null)
                     .findFirst()
                     .orElse(null);
-            if (idField == null || idField.getAnnotation(ColumnName.class) == null) {
-                return;
-            }
+            // if (idField == null || idField.getAnnotation(ColumnName.class) == null) {
+            //     return;
+            // }
 
             final String finalTableName;
             String tableNameValue = tableNameAnnotation.value();
@@ -191,7 +191,7 @@ public final class EntityUtils {
                         String alterModifyColumn = CommonConstant.EMPTY_STRING;
 
                         if (
-                                idField.getName().equals(field.getName())
+                                idField != null && idField.getName().equals(field.getName())
                         ) {
                             if ((fieldDataTypeName.contains("Long") || fieldDataTypeName.contains("BigDecimal"))) {
                                 switch (databaseType) {
