@@ -35,6 +35,7 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             ${method-body-1}
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {

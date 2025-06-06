@@ -35,6 +35,7 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             currentSessionInContext.persist(entity);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
@@ -80,6 +81,7 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             currentSessionInContext.merge(entity);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
@@ -125,6 +127,7 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             currentSessionInContext.remove(entity);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
@@ -171,6 +174,7 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
             jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
@@ -238,6 +242,7 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
             jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
@@ -305,6 +310,7 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) pageable;
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
