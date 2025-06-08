@@ -53,7 +53,13 @@ public class ProcessorClassInfo {
                     .build();
             allMethods.put(methodInfo, method);
         });
-        return new ProcessorClassInfo(typeUtils, elementUtils, TypeHierarchyAnalyzer.getAllFields(typeUtils, clazz), allMethods, clazz);
+        return new ProcessorClassInfo(
+                typeUtils,
+                elementUtils,
+                TypeHierarchyAnalyzer.getAllFields(typeUtils, clazz),
+                allMethods,
+                clazz
+        );
     }
 
 }

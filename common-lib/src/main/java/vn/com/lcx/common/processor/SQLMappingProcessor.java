@@ -10,6 +10,7 @@ import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.utils.ExceptionUtils;
+import vn.com.lcx.jpa.processor.TypeHierarchyAnalyzer;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -104,7 +105,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     .append("(java.sql.ResultSet resultSet) {")
                     .append("\n        ").append(className).append(" instance = ").append(className).append(".builder();\n")
                     .append("\n");
-            List<Element> classElements = new ArrayList<>(getAllFields(typeElement));
+            List<Element> classElements = new ArrayList<>(TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), typeElement));
             Optional<TableName> tableNameAnnotation = Optional.ofNullable(typeElement.getAnnotation(TableName.class));
             classElements.forEach(element -> {
                 boolean elementIsField = element.getKind().isField();
@@ -359,32 +360,6 @@ public class SQLMappingProcessor extends AbstractProcessor {
             // writer.write(SqlStatementBuilder.selectStatementBuilder(typeElement, classElements));
             writer.write("}\n");
         }
-    }
-
-    @SuppressWarnings("UnnecessaryLocalVariable")
-    private Set<Element> getAllFields(TypeElement typeElement) {
-
-        // Collect fields from the current class
-        Set<Element> fields = new HashSet<>(ElementFilter.fieldsIn(typeElement.getEnclosedElements()));
-
-        // Get the superclass and repeat the process
-        TypeMirror superclass = typeElement.getSuperclass();
-        if (superclass != null && !superclass.toString().equals(Object.class.getCanonicalName())) {
-            Element superclassElement = processingEnv.getTypeUtils().asElement(superclass);
-            if (superclassElement instanceof TypeElement) {
-                fields.addAll(getAllFields((TypeElement) superclassElement));
-            }
-        }
-
-        return fields.stream()
-                .filter(element -> {
-                    boolean elementIsField = element.getKind().isField();
-                    boolean fieldIsNotFinalOrStatic = !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC));
-                    ColumnName columnName = element.getAnnotation(ColumnName.class);
-                    final boolean isAnnotatedWithColumnNameAnnotation = columnName != null;
-                    return elementIsField && fieldIsNotFinalOrStatic && isAnnotatedWithColumnNameAnnotation;
-                })
-                .collect(Collectors.toSet());
     }
 
     public static final class SqlStatementBuilder {

@@ -23,7 +23,7 @@ import vn.com.lcx.common.database.repository.LCXRepository;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.proxy.RepositoryProxyHandler;
-import vn.com.lcx.common.proxy.ServiceProxy;
+import vn.com.lcx.common.proxy.ServiceProxyHandler;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.FileUtils;
@@ -226,7 +226,7 @@ public class ClassPool {
 
         for (Class<?> iFaceClass : iFace) {
             if (aClass.getAnnotation(Service.class) != null) {
-                ClassPool.CLASS_POOL.put(iFaceClass.getName(), ServiceProxy.create(iFaceClass, instance));
+                ClassPool.CLASS_POOL.put(iFaceClass.getName(), ServiceProxyHandler.create(iFaceClass, instance));
             } else {
                 ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
             }

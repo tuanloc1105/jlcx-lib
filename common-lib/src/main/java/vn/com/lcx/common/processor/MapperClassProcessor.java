@@ -5,6 +5,7 @@ import vn.com.lcx.common.annotation.mapper.Mapping;
 import vn.com.lcx.common.annotation.mapper.Merging;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.WordCaseUtils;
+import vn.com.lcx.jpa.processor.TypeHierarchyAnalyzer;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -46,7 +47,7 @@ public class MapperClassProcessor extends AbstractProcessor {
                 try {
                     this.processMapperClass(typeElement);
                 } catch (Exception e) {
-                    this.processingEnv.
+                    processingEnv.
                             getMessager().
                             printMessage(
                                     Diagnostic.Kind.ERROR,
@@ -59,7 +60,7 @@ public class MapperClassProcessor extends AbstractProcessor {
     }
 
     public void processMapperClass(TypeElement typeElement) throws IOException {
-        List<ExecutableElement> allMethodsOfClass = this.processingEnv.getElementUtils().getAllMembers(typeElement).stream()
+        List<ExecutableElement> allMethodsOfClass = processingEnv.getElementUtils().getAllMembers(typeElement).stream()
                 .filter(e -> {
                     boolean elementIsAMethod = e.getKind() == ElementKind.METHOD;
                     boolean isNotStaticAndFinal = !(e.getModifiers().contains(Modifier.FINAL) || e.getModifiers().contains(Modifier.STATIC));
@@ -115,9 +116,9 @@ public class MapperClassProcessor extends AbstractProcessor {
             }
         }
         String className = typeElement.getSimpleName() + "Impl";
-        String packageName = this.processingEnv.getElementUtils().getPackageOf(typeElement).getQualifiedName().toString();
+        String packageName = processingEnv.getElementUtils().getPackageOf(typeElement).getQualifiedName().toString();
         String fullClassName = packageName + "." + className;
-        JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
+        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(fullClassName);
         try (Writer writer = builderFile.openWriter()) {
             String codeToWrite = String.format(
                     "package %s;\n\nimport java.util.*;\n\npublic class %s implements %s {\n\n    public %s() {\n    }\n    %s\n\n}",
@@ -143,11 +144,11 @@ public class MapperClassProcessor extends AbstractProcessor {
             throw new RuntimeException("Merging method can not mapping 2 different classes");
         }
 
-        TypeElement firstClassTypeElement = this.processingEnv.getElementUtils().getTypeElement(firstInputParameterClass);
+        TypeElement firstClassTypeElement = processingEnv.getElementUtils().getTypeElement(firstInputParameterClass);
         String mappingLineCodeTemplate = mergeNonNullField ?
                 "\n        %s.set%s(%s.get%s());" :
                 "\n        if (%s.get%s() == null) {\n            %s.set%s(%s.get%s());\n        }";
-        List<Element> firstClassFields = new ArrayList<>(this.getAllFields(firstClassTypeElement));
+        List<Element> firstClassFields = new ArrayList<>(TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), firstClassTypeElement));
         List<String> listOfMappingLineCodes = new ArrayList<>();
         for (Element field : firstClassFields) {
             String fieldName = WordCaseUtils.toPascalCase(WordCaseUtils.fromCamelCase(field.getSimpleName() + CommonConstant.EMPTY_STRING));
@@ -198,11 +199,11 @@ public class MapperClassProcessor extends AbstractProcessor {
                                          String firstInputParameterName) {
         List<String> listOfImplementMethodCode = new ArrayList<>();
         List<Mapping> listOfMappingAnnotations = new ArrayList<>(Arrays.asList(methodsOfClass.getAnnotationsByType(Mapping.class)));
-        TypeElement inputClassTypeElement = this.processingEnv.getElementUtils().getTypeElement(firstInputParameterClass);
-        TypeElement outputClassTypeElement = this.processingEnv.getElementUtils().getTypeElement(methodReturnClass);
+        TypeElement inputClassTypeElement = processingEnv.getElementUtils().getTypeElement(firstInputParameterClass);
+        TypeElement outputClassTypeElement = processingEnv.getElementUtils().getTypeElement(methodReturnClass);
         String mappingLineCodeTemplate = "\n        instance.set%s(%s.get%s());";
-        List<Element> inputClassFields = new ArrayList<>(this.getAllFields(inputClassTypeElement));
-        List<Element> outputClassFields = new ArrayList<>(this.getAllFields(outputClassTypeElement));
+        List<Element> inputClassFields = new ArrayList<>(TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), inputClassTypeElement));
+        List<Element> outputClassFields = new ArrayList<>(TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), outputClassTypeElement));
         List<String> listOfMappingLineCodes = new ArrayList<>();
         if (listOfMappingAnnotations.isEmpty()) {
             for (Element outputClassField : outputClassFields) {
@@ -290,26 +291,6 @@ public class MapperClassProcessor extends AbstractProcessor {
         );
         listOfImplementMethodCode.add(implementMethodCode);
         return listOfImplementMethodCode;
-    }
-
-    private HashSet<Element> getAllFields(TypeElement typeElement) {
-        // Collect fields from the current class
-        HashSet<Element> fields = new HashSet<>(ElementFilter.fieldsIn(typeElement.getEnclosedElements()));
-        // Get the superclass and repeat the process
-        TypeMirror superclass = typeElement.getSuperclass();
-        if (superclass != null && !superclass.toString().equals(Object.class.getCanonicalName())) {
-            Element superclassElement = processingEnv.getTypeUtils().asElement(superclass);
-            if (superclassElement instanceof TypeElement) {
-                fields.addAll(getAllFields((TypeElement) superclassElement));
-            }
-        }
-        return fields.stream()
-                .filter(element -> {
-                    boolean elementIsField = element.getKind().isField();
-                    boolean fieldIsNotFinalOrStatic = !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC));
-                    return elementIsField && fieldIsNotFinalOrStatic;
-                })
-                .collect(Collectors.toCollection(HashSet::new));
     }
 
     public Element findAppropriateFieldOfInputClassFromOutputFieldName(List<Element> allElementOfAClass, final String fieldName, final String fieldDataType) {

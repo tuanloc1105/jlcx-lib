@@ -17,7 +17,7 @@ import java.sql.Connection;
 import java.util.Arrays;
 
 @AllArgsConstructor
-public class ServiceProxy<T> implements InvocationHandler {
+public class ServiceProxyHandler<T> implements InvocationHandler {
 
     private final Object target;
 
@@ -27,13 +27,13 @@ public class ServiceProxy<T> implements InvocationHandler {
             return (T) Proxy.newProxyInstance(
                     ServiceClass.class.getClassLoader(),
                     new Class<?>[]{ServiceClass.class},
-                    new ServiceProxy<T>(target)
+                    new ServiceProxyHandler<T>(target)
             );
         }
         return (T) Proxy.newProxyInstance(
                 interfaceType.getClassLoader(),
                 new Class<?>[]{interfaceType},
-                new ServiceProxy<>(target)
+                new ServiceProxyHandler<>(target)
         );
     }
 
