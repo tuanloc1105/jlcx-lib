@@ -10,7 +10,7 @@ public enum DBTypeEnum implements DBType {
     ORACLE {
         @Override
         public String getDefaultDriverClassName() {
-            return "oracle.jdbc.driver.OracleDriver";
+            return "oracle.jdbc.OracleDriver";
         }
 
         @Override
