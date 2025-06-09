@@ -28,8 +28,6 @@
         <processor-vn.com.lcx.version>2.0.0</processor-vn.com.lcx.version>
         <vertx-processor-vn.com.lcx.version>2.0.0</vertx-processor-vn.com.lcx.version>
         <base-vertx-vn.com.lcx.version>2.0.0</base-vertx-vn.com.lcx.version>
-        <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.15.Final</hibernate-tools-orm-org.hibernate.tool.version>
 
     </properties>
 
@@ -56,15 +54,12 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok-org.projectlombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.hibernate.tool</groupId>
             <artifactId>hibernate-tools-orm</artifactId>
-            <version>${hibernate-tools-orm-org.hibernate.tool.version}</version>
-            <optional>true</optional>
         </dependency>
 
     </dependencies>

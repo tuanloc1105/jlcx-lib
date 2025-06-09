@@ -25,15 +25,6 @@
         <java.version>${jdk.version}</java.version>
 
         <common-lib-vn.com.lcx.version>2.0.0</common-lib-vn.com.lcx.version>
-        <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
-        <vertx-core-io.vertx.version>5.0.0</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>5.0.0</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>5.0.0</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>5.0.0</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>5.0.0</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>5.0.0</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>5.0.0</vertx-auth-jwt-io.vertx.version>
-        <vertx-micrometer-metrics-io.vertx.version>5.0.0</vertx-micrometer-metrics-io.vertx.version>
 
     </properties>
 
@@ -45,70 +36,52 @@
             <version>${common-lib-vn.com.lcx.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok-org.projectlombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>${vertx-core-io.vertx.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
-            <version>${vertx-web-io.vertx.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-client -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web-client</artifactId>
-            <version>${vertx-web-client-io.vertx.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-json-schema -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-json-schema</artifactId>
-            <version>${vertx-json-schema-io.vertx.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-codegen -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-codegen</artifactId>
-            <version>${vertx-codegen-io.vertx.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-unit -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-unit</artifactId>
-            <version>${vertx-unit-io.vertx.version}</version>
             <scope>test</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-auth-jwt -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-auth-jwt</artifactId>
-            <version>${vertx-auth-jwt-io.vertx.version}</version>
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-micrometer-metrics -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-micrometer-metrics</artifactId>
-            <version>${vertx-micrometer-metrics-io.vertx.version}</version>
         </dependency>
 
     </dependencies>

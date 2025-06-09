@@ -25,7 +25,6 @@
         <java.version>${jdk.version}</java.version>
 
         <common-lib-vn.com.lcx.version>2.0.0</common-lib-vn.com.lcx.version>
-        <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
 
     </properties>
 
@@ -40,7 +39,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok-org.projectlombok.version}</version>
             <scope>provided</scope>
         </dependency>
 

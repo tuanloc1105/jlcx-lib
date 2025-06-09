@@ -23,110 +23,54 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>${jdk.version}</java.version>
 
-        <logback-classic-ch.qos.logback.version>1.5.18</logback-classic-ch.qos.logback.version>
-        <slf4j-api-org.slf4j.version>2.1.0-alpha1</slf4j-api-org.slf4j.version>
-        <commons-text-org.apache.commons.version>1.13.1</commons-text-org.apache.commons.version>
-        <commons-lang3-org.apache.commons.version>3.17.0</commons-lang3-org.apache.commons.version>
-        <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
-        <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
-        <ojdbc11-com.oracle.database.jdbc.version>23.8.0.25.04</ojdbc11-com.oracle.database.jdbc.version>
-        <postgresql-org.postgresql.version>42.7.6</postgresql-org.postgresql.version>
-        <mysql-connector-j-com.mysql.version>9.3.0</mysql-connector-j-com.mysql.version>
-        <mssql-jdbc-com.microsoft.sqlserver.version>12.10.0.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
-        <gson-com.google.code.gson.version>2.13.1</gson-com.google.code.gson.version>
-        <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.2</jakarta.xml.bind-api-jakarta.xml.bind.version>
-        <jaxb-runtime-org.glassfish.jaxb.version>4.0.5</jaxb-runtime-org.glassfish.jaxb.version>
-        <jackson-module-parameter-names-com.fasterxml.jackson.module.version>2.19.0
-        </jackson-module-parameter-names-com.fasterxml.jackson.module.version>
-        <jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version>2.19.0
-        </jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version>
-        <jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version>2.19.0
-        </jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version>
-        <jackson-databind-com.fasterxml.jackson.core.version>2.19.0
-        </jackson-databind-com.fasterxml.jackson.core.version>
-        <jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>2.19.0
-        </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
-        <mail-javax.mail.version>1.5.0-b01</mail-javax.mail.version>
-        <jedis-redis.clients.version>6.0.0</jedis-redis.clients.version>
-        <micrometer-core-io.micrometer.version>1.15.0</micrometer-core-io.micrometer.version>
-        <micrometer-registry-prometheus-io.micrometer.version>1.15.0</micrometer-registry-prometheus-io.micrometer.version>
-        <metrics-core-io.dropwizard.metrics.version>4.2.32</metrics-core-io.dropwizard.metrics.version>
-        <metrics-healthchecks-io.dropwizard.metrics.version>4.2.32</metrics-healthchecks-io.dropwizard.metrics.version>
-        <metrics-core-io.dropwizard.metrics5.version>5.0.0</metrics-core-io.dropwizard.metrics5.version>
-        <javassist-org.javassist.version>3.30.2-GA</javassist-org.javassist.version>
-        <snakeyaml-org.yaml.version>2.4</snakeyaml-org.yaml.version>
-        <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
-        <HikariCP-com.zaxxer.version>6.3.0</HikariCP-com.zaxxer.version>
-        <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.17.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.15.Final</hibernate-tools-orm-org.hibernate.tool.version>
-
     </properties>
 
     <dependencies>
 
-        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback-classic-ch.qos.logback.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j-api-org.slf4j.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>${commons-text-org.apache.commons.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3-org.apache.commons.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>${commons-collections4-org.apache.commons.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok-org.projectlombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc11 -->
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc11</artifactId>
-            <version>${ojdbc11-com.oracle.database.jdbc.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${postgresql-org.postgresql.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>${mysql-connector-j-com.mysql.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
@@ -135,193 +79,129 @@
             </exclusions>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>${mssql-jdbc-com.microsoft.sqlserver.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>${gson-com.google.code.gson.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>${jakarta.xml.bind-api-jakarta.xml.bind.version}</version>
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime -->
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>${jaxb-runtime-org.glassfish.jaxb.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-module-parameter-names -->
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-parameter-names</artifactId>
-            <version>${jackson-module-parameter-names-com.fasterxml.jackson.module.version}</version>
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310 -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson-datatype-jsr310-com.fasterxml.jackson.datatype.version}</version>
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jdk8 -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jdk8</artifactId>
-            <version>${jackson-datatype-jdk8-com.fasterxml.jackson.datatype.version}</version>
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson-databind-com.fasterxml.jackson.core.version}</version>
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
-            <version>${jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version}</version>
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/javax.mail/mail -->
         <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
-            <version>${mail-javax.mail.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>${jedis-redis.clients.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-core -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>${micrometer-core-io.micrometer.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>${micrometer-registry-prometheus-io.micrometer.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>${metrics-core-io.dropwizard.metrics.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-healthchecks -->
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-healthchecks</artifactId>
-            <version>${metrics-healthchecks-io.dropwizard.metrics.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics5/metrics-core -->
         <dependency>
             <groupId>io.dropwizard.metrics5</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>${metrics-core-io.dropwizard.metrics5.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.javassist/javassist -->
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>${javassist-org.javassist.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>${snakeyaml-org.yaml.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.mindrot/jbcrypt -->
         <dependency>
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
-            <version>${jbcrypt-org.mindrot.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>${HikariCP-com.zaxxer.version}</version>
-            <!-- <exclusions> -->
-            <!-- <exclusion> -->
-            <!-- <groupId>org.slf4j</groupId> -->
-            <!-- <artifactId>slf4j-api</artifactId> -->
-            <!-- </exclusion> -->
-            <!-- <exclusion> -->
-            <!-- <groupId>org.apache.logging.log4j</groupId> -->
-            <!-- <artifactId>log4j-api</artifactId> -->
-            <!-- </exclusion> -->
-            <!-- <exclusion> -->
-            <!-- <groupId>org.apache.logging.log4j</groupId> -->
-            <!-- <artifactId>log4j-core</artifactId> -->
-            <!-- </exclusion> -->
-            <!-- <exclusion> -->
-            <!-- <groupId>org.apache.logging.log4j</groupId> -->
-            <!-- <artifactId>log4j-slf4j-impl</artifactId> -->
-            <!-- </exclusion> -->
-            <!-- </exclusions> -->
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>${kafka-clients-org.apache.kafka.version}</version>
             <optional>true</optional>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>${hibernate-core-org.hibernate.orm.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.hibernate.tool/hibernate-tools-orm -->
         <dependency>
             <groupId>org.hibernate.tool</groupId>
             <artifactId>hibernate-tools-orm</artifactId>
-            <version>${hibernate-tools-orm-org.hibernate.tool.version}</version>
             <optional>true</optional>
         </dependency>
 
