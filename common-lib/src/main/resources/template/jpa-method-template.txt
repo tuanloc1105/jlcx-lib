@@ -10,6 +10,7 @@
             org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
             int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
@@ -35,7 +36,6 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
-            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             ${method-body-1}
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
@@ -56,6 +56,7 @@
             org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
             int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
@@ -81,7 +82,6 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
-            currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
             currentSessionInContext.doWork(work);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
