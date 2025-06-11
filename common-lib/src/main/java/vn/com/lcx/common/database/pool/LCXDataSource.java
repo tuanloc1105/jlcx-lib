@@ -3,7 +3,6 @@ package vn.com.lcx.common.database.pool;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.database.DatabaseProperty;
@@ -77,14 +76,14 @@ public class LCXDataSource {
                     true
             );
             if (property.propertiesIsAllSet()) {
-                val simpleExecutor = SimpleExecutor.<Boolean>init(
+                final var simpleExecutor = SimpleExecutor.<Boolean>init(
                         0,
                         0,
                         RejectMode.ABORT_POLICY,
                         maxTimeout,
                         TimeUnit.SECONDS
                 );
-                val lcxPool = new LCXDataSource(
+                final var lcxPool = new LCXDataSource(
                         databaseName,
                         property.getDriverClassName(),
                         dbType.getShowDbVersionSqlStatement(),
@@ -137,7 +136,7 @@ public class LCXDataSource {
             this.myExecutor.addNewTask(
                     () -> {
                         Thread.currentThread().setName(Thread.currentThread().getName().replace("pool", "lcx"));
-                        val entry = ConnectionEntry.init(
+                        final var entry = ConnectionEntry.init(
                                 createConnection(url, user, password, maxTimeoutSecond),
                                 this.dbType,
                                 String.format("%s-%s", this.dbType.name().toLowerCase(), generateRandomString(8))
@@ -151,8 +150,8 @@ public class LCXDataSource {
     }
 
     /**
-     * @deprecated this method will not be removed but I no longer maintain this method anymore
      * @return
+     * @deprecated this method will not be removed but I no longer maintain this method anymore
      */
     @Deprecated
     public ConnectionEntry getConnection() {
@@ -186,7 +185,7 @@ public class LCXDataSource {
                 }
             }
             if (this.pool.size() < this.property.getMaxPoolSize()) {
-                val entry = ConnectionEntry.init(
+                final var entry = ConnectionEntry.init(
                         createConnection(
                                 this.property.getConnectionString(),
                                 this.property.getUsername(),
@@ -206,11 +205,11 @@ public class LCXDataSource {
             while (waitedTime < maxPoolWaitingTime) {
                 waitedTime = System.currentTimeMillis() - startTime;
                 LogUtils.writeLog(LogUtils.Level.INFO, "Waited {} ms", waitedTime);
-                val currentTime = DateTimeUtils.generateCurrentTimeDefault();
-                val entry = this.pool.stream()
+                final var currentTime = DateTimeUtils.generateCurrentTimeDefault();
+                final var entry = this.pool.stream()
                         .sorted(Comparator.comparing(ConnectionEntry::getLastActiveTime))
                         .filter(e -> {
-                            val durationBetweenLastTimeActiveAndCurrentTime = Duration.between(e.getLastActiveTime(), currentTime);
+                            final var durationBetweenLastTimeActiveAndCurrentTime = Duration.between(e.getLastActiveTime(), currentTime);
                             return durationBetweenLastTimeActiveAndCurrentTime.compareTo(Duration.of(30, ChronoUnit.SECONDS)) >= 0 && !e.isCriticalLock();
                         })
                         .findFirst();
@@ -268,7 +267,7 @@ public class LCXDataSource {
                 }
             }
             if (this.pool.size() < this.property.getMaxPoolSize()) {
-                val entry = ConnectionEntry.init(
+                final var entry = ConnectionEntry.init(
                         createConnection(
                                 this.property.getConnectionString(),
                                 this.property.getUsername(),
@@ -288,11 +287,11 @@ public class LCXDataSource {
             while (waitedTime < maxPoolWaitingTime) {
                 waitedTime = System.currentTimeMillis() - startTime;
                 LogUtils.writeLog(LogUtils.Level.INFO, "Waited {} ms", waitedTime);
-                val currentTime = DateTimeUtils.generateCurrentTimeDefault();
-                val entry = this.pool.stream()
+                final var currentTime = DateTimeUtils.generateCurrentTimeDefault();
+                final var entry = this.pool.stream()
                         .sorted(Comparator.comparing(ConnectionEntry::getLastActiveTime))
                         .filter(e -> {
-                            val durationBetweenLastTimeActiveAndCurrentTime = Duration.between(e.getLastActiveTime(), currentTime);
+                            final var durationBetweenLastTimeActiveAndCurrentTime = Duration.between(e.getLastActiveTime(), currentTime);
                             return durationBetweenLastTimeActiveAndCurrentTime.compareTo(Duration.of(30, ChronoUnit.SECONDS)) >= 0 && !e.isCriticalLock();
                         })
                         .findFirst();
@@ -359,7 +358,7 @@ public class LCXDataSource {
                 if (entry.isValid()) {
                     return;
                 }
-                val newConnection = createConnection(
+                final var newConnection = createConnection(
                         this.property.getConnectionString(),
                         this.property.getUsername(),
                         this.property.getPassword(),

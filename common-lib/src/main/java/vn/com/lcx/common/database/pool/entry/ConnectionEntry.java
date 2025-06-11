@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.database.type.DBTypeEnum;
@@ -16,10 +15,6 @@ import vn.com.lcx.common.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -56,11 +51,11 @@ public final class ConnectionEntry implements AutoCloseable {
     public static ConnectionEntry init(Connection connection,
                                        DBTypeEnum dbType,
                                        String connectionName) {
-        val folder = new File(FileUtils.pathJoining(System.getProperty("java.io.tmpdir"), "lcx-pool"));
+        final var folder = new File(FileUtils.pathJoining(System.getProperty("java.io.tmpdir"), "lcx-pool"));
         //noinspection ResultOfMethodCallIgnored
         folder.mkdirs();
-        val file = new File(FileUtils.pathJoining(System.getProperty("java.io.tmpdir"), "lcx-pool", String.format("%s.lock", connectionName)));
-        val fileIsNotExist = !file.exists();
+        final var file = new File(FileUtils.pathJoining(System.getProperty("java.io.tmpdir"), "lcx-pool", String.format("%s.lock", connectionName)));
+        final var fileIsNotExist = !file.exists();
         if (fileIsNotExist) {
             try {
                 //noinspection ResultOfMethodCallIgnored
@@ -69,8 +64,8 @@ public final class ConnectionEntry implements AutoCloseable {
                 throw new RuntimeException(e);
             }
         }
-        val logger = LoggerFactory.getLogger(connectionName);
-        val entry = new ConnectionEntry(
+        final var logger = LoggerFactory.getLogger(connectionName);
+        final var entry = new ConnectionEntry(
                 connection,
                 DateTimeUtils.generateCurrentTimeDefault(),
                 dbType,

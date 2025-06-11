@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Transaction {
     boolean readOnly() default false;
+
     String connectionInstanceName() default "";
 }

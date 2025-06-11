@@ -1,6 +1,5 @@
 package vn.com.lcx.common.mail;
 
-import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
@@ -8,7 +7,6 @@ import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.LogUtils;
 
 import javax.activation.DataHandler;
-import javax.activation.FileDataSource;
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
@@ -50,8 +48,8 @@ public final class MailHelper {
         ) {
             throw new MailPropertiesEmptyError("Mail properties empty" + (mailProperties != null ? mailProperties.toString() : ""));
         }
-        val resultMap = new HashMap<String, String>();
-        val properties = System.getProperties();
+        final var resultMap = new HashMap<String, String>();
+        final var properties = System.getProperties();
         switch (mailProperties.getMailSendingMethod()) {
             case LIVE:
                 properties.setProperty("mail.smtp.host", mailProperties.getHost());
@@ -87,7 +85,7 @@ public final class MailHelper {
                 disableSslVerification();
                 break;
         }
-        val session = Session.getInstance(
+        final var session = Session.getInstance(
                 properties,
                 new Authenticator() {
                     protected PasswordAuthentication getPasswordAuthentication() {
@@ -98,13 +96,13 @@ public final class MailHelper {
         try {
             Transport transport = session.getTransport("smtp");
             transport.connect();
-            val mailInfos = mailProperties.getEmailInfos();
-            for (val mailInfo : mailInfos) {
+            final var mailInfos = mailProperties.getEmailInfos();
+            for (var mailInfo : mailInfos) {
                 try {
-                    val message = new MimeMessage(session);
+                    final var message = new MimeMessage(session);
                     message.setFrom(mailProperties.getUsername());
 
-                    val toAddresses = new InternetAddress[mailInfo.getToUsers().size()];
+                    final var toAddresses = new InternetAddress[mailInfo.getToUsers().size()];
                     List<String> toUsers = mailInfo.getToUsers();
                     for (int i = 0; i < toUsers.size(); i++) {
                         String toUser = toUsers.get(i);
@@ -114,7 +112,7 @@ public final class MailHelper {
                     message.setRecipients(Message.RecipientType.TO, toAddresses);
                     List<String> ccUsers = new ArrayList<>();
                     if (CollectionUtils.isNotEmpty(mailInfo.getCcUsers())) {
-                        val ccAddresses = new InternetAddress[mailInfo.getCcUsers().size()];
+                        final var ccAddresses = new InternetAddress[mailInfo.getCcUsers().size()];
                         ccUsers.addAll(mailInfo.getCcUsers());
                         for (int i = 0; i < ccUsers.size(); i++) {
                             String ccUser = ccUsers.get(i);
@@ -124,7 +122,7 @@ public final class MailHelper {
                     }
                     List<String> bccUsers = new ArrayList<>();
                     if (CollectionUtils.isNotEmpty(mailInfo.getBccUser())) {
-                        val bccAddresses = new InternetAddress[mailInfo.getBccUser().size()];
+                        final var bccAddresses = new InternetAddress[mailInfo.getBccUser().size()];
                         bccUsers.addAll(mailInfo.getBccUser());
                         for (int i = 0; i < bccUsers.size(); i++) {
                             String bccUser = bccUsers.get(i);
@@ -137,8 +135,8 @@ public final class MailHelper {
 
                     message.setSubject(mailInfo.getSubject(), CommonConstant.UTF_8_STANDARD_CHARSET);
 
-                    val multipart = new MimeMultipart("related");
-                    val mimeBodyPart = new MimeBodyPart();
+                    final var multipart = new MimeMultipart("related");
+                    final var mimeBodyPart = new MimeBodyPart();
                     mimeBodyPart.setDataHandler(
                             new DataHandler(
                                     new ByteArrayDataSource(
@@ -151,7 +149,7 @@ public final class MailHelper {
                     multipart.addBodyPart(mimeBodyPart);
 
                     for (String filePath : mailInfo.getFileAttachments()) {
-                        val fileMimeBodyPart = new MimeBodyPart();
+                        final var fileMimeBodyPart = new MimeBodyPart();
                         try {
                             fileMimeBodyPart.attachFile(new File(filePath));
                             multipart.addBodyPart(fileMimeBodyPart);
@@ -185,7 +183,7 @@ public final class MailHelper {
                     transport.sendMessage(message, message.getAllRecipients());
                     resultMap.put(mailInfo.getId(), "SUCCESS");
                 } catch (Throwable e) {
-                    val stackTrace = ExceptionUtils.getStackTrace(e);
+                    final var stackTrace = ExceptionUtils.getStackTrace(e);
                     resultMap.put(
                             mailInfo.getId(),
                             StringUtils.isBlank(stackTrace) ?

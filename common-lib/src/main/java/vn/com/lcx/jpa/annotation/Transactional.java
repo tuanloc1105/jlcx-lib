@@ -12,6 +12,8 @@ import java.sql.Connection;
 @Target(ElementType.METHOD)
 public @interface Transactional {
     int isolation() default Connection.TRANSACTION_READ_COMMITTED;
+
     int mode() default JpaConstant.USE_EXISTING_TRANSACTION_MODE;
+
     Class<? extends Throwable>[] onRollback() default {};
 }

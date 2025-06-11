@@ -4,6 +4,10 @@ import java.util.List;
 
 public interface Specification {
 
+    static Specification create(Class<?> clz) {
+        return SimpleSpecificationImpl.of(clz);
+    }
+
     StringBuilder getFinalSQL();
 
     List<Object> getParameters();
@@ -43,9 +47,5 @@ public interface Specification {
     Specification isNull(String fieldName);
 
     Specification isNotNull(String fieldName);
-
-    static Specification create(Class<?> clz) {
-        return SimpleSpecificationImpl.of(clz);
-    }
 
 }

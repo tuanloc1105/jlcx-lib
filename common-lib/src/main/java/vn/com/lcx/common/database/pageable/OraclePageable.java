@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.utils.EntityUtils;
@@ -48,11 +47,11 @@ public class OraclePageable implements Pageable {
     public void fieldToColumn() {
         if (this.fieldNameAndDirectionMap != null && !this.fieldNameAndDirectionMap.isEmpty() && entityClass != null) {
             for (Map.Entry<String, Direction> entry : this.fieldNameAndDirectionMap.entrySet()) {
-                val columnName = EntityUtils.getColumnNameFromFieldName(entry.getKey(), entityClass);
+                final var columnName = EntityUtils.getColumnNameFromFieldName(entry.getKey(), entityClass);
                 if (StringUtils.isBlank(columnName)) {
                     throw new IllegalArgumentException("Cannot find column name for field " + entry.getKey());
                 }
-                val direction = entry.getValue();
+                final var direction = entry.getValue();
                 this.addNewColumnAndDirectionOrder(columnName, direction);
             }
         }
@@ -60,8 +59,8 @@ public class OraclePageable implements Pageable {
 
     @Override
     public String toSql() {
-        val listOfOrder = new ArrayList<String>();
-        val orderClause = new StringBuilder();
+        final var listOfOrder = new ArrayList<String>();
+        final var orderClause = new StringBuilder();
         var offSetClause = CommonConstant.EMPTY_STRING;
 
         if (this.pageNumber > 0 || this.pageSize > 0) {
@@ -78,7 +77,7 @@ public class OraclePageable implements Pageable {
         }
         if (this.columnNameAndDirectionMap != null && !this.columnNameAndDirectionMap.isEmpty()) {
             if (this.entityClass != null) {
-                val tableShortName = getTableShortenedName(this.entityClass);
+                final var tableShortName = getTableShortenedName(this.entityClass);
                 for (Map.Entry<String, Direction> entry : this.columnNameAndDirectionMap.entrySet()) {
                     listOfOrder.add(
                             String.format("%s.%s %s", tableShortName, entry.getKey(), entry.getValue().name())

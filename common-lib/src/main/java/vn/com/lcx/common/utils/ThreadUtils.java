@@ -1,7 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.val;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +29,7 @@ public final class ThreadUtils {
     }
 
     public static List<String> getAllRunningThreadsName() {
-        val listOfThreadName = new ArrayList<String>();
+        final var listOfThreadName = new ArrayList<String>();
         Map<Thread, StackTraceElement[]> allThreads = getMapOfThreadAndStackTraceElement();
         for (Thread thread : allThreads.keySet()) {
             listOfThreadName.add(thread.getName());
@@ -51,7 +49,7 @@ public final class ThreadUtils {
                 longestThreadStateText = thread.getState().name().length();
             }
         }
-        val threadInfoListToFormat = new ArrayList<List<String>>();
+        final var threadInfoListToFormat = new ArrayList<List<String>>();
         final List<String> dsa = new ArrayList<>();
         for (Thread thread : allThreads.keySet()) {
             final List<String> threadInfoList = new ArrayList<>();

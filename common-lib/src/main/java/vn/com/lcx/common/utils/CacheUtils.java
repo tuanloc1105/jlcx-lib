@@ -15,11 +15,11 @@ import java.util.concurrent.TimeUnit;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CacheUtils<K, V> {
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final int capacity;
     // Use soft reference to ensure memory usage
     private final ConcurrentHashMap<K, SoftReference<V>> cache;
     private final ConcurrentHashMap<K, ScheduledFuture<SoftReference<V>>> removeExpiredKeyTasks = new ConcurrentHashMap<>();
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public static <K, V> CacheUtils<K, V> create(int capacity) {
 

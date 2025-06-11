@@ -1,7 +1,6 @@
 package vn.com.lcx.common.database.pool.wrapper;
 
 import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
-import vn.com.lcx.common.database.type.DBType;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 
 import java.sql.Array;
@@ -71,13 +70,13 @@ public class LCXConnection implements Connection {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException {
-        getRealConnection().setAutoCommit(autoCommit);
+    public boolean getAutoCommit() throws SQLException {
+        return getRealConnection().getAutoCommit();
     }
 
     @Override
-    public boolean getAutoCommit() throws SQLException {
-        return getRealConnection().getAutoCommit();
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        getRealConnection().setAutoCommit(autoCommit);
     }
 
     @Override
@@ -96,18 +95,13 @@ public class LCXConnection implements Connection {
     }
 
     @Override
-    public void setReadOnly(boolean readOnly) throws SQLException {
-        getRealConnection().setReadOnly(readOnly);
-    }
-
-    @Override
     public boolean isReadOnly() throws SQLException {
         return getRealConnection().isReadOnly();
     }
 
     @Override
-    public void setCatalog(String catalog) throws SQLException {
-        getRealConnection().setCatalog(catalog);
+    public void setReadOnly(boolean readOnly) throws SQLException {
+        getRealConnection().setReadOnly(readOnly);
     }
 
     @Override
@@ -116,13 +110,18 @@ public class LCXConnection implements Connection {
     }
 
     @Override
-    public void setTransactionIsolation(int level) throws SQLException {
-        getRealConnection().setTransactionIsolation(level);
+    public void setCatalog(String catalog) throws SQLException {
+        getRealConnection().setCatalog(catalog);
     }
 
     @Override
     public int getTransactionIsolation() throws SQLException {
         return getRealConnection().getTransactionIsolation();
+    }
+
+    @Override
+    public void setTransactionIsolation(int level) throws SQLException {
+        getRealConnection().setTransactionIsolation(level);
     }
 
     @Override
@@ -161,13 +160,13 @@ public class LCXConnection implements Connection {
     }
 
     @Override
-    public void setHoldability(int holdability) throws SQLException {
-        getRealConnection().setHoldability(holdability);
+    public int getHoldability() throws SQLException {
+        return getRealConnection().getHoldability();
     }
 
     @Override
-    public int getHoldability() throws SQLException {
-        return getRealConnection().getHoldability();
+    public void setHoldability(int holdability) throws SQLException {
+        getRealConnection().setHoldability(holdability);
     }
 
     @Override
@@ -251,11 +250,6 @@ public class LCXConnection implements Connection {
     }
 
     @Override
-    public void setClientInfo(Properties properties) throws SQLClientInfoException {
-        getRealConnection().setClientInfo(properties);
-    }
-
-    @Override
     public String getClientInfo(String name) throws SQLException {
         return getRealConnection().getClientInfo(name);
     }
@@ -263,6 +257,11 @@ public class LCXConnection implements Connection {
     @Override
     public Properties getClientInfo() throws SQLException {
         return getRealConnection().getClientInfo();
+    }
+
+    @Override
+    public void setClientInfo(Properties properties) throws SQLClientInfoException {
+        getRealConnection().setClientInfo(properties);
     }
 
     @Override
@@ -276,13 +275,13 @@ public class LCXConnection implements Connection {
     }
 
     @Override
-    public void setSchema(String schema) throws SQLException {
-        getRealConnection().setSchema(schema);
+    public String getSchema() throws SQLException {
+        return getRealConnection().getSchema();
     }
 
     @Override
-    public String getSchema() throws SQLException {
-        return getRealConnection().getSchema();
+    public void setSchema(String schema) throws SQLException {
+        getRealConnection().setSchema(schema);
     }
 
     @Override

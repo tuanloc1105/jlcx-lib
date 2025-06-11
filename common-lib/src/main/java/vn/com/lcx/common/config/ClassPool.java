@@ -2,7 +2,6 @@ package vn.com.lcx.common.config;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.val;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
@@ -66,13 +65,13 @@ public class ClassPool {
                 }
             });
 
-            val setOfClassInPackage = new ArrayList<>(new HashSet<>(listOfClassInPackage));
+            final var setOfClassInPackage = new ArrayList<>(new HashSet<>(listOfClassInPackage));
             listOfClassInPackage.clear();
             listOfClassInPackage.addAll(setOfClassInPackage);
 
-            val analyzeEntities = Boolean.parseBoolean(CommonConstant.applicationConfig.getProperty("database.generate_sql") + CommonConstant.EMPTY_STRING);
-            val sourceType = CommonConstant.applicationConfig.getProperty("database.source_type");
-            val folderPath = FileUtils.pathJoining(
+            final var analyzeEntities = Boolean.parseBoolean(CommonConstant.applicationConfig.getProperty("database.generate_sql") + CommonConstant.EMPTY_STRING);
+            final var sourceType = CommonConstant.applicationConfig.getProperty("database.source_type");
+            final var folderPath = FileUtils.pathJoining(
                     CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
                     "data",
                     "sql",
@@ -82,8 +81,8 @@ public class ClassPool {
             if (analyzeEntities) {
                 createFolderIfNotExists(folderPath);
             }
-            val postHandleComponent = new ArrayList<Class<?>>();
-            val handledPostHandleComponent = new ArrayList<Class<?>>();
+            final var postHandleComponent = new ArrayList<Class<?>>();
+            final var handledPostHandleComponent = new ArrayList<Class<?>>();
             // createDatasource();
             ENTITIES.addAll(
                     listOfClassInPackage.stream()
@@ -105,27 +104,27 @@ public class ClassPool {
                     continue;
                 }
 
-                val repositoryAnnotation = aClass.getAnnotation(Repository.class);
+                final var repositoryAnnotation = aClass.getAnnotation(Repository.class);
                 if (repositoryAnnotation != null) {
-                    val implementClassName = aClass.getName() + "Implement";
-                    val repository = (LCXRepository<?>) Class.forName(implementClassName).getDeclaredConstructor(DatabaseExecutor.class).newInstance(DatabaseExecutorImpl.getInstance());
-                    val repositoryProxy = RepositoryProxyHandler.createProxy(aClass, repository);
+                    final var implementClassName = aClass.getName() + "Implement";
+                    final var repository = (LCXRepository<?>) Class.forName(implementClassName).getDeclaredConstructor(DatabaseExecutor.class).newInstance(DatabaseExecutorImpl.getInstance());
+                    final var repositoryProxy = RepositoryProxyHandler.createProxy(aClass, repository);
                     // CLASS_POOL.put(aClass.getName() + "proxy", repositoryProxy);
                     CLASS_POOL.put(aClass.getName(), repositoryProxy);
                     CLASS_POOL.put(implementClassName, repository);
                     continue;
                 }
-                val mapperClassAnnotation = aClass.getAnnotation(MapperClass.class);
+                final var mapperClassAnnotation = aClass.getAnnotation(MapperClass.class);
                 if (mapperClassAnnotation != null && aClass.isInterface()) {
                     CLASS_POOL.put(aClass.getName(), Mapper.getInstance(aClass));
                 }
-                val instanceClassAnnotation = aClass.getAnnotation(InstanceClass.class);
+                final var instanceClassAnnotation = aClass.getAnnotation(InstanceClass.class);
                 if (instanceClassAnnotation != null) {
-                    val methodsOfInstance = Arrays.stream(aClass.getDeclaredMethods()).filter(m -> m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
+                    final var methodsOfInstance = Arrays.stream(aClass.getDeclaredMethods()).filter(m -> m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
                     if (!methodsOfInstance.isEmpty()) {
-                        val instanceClass = aClass.getDeclaredConstructor().newInstance();
+                        final var instanceClass = aClass.getDeclaredConstructor().newInstance();
                         for (Method method : methodsOfInstance) {
-                            val instanceMethodResult = method.invoke(instanceClass);
+                            final var instanceMethodResult = method.invoke(instanceClass);
                             if (!CLASS_POOL.contains(instanceMethodResult.getClass().getName())) {
                                 CLASS_POOL.put(instanceMethodResult.getClass().getName(), instanceMethodResult);
                             }
@@ -134,12 +133,12 @@ public class ClassPool {
                     }
                     continue;
                 }
-                val componentAnnotation = aClass.getAnnotation(Component.class);
+                final var componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
-                    val fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
+                    final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
                     if (fieldsOfComponent.isEmpty() && Optional.ofNullable(aClass.getAnnotation(Service.class)).isEmpty()) {
                         LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
-                        val instance = aClass.getDeclaredConstructor().newInstance();
+                        final var instance = aClass.getDeclaredConstructor().newInstance();
                         if (!checkProxy(instance)) {
                             putInstanceToClassPool(aClass, instance);
                         }
@@ -152,7 +151,7 @@ public class ClassPool {
 
             // TODO this part is waiting for another method implementation
             var count = 0;
-            val limit = 10;
+            final var limit = 10;
             while (postHandleComponent.size() != handledPostHandleComponent.size()) {
                 if (limit == count) {
                     break;
@@ -162,9 +161,9 @@ public class ClassPool {
                     if (handledPostHandleComponent.stream().anyMatch(c -> c.isAssignableFrom(aClass))) {
                         continue;
                     }
-                    val fields = new ArrayList<Field>();
+                    final var fields = new ArrayList<Field>();
                     getFieldsOfClass(fields, aClass);
-                    val fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+                    final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
 
                     // final Class<?>[] asd = getConstructorWithMostParameters(aClass).getParameterTypes();
                     final Class<?>[] fieldArr = fieldsOfComponent.stream().map(Field::getType).toArray(Class[]::new);
@@ -175,7 +174,7 @@ public class ClassPool {
                             .toArray(Object[]::new);
                     if (Arrays.stream(args).noneMatch(Objects::isNull)) {
                         LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
-                        val instance = aClass.getDeclaredConstructor(fieldArr).newInstance(args);
+                        final var instance = aClass.getDeclaredConstructor(fieldArr).newInstance(args);
                         handlePostConstructMethod(aClass, instance);
                         if (!checkProxy(instance)) {
                             putInstanceToClassPool(aClass, instance);
@@ -216,13 +215,13 @@ public class ClassPool {
     private static void putInstanceToClassPool(Class<?> aClass, Object instance) {
         CLASS_POOL.put(aClass.getName(), instance);
 
-        val superClass = aClass.getSuperclass();
+        final var superClass = aClass.getSuperclass();
 
         if (superClass != null && superClass != Object.class) {
             ClassPool.CLASS_POOL.put(superClass.getName(), instance);
         }
 
-        val iFace = aClass.getInterfaces();
+        final var iFace = aClass.getInterfaces();
 
         for (Class<?> iFaceClass : iFace) {
             if (aClass.getAnnotation(Service.class) != null) {
@@ -319,8 +318,8 @@ public class ClassPool {
 
     public static void handlePostConstructMethod(Class<?> aClass, Object instance) throws Exception {
 
-        val postConstructMethods = Arrays.stream(aClass.getDeclaredMethods()).filter(m -> m.getAnnotation(PostConstruct.class) != null).collect(Collectors.toList());
-        val hasMoreThanOnePostConstructMethod = postConstructMethods.size() > 1;
+        final var postConstructMethods = Arrays.stream(aClass.getDeclaredMethods()).filter(m -> m.getAnnotation(PostConstruct.class) != null).collect(Collectors.toList());
+        final var hasMoreThanOnePostConstructMethod = postConstructMethods.size() > 1;
         if (hasMoreThanOnePostConstructMethod) {
             throw new RuntimeException(
                     String.format(
@@ -330,7 +329,7 @@ public class ClassPool {
             );
         }
         if (!postConstructMethods.isEmpty()) {
-            val postConstructMethod = postConstructMethods.get(0);
+            final var postConstructMethod = postConstructMethods.get(0);
 
             if (postConstructMethod.getReturnType().equals(void.class)) {
 

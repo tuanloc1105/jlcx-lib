@@ -1,6 +1,5 @@
 package vn.com.lcx.common.lock;
 
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.utils.CommonUtils;
 import vn.com.lcx.common.utils.FileUtils;
@@ -37,7 +36,7 @@ public class LockManager {
                 "creating file for locking:\n    - file name: {}",
                 this.file.getAbsolutePath()
         );
-        val fileIsNotExist = !file.exists();
+        final var fileIsNotExist = !file.exists();
         if (fileIsNotExist) {
             try {
                 LogUtils.writeLog(
@@ -73,7 +72,7 @@ public class LockManager {
     //         LogUtils.writeLog(LogUtils.Level.INFO, "Process is not being locked");
     //         return false;
     //     }
-    //     val lockIsValid = this.lock.isValid();
+    //     final var lockIsValid = this.lock.isValid();
     //     LogUtils.writeLog(
     //             LogUtils.Level.INFO,
     //             lockIsValid ?

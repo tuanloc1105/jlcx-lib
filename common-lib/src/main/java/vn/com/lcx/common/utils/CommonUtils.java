@@ -1,6 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.val;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
@@ -40,7 +39,7 @@ public final class CommonUtils {
                 InputStream input = classLoader.getResourceAsStream(bannerResourcePath)
         ) {
             if (input != null) {
-                val text = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))
+                final var text = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))
                         .lines()
                         .collect(Collectors.joining(System.lineSeparator()));
                 LoggerFactory.getLogger("BANNER").info("{}{}", System.lineSeparator(), text);

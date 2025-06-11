@@ -9,7 +9,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.Getter;
-import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,7 +52,7 @@ public class BaseController {
 
     public BaseController(Vertx vertx) {
         this.vertx = vertx;
-        val dateFormatType = System.getenv("DATE_FORMAT_TYPE");
+        final var dateFormatType = System.getenv("DATE_FORMAT_TYPE");
         if ("VN".equals(dateFormatType)) {
             this.gson = BuildGson.getVietnameseDateFormatGson();
         } else {
@@ -65,7 +64,7 @@ public class BaseController {
     }
 
     protected String getRequestQueryParam(RoutingContext context, String paramName) {
-        val paramValue = context.queryParam(paramName);
+        final var paramValue = context.queryParam(paramName);
         if (CollectionUtils.isEmpty(paramValue)) {
             throw new InternalServiceException(
                     ErrorCodeEnums.INVALID_REQUEST,
@@ -82,7 +81,7 @@ public class BaseController {
     }
 
     protected <T> T getRequestQueryParam(RoutingContext context, String paramName, Function<String, T> function) {
-        val paramValue = context.queryParam(paramName);
+        final var paramValue = context.queryParam(paramName);
         if (CollectionUtils.isEmpty(paramValue)) {
             throw new InternalServiceException(
                     ErrorCodeEnums.INVALID_REQUEST,
@@ -137,7 +136,7 @@ public class BaseController {
     }
 
     protected String getNoneRequiringRequestQueryParam(RoutingContext context, String paramName) {
-        val paramValue = context.queryParam(paramName);
+        final var paramValue = context.queryParam(paramName);
         if (CollectionUtils.isEmpty(paramValue)) {
             return CommonConstant.EMPTY_STRING;
         }
@@ -145,7 +144,7 @@ public class BaseController {
     }
 
     protected <T> T getNoneRequiringRequestQueryParam(RoutingContext context, String paramName, Function<String, T> function) {
-        val paramValue = context.queryParam(paramName);
+        final var paramValue = context.queryParam(paramName);
         if (CollectionUtils.isEmpty(paramValue)) {
             return null;
         }
@@ -153,7 +152,7 @@ public class BaseController {
     }
 
     protected List<String> getNoneRequiringRequestQueryParamInList(RoutingContext context, String paramName) {
-        val paramValue = context.queryParam(paramName).isEmpty() ?
+        final var paramValue = context.queryParam(paramName).isEmpty() ?
                 new ArrayList<String>() :
                 Arrays.stream(context.queryParam(paramName).get(0).split(",")).map(String::trim).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(paramValue)) {
@@ -163,7 +162,7 @@ public class BaseController {
     }
 
     protected <T> List<T> getNoneRequiringRequestQueryParamInList(RoutingContext context, String paramName, Function<String, T> function) {
-        val paramValue = context.queryParam(paramName).isEmpty() ?
+        final var paramValue = context.queryParam(paramName).isEmpty() ?
                 new ArrayList<String>() :
                 Arrays.stream(context.queryParam(paramName).get(0).split(",")).map(String::trim).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(paramValue)) {
@@ -174,8 +173,8 @@ public class BaseController {
 
     protected <T extends BaseRequest> T getRequestBodyFromContext(RoutingContext context, Gson gson, Class<T> clz) {
         context.request().uri();
-        val requestBody = context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET);
-        val request = gson.fromJson(requestBody, clz);
+        final var requestBody = context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET);
+        final var request = gson.fromJson(requestBody, clz);
         request.validate();
         return request;
     }
@@ -183,9 +182,9 @@ public class BaseController {
     protected <T extends CommonResponse, B> void executeThreadBlock(RoutingContext context, RequestHandler<T, B> requestHandler, TypeToken<B> requestBodyClass) {
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
-        val startingTime = (double) System.currentTimeMillis();
-        val trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-        val operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        final var startingTime = (double) System.currentTimeMillis();
+        final var trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+        final var operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
 
         Object authInfo = AuthContext.get();
 
@@ -195,7 +194,7 @@ public class BaseController {
             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
             final MultiMap requestHeader = context.request().headers();
 
-            val headerLogMsg = new ArrayList<String>();
+            final var headerLogMsg = new ArrayList<String>();
 
             for (Map.Entry<String, String> requestQueryParam : requestHeader) {
                 headerLogMsg.add(
@@ -207,7 +206,7 @@ public class BaseController {
                 );
             }
 
-            val requestBody = MyStringUtils.minifyJsonString(context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
+            final var requestBody = MyStringUtils.minifyJsonString(context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
 
             BaseController.this.requestLogger.info(
                     "Request:\n    - URL: {}\n    - Header:\n{}\n    - Payload:\n        {}",
@@ -224,7 +223,7 @@ public class BaseController {
                     throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, "Empty request body");
                 }
                 B requestObject = gson.fromJson(requestBody, requestBodyClass.getType());
-                val errorFields = AutoValidation.validate(requestObject);
+                final var errorFields = AutoValidation.validate(requestObject);
                 if (!errorFields.isEmpty()) {
                     throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());
                 }
@@ -245,8 +244,8 @@ public class BaseController {
         blockingFutureTask.onSuccess(response -> {
             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
             String responseBody = gson.toJson(response);
 
             context.response()
@@ -271,8 +270,8 @@ public class BaseController {
         blockingFutureTask.onFailure(e -> {
             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
             BaseController.this.exceptionLogger.error("- {}", e.getMessage(), e);
             CommonResponse response;
             int httpCode = 500;
@@ -318,9 +317,9 @@ public class BaseController {
     protected <T extends CommonResponse, B> void execute(RoutingContext context, RequestHandler<T, B> requestHandler, TypeToken<B> requestBodyClass) {
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
-        val startingTime = (double) System.currentTimeMillis();
-        val trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-        val operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        final var startingTime = (double) System.currentTimeMillis();
+        final var trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+        final var operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
         MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
         MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
         String responseBody = CommonConstant.EMPTY_STRING;
@@ -328,7 +327,7 @@ public class BaseController {
         try {
             final MultiMap requestHeader = context.request().headers();
 
-            val headerLogMsg = new ArrayList<String>();
+            final var headerLogMsg = new ArrayList<String>();
 
             for (Map.Entry<String, String> requestQueryParam : requestHeader) {
                 headerLogMsg.add(
@@ -340,7 +339,7 @@ public class BaseController {
                 );
             }
 
-            val requestBody = MyStringUtils.minifyJsonString(context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
+            final var requestBody = MyStringUtils.minifyJsonString(context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
 
             LogUtils.writeLog(
                     LogUtils.Level.INFO,
@@ -358,7 +357,7 @@ public class BaseController {
                     throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, "Empty request body");
                 }
                 B requestObject = gson.fromJson(requestBody, requestBodyClass.getType());
-                val errorFields = AutoValidation.validate(requestObject);
+                final var errorFields = AutoValidation.validate(requestObject);
                 if (!errorFields.isEmpty()) {
                     throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());
                 }
@@ -419,8 +418,8 @@ public class BaseController {
             httpStatusCode = httpCode;
             // LogUtils.writeLog(LogUtils.Level.WARN, responseBody);
         } finally {
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
             if (httpStatusCode == 200) {
                 LogUtils.writeLog(
                         LogUtils.Level.INFO,

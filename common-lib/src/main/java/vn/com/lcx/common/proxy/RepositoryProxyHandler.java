@@ -7,7 +7,6 @@ import vn.com.lcx.common.annotation.Repository;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.database.context.ConnectionContext;
 import vn.com.lcx.common.database.pool.LCXDataSource;
-import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;

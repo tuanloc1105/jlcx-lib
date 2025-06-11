@@ -1,6 +1,5 @@
 package vn.com.lcx.common.database;
 
-import lombok.val;
 import oracle.jdbc.OraclePreparedStatement;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.handler.statement.SqlStatementHandler;
@@ -95,13 +94,13 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 }
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
-            val startingTime = (double) System.currentTimeMillis();
+            final var startingTime = (double) System.currentTimeMillis();
 
             // TODO: should set time-out using `.setQueryTimeout(int seconds);`
             resultSet = statement.executeQuery();
 
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
@@ -212,12 +211,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 }
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
-            val startingTime = (double) System.currentTimeMillis();
+            final var startingTime = (double) System.currentTimeMillis();
 
             statement.execute();
 
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
@@ -238,7 +237,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
     public Map<String, Integer> executeOracleStoreProcedureBatch(Connection connection,
                                                                  String storeProcedureName,
                                                                  List<Map<Integer, Object>> inParameterMaps) {
-        val batchExecutionResult = new HashMap<String, Integer>();
+        final var batchExecutionResult = new HashMap<String, Integer>();
         CallableStatement statement = null;
         try {
 
@@ -313,12 +312,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             var success = 0;
             var successNoInfo = 0;
             var executeFailed = 0;
-            val startingTime = (double) System.currentTimeMillis();
+            final var startingTime = (double) System.currentTimeMillis();
 
             var result = statement.executeBatch();
 
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
@@ -458,12 +457,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 }
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
-            val startingTime = (double) System.currentTimeMillis();
+            final var startingTime = (double) System.currentTimeMillis();
 
             statement.execute();
 
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
@@ -532,12 +531,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 }
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
-            val startingTime = (double) System.currentTimeMillis();
+            final var startingTime = (double) System.currentTimeMillis();
 
             rowAffected = statement.executeUpdate();
 
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
@@ -608,11 +607,11 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 }
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
-            val startingTime = (double) System.currentTimeMillis();
+            final var startingTime = (double) System.currentTimeMillis();
 
             if (dbType.equals(DBTypeEnum.ORACLE)) {
-                val oraclePreparedStatement = (OraclePreparedStatement) statement.unwrap(PreparedStatement.class);
-                val index = parameter != null && !parameter.isEmpty() ? parameter.size() + 1 : 2;
+                final var oraclePreparedStatement = (OraclePreparedStatement) statement.unwrap(PreparedStatement.class);
+                final var index = parameter != null && !parameter.isEmpty() ? parameter.size() + 1 : 2;
                 oraclePreparedStatement.registerReturnParameter(index, OracleTypeEnum.NUMBER.getType());
                 oraclePreparedStatement.executeUpdate();
 
@@ -628,8 +627,8 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 }
             }
 
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
@@ -649,15 +648,15 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
     public Map<String, Integer> executeMutationBatch(Connection connection,
                                                      String sqlString,
                                                      List<Map<Integer, Object>> parameterMapList) {
-        val batchExecutionResult = new HashMap<String, Integer>();
+        final var batchExecutionResult = new HashMap<String, Integer>();
         PreparedStatement statement = null;
         try {
             statement = connection.prepareStatement(sqlString);
             LogUtils.writeLog2(LogUtils.Level.INFO, "\n" + sqlString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
-            val parameterMapListIsNotNullAndNotEmpty = parameterMapList != null && !parameterMapList.isEmpty();
+            final var parameterMapListIsNotNullAndNotEmpty = parameterMapList != null && !parameterMapList.isEmpty();
             if (parameterMapListIsNotNullAndNotEmpty) {
                 for (Map<Integer, Object> parameter : parameterMapList) {
-                    val parameterIsNotNullAndNotEmpty = parameter != null && !parameter.isEmpty();
+                    final var parameterIsNotNullAndNotEmpty = parameter != null && !parameter.isEmpty();
                     if (parameterIsNotNullAndNotEmpty) {
                         StringBuilder parametersLog = new StringBuilder("parameters:");
                         for (Integer i : parameter.keySet()) {
@@ -704,12 +703,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             var success = 0;
             var successNoInfo = 0;
             var executeFailed = 0;
-            val startingTime = (double) System.currentTimeMillis();
+            final var startingTime = (double) System.currentTimeMillis();
 
             var result = statement.executeBatch();
 
-            val endingTime = (double) System.currentTimeMillis();
-            val duration = (endingTime - startingTime) / 1000D;
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)

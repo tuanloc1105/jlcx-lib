@@ -1,13 +1,8 @@
 package vn.com.lcx.jpa.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
-import org.hibernate.annotations.ColumnDefault;
 import vn.com.lcx.common.utils.DateTimeUtils;
 
 import java.io.Serializable;

@@ -3,15 +3,14 @@ package vn.com.lcx.vertx.base.validate;
 import com.google.gson.annotations.SerializedName;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.val;
+import vn.com.lcx.common.utils.LogUtils;
+import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.vertx.base.annotation.GreaterThan;
 import vn.com.lcx.vertx.base.annotation.LessThan;
 import vn.com.lcx.vertx.base.annotation.NotNull;
 import vn.com.lcx.vertx.base.annotation.Values;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
-import vn.com.lcx.common.utils.LogUtils;
-import vn.com.lcx.common.utils.ObjectUtils;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -28,7 +27,7 @@ public final class AutoValidation {
         if (!(validateObject.getClass().getName().contains("vn.")) && !(validateObject.getClass().getName().contains("com."))) {
             return new ArrayList<>();
         }
-        val errorFields = new ArrayList<String>();
+        final var errorFields = new ArrayList<String>();
         var fields = new ArrayList<>(Arrays.asList(validateObject.getClass().getDeclaredFields()));
         for (Field field : fields) {
             try {

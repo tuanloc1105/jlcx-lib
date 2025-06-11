@@ -3,7 +3,6 @@ package vn.com.lcx.common.utils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
@@ -77,18 +76,18 @@ public final class FileUtils {
             LogUtils.writeLog(e.getMessage(), e);
         }
         String result = contentBuilder.toString();
-        val suffixWillBeRemoved = "\n";
+        final var suffixWillBeRemoved = "\n";
         return MyStringUtils.removeSuffixOfString(result, suffixWillBeRemoved);
     }
 
     public static List<String> readToList(String pathOfTheSqlFileToRead) {
-        val result = new ArrayList<String>();
+        final var result = new ArrayList<String>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(pathOfTheSqlFileToRead));
             String line;
 
             while ((line = reader.readLine()) != null) {
-                val lineAfterTrim = line.trim();
+                final var lineAfterTrim = line.trim();
                 if (StringUtils.isNotBlank(lineAfterTrim)) {
                     result.add(lineAfterTrim);
                 }
@@ -150,7 +149,7 @@ public final class FileUtils {
                 }
             }
         }
-        val folderDeleteSuccessfully = folder.delete();
+        final var folderDeleteSuccessfully = folder.delete();
         if (folder.isDirectory() && folderDeleteSuccessfully) {
             LogUtils.writeLog(LogUtils.Level.INFO, "Deleted: {}", folder.getAbsolutePath());
         }
@@ -485,7 +484,7 @@ public final class FileUtils {
             while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
                 buffer.write(data, 0, bytesRead);
             }
-            val result = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+            final var result = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
             buffer.close();
             return result;
         } catch (IOException e) {

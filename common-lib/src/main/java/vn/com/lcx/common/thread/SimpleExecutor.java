@@ -3,8 +3,6 @@ package vn.com.lcx.common.thread;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
-import org.hibernate.query.sqm.mutation.internal.temptable.PersistentTableStrategy;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.util.ArrayList;
@@ -50,7 +48,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                                              final long timeout,
                                              final TimeUnit unit,
                                              final boolean isUsingVirtualThread) {
-        val asd = new SimpleExecutor<T>(
+        final var asd = new SimpleExecutor<T>(
                 new ArrayList<>(),
                 SimpleExecutor.getRejectHandlerClass(rejectMode)
         );
@@ -112,10 +110,8 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     }
 
     /**
-     *
-     * @deprecated Use {@link SimpleExecutor#executeTasksWithCountDownLatch()}.
-     *
      * @return List of return value of tasks.
+     * @deprecated Use {@link SimpleExecutor#executeTasksWithCountDownLatch()}.
      */
     @Override
     @Deprecated
@@ -147,7 +143,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
             }
 
             while (!futures.isEmpty()) {
-                val future = futures.remove(0);
+                final var future = futures.remove(0);
                 try {
                     result.add(future.get());
                 } catch (Throwable e) {

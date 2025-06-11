@@ -1,7 +1,6 @@
 package vn.com.lcx.common.database.reflect;
 
 import lombok.Getter;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.SubTable;
@@ -71,7 +70,7 @@ public final class SelectStatementBuilder {
     private SelectStatementBuilder(Class<?> entityClass, boolean getSelfColumnOnly, int... order) {
         this.entityClass = entityClass;
 
-        val tableNameAnnotation = entityClass.getAnnotation(TableName.class);
+        final var tableNameAnnotation = entityClass.getAnnotation(TableName.class);
 
         if (tableNameAnnotation == null) {
             throw new IllegalArgumentException(String.format("%s must be annotated with @TableName", entityClass.getName()));
@@ -82,7 +81,7 @@ public final class SelectStatementBuilder {
         if (StringUtils.isNotBlank(tableNameAnnotation.schema())) {
             String schemaName = tableNameAnnotation.schema() + ".";
             if (tableNameValue.contains(".")) {
-                val tableNameValueArray = tableNameValue.split(JavaSqlResultSetConstant.DOT);
+                final var tableNameValueArray = tableNameValue.split(JavaSqlResultSetConstant.DOT);
                 this.tableName = schemaName + tableNameValueArray[tableNameValueArray.length - 1];
             } else {
                 this.tableName = schemaName + tableNameValue;
@@ -97,14 +96,14 @@ public final class SelectStatementBuilder {
         this.listOfField = new ArrayList<>();
         this.subTableStatementBuilders = new ArrayList<>();
 
-        val listOfFields = new ArrayList<>(Arrays.asList(entityClass.getDeclaredFields()));
+        final var listOfFields = new ArrayList<>(Arrays.asList(entityClass.getDeclaredFields()));
 
         for (Field field : listOfFields) {
             listOfField.add(field);
             boolean isColumnNameAnnotationExisted = false;
-            val columnNameAnnotation = field.getAnnotation(ColumnName.class);
+            final var columnNameAnnotation = field.getAnnotation(ColumnName.class);
             if (columnNameAnnotation != null) {
-                val columnNameAnnotationValue = columnNameAnnotation.name();
+                final var columnNameAnnotationValue = columnNameAnnotation.name();
                 this.listOfColumnName.add(
                         // String.format("%s.%s", this.tableNameShortenedName, columnNameAnnotation.name())
                         String.format(
@@ -120,13 +119,13 @@ public final class SelectStatementBuilder {
                 continue;
             }
             try {
-                val subTableAnnotation = field.getAnnotation(SubTable.class);
+                final var subTableAnnotation = field.getAnnotation(SubTable.class);
                 if (subTableAnnotation != null) {
                     final SelectStatementBuilder selectStatementBuilderOfSubTable;
                     final Class<?> clz;
                     if (field.getType().isAssignableFrom(List.class)) {
-                        val genericType = (ParameterizedType) field.getGenericType();
-                        val type = genericType.getActualTypeArguments()[0];
+                        final var genericType = (ParameterizedType) field.getGenericType();
+                        final var type = genericType.getActualTypeArguments()[0];
                         clz = Class.forName(type.getTypeName());
                     } else {
                         clz = field.getType();
@@ -138,11 +137,11 @@ public final class SelectStatementBuilder {
                         // selectStatementBuilderOfSubTable = new SelectStatementBuilder(clz, true);
                         selectStatementBuilderOfSubTable = SelectStatementBuilder.of(clz);
                     }
-                    val optionalMatchedField = selectStatementBuilderOfSubTable.getListOfField().stream().filter(f -> f.getName().equals(subTableAnnotation.mapField())).findFirst();
+                    final var optionalMatchedField = selectStatementBuilderOfSubTable.getListOfField().stream().filter(f -> f.getName().equals(subTableAnnotation.mapField())).findFirst();
                     if (!optionalMatchedField.isPresent()) {
                         throw new RuntimeException("Cannot find appropriate field of sub class");
                     }
-                    val matchedField = optionalMatchedField.get();
+                    final var matchedField = optionalMatchedField.get();
                     if (!isColumnNameAnnotationExisted) {
                         this.listOfColumnName.add(
                                 String.format(
@@ -153,7 +152,7 @@ public final class SelectStatementBuilder {
                                 )
                         );
                     }
-                    val subTableEntry = SubTableEntry.builder()
+                    final var subTableEntry = SubTableEntry.builder()
                             .field(field)
                             .joinType(subTableAnnotation.joinType())
                             .columnName(subTableAnnotation.columnName())
@@ -234,7 +233,7 @@ public final class SelectStatementBuilder {
     }
 
     private String generateSqlStatement() {
-        val tableNameWithShortenedName = String.format("%s %s", this.tableName, this.tableNameShortenedName);
+        final var tableNameWithShortenedName = String.format("%s %s", this.tableName, this.tableNameShortenedName);
         return String.format(
                 "SELECT\n    %s\nFROM\n    %s",
                 String.join(",\n    ", this.listOfColumnName),
@@ -244,7 +243,7 @@ public final class SelectStatementBuilder {
     }
 
     private String generateCountStatement() {
-        val tableNameWithShortenedName = String.format("%s %s", this.tableName, this.tableNameShortenedName);
+        final var tableNameWithShortenedName = String.format("%s %s", this.tableName, this.tableNameShortenedName);
         return String.format(
                 "SELECT\n    COUNT(1)\nFROM\n    %s",
                 tableNameWithShortenedName
@@ -252,8 +251,8 @@ public final class SelectStatementBuilder {
     }
 
     private String generateSqlStatementFullJoin() {
-        val tableNameWithShortenedName = String.format("%s %s", this.tableName, this.tableNameShortenedName);
-        val listColumn = this.listOfColumnName;
+        final var tableNameWithShortenedName = String.format("%s %s", this.tableName, this.tableNameShortenedName);
+        final var listColumn = this.listOfColumnName;
         for (SubTableEntry subTableStatementBuilder : this.subTableStatementBuilders) {
             listColumn.addAll(subTableStatementBuilder.getSelectStatementBuilder().getListOfColumnName());
         }
@@ -268,7 +267,7 @@ public final class SelectStatementBuilder {
     private String subTableJoinStatementBuilder() {
         final List<String> result = new ArrayList<>();
         for (SubTableEntry subTableStatementBuilder : this.subTableStatementBuilders) {
-            val tableNameWithShortenedName = String.format("%s %s", subTableStatementBuilder.getSelectStatementBuilder().getTableName(), subTableStatementBuilder.getSelectStatementBuilder().getTableNameShortenedName());
+            final var tableNameWithShortenedName = String.format("%s %s", subTableStatementBuilder.getSelectStatementBuilder().getTableName(), subTableStatementBuilder.getSelectStatementBuilder().getTableNameShortenedName());
             result.add(
                     String.format(
                             "%1$s %2$s ON %3$s.%4$s = %5$s.%6$s",
@@ -312,9 +311,9 @@ public final class SelectStatementBuilder {
             );
         }
 
-        val conditionSQLStatement = new ArrayList<String>();
-        val listOfOrderByStatement = new ArrayList<String>();
-        val handledParameterIndexThatIsAList = new HashSet<Integer>();
+        final var conditionSQLStatement = new ArrayList<String>();
+        final var listOfOrderByStatement = new ArrayList<String>();
+        final var handledParameterIndexThatIsAList = new HashSet<Integer>();
 
         boolean meetOrderByStatement = false;
 
@@ -329,22 +328,22 @@ public final class SelectStatementBuilder {
                 } else if ("orderby".equalsIgnoreCase(part)) {
                     meetOrderByStatement = true;
                 } else {
-                    val currentFieldParts = splitByKeywords(part);
+                    final var currentFieldParts = splitByKeywords(part);
                     final Optional<String> columnNameOptional;
                     final String columnName, tblShortName;
 
                     if (currentFieldParts.get(0).contains("_")) {
-                        val currentFieldParts2 = new ArrayList<String>(Arrays.asList(currentFieldParts.get(0).split("_")));
+                        final var currentFieldParts2 = new ArrayList<String>(Arrays.asList(currentFieldParts.get(0).split("_")));
                         SelectStatementBuilder subTableClass = this;
                         for (int i = 0; i < currentFieldParts2.size() - 1; i++) {
                             int finalI = i;
-                            val optionalSubTableFieldDataType = subTableClass.getListOfField().stream().filter(f -> f.getName().equalsIgnoreCase(currentFieldParts2.get(finalI))).findFirst();
+                            final var optionalSubTableFieldDataType = subTableClass.getListOfField().stream().filter(f -> f.getName().equalsIgnoreCase(currentFieldParts2.get(finalI))).findFirst();
                             if (!optionalSubTableFieldDataType.isPresent()) {
                                 throw new IllegalArgumentException("Unknown field");
                             }
                             subTableClass = SelectStatementBuilder.of(optionalSubTableFieldDataType.get().getType());
                         }
-                        val optionalSubTableFieldDataType = subTableClass.getListOfField().stream().filter(f -> f.getName().equalsIgnoreCase(currentFieldParts2.get(currentFieldParts2.size() - 1))).findFirst();
+                        final var optionalSubTableFieldDataType = subTableClass.getListOfField().stream().filter(f -> f.getName().equalsIgnoreCase(currentFieldParts2.get(currentFieldParts2.size() - 1))).findFirst();
                         if (!optionalSubTableFieldDataType.isPresent()) {
                             throw new IllegalArgumentException("Unknown field");
                         }
@@ -390,7 +389,7 @@ public final class SelectStatementBuilder {
                                 break;
                             case "notin":
                             case "in":
-                                // val parameterWithListDataType = (List<?>) parameters.stream().filter(o -> o instanceof List<?>).findFirst().orElse(null);
+                                // final var parameterWithListDataType = (List<?>) parameters.stream().filter(o -> o instanceof List<?>).findFirst().orElse(null);
                                 List<?> parameterWithListDataType = null;
                                 for (int i = 0; i < parameters.size(); i++) {
 
@@ -465,8 +464,8 @@ public final class SelectStatementBuilder {
                     continue;
                 }
 
-                val direction = part.toLowerCase().endsWith("desc") ? Direction.DESC : Direction.ASC;
-                val columnNameOptional = this.listOfField
+                final var direction = part.toLowerCase().endsWith("desc") ? Direction.DESC : Direction.ASC;
+                final var columnNameOptional = this.listOfField
                         .stream()
                         .filter(
                                 field ->
@@ -486,7 +485,7 @@ public final class SelectStatementBuilder {
                             )
                     );
                 }
-                val columnName = String.format("%s.%s", this.tableNameShortenedName, columnNameOptional.get());
+                final var columnName = String.format("%s.%s", this.tableNameShortenedName, columnNameOptional.get());
                 listOfOrderByStatement.add(
                         String.format(
                                 "%s %s",
@@ -511,7 +510,7 @@ public final class SelectStatementBuilder {
             format = String.join("", conditionSQLStatement);
         }
         if (parameters.get(parameters.size() - 1) instanceof Pageable && !(methodName.startsWith("count"))) {
-            val page = (Pageable) parameters.get(parameters.size() - 1);
+            final var page = (Pageable) parameters.get(parameters.size() - 1);
             if (listOfOrderByStatement.isEmpty()) {
                 page.setEntityClass(this.entityClass);
                 page.fieldToColumn();

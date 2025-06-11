@@ -3,7 +3,6 @@ package vn.com.lcx.jpa.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Persistence;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
@@ -39,80 +38,6 @@ import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 
 @Component
 public class HibernateConfiguration {
-
-    @PostConstruct
-    public void getSessionFactory() {
-        String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.host");
-        int port;
-        try {
-            port = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.port"));
-        } catch (NumberFormatException e) {
-            port = 0;
-        }
-        String username = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.username");
-        String password = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.password");
-        String name = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.name");
-        String schemaName = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.schema_name");
-        String driverClassName = applicationConfig.getPropertyWithEnvironment("server.database.driver_class_name");
-        String dialectName = applicationConfig.getPropertyWithEnvironment("server.database.dialect");
-        int initialPoolSize;
-        try {
-            initialPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.initial_pool_size"));
-        } catch (NumberFormatException e) {
-            initialPoolSize = 0;
-        }
-        int maxPoolSize;
-        try {
-            maxPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_pool_size"));
-        } catch (NumberFormatException e) {
-            maxPoolSize = 0;
-        }
-        int maxTimeout;
-        try {
-            maxTimeout = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_timeout"));
-        } catch (NumberFormatException e) {
-            maxTimeout = 0;
-        }
-        DBTypeEnum type;
-        try {
-            type = DBTypeEnum.valueOf(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.type"));
-        } catch (IllegalArgumentException e) {
-            type = null;
-        }
-        if (
-                host.equals(CommonConstant.NULL_STRING) ||
-                        username.equals(CommonConstant.NULL_STRING) ||
-                        password.equals(CommonConstant.NULL_STRING) ||
-                        name.equals(CommonConstant.NULL_STRING) ||
-                        // driverClassName.equals(CommonConstant.NULL_STRING) ||
-                        port == 0 ||
-                        initialPoolSize == 0 ||
-                        maxPoolSize == 0 ||
-                        maxTimeout == 0 ||
-                        type == null
-        ) {
-            return;
-        }
-        final var sessionFactory = createSessionFactory(
-                host,
-                port,
-                username,
-                password,
-                name,
-                schemaName,
-                driverClassName,
-                dialectName,
-                initialPoolSize,
-                maxPoolSize,
-                maxTimeout,
-                type,
-                null,
-                true,
-                false
-        );
-        ClassPool.setInstance(sessionFactory);
-        ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
-    }
 
     public static SessionFactory createSessionFactory(final String host,
                                                       final int port,
@@ -280,6 +205,80 @@ public class HibernateConfiguration {
         }));
         EntityContainer.addEntityManager(entitiesClassNames, finalSessionFactory);
         return sessionFactory;
+    }
+
+    @PostConstruct
+    public void getSessionFactory() {
+        String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.host");
+        int port;
+        try {
+            port = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.port"));
+        } catch (NumberFormatException e) {
+            port = 0;
+        }
+        String username = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.username");
+        String password = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.password");
+        String name = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.name");
+        String schemaName = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.schema_name");
+        String driverClassName = applicationConfig.getPropertyWithEnvironment("server.database.driver_class_name");
+        String dialectName = applicationConfig.getPropertyWithEnvironment("server.database.dialect");
+        int initialPoolSize;
+        try {
+            initialPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.initial_pool_size"));
+        } catch (NumberFormatException e) {
+            initialPoolSize = 0;
+        }
+        int maxPoolSize;
+        try {
+            maxPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_pool_size"));
+        } catch (NumberFormatException e) {
+            maxPoolSize = 0;
+        }
+        int maxTimeout;
+        try {
+            maxTimeout = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_timeout"));
+        } catch (NumberFormatException e) {
+            maxTimeout = 0;
+        }
+        DBTypeEnum type;
+        try {
+            type = DBTypeEnum.valueOf(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.type"));
+        } catch (IllegalArgumentException e) {
+            type = null;
+        }
+        if (
+                host.equals(CommonConstant.NULL_STRING) ||
+                        username.equals(CommonConstant.NULL_STRING) ||
+                        password.equals(CommonConstant.NULL_STRING) ||
+                        name.equals(CommonConstant.NULL_STRING) ||
+                        // driverClassName.equals(CommonConstant.NULL_STRING) ||
+                        port == 0 ||
+                        initialPoolSize == 0 ||
+                        maxPoolSize == 0 ||
+                        maxTimeout == 0 ||
+                        type == null
+        ) {
+            return;
+        }
+        final var sessionFactory = createSessionFactory(
+                host,
+                port,
+                username,
+                password,
+                name,
+                schemaName,
+                driverClassName,
+                dialectName,
+                initialPoolSize,
+                maxPoolSize,
+                maxTimeout,
+                type,
+                null,
+                true,
+                false
+        );
+        ClassPool.setInstance(sessionFactory);
+        ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
     }
 
 }

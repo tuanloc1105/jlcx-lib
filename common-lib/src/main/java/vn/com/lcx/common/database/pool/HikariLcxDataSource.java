@@ -2,10 +2,7 @@ package vn.com.lcx.common.database.pool;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.val;
-import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.database.DatabaseProperty;
-import vn.com.lcx.common.database.pool.entry.ConnectionEntry;
 import vn.com.lcx.common.database.pool.wrapper.HikariConnectionWrapper;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.exception.HikariLcxDataSourceException;
@@ -80,8 +77,8 @@ public class HikariLcxDataSource extends LCXDataSource {
                 config.setConnectionTimeout(30000);
                 config.setLeakDetectionThreshold(15000);
                 config.setDriverClassName(driverClassName);
-                val hikariDs = new HikariDataSource(config);
-                val pool = new HikariLcxDataSource(
+                final var hikariDs = new HikariDataSource(config);
+                final var pool = new HikariLcxDataSource(
                         databaseName,
                         property.getDriverClassName(),
                         property,

@@ -12,7 +12,6 @@ import io.vertx.micrometer.MicrometerMetricsFactory;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.config.ClassPool;
@@ -99,7 +98,7 @@ public class MyVertxDeployment {
                 preconfigure.get();
             }
             List<Class<?>> verticles = new ArrayList<>();
-            val appStartingTime = (double) System.currentTimeMillis();
+            final var appStartingTime = (double) System.currentTimeMillis();
             ClassPool.init(packagesToScan, verticles);
             if (verticles.isEmpty()) {
                 return;
@@ -107,7 +106,7 @@ public class MyVertxDeployment {
             List<Future<String>> listOfVerticleFuture = new ArrayList<>();
             for (Class<?> aClass : verticles) {
                 if (aClass.getAnnotation(Verticle.class) != null) {
-                    val fields = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+                    final var fields = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
                     final Class<?>[] fieldArr = fields.stream().map(Field::getType).toArray(Class[]::new);
                     final Object[] args = fields.stream().map(
                             f -> {
@@ -130,8 +129,8 @@ public class MyVertxDeployment {
             if (!listOfVerticleFuture.isEmpty()) {
                 while (listOfVerticleFuture.stream().noneMatch(Future::isComplete)) {
                 }
-                val appFinishingStartingTime = (double) System.currentTimeMillis();
-                val appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
+                final var appFinishingStartingTime = (double) System.currentTimeMillis();
+                final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
                 LoggerFactory.getLogger("APP").info("Application started in {} second(s)", appStartingDuration);
                 //noinspection SystemGetProperty
                 LoggerFactory.getLogger("ENCODING").info(
@@ -158,10 +157,10 @@ public class MyVertxDeployment {
         if (mainClass.getAnnotation(VertxApplication.class) == null) {
             throw new RuntimeException("Class must by annotated with @VertxApplication");
         }
-        val listOfPackageToScan = new ArrayList<String>();
+        final var listOfPackageToScan = new ArrayList<String>();
         listOfPackageToScan.add(mainClass.getPackage().getName());
         if (mainClass.getAnnotation(ComponentScan.class) != null && mainClass.getAnnotation(ComponentScan.class).value().length > 0) {
-            val pkgs = mainClass.getAnnotation(ComponentScan.class).value();
+            final var pkgs = mainClass.getAnnotation(ComponentScan.class).value();
             listOfPackageToScan.addAll(new ArrayList<>(Arrays.asList(pkgs)));
         }
         this.deployVerticle(listOfPackageToScan, preconfigure);
@@ -171,10 +170,10 @@ public class MyVertxDeployment {
         if (mainClass.getAnnotation(VertxApplication.class) == null) {
             throw new RuntimeException("Class must by annotated with @VertxApplication");
         }
-        val listOfPackageToScan = new ArrayList<String>();
+        final var listOfPackageToScan = new ArrayList<String>();
         listOfPackageToScan.add(mainClass.getPackage().getName());
         if (mainClass.getAnnotation(ComponentScan.class) != null && mainClass.getAnnotation(ComponentScan.class).value().length > 0) {
-            val pkgs = mainClass.getAnnotation(ComponentScan.class).value();
+            final var pkgs = mainClass.getAnnotation(ComponentScan.class).value();
             listOfPackageToScan.addAll(new ArrayList<>(Arrays.asList(pkgs)));
         }
         this.deployVerticle(listOfPackageToScan, null);

@@ -11,23 +11,23 @@ import java.util.Map;
 public class PageableImpl implements Pageable {
 
     @Getter
+    private final Map<String, Direction> fieldNameAndDirectionMap;
+    @Getter
     private int pageNumber;
     @Getter
     @Setter
     private int pageSize;
-    @Getter
-    private final Map<String, Direction> fieldNameAndDirectionMap;
-
-    @Builder
-    public PageableImpl(int pageSize, int pageNumber) {
-        this.pageSize = pageSize;
-        this.pageNumber = pageNumber;
-    }
 
     {
         pageNumber = 0;
         pageSize = 0;
         fieldNameAndDirectionMap = new HashMap<>();
+    }
+
+    @Builder
+    public PageableImpl(int pageSize, int pageNumber) {
+        this.pageSize = pageSize;
+        this.pageNumber = pageNumber;
     }
 
     @Override

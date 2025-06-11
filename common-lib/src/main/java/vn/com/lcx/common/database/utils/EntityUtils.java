@@ -1,6 +1,5 @@
 package vn.com.lcx.common.database.utils;
 
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.ForeignKey;
@@ -65,16 +64,16 @@ public final class EntityUtils {
         if (tableName.contains(" ")) {
             throw new IllegalArgumentException("table name contains spaces");
         }
-        val finalTableName = (tableName.contains(".") ? tableName.substring(tableName.lastIndexOf(".") + 1) : tableName).toLowerCase();
-        val firstCharArr = new ArrayList<String>();
+        final var finalTableName = (tableName.contains(".") ? tableName.substring(tableName.lastIndexOf(".") + 1) : tableName).toLowerCase();
+        final var firstCharArr = new ArrayList<String>();
 
-        val tableNameArr = Arrays.asList(finalTableName.split("_"));
+        final var tableNameArr = Arrays.asList(finalTableName.split("_"));
         tableNameArr.forEach(word -> firstCharArr.add(String.valueOf(word.charAt(0))));
         return String.join(CommonConstant.EMPTY_STRING, firstCharArr);
     }
 
     public static String getTableShortenedName(Class<?> entityClass) {
-        val tableNameAnnotation = entityClass.getAnnotation(TableName.class);
+        final var tableNameAnnotation = entityClass.getAnnotation(TableName.class);
 
         if (tableNameAnnotation == null) {
             throw new IllegalArgumentException(String.format("%s must be annotated with @TableName", entityClass.getName()));
@@ -124,7 +123,7 @@ public final class EntityUtils {
             if (StringUtils.isNotBlank(tableNameAnnotation.schema())) {
                 String schemaName = tableNameAnnotation.schema() + ".";
                 if (tableNameValue.contains(".")) {
-                    val tableNameValueArray = tableNameValue.split(JavaSqlResultSetConstant.DOT);
+                    final var tableNameValueArray = tableNameValue.split(JavaSqlResultSetConstant.DOT);
                     finalTableName = schemaName + tableNameValueArray[tableNameValueArray.length - 1];
                 } else {
                     finalTableName = schemaName + tableNameValue;
@@ -564,7 +563,7 @@ public final class EntityUtils {
             alterAddColumnList = alterAddColumnList.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
             alterDropColumnList = alterDropColumnList.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
             alterModifyColumnList = alterModifyColumnList.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
-            val generatedTime = DateTimeUtils.generateCurrentTimeDefault().format(DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN));
+            final var generatedTime = DateTimeUtils.generateCurrentTimeDefault().format(DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN));
             String createTableStatement = String.format(
                     String.format("-- GENERATED AT %s BY LCX-LIB\n\n", generatedTime) +
                             "-- ################# CREATE INDEX ####################### --\n" +

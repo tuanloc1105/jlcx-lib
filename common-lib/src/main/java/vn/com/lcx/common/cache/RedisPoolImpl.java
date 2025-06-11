@@ -1,6 +1,5 @@
 package vn.com.lcx.common.cache;
 
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -33,7 +32,7 @@ public class RedisPoolImpl implements RedisPool {
     @Override
     public void ping() {
         try (Jedis jedis = jedisPool.getResource()) {
-            val redisPingResult = jedis.ping();
+            final var redisPingResult = jedis.ping();
             LogUtils.writeLog(LogUtils.Level.INFO, redisPingResult);
         }
     }
@@ -42,7 +41,7 @@ public class RedisPoolImpl implements RedisPool {
     public boolean set(String key, String value, int expireSecond) {
         boolean success = false;
         try (Jedis jedis = jedisPool.getResource()) {
-            val setValueForKeyResult = jedis.set(key, value);
+            final var setValueForKeyResult = jedis.set(key, value);
             if (!"OK".equals(setValueForKeyResult)) {
                 return success;
             }
@@ -54,7 +53,7 @@ public class RedisPoolImpl implements RedisPool {
             );
             success = true;
             if (expireSecond > 0) {
-                val setExpireResult = jedis.expire(key, expireSecond);
+                final var setExpireResult = jedis.expire(key, expireSecond);
                 if (setExpireResult == 0) {
                     LogUtils.writeLog(LogUtils.Level.WARN, "Cannot set expire time for key {}", key);
                 } else {
@@ -73,7 +72,7 @@ public class RedisPoolImpl implements RedisPool {
     @Override
     public boolean delete(String key) {
         try (Jedis jedis = jedisPool.getResource()) {
-            val redisDeleteKeyResult = jedis.del(key);
+            final var redisDeleteKeyResult = jedis.del(key);
             return redisDeleteKeyResult == 1;
         }
     }

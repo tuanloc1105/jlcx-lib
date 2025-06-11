@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
@@ -41,7 +40,7 @@ public final class MyStringUtils {
     }
 
     public static <T> List<T> getFieldValueOfJsonString(final Gson gson, final String inputJsonString, final String fieldName, final Class<T> fieldDataType) {
-        val result = new ArrayList<T>();
+        final var result = new ArrayList<T>();
         final LinkedHashMap<String, Object> jsonMap = gson.fromJson(inputJsonString, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
         for (Map.Entry<String, Object> header : jsonMap.entrySet()) {
             Object value = header.getValue();
@@ -322,8 +321,8 @@ public final class MyStringUtils {
 
     public static <T> T fromXML(String xml, Class<T> clz) {
         try {
-            val jaxbContext = JAXBContext.newInstance(clz);
-            val unmarshaller = jaxbContext.createUnmarshaller();
+            final var jaxbContext = JAXBContext.newInstance(clz);
+            final var unmarshaller = jaxbContext.createUnmarshaller();
             StringReader reader = new StringReader(xml);
             return clz.cast(unmarshaller.unmarshal(reader));
         } catch (Exception e) {
@@ -334,8 +333,8 @@ public final class MyStringUtils {
 
     public static <T> String toXML(T input) {
         try {
-            val jaxbContext = JAXBContext.newInstance(input.getClass());
-            val marshaller = jaxbContext.createMarshaller();
+            final var jaxbContext = JAXBContext.newInstance(input.getClass());
+            final var marshaller = jaxbContext.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
             // Write the XML to a string
             StringWriter sw = new StringWriter();
@@ -363,7 +362,7 @@ public final class MyStringUtils {
                 }
             }
         }
-        val listOfResult = new ArrayList<String>();
+        final var listOfResult = new ArrayList<String>();
         for (String currentLine : input) {
             String result = "";
             var wordsInLine = Arrays.asList(currentLine.split(" "));
@@ -377,7 +376,7 @@ public final class MyStringUtils {
     }
 
     public static String formatStringSpace2(List<List<String>> input, String... delimiter) {
-        val formatedList = formatStringWithEqualSpaceLength(input);
+        final var formatedList = formatStringWithEqualSpaceLength(input);
         if (delimiter.length == 1 && StringUtils.isNotBlank(delimiter[0])) {
             return String.join(delimiter[0], formatedList);
         } else {

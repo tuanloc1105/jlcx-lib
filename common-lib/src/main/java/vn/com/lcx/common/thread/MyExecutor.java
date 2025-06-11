@@ -1,7 +1,6 @@
 package vn.com.lcx.common.thread;
 
 import lombok.NoArgsConstructor;
-import lombok.val;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ public class MyExecutor<T> {
                                      final int numberOfCorePoolSize,
                                      boolean skipIfTaskFailed,
                                      boolean... logExecutionInfo) {
-        val needToLogExecutionInfo = logExecutionInfo.length > 0 && logExecutionInfo[0];
+        final var needToLogExecutionInfo = logExecutionInfo.length > 0 && logExecutionInfo[0];
         if (needToLogExecutionInfo) {
             LogUtils.writeLog(
                     LogUtils.Level.INFO,
@@ -47,7 +46,7 @@ public class MyExecutor<T> {
                 futures = executor.invokeAll(callables, timeout, unit);
             }
             while (!futures.isEmpty()) {
-                val future = futures.remove(0);
+                final var future = futures.remove(0);
                 try {
                     results.add(future.get());
                 } catch (Throwable e) {

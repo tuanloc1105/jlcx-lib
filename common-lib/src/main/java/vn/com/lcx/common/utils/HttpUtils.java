@@ -8,7 +8,6 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.val;
 import vn.com.lcx.common.config.BuildGson;
 import vn.com.lcx.common.config.BuildObjectMapper;
 import vn.com.lcx.common.constant.CommonConstant;
@@ -104,9 +103,9 @@ public class HttpUtils {
                                            HttpMethod method,
                                            Map<String, String> requestHeader,
                                            TypeToken<T> targetClass) throws Exception {
-        val httpLogMessage = new StringBuilder("\nURL: ").append(url);
+        final var httpLogMessage = new StringBuilder("\nURL: ").append(url);
         HttpURLConnection http = this.generateConnection(url);
-        val responseBuilder = Response.<T>builder();
+        final var responseBuilder = Response.<T>builder();
         http.setRequestMethod(method.name());
         http.setRequestProperty(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON);
         if (requestHeader != null && !requestHeader.isEmpty()) {
@@ -173,9 +172,9 @@ public class HttpUtils {
                                           HttpMethod method,
                                           Map<String, String> requestHeader,
                                           TypeReference<T> targetClass) throws Exception {
-        val httpLogMessage = new StringBuilder("\nURL: ").append(url);
+        final var httpLogMessage = new StringBuilder("\nURL: ").append(url);
         HttpURLConnection http = this.generateConnection(url);
-        val responseBuilder = Response.<T>builder();
+        final var responseBuilder = Response.<T>builder();
         http.setRequestMethod(method.name());
         http.setRequestProperty(CONTENT_TYPE_HEADER_NAME, APPLICATION_XML);
         if (requestHeader != null && !requestHeader.isEmpty()) {
@@ -238,9 +237,9 @@ public class HttpUtils {
                                                      HttpMethod method,
                                                      Map<String, String> requestHeader,
                                                      TypeToken<T> targetClass) throws Exception {
-        val httpLogMessage = new StringBuilder("\nURL: ").append(url);
+        final var httpLogMessage = new StringBuilder("\nURL: ").append(url);
         HttpURLConnection http = this.generateConnection(url);
-        val responseBuilder = Response.<T>builder();
+        final var responseBuilder = Response.<T>builder();
         http.setRequestMethod(method.name());
         http.setRequestProperty(CONTENT_TYPE_HEADER_NAME, FORM_URLENCODED);
         if (requestHeader != null && !requestHeader.isEmpty()) {

@@ -75,13 +75,13 @@ public class HikariConnectionWrapper extends LCXConnection {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException {
-        realHikariConnection.setAutoCommit(autoCommit);
+    public boolean getAutoCommit() throws SQLException {
+        return realHikariConnection.getAutoCommit();
     }
 
     @Override
-    public boolean getAutoCommit() throws SQLException {
-        return realHikariConnection.getAutoCommit();
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        realHikariConnection.setAutoCommit(autoCommit);
     }
 
     @Override
@@ -100,18 +100,13 @@ public class HikariConnectionWrapper extends LCXConnection {
     }
 
     @Override
-    public void setReadOnly(boolean readOnly) throws SQLException {
-        realHikariConnection.setReadOnly(readOnly);
-    }
-
-    @Override
     public boolean isReadOnly() throws SQLException {
         return realHikariConnection.isReadOnly();
     }
 
     @Override
-    public void setCatalog(String catalog) throws SQLException {
-        realHikariConnection.setCatalog(catalog);
+    public void setReadOnly(boolean readOnly) throws SQLException {
+        realHikariConnection.setReadOnly(readOnly);
     }
 
     @Override
@@ -120,13 +115,18 @@ public class HikariConnectionWrapper extends LCXConnection {
     }
 
     @Override
-    public void setTransactionIsolation(int level) throws SQLException {
-        realHikariConnection.setTransactionIsolation(level);
+    public void setCatalog(String catalog) throws SQLException {
+        realHikariConnection.setCatalog(catalog);
     }
 
     @Override
     public int getTransactionIsolation() throws SQLException {
         return realHikariConnection.getTransactionIsolation();
+    }
+
+    @Override
+    public void setTransactionIsolation(int level) throws SQLException {
+        realHikariConnection.setTransactionIsolation(level);
     }
 
     @Override
@@ -165,13 +165,13 @@ public class HikariConnectionWrapper extends LCXConnection {
     }
 
     @Override
-    public void setHoldability(int holdability) throws SQLException {
-        realHikariConnection.setHoldability(holdability);
+    public int getHoldability() throws SQLException {
+        return realHikariConnection.getHoldability();
     }
 
     @Override
-    public int getHoldability() throws SQLException {
-        return realHikariConnection.getHoldability();
+    public void setHoldability(int holdability) throws SQLException {
+        realHikariConnection.setHoldability(holdability);
     }
 
     @Override
@@ -255,11 +255,6 @@ public class HikariConnectionWrapper extends LCXConnection {
     }
 
     @Override
-    public void setClientInfo(Properties properties) throws SQLClientInfoException {
-        realHikariConnection.setClientInfo(properties);
-    }
-
-    @Override
     public String getClientInfo(String name) throws SQLException {
         return realHikariConnection.getClientInfo(name);
     }
@@ -267,6 +262,11 @@ public class HikariConnectionWrapper extends LCXConnection {
     @Override
     public Properties getClientInfo() throws SQLException {
         return realHikariConnection.getClientInfo();
+    }
+
+    @Override
+    public void setClientInfo(Properties properties) throws SQLClientInfoException {
+        realHikariConnection.setClientInfo(properties);
     }
 
     @Override
@@ -280,13 +280,13 @@ public class HikariConnectionWrapper extends LCXConnection {
     }
 
     @Override
-    public void setSchema(String schema) throws SQLException {
-        realHikariConnection.setSchema(schema);
+    public String getSchema() throws SQLException {
+        return realHikariConnection.getSchema();
     }
 
     @Override
-    public String getSchema() throws SQLException {
-        return realHikariConnection.getSchema();
+    public void setSchema(String schema) throws SQLException {
+        realHikariConnection.setSchema(schema);
     }
 
     @Override

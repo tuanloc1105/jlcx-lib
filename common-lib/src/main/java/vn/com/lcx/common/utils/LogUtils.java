@@ -1,13 +1,8 @@
 package vn.com.lcx.common.utils;
 
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import vn.com.lcx.common.constant.CommonConstant;
-
-import java.util.Optional;
-
 
 @SuppressWarnings("DuplicatedCode")
 public final class LogUtils {
@@ -16,17 +11,17 @@ public final class LogUtils {
     }
 
     public static void writeLog(Level level, String message, Object... messageParameter) {
-        val fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
-        val classNameArray = fullClassName.split("\\.");
-        val simpleClassName = classNameArray[classNameArray.length - 1];
-        val methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        val lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
-        val stepName = buildStepNameLogMessage(fullClassName, methodName, simpleClassName, lineNumber);
-        val logToWrite = String.format(
+        final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
+        final var classNameArray = fullClassName.split("\\.");
+        final var simpleClassName = classNameArray[classNameArray.length - 1];
+        final var methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        final var lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
+        final var stepName = buildStepNameLogMessage(fullClassName, methodName, simpleClassName, lineNumber);
+        final var logToWrite = String.format(
                 buildLogTemplate(methodName, stepName),
                 MyStringUtils.getLastChars(methodName, 40),
                 MyStringUtils.getLastChars(stepName, 50)
-                ) + System.lineSeparator() + message;
+        ) + System.lineSeparator() + message;
         switch (level) {
             case INFO:
                 LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
@@ -47,13 +42,13 @@ public final class LogUtils {
     }
 
     public static void writeLog(String message, Throwable throwable, Level... level) {
-        val fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
-        val classNameArray = fullClassName.split("\\.");
-        val simpleClassName = classNameArray[classNameArray.length - 1];
-        val methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        val lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
-        val stepName = buildStepNameLogMessage(fullClassName, methodName, simpleClassName, lineNumber);
-        val logToWrite = String.format(
+        final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
+        final var classNameArray = fullClassName.split("\\.");
+        final var simpleClassName = classNameArray[classNameArray.length - 1];
+        final var methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        final var lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
+        final var stepName = buildStepNameLogMessage(fullClassName, methodName, simpleClassName, lineNumber);
+        final var logToWrite = String.format(
                 buildLogTemplate(methodName, stepName),
                 MyStringUtils.getLastChars(methodName, 40),
                 MyStringUtils.getLastChars(stepName, 50)
@@ -80,8 +75,8 @@ public final class LogUtils {
     }
 
     public static void writeLog2(Level level, String message, Object... messageParameter) {
-        val fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
-        val logToWrite = String.format(
+        final var fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
+        final var logToWrite = String.format(
                 buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
@@ -107,8 +102,8 @@ public final class LogUtils {
     }
 
     public static void writeLog2(String message, Throwable throwable, Level... level) {
-        val fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
-        val logToWrite = String.format(
+        final var fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
+        final var logToWrite = String.format(
                 buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
@@ -136,8 +131,8 @@ public final class LogUtils {
 
     private static String buildLogTemplate(final String methodName,
                                            final String stepName) {
-        val methodNamePart = StringUtils.isNotBlank(methodName) ? "[%-" + 40 + "s]" : "[%s]";
-        val stepNamePart = StringUtils.isNotBlank(stepName) ? "[%-" + 50 + "s]" : "[%s]";
+        final var methodNamePart = StringUtils.isNotBlank(methodName) ? "[%-" + 40 + "s]" : "[%s]";
+        final var stepNamePart = StringUtils.isNotBlank(stepName) ? "[%-" + 50 + "s]" : "[%s]";
         return methodNamePart + " " +
                 stepNamePart + " " +
                 ">>>>>>>> ";

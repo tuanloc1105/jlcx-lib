@@ -3,6 +3,13 @@ package vn.com.lcx.common.database.pageable;
 import java.util.Map;
 
 public interface Pageable {
+    static PageableImpl ofPageable(int pageNumber, int pageSize) {
+        return PageableImpl.builder()
+                .pageNumber(pageNumber)
+                .pageSize(pageSize)
+                .build();
+    }
+
     int getPageNumber();
 
     void setPageNumber(int pageNumber);
@@ -26,11 +33,4 @@ public interface Pageable {
     void fieldToColumn();
 
     String toSql();
-
-    static PageableImpl ofPageable(int pageNumber, int pageSize) {
-        return PageableImpl.builder()
-                .pageNumber(pageNumber)
-                .pageSize(pageSize)
-                .build();
-    }
 }

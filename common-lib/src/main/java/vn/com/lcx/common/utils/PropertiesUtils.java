@@ -1,6 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.val;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -25,7 +24,7 @@ public final class PropertiesUtils {
         if (file.isDirectory()) {
             return new LCXProperties();
         }
-        val fileExtension = FileUtils.getFileExtension(file);
+        final var fileExtension = FileUtils.getFileExtension(file);
         if (fileExtension.equals("yaml") || fileExtension.equals("yml")) {
             Yaml yaml = new Yaml();
             try (InputStream inputStream = Files.newInputStream(Paths.get(filePath))) {
@@ -36,7 +35,7 @@ public final class PropertiesUtils {
                 LogUtils.writeLog(e.getMessage(), e);
             }
         } else {
-            val properties = new Properties();
+            final var properties = new Properties();
             try (InputStream input = Files.newInputStream(Paths.get(filePath))) {
                 properties.load(input);
             } catch (IOException ex) {
@@ -48,7 +47,7 @@ public final class PropertiesUtils {
     }
 
     public static LCXProperties getProperties(final ClassLoader classLoader, final String resourceFilePath) {
-        val fileExtension = FileUtils.getFileExtension(resourceFilePath);
+        final var fileExtension = FileUtils.getFileExtension(resourceFilePath);
         if (fileExtension.equals("yaml") || fileExtension.equals("yml")) {
             Yaml yaml = new Yaml();
             try (InputStream inputStream = classLoader.getResourceAsStream(resourceFilePath)) {
@@ -61,7 +60,7 @@ public final class PropertiesUtils {
                 LogUtils.writeLog(e.getMessage(), e);
             }
         } else {
-            val properties = new Properties();
+            final var properties = new Properties();
             try (InputStream input = classLoader.getResourceAsStream(resourceFilePath)) {
                 if (input != null) {
                     properties.load(input);

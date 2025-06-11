@@ -2,7 +2,6 @@ package vn.com.lcx.common.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.val;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -20,12 +19,12 @@ public final class DateTimeUtils {
     }
 
     private static long toUnix(LocalDateTime time, String... timeZone) {
-        val zone = ZoneId.of(timeZone.length == 1 ? ZoneId.SHORT_IDS.get(timeZone[0]) : ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
+        final var zone = ZoneId.of(timeZone.length == 1 ? ZoneId.SHORT_IDS.get(timeZone[0]) : ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
         return time.atZone(zone).toEpochSecond();
     }
 
     public static long toUnixMil(LocalDateTime time, String... timeZone) {
-        val zone = ZoneId.of(timeZone.length == 1 ? ZoneId.SHORT_IDS.get(timeZone[0]) : ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
+        final var zone = ZoneId.of(timeZone.length == 1 ? ZoneId.SHORT_IDS.get(timeZone[0]) : ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
         return time.atZone(zone).toInstant().toEpochMilli();
     }
 
