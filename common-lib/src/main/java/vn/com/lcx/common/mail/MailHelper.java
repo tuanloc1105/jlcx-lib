@@ -165,20 +165,18 @@ public final class MailHelper {
                     LogUtils.writeLog(
                             LogUtils.Level.INFO,
                             String.format(
-                                    "\nStart to send email with information:" +
-                                            "\n    - from email: %s" +
-                                            "\n    - to email: %s" +
-                                            "\n    - cc email: %s" +
-                                            "\n    - bcc email: %s" +
-                                            "\n    - subject: %s" +
-                                            "\n    - content: %s" +
-                                            "\n    - file(s): %s",
+                                    "Start to send email with information:\n" +
+                                            "    - from email: %s\n" +
+                                            "    - to email: %s\n" +
+                                            "    - cc email: %s\n" +
+                                            "    - bcc email: %s\n" +
+                                            "    - subject: %s\n" +
+                                            "    - file(s): %s",
                                     mailProperties.getUsername(),
                                     String.join(", ", toUsers),
                                     String.join(", ", ccUsers),
                                     String.join(", ", bccUsers),
                                     mailInfo.getSubject(),
-                                    mailInfo.getBody(),
                                     mailInfo.getFileAttachments()
                                             .stream()
                                             .collect(Collectors.joining(", ", "[", "]"))
