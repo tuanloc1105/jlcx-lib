@@ -217,6 +217,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Interrupted while waiting for tasks", e);
         } finally {
+            taskList.clear();
             try {
                 if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
                     LogUtils.writeLog(LogUtils.Level.WARN, "Executor did not terminate in time, forcing shutdown...");
