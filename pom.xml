@@ -58,6 +58,9 @@
         <vertx-unit-io.vertx.version>5.0.0</vertx-unit-io.vertx.version>
         <vertx-auth-jwt-io.vertx.version>5.0.0</vertx-auth-jwt-io.vertx.version>
         <vertx-micrometer-metrics-io.vertx.version>5.0.0</vertx-micrometer-metrics-io.vertx.version>
+        <junit-jupiter-api-org.junit.jupiter.version>5.13.1</junit-jupiter-api-org.junit.jupiter.version>
+        <junit-jupiter-engine-org.junit.jupiter.version>5.13.1</junit-jupiter-engine-org.junit.jupiter.version>
+        <junit-jupiter-params-org.junit.jupiter.version>5.13.1</junit-jupiter-params-org.junit.jupiter.version>
 
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
@@ -392,6 +395,27 @@
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-micrometer-metrics</artifactId>
                 <version>${vertx-micrometer-metrics-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit-jupiter-api-org.junit.jupiter.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit-jupiter-engine-org.junit.jupiter.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-params -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit-jupiter-params-org.junit.jupiter.version}</version>
             </dependency>
 
         </dependencies>
