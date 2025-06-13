@@ -1,15 +1,21 @@
 package vn.com.lcx.common.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public final class ObjectUtils {
 
     private ObjectUtils() {
@@ -166,6 +172,35 @@ public final class ObjectUtils {
             );
         }
         return result;
+    }
+
+    public static List<Type> getTypeParameters(Class<?> clazz) {
+        if (!clazz.isInterface()) {
+            return Collections.emptyList();
+        }
+        Type genericSuperclass = clazz.getGenericSuperclass();
+        if (genericSuperclass instanceof ParameterizedType) {
+            return Arrays.stream(
+                            ((ParameterizedType) genericSuperclass).getActualTypeArguments()
+                    )
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
+
+        for (Type genericInterface : clazz.getGenericInterfaces()) {
+            if (genericInterface instanceof ParameterizedType) {
+                return Arrays.stream(
+                                ((ParameterizedType) genericInterface).getActualTypeArguments()
+                        )
+                        .collect(Collectors.toCollection(ArrayList::new));
+            }
+        }
+
+        Class<?> superclass = clazz.getSuperclass();
+        if (superclass != null && superclass != Object.class) {
+            return getTypeParameters(superclass);
+        }
+
+        throw new IllegalArgumentException("Cannot find type parameters for " + clazz.getName());
     }
 
 }

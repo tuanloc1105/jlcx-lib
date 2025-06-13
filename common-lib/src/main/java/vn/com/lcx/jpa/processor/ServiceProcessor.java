@@ -6,6 +6,7 @@ import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.jpa.annotation.Service;
 import vn.com.lcx.jpa.annotation.Transactional;
+import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;

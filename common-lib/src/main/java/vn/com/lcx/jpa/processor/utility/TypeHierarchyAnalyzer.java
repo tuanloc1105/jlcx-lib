@@ -1,4 +1,4 @@
-package vn.com.lcx.jpa.processor;
+package vn.com.lcx.jpa.processor.utility;
 
 import lombok.AccessLevel;
 import lombok.Data;

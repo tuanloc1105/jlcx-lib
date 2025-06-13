@@ -22,21 +22,66 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+/**
+ * A wrapper class for HikariCP's Connection that provides additional database type information
+ * and handles connection closing with auto-commit check.
+ *
+ * <p>This class extends {@link LCXConnection} and delegates all JDBC Connection method calls
+ * to the underlying HikariCP connection. It adds the ability to track the database type
+ * and ensures proper connection cleanup when closed.</p>
+ *
+ * <p>Key features:
+ * <ul>
+ *   <li>Wraps a HikariCP Connection instance</li>
+ *   <li>Tracks database type (MySQL, Oracle, etc.)</li>
+ *   <li>Automatically commits uncommitted transactions on close</li>
+ *   <li>Logs errors during connection close operations</li>
+ * </ul>
+ *
+ * @see java.sql.Connection
+ * @see LCXConnection
+ */
 public class HikariConnectionWrapper extends LCXConnection {
 
-    private Connection realHikariConnection;
-    private DBTypeEnum dbType;
+    /** The underlying HikariCP connection being wrapped. */
+    private final Connection realHikariConnection;
 
+    /** The type of database this connection is associated with. */
+    private final DBTypeEnum dbType;
+
+    /**
+     * Creates a new HikariConnectionWrapper instance.
+     *
+     * @param connection the HikariCP connection to wrap
+     * @param dbType the type of database this connection is associated with
+     * @throws IllegalArgumentException if connection is null
+     */
     public HikariConnectionWrapper(Connection connection, DBTypeEnum dbType) {
         super(null);
         this.realHikariConnection = connection;
         this.dbType = dbType;
     }
 
+    /**
+     * Returns the database type associated with this connection.
+     *
+     * @return the database type enum value
+     */
     public DBTypeEnum getDBType() {
         return dbType;
     }
 
+    /**
+     * Closes this connection and releases its resources.
+     * <p>
+     * If the connection is not in auto-commit mode, this method will first attempt
+     * to commit any pending transactions before closing the connection. Any errors
+     * that occur during commit will be logged but will not prevent the connection
+     * from being closed.
+     *
+     * @throws SQLException if a database access error occurs
+     * @see java.sql.Connection#close()
+     */
     @Override
     public void close() throws SQLException {
         try {

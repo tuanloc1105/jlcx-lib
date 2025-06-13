@@ -7,7 +7,7 @@ import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.utils.ExceptionUtils;
-import vn.com.lcx.jpa.processor.TypeHierarchyAnalyzer;
+import vn.com.lcx.jpa.processor.utility.TypeHierarchyAnalyzer;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;

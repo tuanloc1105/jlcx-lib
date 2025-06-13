@@ -20,6 +20,15 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Represents a database connection entry in the connection pool.
+ * This class manages the lifecycle of a database connection including activation, deactivation,
+ * transaction management, and resource cleanup.
+ * 
+ * <p>Implements {@link AutoCloseable} to ensure proper resource cleanup using try-with-resources.</p>
+ *
+ * @see AutoCloseable
+ */
 @Getter
 @EqualsAndHashCode
 @ToString
@@ -27,30 +36,60 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ConnectionEntry implements AutoCloseable {
 
+    /**
+     * The underlying database connection.
+     */
     @Setter
     private Connection connection;
 
+    /**
+     * The timestamp when this connection was last active.
+     */
     @Setter(AccessLevel.PRIVATE)
     private LocalDateTime lastActiveTime;
 
+    /**
+     * The type of database this connection is associated with.
+     */
     @Setter(AccessLevel.PRIVATE)
     private DBTypeEnum dbType;
 
+    /**
+     * The unique name identifying this connection.
+     */
     @Setter(AccessLevel.PRIVATE)
     private String connectionName;
 
+    /**
+     * Logger instance for this connection entry.
+     */
     @Setter(AccessLevel.PRIVATE)
     private Logger connectionLog;
 
+    /**
+     * Atomic flag indicating whether this connection is currently idle.
+     */
     private AtomicBoolean idle;
 
+    /**
+     * Flag indicating if this connection is under a critical section.
+     */
     @Setter
     private boolean criticalLock;
 
 
+    /**
+     * Initializes a new ConnectionEntry with the specified connection details.
+     *
+     * @param connection the database connection to be managed
+     * @param dbType the type of the database
+     * @param connectionName a unique name for the connection
+     * @return a new initialized ConnectionEntry
+     * @throws RuntimeException if there's an error creating the connection lock file
+     */
     public static ConnectionEntry init(Connection connection,
-                                       DBTypeEnum dbType,
-                                       String connectionName) {
+                                     DBTypeEnum dbType,
+                                     String connectionName) {
         final var folder = new File(FileUtils.pathJoining(System.getProperty("java.io.tmpdir"), "lcx-pool"));
         //noinspection ResultOfMethodCallIgnored
         folder.mkdirs();
@@ -79,18 +118,34 @@ public final class ConnectionEntry implements AutoCloseable {
         return entry;
     }
 
+    /**
+     * Locks this connection, marking it as in-use.
+     */
     public void lock() {
         this.idle.set(false);
     }
 
+    /**
+     * Checks if this connection is currently active (in use).
+     *
+     * @return true if the connection is active, false otherwise
+     */
     public boolean isActive() {
         return !this.idle.get();
     }
 
+    /**
+     * Releases the lock on this connection, marking it as idle.
+     */
     public void releaseLock() {
         this.idle.set(true);
     }
 
+    /**
+     * Activates this connection entry for use.
+     *
+     * @throws RuntimeException if the connection is not idle
+     */
     public void activate() {
         // if (this.idle.get()) {
         //     this.lock();
@@ -107,6 +162,12 @@ public final class ConnectionEntry implements AutoCloseable {
         }
     }
 
+    /**
+     * Deactivates this connection entry, committing any open transactions
+     * and releasing the lock.
+     *
+     * @throws RuntimeException if the connection is already idle
+     */
     public void deactivate() {
         if (this.idle.get()) {
             throw new RuntimeException("Connection is idling");
@@ -119,6 +180,11 @@ public final class ConnectionEntry implements AutoCloseable {
         this.getConnectionLog().info("Deactivated connection entry: {}", this);
     }
 
+    /**
+     * Checks if there is an open transaction on this connection.
+     *
+     * @return true if there is an open transaction, false otherwise
+     */
     public boolean transactionIsOpen() {
         boolean result = false;
         try {
@@ -129,10 +195,21 @@ public final class ConnectionEntry implements AutoCloseable {
         return result;
     }
 
+    /**
+     * Opens a new transaction with READ_COMMITTED isolation level.
+     * Does nothing if a transaction is already open.
+     */
     public void openTransaction() {
         this.openTransaction(TransactionIsolation.TRANSACTION_READ_COMMITTED);
     }
 
+    /**
+     * Opens a new transaction with the specified isolation level.
+     * Does nothing if a transaction is already open.
+     *
+     * @param transactionIsolation the isolation level for the transaction
+     * @throws RuntimeException if there's a database error
+     */
     public void openTransaction(TransactionIsolation transactionIsolation) {
         try {
             if (this.transactionIsOpen()) {
@@ -148,6 +225,12 @@ public final class ConnectionEntry implements AutoCloseable {
         }
     }
 
+    /**
+     * Commits the current transaction and enables auto-commit mode.
+     * Does nothing if no transaction is open.
+     *
+     * @throws RuntimeException if there's a database error
+     */
     public void commit() {
         try {
             if (this.transactionIsOpen()) {
@@ -161,6 +244,12 @@ public final class ConnectionEntry implements AutoCloseable {
         }
     }
 
+    /**
+     * Commits the current transaction without enabling auto-commit mode.
+     * Does nothing if no transaction is open.
+     *
+     * @throws RuntimeException if there's a database error
+     */
     public void commitNoClose() {
         try {
             if (this.transactionIsOpen()) {
@@ -173,6 +262,12 @@ public final class ConnectionEntry implements AutoCloseable {
         }
     }
 
+    /**
+     * Rolls back the current transaction and enables auto-commit mode.
+     * Does nothing if no transaction is open.
+     *
+     * @throws RuntimeException if there's a database error
+     */
     public void rollback() {
         try {
             if (this.transactionIsOpen()) {
@@ -186,6 +281,11 @@ public final class ConnectionEntry implements AutoCloseable {
         }
     }
 
+    /**
+     * Validates that the connection is still valid.
+     *
+     * @return true if the connection is valid, false otherwise
+     */
     public boolean isValid() {
         try {
             return this.connection.isValid(10);
@@ -195,6 +295,10 @@ public final class ConnectionEntry implements AutoCloseable {
         }
     }
 
+    /**
+     * Shuts down this connection entry, closing the underlying connection
+     * and releasing all resources.
+     */
     public void shutdown() {
         try {
             if (!this.connection.isClosed() && this.isValid()) {
@@ -206,11 +310,18 @@ public final class ConnectionEntry implements AutoCloseable {
         this.connection = null;
     }
 
+    /**
+     * Releases this connection back to the pool by deactivating it.
+     * Implements {@link AutoCloseable#close()} for try-with-resources support.
+     */
     @Override
     public void close() {
         this.deactivate();
     }
 
+    /**
+     * Enum representing standard JDBC transaction isolation levels.
+     */
     @AllArgsConstructor
     @Getter
     public static enum TransactionIsolation {
@@ -220,6 +331,9 @@ public final class ConnectionEntry implements AutoCloseable {
         TRANSACTION_REPEATABLE_READ(Connection.TRANSACTION_REPEATABLE_READ),
         TRANSACTION_SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE),
         ;
+        /**
+         * The JDBC constant value for this isolation level.
+         */
         private final int value;
     }
 

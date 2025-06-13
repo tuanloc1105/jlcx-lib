@@ -1,4 +1,4 @@
-    public ${return-type} ${method-name}(${list-of-parameters}) {
+    public void ${method-name}(org.hibernate.jdbc.Work work) {
         final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
         // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
@@ -36,10 +36,10 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
-            ${method-body-1}
+            currentSessionInContext.doWork(work);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
-                ${method-body-2}
+                currentSessionInContext.doWork(work);
             }
         }
     }
