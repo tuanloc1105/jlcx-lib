@@ -2,7 +2,6 @@ package vn.com.lcx.common.proxy;
 
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import vn.com.lcx.common.annotation.ServiceClass;
 import vn.com.lcx.common.annotation.Transaction;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.database.context.ConnectionContext;
@@ -23,22 +22,11 @@ public class ServiceProxyHandler<T> implements InvocationHandler {
 
     @SuppressWarnings("unchecked")
     public static <T> T create(Class<T> interfaceType, Object target) {
-        if (interfaceType == null) {
-            return (T) Proxy.newProxyInstance(
-                    ServiceClass.class.getClassLoader(),
-                    new Class<?>[]{ServiceClass.class},
-                    new ServiceProxyHandler<T>(target)
-            );
-        }
         return (T) Proxy.newProxyInstance(
                 interfaceType.getClassLoader(),
                 new Class<?>[]{interfaceType},
                 new ServiceProxyHandler<>(target)
         );
-    }
-
-    public static <T> T create(Object target) {
-        return create(null, target);
     }
 
     @Override
