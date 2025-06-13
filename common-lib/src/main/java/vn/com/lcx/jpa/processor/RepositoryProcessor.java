@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -455,7 +456,7 @@ public class RepositoryProcessor extends AbstractProcessor {
                     )
             );
         }
-        final String outputClass = getGenericTypeOfList(methodInfo.getOutputParameter().toString());
+        final String outputClass = getGenericTypeOfListOrPage(methodInfo.getOutputParameter().toString());
         final var queryAnnotation = executableElement.getAnnotation(Query.class);
         final var codeLines = new ArrayList<String>();
         if (queryAnnotation.isNative()) {
@@ -476,7 +477,7 @@ public class RepositoryProcessor extends AbstractProcessor {
                 //                         queryAnnotation.value()
                 //                 )
                 // );
-                appendOrderStatementToHsql(methodInfo, codeLines, queryAnnotation.value(), outputClass);
+                generateCodeForPageable(methodInfo, codeLines, queryAnnotation.value(), outputClass);
             } else {
                 codeLines.add(
                         String.format(
@@ -491,6 +492,39 @@ public class RepositoryProcessor extends AbstractProcessor {
         if (methodInfo.getOutputParameter().toString().contains("java.util.List")) {
             codeLines.add(
                     "return query.getResultList();"
+            );
+        } else if (methodInfo.getOutputParameter().toString().contains("vn.com.lcx.common.database.pageable.Page")) {
+            final var countHql = replaceSelectToCount(queryAnnotation.value());
+            codeLines.add(
+                    String.format(
+                            "org.hibernate.query.Query<Long> countQuery = currentSessionInContext.createQuery(\"%1$s\", Long.class);",
+                            countHql
+                    )
+            );
+            setParametersForCount(methodInfo, codeLines);
+            codeLines.add(
+                    "long totalItems = countQuery.getSingleResult();"
+            );
+            codeLines.add(
+                    String.format(
+                            "final java.util.List<%1$s> queryResult = query.getResultList();",
+                            outputClass
+                    )
+            );
+            codeLines.add(
+                    String.format(
+                            "return vn.com.lcx.common.database.pageable.Page.<%s>create(",
+                            outputClass
+                    )
+            );
+            codeLines.add("        queryResult,");
+            codeLines.add("        totalItems,");
+            codeLines.add("        pageimpl.getPageNumber(),");
+            codeLines.add("        pageimpl.getPageSize()");
+            codeLines.add(");");
+        } else if (methodInfo.getOutputParameter().toString().contains("java.util.Optional")) {
+            codeLines.add(
+                    "return java.util.Optional.ofNullable(query.uniqueResult());"
             );
         } else {
             codeLines.add(
@@ -516,7 +550,9 @@ public class RepositoryProcessor extends AbstractProcessor {
         methodCodeBody.append(code).append("\n");
     }
 
-    private static void appendOrderStatementToHsql(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
+    // TODO: implement a generate code technique for generating query from method name, base on `vn.com.lcx.common.database.reflect.SelectStatementBuilder`
+
+    private static void generateCodeForPageable(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
         VariableElement pageableParameter = methodInfo.getInputParameters().get(methodInfo.getInputParameters().size() - 1);
         codeLines.add(
                 "StringBuilder orderStatement = new StringBuilder();"
@@ -544,6 +580,8 @@ public class RepositoryProcessor extends AbstractProcessor {
                         outputClass
                 )
         );
+        codeLines.add("query.setFirstResult(pageimpl.getOffset());");
+        codeLines.add("query.setMaxResults(pageimpl.getPageSize());");
     }
 
     private String buildBaseCode(final String template,
@@ -572,17 +610,28 @@ public class RepositoryProcessor extends AbstractProcessor {
                 );
     }
 
-    private String getGenericTypeOfList(String listTypeName) {
-        if (!listTypeName.startsWith("java.util.List")) {
+    private String getGenericTypeOfListOrPage(String listTypeName) {
+        if (!listTypeName.startsWith("java.util.List") && !listTypeName.startsWith("vn.com.lcx.common.database.pageable.Page")) {
             return listTypeName;
         }
-        if (listTypeName.startsWith("java.util.List") && !listTypeName.contains("<")) {
+        if ((listTypeName.startsWith("java.util.List") || listTypeName.startsWith("vn.com.lcx.common.database.pageable.Page")) && !listTypeName.contains("<")) {
             throw new CodeGenError("Unknow type " + listTypeName);
         }
-        return listTypeName.replaceFirst("java.util.List<", CommonConstant.EMPTY_STRING).replace(">", CommonConstant.EMPTY_STRING);
+        return listTypeName
+                .replace("java.util.List<", CommonConstant.EMPTY_STRING)
+                .replace("vn.com.lcx.common.database.pageable.Page<", CommonConstant.EMPTY_STRING)
+                .replace(">", CommonConstant.EMPTY_STRING);
     }
 
     private void setParameters(MethodInfo methodInfo, ArrayList<String> codeLines) {
+        setParameters(methodInfo, codeLines, false);
+    }
+
+    private void setParametersForCount(MethodInfo methodInfo, ArrayList<String> codeLines) {
+        setParameters(methodInfo, codeLines, true);
+    }
+
+    private void setParameters(MethodInfo methodInfo, ArrayList<String> codeLines, boolean isCountQuery) {
         for (int i = 0; i < methodInfo.getInputParameters().size(); i++) {
             VariableElement variableElement = methodInfo.getInputParameters().get(i);
             if (
@@ -593,15 +642,15 @@ public class RepositoryProcessor extends AbstractProcessor {
             if (Optional.ofNullable(variableElement.getAnnotation(Param.class)).isPresent()) {
                 codeLines.add(
                         String.format(
-                                "query.setParameter(%1$s, %2$s);",
-                                variableElement.getAnnotation(Param.class).name(),
+                                isCountQuery ? "countQuery.setParameter(\"%1$s\", %2$s);" : "query.setParameter(\"%1$s\", %2$s);",
+                                variableElement.getAnnotation(Param.class).value(),
                                 variableElement.getSimpleName()
                         )
                 );
             } else {
                 codeLines.add(
                         String.format(
-                                "query.setParameter(%1$s, %2$s);",
+                                isCountQuery ? "countQuery.setParameter(\"%1$s\", %2$s);" : "query.setParameter(%1$s, %2$s);",
                                 i + 1,
                                 variableElement.getSimpleName()
                         )
@@ -622,6 +671,27 @@ public class RepositoryProcessor extends AbstractProcessor {
                         "vn.com.lcx.common.database.pageable.Pageable"
                 ).asType()
         );
+    }
+
+    private static String replaceSelectToCount(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return "";
+        }
+
+        String regex = "SELECT\\s+.*?\\s+FROM";
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(query);
+
+        if (matcher.find()) {
+            int selectKeywordStart = query.toLowerCase().indexOf("select");
+            String beforeSelect = query.substring(0, selectKeywordStart);
+
+            String afterFrom = query.substring(matcher.end() - "FROM".length());
+
+            return beforeSelect + "SELECT COUNT(1) " + afterFrom;
+        } else {
+            return "";
+        }
     }
 
 }
