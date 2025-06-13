@@ -447,7 +447,7 @@
     }
 
     public vn.com.lcx.common.database.pageable.Page<${entity-class}> find(vn.com.lcx.jpa.respository.CriteriaHandler<${entity-class}> handler, vn.com.lcx.common.database.pageable.Pageable pageable) {
-        java.util.concurrent.atomic.AtomicReference<vn.com.lcx.common.database.pageable.Page<${entity-class}>> result = new java.util.concurrent.atomic.AtomicReference();
+        java.util.concurrent.atomic.AtomicReference<vn.com.lcx.common.database.pageable.Page<${entity-class}>> result = new java.util.concurrent.atomic.AtomicReference<>();
         final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
         // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`

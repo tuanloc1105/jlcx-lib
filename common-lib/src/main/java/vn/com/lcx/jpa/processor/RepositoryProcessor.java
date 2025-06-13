@@ -133,6 +133,14 @@ public class RepositoryProcessor extends AbstractProcessor {
      * @throws Exception if any error occurs
      */
     public void generateCode(ProcessorClassInfo processorClassInfo) throws Exception {
+        processingEnv.getMessager().printMessage(
+                Diagnostic.Kind.NOTE,
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                        String.format(
+                                "Generating code for respository : %s",
+                                processorClassInfo.getClazz().getQualifiedName()
+                        )
+        );
         // get generic type of interface
         List<TypeMirror> genericClasses =
                 TypeHierarchyAnalyzer.getGenericTypeOfExtendingInterface(
