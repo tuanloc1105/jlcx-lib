@@ -79,20 +79,80 @@ public final class ObjectUtils {
         return false;
     }
 
+    /**
+     * Wrap primitive type to the corresponding object type.
+     *
+     * <p>For example, int.class to Integer.class, long.class to Long.class, etc.
+     *
+     * @param type the primitive type
+     * @return the corresponding object type
+     */
     public static Class<?> wrapPrimitive(Class<?> type) {
         if (!type.isPrimitive()) {
             return type;
         }
-        if (type == int.class) return Integer.class;
-        if (type == long.class) return Long.class;
-        if (type == double.class) return Double.class;
-        if (type == float.class) return Float.class;
-        if (type == boolean.class) return Boolean.class;
-        if (type == char.class) return Character.class;
-        if (type == byte.class) return Byte.class;
-        if (type == short.class) return Short.class;
-        if (type == void.class) return Void.class;
+        if (type == int.class) {
+            return Integer.class;
+        }
+        if (type == long.class) {
+            return Long.class;
+        }
+        if (type == double.class) {
+            return Double.class;
+        }
+        if (type == float.class) {
+            return Float.class;
+        }
+        if (type == boolean.class) {
+            return Boolean.class;
+        }
+        if (type == char.class) {
+            return Character.class;
+        }
+        if (type == byte.class) {
+            return Byte.class;
+        }
+        if (type == short.class) {
+            return Short.class;
+        }
+        if (type == void.class) {
+            return Void.class;
+        }
         return type;
+    }
+
+    /**
+     * Return the default value of the given primitive type.
+     *
+     * @param type the primitive type
+     * @return the default value of the given type.
+     */
+    public static Object getDefaultValue(Class<?> type) {
+        if (type == boolean.class) {
+            return false;
+        }
+        if (type == byte.class) {
+            return (byte) 0;
+        }
+        if (type == short.class) {
+            return (short) 0;
+        }
+        if (type == int.class) {
+            return 0;
+        }
+        if (type == long.class) {
+            return 0L;
+        }
+        if (type == float.class) {
+            return 0.0f;
+        }
+        if (type == double.class) {
+            return 0.0d;
+        }
+        if (type == char.class) {
+            return '\u0000';
+        }
+        return null; // for objects
     }
 
     public static List<Class<?>> getExtendAndInterfaceClasses(Class<?> target) {

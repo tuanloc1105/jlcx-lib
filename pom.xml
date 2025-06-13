@@ -61,6 +61,7 @@
         <junit-jupiter-api-org.junit.jupiter.version>5.13.1</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>5.13.1</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>5.13.1</junit-jupiter-params-org.junit.jupiter.version>
+        <byte-buddy-net.bytebuddy.version>1.17.5</byte-buddy-net.bytebuddy.version>
 
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
@@ -416,6 +417,13 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
                 <version>${junit-jupiter-params-org.junit.jupiter.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${byte-buddy-net.bytebuddy.version}</version>
             </dependency>
 
         </dependencies>
