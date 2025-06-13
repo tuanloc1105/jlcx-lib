@@ -138,7 +138,6 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
