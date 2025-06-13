@@ -13,6 +13,15 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SerializeUtils {
 
+    /**
+     * Serializes the given object to a file in the given path and fileName.
+     *
+     * @param object the object to serialize
+     * @param path   the path to the file
+     * @param fileName the name of the file
+     *
+     * @throws IOException if an I/O error occurs
+     */
     public static <T extends Serializable> void serialize(final T object, final String path, final String fileName) throws IOException {
         try (
                 ObjectOutputStream oos = new ObjectOutputStream(
@@ -28,6 +37,17 @@ public final class SerializeUtils {
         }
     }
 
+    /**
+     * Deserializes the given object from a file in the given path and fileName.
+     *
+     * @param path   the path to the file
+     * @param fileName the name of the file
+     *
+     * @return the deserialized object
+     *
+     * @throws IOException           if an I/O error occurs
+     * @throws ClassNotFoundException if the class of the object cannot be found
+     */
     public static <T extends Serializable> T deserialize(final String path, final String fileName) throws IOException, ClassNotFoundException {
         try (
                 ObjectInputStream ois = new ObjectInputStream(
