@@ -57,6 +57,14 @@ public class MapperClassProcessor extends AbstractProcessor {
     }
 
     public void processMapperClass(TypeElement typeElement) throws IOException {
+        processingEnv.getMessager().printMessage(
+                Diagnostic.Kind.NOTE,
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                        String.format(
+                                "Generating code for mapper class : %s",
+                                typeElement.getQualifiedName()
+                        )
+        );
         List<ExecutableElement> allMethodsOfClass = processingEnv.getElementUtils().getAllMembers(typeElement).stream()
                 .filter(e -> {
                     boolean elementIsAMethod = e.getKind() == ElementKind.METHOD;
