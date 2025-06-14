@@ -340,6 +340,22 @@
                 <optional>true</optional>
             </dependency>
 
+            <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-jcache -->
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-jcache</artifactId>
+                <version>${hibernate-jcache-org.hibernate.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
+            <!--
+            <dependency>
+                <groupId>org.ehcache</groupId>
+                <artifactId>ehcache</artifactId>
+                <version>${ehcache-org.ehcache.version}</version>
+            </dependency>
+            -->
+
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
             <dependency>
                 <groupId>io.vertx</groupId>

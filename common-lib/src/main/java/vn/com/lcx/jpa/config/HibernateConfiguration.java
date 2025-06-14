@@ -35,7 +35,9 @@ import java.util.Map;
 
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 
-
+/**
+ * 
+ */
 @Component
 public class HibernateConfiguration {
 
@@ -91,6 +93,23 @@ public class HibernateConfiguration {
             // settings.put(JdbcSettings.HIGHLIGHT_SQL, true);
             settings.put(JdbcSettings.DIALECT_NATIVE_PARAM_MARKERS, true);
             settings.put(Environment.HBM2DDL_AUTO, Action.ACTION_NONE);
+            
+            // Add batch size configuration to optimize performance
+            settings.put(Environment.STATEMENT_BATCH_SIZE, "50");
+            settings.put(Environment.ORDER_INSERTS, "true");
+            settings.put(Environment.ORDER_UPDATES, "true");
+            settings.put(Environment.BATCH_VERSIONED_DATA, "true");
+            
+            // Add second-level cache configuration
+            settings.put(Environment.USE_SECOND_LEVEL_CACHE, "true");
+            settings.put(Environment.USE_QUERY_CACHE, "true");
+            settings.put(Environment.CACHE_REGION_FACTORY, "org.hibernate.cache.jcache.JCacheRegionFactory");
+            
+            // Add connection pool configuration
+            settings.put(Environment.C3P0_MIN_SIZE, String.valueOf(initialPoolSize));
+            settings.put(Environment.C3P0_MAX_SIZE, String.valueOf(maxPoolSize));
+            settings.put(Environment.C3P0_TIMEOUT, String.valueOf(maxTimeout));
+            
             if (StringUtils.isNotBlank(schemaName)) {
                 settings.put("hibernate.default_schema", schemaName);
                 settings.put("hibernate.default_catalog", schemaName);
@@ -181,6 +200,9 @@ public class HibernateConfiguration {
                     schemaUpdate.setOutputFile(schemaUpdateDdlFilePath);
                     schemaUpdate.setFormat(true);
                     schemaUpdate.setDelimiter(";");
+                    // Optimize SchemaUpdate
+                    schemaUpdate.setHaltOnError(false);
+                    // Only generate DDL script
                     schemaUpdate.execute(EnumSet.of(TargetType.SCRIPT), metadata);
                 }
             } catch (Exception ddlException) {
