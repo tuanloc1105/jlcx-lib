@@ -123,6 +123,7 @@ public class LCXRepositoryProcessor extends AbstractProcessor {
             writer.write("import java.sql.Statement;\n");
             writer.write("import java.util.*;\n");
             writer.write("import java.util.stream.Collectors;\n\n");
+            writer.write("@java.lang.Deprecated\n");
             writer.write("public class " + className + " implements " + typeElement.getSimpleName() + " {\n\n");
             writer.write("    private vn.com.lcx.common.database.DatabaseExecutor executor;\n\n");
             writer.write("    private static " + className + " instance;\n\n");

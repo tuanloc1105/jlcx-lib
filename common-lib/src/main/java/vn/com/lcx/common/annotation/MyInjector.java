@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public class MyInjector {
 
     private static final MyInjector INSTANCE = new MyInjector();

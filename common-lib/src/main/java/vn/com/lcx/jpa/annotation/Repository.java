@@ -18,8 +18,9 @@ import java.lang.annotation.Target;
  * @Repository
  * public interface UserRepository extends JpaRepository<User, Long> {
  *     // Custom query methods can be declared here
+ *     // But this feature is not yet implemented
  *     List<User> findByUsername(String username);
- *     
+ *
  *     @Query("SELECT u FROM User u WHERE u.status = :status")
  *     List<User> findByStatus(@Param("status") String status);
  * }

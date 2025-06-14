@@ -7,6 +7,7 @@ import vn.com.lcx.common.database.specification.Specification;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public interface LCXRepository<T> {
 
     int save(T entity);
