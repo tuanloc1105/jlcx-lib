@@ -10,9 +10,7 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
-import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.Action;
@@ -36,7 +34,7 @@ import java.util.Map;
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 
 /**
- * 
+ *
  */
 @Component
 public class HibernateConfiguration {
@@ -55,7 +53,8 @@ public class HibernateConfiguration {
                                                       final DBTypeEnum dbType,
                                                       final String entityPackage,
                                                       final boolean doSchemaExport,
-                                                      final boolean doSchemaUpdate) {
+                                                      final boolean doSchemaUpdate,
+                                                      final boolean useCache) {
         StandardServiceRegistry registry = null;
         SessionFactory sessionFactory;
         HikariDataSource dataSource;
@@ -82,7 +81,7 @@ public class HibernateConfiguration {
             hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
             dataSource = new HikariDataSource(hikariConfig);
-            settings.put(JdbcSettings.JAKARTA_JTA_DATASOURCE, dataSource);
+            settings.put(Environment.JAKARTA_JTA_DATASOURCE, dataSource);
             // settings.put(
             //         Environment.DIALECT,
             //         StringUtils.isBlank(dialectName) ||
@@ -91,31 +90,34 @@ public class HibernateConfiguration {
             // settings.put(Environment.SHOW_SQL, true);
             settings.put(Environment.FORMAT_SQL, true);
             // settings.put(JdbcSettings.HIGHLIGHT_SQL, true);
-            settings.put(JdbcSettings.DIALECT_NATIVE_PARAM_MARKERS, true);
+            settings.put(Environment.DIALECT_NATIVE_PARAM_MARKERS, true);
             settings.put(Environment.HBM2DDL_AUTO, Action.ACTION_NONE);
-            
+
             // Add batch size configuration to optimize performance
             settings.put(Environment.STATEMENT_BATCH_SIZE, "50");
             settings.put(Environment.ORDER_INSERTS, "true");
             settings.put(Environment.ORDER_UPDATES, "true");
             settings.put(Environment.BATCH_VERSIONED_DATA, "true");
-            
-            // Add second-level cache configuration
-            settings.put(Environment.USE_SECOND_LEVEL_CACHE, "true");
-            settings.put(Environment.USE_QUERY_CACHE, "true");
-            settings.put(Environment.CACHE_REGION_FACTORY, "org.hibernate.cache.jcache.JCacheRegionFactory");
-            
+
+            if (useCache) {
+                // Add second-level cache configuration
+                settings.put(Environment.USE_SECOND_LEVEL_CACHE, "true");
+                settings.put(Environment.USE_QUERY_CACHE, "true");
+                settings.put(Environment.CACHE_REGION_FACTORY, "org.hibernate.cache.jcache.JCacheRegionFactory");
+                settings.put("hibernate.javax.cache.missing_cache_strategy", "create");
+            }
+
             // Add connection pool configuration
             settings.put(Environment.C3P0_MIN_SIZE, String.valueOf(initialPoolSize));
             settings.put(Environment.C3P0_MAX_SIZE, String.valueOf(maxPoolSize));
             settings.put(Environment.C3P0_TIMEOUT, String.valueOf(maxTimeout));
-            
+
             if (StringUtils.isNotBlank(schemaName)) {
                 settings.put("hibernate.default_schema", schemaName);
                 settings.put("hibernate.default_catalog", schemaName);
             }
-            settings.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, PhysicalNamingStrategyStandardImpl.class.getName());
-            settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_NONE);
+            settings.put(Environment.PHYSICAL_NAMING_STRATEGY, PhysicalNamingStrategyStandardImpl.class.getName());
+            settings.put(Environment.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_NONE);
 
             // final var generatedDdlFilePath = FileUtils.pathJoining(
             //         CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
@@ -282,6 +284,13 @@ public class HibernateConfiguration {
         ) {
             return;
         }
+        final var useCache = applicationConfig.<Boolean>getPropertyWithEnvironment("server.database.use_cache", s -> {
+            try {
+                return Boolean.parseBoolean(s);
+            } catch (Exception e) {
+                return false;
+            }
+        });
         final var sessionFactory = createSessionFactory(
                 host,
                 port,
@@ -297,7 +306,8 @@ public class HibernateConfiguration {
                 type,
                 null,
                 true,
-                false
+                false,
+                useCache
         );
         ClassPool.setInstance(sessionFactory);
         ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);

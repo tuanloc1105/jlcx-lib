@@ -62,6 +62,8 @@ public class MyVertxDeployment {
     }
 
     private void deployVerticle(final List<String> packagesToScan, Supplier<Void> preconfigure) {
+        final var oldThreadName = Thread.currentThread().getName();
+        Thread.currentThread().setName("vertx-deployment");
         try {
             ClassPool.loadProperties();
             boolean enableMetric = Boolean.parseBoolean(
@@ -145,8 +147,9 @@ public class MyVertxDeployment {
         } catch (Exception e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             throw new RuntimeException(e);
+        } finally {
+            Thread.currentThread().setName(oldThreadName);
         }
-
     }
 
     private void deployVerticle(String packageToScan, Supplier<Void> preconfigure) {

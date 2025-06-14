@@ -13,6 +13,7 @@ server:
     initial_pool_size: ${DATABASE_INITIAL_POOL_SIZE:5}
     max_timeout: ${DATABASE_MAX_TIMEOUT:10}
     type: ${DATABASE_TYPE:POSTGRESQL}
+    use_cache: true
 database:
   generate_sql: false
   source_type: postgresql
