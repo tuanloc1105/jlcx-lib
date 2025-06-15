@@ -314,6 +314,10 @@ public class BaseController {
         });
     }
 
+    /**
+     * Not suitable in the Vert.x environment
+     */
+    @Deprecated(forRemoval = true)
     protected <T extends CommonResponse, B> void execute(RoutingContext context, RequestHandler<T, B> requestHandler, TypeToken<B> requestBodyClass) {
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());
         LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
