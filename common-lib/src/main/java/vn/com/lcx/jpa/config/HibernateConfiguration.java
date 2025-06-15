@@ -11,6 +11,7 @@ import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Environment;
+import org.hibernate.cfg.TransactionSettings;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.Action;
@@ -82,6 +83,8 @@ public class HibernateConfiguration {
 
             dataSource = new HikariDataSource(hikariConfig);
             settings.put(Environment.JAKARTA_JTA_DATASOURCE, dataSource);
+            // Disable Hibernate JTA platform support
+            settings.put(TransactionSettings.JTA_PLATFORM, CommonConstant.EMPTY_STRING);
             // settings.put(
             //         Environment.DIALECT,
             //         StringUtils.isBlank(dialectName) ||
