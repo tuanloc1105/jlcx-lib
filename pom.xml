@@ -64,6 +64,11 @@
         <junit-jupiter-engine-org.junit.jupiter.version>5.13.1</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>5.13.1</junit-jupiter-params-org.junit.jupiter.version>
         <byte-buddy-net.bytebuddy.version>1.17.5</byte-buddy-net.bytebuddy.version>
+        <vertx-oracle-client-io.vertx.version>5.0.0</vertx-oracle-client-io.vertx.version>
+        <vertx-mysql-client-io.vertx.version>5.0.0</vertx-mysql-client-io.vertx.version>
+        <vertx-pg-client-io.vertx.version>5.0.0</vertx-pg-client-io.vertx.version>
+        <vertx-mssql-client-io.vertx.version>5.0.0</vertx-mssql-client-io.vertx.version>
+
 
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
@@ -440,6 +445,34 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
                 <version>${byte-buddy-net.bytebuddy.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-oracle-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-oracle-client</artifactId>
+                <version>${vertx-oracle-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mysql-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-mysql-client</artifactId>
+                <version>${vertx-mysql-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-pg-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-pg-client</artifactId>
+                <version>${vertx-pg-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mssql-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-mssql-client</artifactId>
+                <version>${vertx-mssql-client-io.vertx.version}</version>
             </dependency>
 
         </dependencies>
