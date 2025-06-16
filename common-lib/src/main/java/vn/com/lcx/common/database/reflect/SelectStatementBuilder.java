@@ -105,13 +105,13 @@ public final class SelectStatementBuilder {
             if (columnNameAnnotation != null) {
                 final var columnNameAnnotationValue = columnNameAnnotation.name();
                 this.listOfColumnName.add(
-                        // String.format("%s.%s", this.tableNameShortenedName, columnNameAnnotation.name())
-                        String.format(
-                                "%s.%s AS %s",
-                                this.tableNameShortenedName,
-                                columnNameAnnotationValue,
-                                String.format("%s_%s", this.tableNameShortenedName.toUpperCase(), columnNameAnnotationValue)
-                        )
+                        String.format("%s.%s", this.tableNameShortenedName, columnNameAnnotation.name())
+                        // String.format(
+                        //         "%s.%s AS %s",
+                        //         this.tableNameShortenedName,
+                        //         columnNameAnnotationValue,
+                        //         String.format("%s_%s", this.tableNameShortenedName.toUpperCase(), columnNameAnnotationValue)
+                        // )
                 );
                 isColumnNameAnnotationExisted = true;
             }
@@ -169,7 +169,7 @@ public final class SelectStatementBuilder {
         }
     }
 
-    public static List<String> splitByKeywords(String input) {
+    private static List<String> splitByKeywords(String input) {
         List<String> result = new ArrayList<>();
         Matcher matcher = WHERE_STATEMENT_SPLIT_PATTERN.matcher(input);
 
@@ -317,6 +317,8 @@ public final class SelectStatementBuilder {
 
         boolean meetOrderByStatement = false;
 
+        int count = 0;
+
         for (String part : partsOfMethod) {
 
             if (!meetOrderByStatement) {
@@ -338,13 +340,13 @@ public final class SelectStatementBuilder {
                         for (int i = 0; i < currentFieldParts2.size() - 1; i++) {
                             int finalI = i;
                             final var optionalSubTableFieldDataType = subTableClass.getListOfField().stream().filter(f -> f.getName().equalsIgnoreCase(currentFieldParts2.get(finalI))).findFirst();
-                            if (!optionalSubTableFieldDataType.isPresent()) {
+                            if (optionalSubTableFieldDataType.isEmpty()) {
                                 throw new IllegalArgumentException("Unknown field");
                             }
                             subTableClass = SelectStatementBuilder.of(optionalSubTableFieldDataType.get().getType());
                         }
                         final var optionalSubTableFieldDataType = subTableClass.getListOfField().stream().filter(f -> f.getName().equalsIgnoreCase(currentFieldParts2.get(currentFieldParts2.size() - 1))).findFirst();
-                        if (!optionalSubTableFieldDataType.isPresent()) {
+                        if (optionalSubTableFieldDataType.isEmpty()) {
                             throw new IllegalArgumentException("Unknown field");
                         }
                         columnNameOptional = subTableClass.getListOfField()
@@ -367,7 +369,7 @@ public final class SelectStatementBuilder {
                         tblShortName = this.tableNameShortenedName;
                     }
 
-                    if (!columnNameOptional.isPresent()) {
+                    if (columnNameOptional.isEmpty()) {
                         throw new RuntimeException(
                                 String.format(
                                         "Method part name %s can not found the matching column",
@@ -385,76 +387,86 @@ public final class SelectStatementBuilder {
                                 break;
                             case "notequal":
                             case "not":
-                                conditionSQLStatement.add(String.format("%s <> ?", columnName));
+                                conditionSQLStatement.add(String.format("%s <> $%s", columnName, ++count));
                                 break;
                             case "notin":
                             case "in":
                                 // final var parameterWithListDataType = (List<?>) parameters.stream().filter(o -> o instanceof List<?>).findFirst().orElse(null);
-                                List<?> parameterWithListDataType = null;
-                                for (int i = 0; i < parameters.size(); i++) {
+                                // List<?> parameterWithListDataType = null;
+                                // for (int i = 0; i < parameters.size(); i++) {
 
-                                    if (handledParameterIndexThatIsAList.contains(i)) {
-                                        continue;
-                                    }
+                                //     if (handledParameterIndexThatIsAList.contains(i)) {
+                                //         continue;
+                                //     }
 
-                                    if (parameters.get(i) instanceof List<?>) {
-                                        parameterWithListDataType = (List<?>) parameters.get(i);
-                                        handledParameterIndexThatIsAList.add(i);
-                                        break;
-                                    }
-                                }
-                                if (parameterWithListDataType == null) {
-                                    throw new RuntimeException("In condition statement must contain at least 1 collection parameter");
-                                }
+                                //     if (parameters.get(i) instanceof List<?>) {
+                                //         parameterWithListDataType = (List<?>) parameters.get(i);
+                                //         handledParameterIndexThatIsAList.add(i);
+                                //         break;
+                                //     }
+                                // }
+                                // if (parameterWithListDataType == null) {
+                                //     throw new RuntimeException("In condition statement must contain at least 1 collection parameter");
+                                // }
+                                // conditionSQLStatement.add(
+                                //         String.format(
+                                //                 "%s %s (%s)",
+                                //                 columnName,
+                                //                 condition.equals("in") ? "IN" : "NOT IN",
+                                //                 parameterWithListDataType.stream()
+                                //                         .map(a -> "?")
+                                //                         .collect(Collectors.joining(", "))
+                                //         )
+                                // );
                                 conditionSQLStatement.add(
                                         String.format(
-                                                "%s %s (%s)",
+                                                "%s %s $%s",
                                                 columnName,
                                                 condition.equals("in") ? "IN" : "NOT IN",
-                                                parameterWithListDataType.stream()
-                                                        .map(a -> "?")
-                                                        .collect(Collectors.joining(", "))
+                                                ++count
                                         )
                                 );
                                 break;
                             case "notlike":
                             case "like":
                                 if (condition.equals("like")) {
-                                    conditionSQLStatement.add(columnName + " LIKE '%' || ? || '%'");
+                                    // conditionSQLStatement.add(columnName + " LIKE '%' || ? || '%'");
+                                    conditionSQLStatement.add(columnName + " LIKE $" + (++count));
                                 } else {
-                                    conditionSQLStatement.add(columnName + " NOT LIKE '%' || ? || '%'");
+                                    // conditionSQLStatement.add(columnName + " NOT LIKE '%' || ? || '%'");
+                                    conditionSQLStatement.add(columnName + " NOT LIKE $" + (++count));
                                 }
                                 break;
                             case "notbetween":
                             case "between":
                                 if (condition.equals("between")) {
-                                    conditionSQLStatement.add(String.format("%s BETWEEN ? AND ?", columnName));
+                                    conditionSQLStatement.add(String.format("%s BETWEEN $%s AND $%s", columnName, ++count, ++count));
                                 } else {
-                                    conditionSQLStatement.add(String.format("%s NOT BETWEEN ? AND ?", columnName));
+                                    conditionSQLStatement.add(String.format("%s NOT BETWEEN $%s AND $%s", columnName, ++count, ++count));
                                 }
                                 break;
                             case "lessthan":
-                                conditionSQLStatement.add(String.format("%s BETWEEN < ?", columnName));
+                                conditionSQLStatement.add(String.format("%s BETWEEN < $%s", columnName, ++count));
                                 break;
                             case "greaterthan":
-                                conditionSQLStatement.add(String.format("%s BETWEEN > ?", columnName));
+                                conditionSQLStatement.add(String.format("%s BETWEEN > $%s", columnName, ++count));
                                 break;
                             case "lessequal":
-                                conditionSQLStatement.add(String.format("%s BETWEEN <= ?", columnName));
+                                conditionSQLStatement.add(String.format("%s BETWEEN <= $%s", columnName, ++count));
                                 break;
                             case "greaterequal":
-                                conditionSQLStatement.add(String.format("%s BETWEEN >= ?", columnName));
+                                conditionSQLStatement.add(String.format("%s BETWEEN >= $%s", columnName, ++count));
                                 break;
                             case "null":
                                 conditionSQLStatement.add(String.format("%s IS NULL", columnName));
                                 break;
                             case "equal":
                             default:
-                                conditionSQLStatement.add(String.format("%s = ?", columnName));
+                                conditionSQLStatement.add(String.format("%s = $%s", columnName, ++count));
                                 break;
                         }
                     } else {
-                        conditionSQLStatement.add(String.format("%s = ?", columnName));
+                        conditionSQLStatement.add(String.format("%s = $%s", columnName, ++count));
                     }
 
                 }
