@@ -1,0 +1,8 @@
+package ${package-name};
+
+public final class ${class-name} {
+
+    private ${class-name}() {
+    }
+${methods}
+}

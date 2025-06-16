@@ -4,9 +4,16 @@ import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.AdditionalCode;
 import vn.com.lcx.common.annotation.Clob;
 import vn.com.lcx.common.annotation.ColumnName;
+import vn.com.lcx.common.annotation.IdColumn;
+import vn.com.lcx.common.annotation.SQLMapping;
 import vn.com.lcx.common.annotation.TableName;
+import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.constant.JavaSqlResultSetConstant;
 import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.utils.ExceptionUtils;
+import vn.com.lcx.common.utils.FileUtils;
+import vn.com.lcx.common.utils.MyStringUtils;
+import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
 import vn.com.lcx.jpa.processor.utility.TypeHierarchyAnalyzer;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -20,6 +27,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
+import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -30,6 +38,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static vn.com.lcx.common.constant.JavaSqlResultSetConstant.DOT;
 import static vn.com.lcx.common.constant.JavaSqlResultSetConstant.RESULT_SET_DATA_TYPE_MAP;
@@ -59,6 +68,12 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 TypeElement typeElement = (TypeElement) annotatedElement;
                 try {
                     generateBuilderClass(typeElement);
+                    ProcessorClassInfo processorClassInfo = ProcessorClassInfo.init(
+                            typeElement,
+                            processingEnv.getTypeUtils(),
+                            processingEnv.getElementUtils()
+                    );
+                    generateBuilderClass(processorClassInfo);
                 } catch (Exception e) {
                     this.processingEnv.
                             getMessager().
@@ -72,6 +87,635 @@ public class SQLMappingProcessor extends AbstractProcessor {
         return true;
     }
 
+    private void generateBuilderClass(ProcessorClassInfo processorClassInfo) throws IOException {
+        processingEnv.getMessager().printMessage(
+                Diagnostic.Kind.NOTE,
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                        String.format(
+                                "Generating code for model : %s",
+                                processorClassInfo.getClazz().getQualifiedName()
+                        )
+        );
+        var sqlMappingAnnotation = processorClassInfo.getClazz().getAnnotation(SQLMapping.class);
+        final String sqlMappingTemplate = FileUtils.readResourceFileAsText(
+                this.getClass().getClassLoader(),
+                "template/sql-mapping-template.txt"
+        );
+        final String methodTemplate = FileUtils.readResourceFileAsText(
+                this.getClass().getClassLoader(),
+                "template/method-template.txt"
+        );
+        assert sqlMappingTemplate != null;
+        assert methodTemplate != null;
+        final var resultSetMappingCodeLines = new ArrayList<String>();
+        final var vertxRowMappingCodeLines = new ArrayList<String>();
+        StringBuilder methodCodeBody = new StringBuilder();
+        methodCodeBody.append("\n");
+        // Optional<TableName> tableNameAnnotation = Optional.ofNullable(processorClassInfo.getClazz().getAnnotation(TableName.class));
+        resultSetMappingCodeLines.add(
+                String.format(
+                        "%1$s instance = new %1$s();",
+                        processorClassInfo.getClazz().getSimpleName()
+                )
+        );
+        vertxRowMappingCodeLines.add(
+                String.format(
+                        "%1$s instance = new %1$s();",
+                        processorClassInfo.getClazz().getSimpleName()
+                )
+        );
+        processorClassInfo.getFields().stream()
+                .filter(
+                        element ->
+                                !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
+                ).forEach(
+                        element -> {
+                            final String fieldName = element.getSimpleName().toString();
+                            final String fieldType = element.asType().toString();
+                            final String setFieldMethodName;
+                            if (isPrimitiveBoolean(element) && fieldName.toLowerCase().startsWith("is")) {
+                                setFieldMethodName = "set" + fieldName.substring(2);
+                            } else {
+                                setFieldMethodName = "set" + capitalize(fieldName);
+                            }
+                            ColumnName columnNameAnnotation = element.getAnnotation(ColumnName.class);
+                            // String databaseColumnName = Optional
+                            //         .ofNullable(columnNameAnnotation)
+                            //         .filter(a -> StringUtils.isNotBlank(a.name()))
+                            //         .map(ColumnName::name)
+                            //         .orElse(convertCamelToConstant(fieldName));
+                            // String databaseColumnNameToBeGet = tableNameAnnotation
+                            //         .map(tableName -> String.format("%s_%s", EntityUtils.getTableShortenedName(tableName.value()).toUpperCase(), databaseColumnName))
+                            //         .orElse(databaseColumnName);
+                            String databaseColumnNameToBeGet = Optional
+                                    .ofNullable(columnNameAnnotation)
+                                    .filter(a -> StringUtils.isNotBlank(a.name()))
+                                    .map(ColumnName::name)
+                                    .orElse(convertCamelToConstant(fieldName));
+                            final String fieldTypeSimpleName;
+                            final String resultSetFunctionWillBeUse;
+                            final String vertxRowFunctionWillBeUse;
+                            if (fieldType.matches(".*\\..*")) {
+                                List<String> fieldTypeSplitDot = new ArrayList<>(Arrays.asList(fieldType.split(JavaSqlResultSetConstant.DOT)));
+                                fieldTypeSimpleName = fieldTypeSplitDot.get(fieldTypeSplitDot.size() - 1);
+                            } else {
+                                fieldTypeSimpleName = fieldType;
+                            }
+                            resultSetFunctionWillBeUse = JavaSqlResultSetConstant.RESULT_SET_DATA_TYPE_MAP.get(fieldTypeSimpleName);
+                            vertxRowFunctionWillBeUse = JavaSqlResultSetConstant.VERTX_SQL_CLIENT_ROW.get(fieldTypeSimpleName);
+                            extractResultSetMappingCode(
+                                    element,
+                                    resultSetFunctionWillBeUse,
+                                    resultSetMappingCodeLines,
+                                    fieldType,
+                                    databaseColumnNameToBeGet,
+                                    setFieldMethodName,
+                                    fieldTypeSimpleName
+                            );
+                            extractVertxRowMappingCode(
+                                    element,
+                                    vertxRowFunctionWillBeUse,
+                                    vertxRowMappingCodeLines,
+                                    fieldType,
+                                    databaseColumnNameToBeGet,
+                                    setFieldMethodName
+                            );
+                        }
+                );
+        resultSetMappingCodeLines.add("return instance;");
+        vertxRowMappingCodeLines.add("return instance;");
+        final var insertStatementCodeLines = new ArrayList<String>();
+        final var insertJdbcParameterCodeLines = new ArrayList<String>();
+        final var insertVertClientParameterCodeLines = new ArrayList<String>();
+        final var updateStatementCodeLines = new ArrayList<String>();
+        final var updateJdbcParameterCodeLines = new ArrayList<String>();
+        final var updateVertClientParameterCodeLines = new ArrayList<String>();
+        final var deleteStatementCodeLines = new ArrayList<String>();
+        final var deleteJdbcParameterCodeLines = new ArrayList<String>();
+        final var deleteVertClientParameterCodeLines = new ArrayList<String>();
+        buildStatement(
+                insertStatementCodeLines,
+                insertJdbcParameterCodeLines,
+                insertVertClientParameterCodeLines,
+                updateStatementCodeLines,
+                updateJdbcParameterCodeLines,
+                updateVertClientParameterCodeLines,
+                deleteStatementCodeLines,
+                deleteJdbcParameterCodeLines,
+                deleteVertClientParameterCodeLines,
+                processorClassInfo
+        );
+        methodCodeBody.append(
+                methodTemplate
+                        .replace("${return-type}", "static " + processorClassInfo.getClazz().getSimpleName())
+                        .replace("${method-name}", "resultSetMapping")
+                        .replace("${list-of-parameters}", "java.sql.ResultSet resultSet")
+                        .replace("${method-body}", resultSetMappingCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "insertStatement")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", insertStatementCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "updateStatement")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", updateStatementCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "deleteStatement")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", deleteStatementCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static java.util.Map<Integer, Object>")
+                        .replace("${method-name}", "insertJDBCParams")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", insertJdbcParameterCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static java.util.Map<Integer, Object>")
+                        .replace("${method-name}", "updateJDBCParams")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", updateJdbcParameterCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static java.util.Map<Integer, Object>")
+                        .replace("${method-name}", "deleteJDBCParams")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", deleteJdbcParameterCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n");
+        if (sqlMappingAnnotation.includeVertx()) {
+            methodCodeBody.append(
+                    methodTemplate
+                            .replace("${return-type}", "static " + processorClassInfo.getClazz().getSimpleName())
+                            .replace("${method-name}", "vertxRowMapping")
+                            .replace("${list-of-parameters}", "io.vertx.sqlclient.Row row")
+                            .replace("${method-body}", vertxRowMappingCodeLines
+                                    .stream()
+                                    .collect(
+                                            Collectors.joining(
+                                                    "\n        ",
+                                                    CommonConstant.EMPTY_STRING,
+                                                    CommonConstant.EMPTY_STRING
+                                            )
+                                    )
+                            )
+            ).append("\n").append(
+                    methodTemplate
+                            .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
+                            .replace("${method-name}", "insertTupleParam")
+                            .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                            .replace("${method-body}", insertVertClientParameterCodeLines
+                                    .stream()
+                                    .collect(
+                                            Collectors.joining(
+                                                    "\n        ",
+                                                    CommonConstant.EMPTY_STRING,
+                                                    CommonConstant.EMPTY_STRING
+                                            )
+                                    )
+                            )
+            ).append("\n").append(
+                    methodTemplate
+                            .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
+                            .replace("${method-name}", "updateTupleParam")
+                            .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                            .replace("${method-body}", updateVertClientParameterCodeLines
+                                    .stream()
+                                    .collect(
+                                            Collectors.joining(
+                                                    "\n        ",
+                                                    CommonConstant.EMPTY_STRING,
+                                                    CommonConstant.EMPTY_STRING
+                                            )
+                                    )
+                            )
+            ).append("\n").append(
+                    methodTemplate
+                            .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
+                            .replace("${method-name}", "deleteTupleParam")
+                            .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                            .replace("${method-body}", deleteVertClientParameterCodeLines
+                                    .stream()
+                                    .collect(
+                                            Collectors.joining(
+                                                    "\n        ",
+                                                    CommonConstant.EMPTY_STRING,
+                                                    CommonConstant.EMPTY_STRING
+                                            )
+                                    )
+                            )
+            ).append("\n");
+        }
+        final var packageName = processingEnv
+                .getElementUtils()
+                .getPackageOf(processorClassInfo.getClazz())
+                .getQualifiedName()
+                .toString();
+        final var className = processorClassInfo.getClazz().getSimpleName() + "Utils";
+        final var code = sqlMappingTemplate
+                .replace("${package-name}", packageName)
+                .replace("${class-name}", className)
+                .replace("${methods}", MyStringUtils.removeSuffixOfString(methodCodeBody.toString(), "\n"));
+        String fullClassName = packageName + "." + className;
+        JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
+        try (Writer writer = builderFile.openWriter()) {
+            writer.write(code);
+        }
+    }
+
+    private void extractResultSetMappingCode(final Element element,
+                                             final String resultSetFunctionWillBeUse,
+                                             final ArrayList<String> resultSetMappingCodeLines,
+                                             final String fieldType,
+                                             final String databaseColumnNameToBeGet,
+                                             final String setFieldMethodName,
+                                             final String fieldTypeSimpleName) {
+        if (resultSetFunctionWillBeUse != null && !resultSetFunctionWillBeUse.isEmpty()) {
+            resultSetMappingCodeLines.add(
+                    "try {"
+            );
+            if (element.getAnnotation(Clob.class) != null) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    %1$s value = vn.com.lcx.common.database.handler.resultset.SqlClobReader.parseClobToString(resultSet.getClob(\"%2$s\"));",
+                                fieldType,
+                                databaseColumnNameToBeGet
+                        )
+                );
+            } else {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    %1$s value = resultSet.%2$s(\"%3$s\");",
+                                fieldType,
+                                resultSetFunctionWillBeUse,
+                                databaseColumnNameToBeGet
+                        )
+                );
+            }
+            resultSetMappingCodeLines.add(
+                    String.format(
+                            "    instance.%s(value);",
+                            setFieldMethodName
+                    )
+            );
+            resultSetMappingCodeLines.add(
+                    "} catch (java.sql.SQLException ignored) {"
+            );
+            resultSetMappingCodeLines.add(
+                    "    // Error should be logged here, but I think it will complicate the logging"
+            );
+            resultSetMappingCodeLines.add(
+                    "}"
+            );
+        } else {
+            if (!LocalDateTime.class.getSimpleName().equals(fieldTypeSimpleName) &&
+                    !LocalDate.class.getSimpleName().equals(fieldTypeSimpleName) &&
+                    !BigDecimal.class.getSimpleName().equals(fieldTypeSimpleName) &&
+                    !BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                return;
+            }
+            resultSetMappingCodeLines.add(
+                    "try {"
+            );
+            if (LocalDate.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    java.sql.Date time = resultSet.getDate(\"%s\");",
+                                databaseColumnNameToBeGet
+                        )
+                );
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    instance.%s(time != null ? time.toLocalDate() : null);",
+                                setFieldMethodName
+                        )
+                );
+            }
+            if (LocalDateTime.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    java.sql.Timestamp time = resultSet.getTimestamp(\"%s\");",
+                                databaseColumnNameToBeGet
+                        )
+                );
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    instance.%s(time != null ? time.toLocalDateTime() : null);",
+                                setFieldMethodName
+                        )
+                );
+            }
+            if (BigDecimal.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    String resultNumberInString = resultSet.getString(\"%s\");",
+                                databaseColumnNameToBeGet
+                        )
+                );
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    instance.%s(resultNumberInString != null && !resultNumberInString.isEmpty() ? new java.math.BigDecimal(resultNumberInString) : java.math.BigDecimal.ZERO);",
+                                setFieldMethodName
+                        )
+                );
+            }
+            if (BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    String resultNumberInString = resultSet.getString(\"%s\");",
+                                databaseColumnNameToBeGet
+                        )
+                );
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    instance.%s(resultNumberInString != null && !resultNumberInString.isEmpty() ? new java.math.BigInteger(resultNumberInString) : java.math.BigInteger.ZERO);",
+                                setFieldMethodName
+                        )
+                );
+            }
+            resultSetMappingCodeLines.add(
+                    "} catch (java.sql.SQLException ignored) {"
+            );
+            resultSetMappingCodeLines.add(
+                    "    // Error should be logged here, but I think it will complicate the logging"
+            );
+            resultSetMappingCodeLines.add(
+                    "}"
+            );
+        }
+    }
+
+    private void extractVertxRowMappingCode(final Element element,
+                                            final String resultSetFunctionWillBeUse,
+                                            final ArrayList<String> vertxRowMappingCodeLines,
+                                            final String fieldType,
+                                            final String databaseColumnNameToBeGet,
+                                            final String setFieldMethodName) {
+        if (resultSetFunctionWillBeUse != null && !resultSetFunctionWillBeUse.isEmpty()) {
+            vertxRowMappingCodeLines.add(
+                    "try {"
+            );
+            vertxRowMappingCodeLines.add(
+                    String.format(
+                            "    %1$s value = row.%2$s(\"%3$s\");",
+                            fieldType,
+                            resultSetFunctionWillBeUse,
+                            databaseColumnNameToBeGet
+                    )
+            );
+            vertxRowMappingCodeLines.add(
+                    String.format(
+                            "    instance.%s(value);",
+                            setFieldMethodName
+                    )
+            );
+            vertxRowMappingCodeLines.add(
+                    "} catch (java.lang.Throwable ignored) {"
+            );
+            vertxRowMappingCodeLines.add(
+                    "    // Error should be logged here, but I think it will complicate the logging"
+            );
+            vertxRowMappingCodeLines.add(
+                    "}"
+            );
+        } else {
+            vertxRowMappingCodeLines.add(
+                    String.format(
+                            "// Unknow type to generate code for field `%s` - `%s`",
+                            element.getSimpleName().toString(),
+                            element.asType()
+                    )
+            );
+        }
+    }
+
+    private void buildStatement(final ArrayList<String> insertStatementCodeLines,
+                                final ArrayList<String> insertJdbcParameterCodeLines,
+                                final ArrayList<String> insertVertClientParameterCodeLines,
+                                final ArrayList<String> updateStatementCodeLines,
+                                final ArrayList<String> updateJdbcParameterCodeLines,
+                                final ArrayList<String> updateVertClientParameterCodeLines,
+                                final ArrayList<String> deleteStatementCodeLines,
+                                final ArrayList<String> deleteJdbcParameterCodeLines,
+                                final ArrayList<String> deleteVertClientParameterCodeLines,
+                                final ProcessorClassInfo processorClassInfo) {
+
+
+        final String tableName = getTableName(processorClassInfo);
+        if (StringUtils.isBlank(tableName)) {
+            insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            return;
+        }
+        var idElements = processorClassInfo.getFields().stream()
+                .filter(
+                        element ->
+                                !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
+                ).filter(
+                        element ->
+                                Optional.ofNullable(element.getAnnotation(IdColumn.class)).isPresent()
+                ).collect(Collectors.toCollection(ArrayList::new));
+        if (idElements.isEmpty()) {
+            insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            return;
+        }
+        if (idElements.size() > 1) {
+            insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            return;
+        }
+        final var idElement = idElements.get(0);
+        final String idFieldName = idElement.getSimpleName().toString();
+        ColumnName idColumnNameAnnotation = idElement.getAnnotation(ColumnName.class);
+        String idDatabaseColumnNameToBeGet = Optional
+                .ofNullable(idColumnNameAnnotation)
+                .filter(a -> StringUtils.isNotBlank(a.name()))
+                .map(ColumnName::name)
+                .orElse(convertCamelToConstant(idFieldName));
+        insertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
+        updateStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
+        updateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
+        updateStatementCodeLines.add("}");
+        updateStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
+        deleteStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
+        deleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
+        deleteStatementCodeLines.add("}");
+        insertJdbcParameterCodeLines.add("java.util.Map<Integer, Object> map = new java.util.HashMap<>();");
+        insertJdbcParameterCodeLines.add("int startingPosition = 0;");
+        updateJdbcParameterCodeLines.add("java.util.Map<Integer, Object> map = new java.util.HashMap<>();");
+        updateJdbcParameterCodeLines.add("int startingPosition = 0;");
+        deleteJdbcParameterCodeLines.add("java.util.Map<Integer, Object> map = new java.util.HashMap<>();");
+        deleteJdbcParameterCodeLines.add("int startingPosition = 0;");
+        insertVertClientParameterCodeLines.add("java.util.ArrayList<Object> params = new java.util.ArrayList<>();");
+        updateVertClientParameterCodeLines.add("java.util.ArrayList<Object> params = new java.util.ArrayList<>();");
+        deleteVertClientParameterCodeLines.add("java.util.ArrayList<Object> params = new java.util.ArrayList<>();");
+        processorClassInfo.getFields().stream()
+                .filter(
+                        element ->
+                                !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
+                ).forEach(element -> {
+                    final String fieldName = element.getSimpleName().toString();
+                    final String fieldType = element.asType().toString();
+                    ColumnName columnNameAnnotation = element.getAnnotation(ColumnName.class);
+                    String databaseColumnNameToBeGet = Optional
+                            .ofNullable(columnNameAnnotation)
+                            .filter(a -> StringUtils.isNotBlank(a.name()))
+                            .map(ColumnName::name)
+                            .orElse(convertCamelToConstant(fieldName));
+                    insertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                    insertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
+                    insertStatementCodeLines.add("}");
+                    insertJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                    insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
+                    insertJdbcParameterCodeLines.add("}");
+                    insertVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                    insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(fieldName)));
+                    insertVertClientParameterCodeLines.add("}");
+                    if (!fieldName.equals(idFieldName)) {
+                        updateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                        updateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
+                        updateStatementCodeLines.add("}");
+                        updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
+                        updateJdbcParameterCodeLines.add("}");
+                        updateVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                        updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(fieldName)));
+                        updateVertClientParameterCodeLines.add("}");
+                        // updateStatementCodeLines.addAll(codes);
+                    }
+                });
+        insertStatementCodeLines.add(String.format("return \"INSERT INTO %s\" +", tableName));
+        insertStatementCodeLines.add("        cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
+        insertStatementCodeLines.add("        \"VALUES\" +");
+        insertStatementCodeLines.add("        cols.stream().map(it -> \"?\").collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
+        updateStatementCodeLines.add(String.format("return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
+        deleteStatementCodeLines.add(String.format("return \"DELETE FROM %s WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
+        deleteJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
+        deleteJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(idFieldName)));
+        deleteJdbcParameterCodeLines.add("}");
+        deleteVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
+        deleteVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(idFieldName)));
+        deleteVertClientParameterCodeLines.add("}");
+        insertJdbcParameterCodeLines.add("return map;");
+        updateJdbcParameterCodeLines.add("return map;");
+        deleteJdbcParameterCodeLines.add("return map;");
+        insertVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray());");
+        updateVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray());");
+        deleteVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray());");
+    }
+
+    private String getTableName(ProcessorClassInfo processorClassInfo) {
+        final String tableName;
+        TableName tableNameAnnotation = processorClassInfo.getClazz().getAnnotation(TableName.class);
+        if (tableNameAnnotation == null) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        String tableNameValue = tableNameAnnotation.value();
+        if (StringUtils.isNotBlank(tableNameAnnotation.schema())) {
+            String schemaName = tableNameAnnotation.schema() + ".";
+            if (tableNameValue.contains(".")) {
+                final String[] tableNameValueArray = tableNameValue.split(DOT);
+                tableName = schemaName + tableNameValueArray[tableNameValueArray.length - 1];
+            } else {
+                tableName = schemaName + tableNameValue;
+            }
+        } else {
+            tableName = tableNameValue;
+        }
+        return tableName;
+    }
+
+    @Deprecated
     private void generateBuilderClass(TypeElement typeElement) throws Exception {
         String className = typeElement.getSimpleName() + "Builder";
         String packageName = this.processingEnv.getElementUtils().getPackageOf(typeElement).getQualifiedName().toString();
@@ -80,6 +724,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
         JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
         try (Writer writer = builderFile.openWriter()) {
             writer.write("package " + packageName + ";\n\n");
+            writer.write("@Deprecated\n");
             writer.write("public class " + className + " {\n\n");
             writer.write("    private " + className + "() {\n");
             writer.write("    }\n\n");
