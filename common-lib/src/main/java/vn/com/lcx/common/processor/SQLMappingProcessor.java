@@ -797,9 +797,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
         insertJdbcParameterCodeLines.add("return map;");
         updateJdbcParameterCodeLines.add("return map;");
         deleteJdbcParameterCodeLines.add("return map;");
-        insertVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray());");
-        updateVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray());");
-        deleteVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray());");
+        insertVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray(Object[]::new));");
+        updateVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray(Object[]::new));");
+        deleteVertClientParameterCodeLines.add("return io.vertx.sqlclient.Tuple.from(params.toArray(Object[]::new));");
     }
 
     private String getTableName(ProcessorClassInfo processorClassInfo) {
