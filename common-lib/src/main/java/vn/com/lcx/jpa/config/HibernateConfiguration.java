@@ -20,7 +20,6 @@ import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.type.DBTypeEnum;
-import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
@@ -147,14 +146,6 @@ public class HibernateConfiguration {
                 for (Class<?> entity : ClassPool.ENTITIES) {
                     sources.addAnnotatedClass(entity);
                     entitiesClassNames.add(entity.getName());
-                    EntityUtils.analyzeEntityClass(
-                            entity,
-                            dbType.name().toLowerCase(),
-                            FileUtils.pathJoining(
-                                    CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
-                                    "data"
-                            )
-                    );
                 }
             } else {
                 final var entitiesInPackage = PackageScanner.findClasses(entityPackage);
@@ -162,14 +153,6 @@ public class HibernateConfiguration {
                     if (entity.getAnnotation(Entity.class) != null) {
                         sources.addAnnotatedClass(entity);
                         entitiesClassNames.add(entity.getName());
-                        EntityUtils.analyzeEntityClass(
-                                entity,
-                                dbType.name().toLowerCase(),
-                                FileUtils.pathJoining(
-                                        CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
-                                        "data"
-                                )
-                        );
                     }
                 }
             }

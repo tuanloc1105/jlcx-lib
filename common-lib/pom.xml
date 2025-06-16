@@ -232,25 +232,21 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-oracle-client</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-mysql-client</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-pg-client</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-mssql-client</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>

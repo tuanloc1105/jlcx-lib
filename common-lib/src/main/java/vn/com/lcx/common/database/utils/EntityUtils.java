@@ -604,7 +604,11 @@ public final class EntityUtils {
                     String.join(System.lineSeparator(), addForeignKeyList)
             );
             writeContentToFile(
-                    FileUtils.pathJoining(folderPath, tableNameAnnotation.value() + ".sql"),
+                    FileUtils.pathJoining(folderPath,
+                            StringUtils.isNotBlank(tableNameAnnotation.schema().toLowerCase()) ?
+                                    tableNameAnnotation.schema().toLowerCase() + '-' : CommonConstant.EMPTY_STRING +
+                                    tableNameAnnotation.value().toLowerCase() + ".sql"
+                    ),
                     createTableStatement
             );
         }

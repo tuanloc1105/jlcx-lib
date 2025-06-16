@@ -65,9 +65,7 @@ public class ClassPool {
             final var sourceType = CommonConstant.applicationConfig.getProperty("database.source_type");
             final var folderPath = FileUtils.pathJoining(
                     CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
-                    "data",
-                    "sql",
-                    DateTimeUtils.generateCurrentLocalDateDefault().format(DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_STRING_PATTERN))
+                    "data"
             );
             FileUtils.deleteFolder(new File(folderPath));
             if (analyzeEntities) {

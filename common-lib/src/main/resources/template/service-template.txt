@@ -8,6 +8,5 @@ public class ${class-name} extends ${actual-class-name} {
         super(${super-parameters});
         this.actual = actual;
     }
-
 ${methods}
 }
