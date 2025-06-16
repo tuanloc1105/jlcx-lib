@@ -171,7 +171,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                     vertxRowMappingCodeLines,
                                     fieldType,
                                     databaseColumnNameToBeGet,
-                                    setFieldMethodName
+                                    setFieldMethodName,
+                                    fieldTypeSimpleName
                             );
                         }
                 );
@@ -303,70 +304,67 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                         )
                                 )
                         )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static " + processorClassInfo.getClazz().getSimpleName())
+                        .replace("${method-name}", "vertxRowMapping")
+                        .replace("${list-of-parameters}", "io.vertx.sqlclient.Row row")
+                        .replace("${method-body}", vertxRowMappingCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
+                        .replace("${method-name}", "insertTupleParam")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", insertVertClientParameterCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
+                        .replace("${method-name}", "updateTupleParam")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", updateVertClientParameterCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
+                        .replace("${method-name}", "deleteTupleParam")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", deleteVertClientParameterCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
         ).append("\n");
-        if (sqlMappingAnnotation.includeVertx()) {
-            methodCodeBody.append(
-                    methodTemplate
-                            .replace("${return-type}", "static " + processorClassInfo.getClazz().getSimpleName())
-                            .replace("${method-name}", "vertxRowMapping")
-                            .replace("${list-of-parameters}", "io.vertx.sqlclient.Row row")
-                            .replace("${method-body}", vertxRowMappingCodeLines
-                                    .stream()
-                                    .collect(
-                                            Collectors.joining(
-                                                    "\n        ",
-                                                    CommonConstant.EMPTY_STRING,
-                                                    CommonConstant.EMPTY_STRING
-                                            )
-                                    )
-                            )
-            ).append("\n").append(
-                    methodTemplate
-                            .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
-                            .replace("${method-name}", "insertTupleParam")
-                            .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
-                            .replace("${method-body}", insertVertClientParameterCodeLines
-                                    .stream()
-                                    .collect(
-                                            Collectors.joining(
-                                                    "\n        ",
-                                                    CommonConstant.EMPTY_STRING,
-                                                    CommonConstant.EMPTY_STRING
-                                            )
-                                    )
-                            )
-            ).append("\n").append(
-                    methodTemplate
-                            .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
-                            .replace("${method-name}", "updateTupleParam")
-                            .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
-                            .replace("${method-body}", updateVertClientParameterCodeLines
-                                    .stream()
-                                    .collect(
-                                            Collectors.joining(
-                                                    "\n        ",
-                                                    CommonConstant.EMPTY_STRING,
-                                                    CommonConstant.EMPTY_STRING
-                                            )
-                                    )
-                            )
-            ).append("\n").append(
-                    methodTemplate
-                            .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
-                            .replace("${method-name}", "deleteTupleParam")
-                            .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
-                            .replace("${method-body}", deleteVertClientParameterCodeLines
-                                    .stream()
-                                    .collect(
-                                            Collectors.joining(
-                                                    "\n        ",
-                                                    CommonConstant.EMPTY_STRING,
-                                                    CommonConstant.EMPTY_STRING
-                                            )
-                                    )
-                            )
-            ).append("\n");
-        }
         final var packageName = processingEnv
                 .getElementUtils()
                 .getPackageOf(processorClassInfo.getClazz())
@@ -433,6 +431,13 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     !LocalDate.class.getSimpleName().equals(fieldTypeSimpleName) &&
                     !BigDecimal.class.getSimpleName().equals(fieldTypeSimpleName) &&
                     !BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "// ################# Unknow type to generate code for field `%s` - `%s` #################",
+                                element.getSimpleName().toString(),
+                                element.asType()
+                        )
+                );
                 return;
             }
             resultSetMappingCodeLines.add(
@@ -511,7 +516,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                             final ArrayList<String> vertxRowMappingCodeLines,
                                             final String fieldType,
                                             final String databaseColumnNameToBeGet,
-                                            final String setFieldMethodName) {
+                                            final String setFieldMethodName,
+                                            final String fieldTypeSimpleName) {
         if (resultSetFunctionWillBeUse != null && !resultSetFunctionWillBeUse.isEmpty()) {
             vertxRowMappingCodeLines.add(
                     "try {"
@@ -540,12 +546,37 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "}"
             );
         } else {
+            if (!BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "// ################# Unknow type to generate code for field `%s` - `%s` #################",
+                                element.getSimpleName().toString(),
+                                element.asType()
+                        )
+                );
+                return;
+            }
+            vertxRowMappingCodeLines.add(
+                    "try {"
+            );
             vertxRowMappingCodeLines.add(
                     String.format(
-                            "// Unknow type to generate code for field `%s` - `%s`",
-                            element.getSimpleName().toString(),
-                            element.asType()
+                            "    io.vertx.sqlclient.data.Numeric numericValue = row.get(io.vertx.sqlclient.data.Numeric.class, \"%s\");",
+                            databaseColumnNameToBeGet
                     )
+            );
+            vertxRowMappingCodeLines.add("    if (numericValue != null) {");
+            vertxRowMappingCodeLines.add("        java.math.BigInteger bigIntValue = numericValue.bigIntegerValue();");
+            vertxRowMappingCodeLines.add(String.format("        instance.%s(bigIntValue);", setFieldMethodName));
+            vertxRowMappingCodeLines.add("    }");
+            vertxRowMappingCodeLines.add(
+                    "} catch (java.lang.Throwable ignored) {"
+            );
+            vertxRowMappingCodeLines.add(
+                    "    // Error should be logged here, but I think it will complicate the logging"
+            );
+            vertxRowMappingCodeLines.add(
+                    "}"
             );
         }
     }
