@@ -7,22 +7,15 @@ import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.annotation.InstanceClass;
 import vn.com.lcx.common.annotation.PostConstruct;
-import vn.com.lcx.common.annotation.Repository;
-import vn.com.lcx.common.annotation.Service;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.annotation.mapper.Mapper;
 import vn.com.lcx.common.annotation.mapper.MapperClass;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.database.DatabaseExecutor;
-import vn.com.lcx.common.database.DatabaseExecutorImpl;
 import vn.com.lcx.common.database.pool.HikariLcxDataSource;
 import vn.com.lcx.common.database.pool.LCXDataSource;
-import vn.com.lcx.common.database.repository.LCXRepository;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.database.utils.EntityUtils;
-import vn.com.lcx.common.proxy.RepositoryProxyHandler;
-import vn.com.lcx.common.proxy.ServiceProxyHandler;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.FileUtils;
@@ -41,7 +34,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -104,16 +96,6 @@ public class ClassPool {
                     continue;
                 }
 
-                final var repositoryAnnotation = aClass.getAnnotation(Repository.class);
-                if (repositoryAnnotation != null) {
-                    final var implementClassName = aClass.getName() + "Implement";
-                    final var repository = (LCXRepository<?>) Class.forName(implementClassName).getDeclaredConstructor(DatabaseExecutor.class).newInstance(DatabaseExecutorImpl.getInstance());
-                    final var repositoryProxy = RepositoryProxyHandler.createProxy(aClass, repository);
-                    // CLASS_POOL.put(aClass.getName() + "proxy", repositoryProxy);
-                    CLASS_POOL.put(aClass.getName(), repositoryProxy);
-                    CLASS_POOL.put(implementClassName, repository);
-                    continue;
-                }
                 final var mapperClassAnnotation = aClass.getAnnotation(MapperClass.class);
                 if (mapperClassAnnotation != null && aClass.isInterface()) {
                     CLASS_POOL.put(aClass.getName(), Mapper.getInstance(aClass));
@@ -136,7 +118,7 @@ public class ClassPool {
                 final var componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
                     final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
-                    if (fieldsOfComponent.isEmpty() && Optional.ofNullable(aClass.getAnnotation(Service.class)).isEmpty()) {
+                    if (fieldsOfComponent.isEmpty()) {
                         LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor().newInstance();
                         if (!checkProxy(instance)) {
@@ -224,11 +206,7 @@ public class ClassPool {
         final var iFace = aClass.getInterfaces();
 
         for (Class<?> iFaceClass : iFace) {
-            if (aClass.getAnnotation(Service.class) != null) {
-                ClassPool.CLASS_POOL.put(iFaceClass.getName(), ServiceProxyHandler.create(iFaceClass, instance));
-            } else {
-                ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
-            }
+            ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
         }
     }
 
