@@ -9,20 +9,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import vn.com.lcx.jpa.entity.BaseEntity;
 
 import java.math.BigInteger;
 import java.util.List;
 
+@AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "user", schema = "lcx")
-@EqualsAndHashCode(callSuper = false)
 public class UserEntity extends BaseEntity {
     private static final long serialVersionUID = 3771285585431109603L;
 

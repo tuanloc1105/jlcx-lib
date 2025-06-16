@@ -61,16 +61,14 @@ public class ClassPool {
             listOfClassInPackage.clear();
             listOfClassInPackage.addAll(setOfClassInPackage);
 
-            final var analyzeEntities = Boolean.parseBoolean(CommonConstant.applicationConfig.getProperty("database.generate_sql") + CommonConstant.EMPTY_STRING);
             final var sourceType = CommonConstant.applicationConfig.getProperty("database.source_type");
             final var folderPath = FileUtils.pathJoining(
                     CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
-                    "data"
+                    "data",
+                    "sql"
             );
             FileUtils.deleteFolder(new File(folderPath));
-            if (analyzeEntities) {
-                createFolderIfNotExists(folderPath);
-            }
+            createFolderIfNotExists(folderPath);
             final var postHandleComponent = new ArrayList<Class<?>>();
             final var handledPostHandleComponent = new ArrayList<Class<?>>();
             // createDatasource();
@@ -83,9 +81,7 @@ public class ClassPool {
             for (Class<?> aClass : listOfClassInPackage) {
 
                 if (aClass.getAnnotation(TableName.class) != null) {
-                    if (analyzeEntities) {
-                        EntityUtils.analyzeEntityClass(aClass, sourceType, folderPath);
-                    }
+                    EntityUtils.analyzeEntityClass(aClass, sourceType, folderPath);
                     continue;
                 }
 

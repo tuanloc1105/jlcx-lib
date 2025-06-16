@@ -605,8 +605,8 @@ public final class EntityUtils {
             );
             writeContentToFile(
                     FileUtils.pathJoining(folderPath,
-                            StringUtils.isNotBlank(tableNameAnnotation.schema().toLowerCase()) ?
-                                    tableNameAnnotation.schema().toLowerCase() + '-' : CommonConstant.EMPTY_STRING +
+                            (StringUtils.isNotBlank(tableNameAnnotation.schema().toLowerCase()) ?
+                                    tableNameAnnotation.schema().toLowerCase() + '-' : CommonConstant.EMPTY_STRING) +
                                     tableNameAnnotation.value().toLowerCase() + ".sql"
                     ),
                     createTableStatement

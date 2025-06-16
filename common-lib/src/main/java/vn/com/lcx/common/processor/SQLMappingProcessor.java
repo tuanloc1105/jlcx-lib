@@ -179,22 +179,28 @@ public class SQLMappingProcessor extends AbstractProcessor {
         resultSetMappingCodeLines.add("return instance;");
         vertxRowMappingCodeLines.add("return instance;");
         final var insertStatementCodeLines = new ArrayList<String>();
+        final var reactiveInsertStatementCodeLines = new ArrayList<String>();
         final var insertJdbcParameterCodeLines = new ArrayList<String>();
         final var insertVertClientParameterCodeLines = new ArrayList<String>();
         final var updateStatementCodeLines = new ArrayList<String>();
+        final var reactiveUpdateStatementCodeLines = new ArrayList<String>();
         final var updateJdbcParameterCodeLines = new ArrayList<String>();
         final var updateVertClientParameterCodeLines = new ArrayList<String>();
         final var deleteStatementCodeLines = new ArrayList<String>();
+        final var reactiveDeleteStatementCodeLines = new ArrayList<String>();
         final var deleteJdbcParameterCodeLines = new ArrayList<String>();
         final var deleteVertClientParameterCodeLines = new ArrayList<String>();
         buildStatement(
                 insertStatementCodeLines,
+                reactiveInsertStatementCodeLines,
                 insertJdbcParameterCodeLines,
                 insertVertClientParameterCodeLines,
                 updateStatementCodeLines,
+                reactiveUpdateStatementCodeLines,
                 updateJdbcParameterCodeLines,
                 updateVertClientParameterCodeLines,
                 deleteStatementCodeLines,
+                reactiveDeleteStatementCodeLines,
                 deleteJdbcParameterCodeLines,
                 deleteVertClientParameterCodeLines,
                 processorClassInfo
@@ -250,6 +256,51 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         .replace("${method-name}", "deleteStatement")
                         .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
                         .replace("${method-body}", deleteStatementCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "reactiveInsertStatement")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", reactiveInsertStatementCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "reactiveUpdateStatement")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", reactiveUpdateStatementCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "reactiveDeleteStatement")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${method-body}", reactiveDeleteStatementCodeLines
                                 .stream()
                                 .collect(
                                         Collectors.joining(
@@ -582,12 +633,15 @@ public class SQLMappingProcessor extends AbstractProcessor {
     }
 
     private void buildStatement(final ArrayList<String> insertStatementCodeLines,
+                                final ArrayList<String> reactiveInsertStatementCodeLines,
                                 final ArrayList<String> insertJdbcParameterCodeLines,
                                 final ArrayList<String> insertVertClientParameterCodeLines,
                                 final ArrayList<String> updateStatementCodeLines,
+                                final ArrayList<String> reactiveUpdateStatementCodeLines,
                                 final ArrayList<String> updateJdbcParameterCodeLines,
                                 final ArrayList<String> updateVertClientParameterCodeLines,
                                 final ArrayList<String> deleteStatementCodeLines,
+                                final ArrayList<String> reactiveDeleteStatementCodeLines,
                                 final ArrayList<String> deleteJdbcParameterCodeLines,
                                 final ArrayList<String> deleteVertClientParameterCodeLines,
                                 final ProcessorClassInfo processorClassInfo) {
@@ -596,12 +650,15 @@ public class SQLMappingProcessor extends AbstractProcessor {
         final String tableName = getTableName(processorClassInfo);
         if (StringUtils.isBlank(tableName)) {
             insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            reactiveInsertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            reactiveUpdateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             return;
@@ -616,24 +673,30 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 ).collect(Collectors.toCollection(ArrayList::new));
         if (idElements.isEmpty()) {
             insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            reactiveInsertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            reactiveUpdateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             return;
         }
         if (idElements.size() > 1) {
             insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            reactiveInsertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            reactiveUpdateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             return;
@@ -647,13 +710,22 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 .map(ColumnName::name)
                 .orElse(convertCamelToConstant(idFieldName));
         insertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
+        reactiveInsertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         updateStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
         updateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
         updateStatementCodeLines.add("}");
         updateStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
+        reactiveUpdateStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
+        reactiveUpdateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
+        reactiveUpdateStatementCodeLines.add("}");
+        reactiveUpdateStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
+        reactiveUpdateStatementCodeLines.add("int count = 0;");
         deleteStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
         deleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
         deleteStatementCodeLines.add("}");
+        reactiveDeleteStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
+        reactiveDeleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
+        reactiveDeleteStatementCodeLines.add("}");
         insertJdbcParameterCodeLines.add("java.util.Map<Integer, Object> map = new java.util.HashMap<>();");
         insertJdbcParameterCodeLines.add("int startingPosition = 0;");
         updateJdbcParameterCodeLines.add("java.util.Map<Integer, Object> map = new java.util.HashMap<>();");
@@ -679,6 +751,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     insertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                     insertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
                     insertStatementCodeLines.add("}");
+                    reactiveInsertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                    reactiveInsertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
+                    reactiveInsertStatementCodeLines.add("}");
                     insertJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                     insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
                     insertJdbcParameterCodeLines.add("}");
@@ -689,6 +764,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         updateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         updateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
                         updateStatementCodeLines.add("}");
+                        reactiveUpdateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                        reactiveUpdateStatementCodeLines.add(String.format("    cols.add(\"%s = $\" + (++count));", databaseColumnNameToBeGet));
+                        reactiveUpdateStatementCodeLines.add("}");
                         updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
                         updateJdbcParameterCodeLines.add("}");
@@ -702,8 +780,14 @@ public class SQLMappingProcessor extends AbstractProcessor {
         insertStatementCodeLines.add("        cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
         insertStatementCodeLines.add("        \"VALUES\" +");
         insertStatementCodeLines.add("        cols.stream().map(it -> \"?\").collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
+        reactiveInsertStatementCodeLines.add(String.format("return \"INSERT INTO %s\" +", tableName));
+        reactiveInsertStatementCodeLines.add("        cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
+        reactiveInsertStatementCodeLines.add("        \"VALUES\" +");
+        reactiveInsertStatementCodeLines.add("        java.util.stream.IntStream.range(0, cols.size()).mapToObj(i -> \"$\" + (i + 1)).collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
         updateStatementCodeLines.add(String.format("return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
+        reactiveUpdateStatementCodeLines.add(String.format("return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = $\" + (++count);", tableName, idDatabaseColumnNameToBeGet));
         deleteStatementCodeLines.add(String.format("return \"DELETE FROM %s WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
+        reactiveDeleteStatementCodeLines.add(String.format("return \"DELETE FROM %s WHERE %s = $1\";", tableName, idDatabaseColumnNameToBeGet));
         deleteJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
         deleteJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(idFieldName)));
         deleteJdbcParameterCodeLines.add("}");
