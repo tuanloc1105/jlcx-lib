@@ -1,13 +1,14 @@
 package vn.com.lcx.reactive.repository;
 
+import io.vertx.core.Future;
 import io.vertx.sqlclient.SqlConnection;
 
 public interface ReactiveRepository<T> {
 
-    int save(SqlConnection client, T entity);
+    Future<Integer> save(SqlConnection client, T entity);
 
-    int update(SqlConnection client, T entity);
+    Future<Integer> update(SqlConnection client, T entity);
 
-    int delete(SqlConnection client, T entity);
+    Future<Integer> delete(SqlConnection client, T entity);
 
 }

@@ -1,18 +1,11 @@
 package vn.com.lcx.common.proxy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.com.lcx.common.annotation.Repository;
-import vn.com.lcx.common.config.ClassPool;
-import vn.com.lcx.common.database.context.ConnectionContext;
-import vn.com.lcx.common.database.pool.LCXDataSource;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.sql.Connection;
 
 public class RepositoryProxyHandler<T> implements InvocationHandler {
     private final Logger log = LoggerFactory.getLogger("proxy");
@@ -36,45 +29,46 @@ public class RepositoryProxyHandler<T> implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         // Handle Object methods
-        switch (method.getName()) {
-            case "toString":
-                return "Proxy for " + repositoryInterface.getName();
-            case "hashCode":
-                return System.identityHashCode(proxy);
-            case "equals":
-                return proxy == args[0];
-        }
-        Repository repositoryAnnotation = repositoryInterface.getAnnotation(Repository.class);
-        Connection connection = ConnectionContext.get(repositoryAnnotation.connectionInstanceName());
-        boolean closeAfterExecuted = false;
-        if (connection == null) {
-            closeAfterExecuted = true;
-            LCXDataSource dataSource;
-            if (StringUtils.isNotBlank(repositoryAnnotation.connectionInstanceName())) {
-                dataSource = ClassPool.getInstance(repositoryAnnotation.connectionInstanceName(), LCXDataSource.class);
-            } else {
-                dataSource = ClassPool.getInstance(LCXDataSource.class);
-            }
-            connection = dataSource.get();
-        }
-        ConnectionContext.set(connection);
+        // switch (method.getName()) {
+        //     case "toString":
+        //         return "Proxy for " + repositoryInterface.getName();
+        //     case "hashCode":
+        //         return System.identityHashCode(proxy);
+        //     case "equals":
+        //         return proxy == args[0];
+        // }
+        // Repository repositoryAnnotation = repositoryInterface.getAnnotation(Repository.class);
+        // Connection connection = ConnectionContext.get(repositoryAnnotation.connectionInstanceName());
+        // boolean closeAfterExecuted = false;
+        // if (connection == null) {
+        //     closeAfterExecuted = true;
+        //     LCXDataSource dataSource;
+        //     if (StringUtils.isNotBlank(repositoryAnnotation.connectionInstanceName())) {
+        //         dataSource = ClassPool.getInstance(repositoryAnnotation.connectionInstanceName(), LCXDataSource.class);
+        //     } else {
+        //         dataSource = ClassPool.getInstance(LCXDataSource.class);
+        //     }
+        //     connection = dataSource.get();
+        // }
+        // ConnectionContext.set(connection);
 
-        try {
-            return method.invoke(target, args);
-        } catch (InvocationTargetException e) {
-            Throwable targetException = e.getCause();
-            if (targetException instanceof RuntimeException || targetException instanceof Error) {
-                throw targetException;
-            }
-            throw new RuntimeException("Exception in method " + method.getName(), targetException);
-        } catch (Exception e) {
-            throw new RuntimeException("Unexpected error invoking method " + method.getName(), e);
-        } finally {
-            if (closeAfterExecuted) {
-                connection.close();
-            }
-            ConnectionContext.clear();
-        }
+        // try {
+        //     return method.invoke(target, args);
+        // } catch (InvocationTargetException e) {
+        //     Throwable targetException = e.getCause();
+        //     if (targetException instanceof RuntimeException || targetException instanceof Error) {
+        //         throw targetException;
+        //     }
+        //     throw new RuntimeException("Exception in method " + method.getName(), targetException);
+        // } catch (Exception e) {
+        //     throw new RuntimeException("Unexpected error invoking method " + method.getName(), e);
+        // } finally {
+        //     if (closeAfterExecuted) {
+        //         connection.close();
+        //     }
+        //     ConnectionContext.clear();
+        // }
+        return null;
     }
 
 }

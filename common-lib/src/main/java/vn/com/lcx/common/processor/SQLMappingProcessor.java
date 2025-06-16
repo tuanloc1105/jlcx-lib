@@ -190,6 +190,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
         final var reactiveDeleteStatementCodeLines = new ArrayList<String>();
         final var deleteJdbcParameterCodeLines = new ArrayList<String>();
         final var deleteVertClientParameterCodeLines = new ArrayList<String>();
+        final var idColumnNameCodeLines = new ArrayList<String>();
         buildStatement(
                 insertStatementCodeLines,
                 reactiveInsertStatementCodeLines,
@@ -203,6 +204,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 reactiveDeleteStatementCodeLines,
                 deleteJdbcParameterCodeLines,
                 deleteVertClientParameterCodeLines,
+                idColumnNameCodeLines,
                 processorClassInfo
         );
         methodCodeBody.append(
@@ -406,6 +408,21 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         .replace("${method-name}", "deleteTupleParam")
                         .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
                         .replace("${method-body}", deleteVertClientParameterCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "idColumnName")
+                        .replace("${list-of-parameters}", CommonConstant.EMPTY_STRING)
+                        .replace("${method-body}", idColumnNameCodeLines
                                 .stream()
                                 .collect(
                                         Collectors.joining(
@@ -644,9 +661,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 final ArrayList<String> reactiveDeleteStatementCodeLines,
                                 final ArrayList<String> deleteJdbcParameterCodeLines,
                                 final ArrayList<String> deleteVertClientParameterCodeLines,
+                                final ArrayList<String> idColumnNameCodeLines,
                                 final ProcessorClassInfo processorClassInfo) {
-
-
         final String tableName = getTableName(processorClassInfo);
         if (StringUtils.isBlank(tableName)) {
             insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
@@ -684,6 +700,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            idColumnNameCodeLines.add("return null;");
             return;
         }
         if (idElements.size() > 1) {
@@ -699,6 +716,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            idColumnNameCodeLines.add("return null;");
             return;
         }
         final var idElement = idElements.get(0);
@@ -709,6 +727,12 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 .filter(a -> StringUtils.isNotBlank(a.name()))
                 .map(ColumnName::name)
                 .orElse(convertCamelToConstant(idFieldName));
+        idColumnNameCodeLines.add(
+                String.format(
+                        "return \"%s\";",
+                        idDatabaseColumnNameToBeGet
+                )
+        );
         insertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         reactiveInsertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         updateStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
