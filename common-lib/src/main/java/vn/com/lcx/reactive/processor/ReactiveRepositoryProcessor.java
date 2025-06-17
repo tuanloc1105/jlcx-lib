@@ -112,18 +112,23 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                         sqlConnectionVariable.getSimpleName().toString()
                                 )
                         );
-                        if (methodInfo.getMethodName().equals("save")) {
-                            buildSaveModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
-                        } else if (methodInfo.getMethodName().equals("update")) {
-                            buildUpdateModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
-                        } else if (methodInfo.getMethodName().equals("delete")) {
-                            buildDeleteModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
-                        } else {
-                            if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
-                                buildQueryMethodCodeBody(executableElement, codeLines, sqlConnectionVariable, actualParameters);
-                            } else {
-                                buildCustomQueryMethodCodeBody(methodInfo, executableElement, codeLines, sqlConnectionVariable, entityTypeMirror, actualParameters);
-                            }
+                        switch (methodInfo.getMethodName()) {
+                            case "save":
+                                buildSaveModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
+                                break;
+                            case "update":
+                                buildUpdateModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
+                                break;
+                            case "delete":
+                                buildDeleteModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
+                                break;
+                            default:
+                                if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
+                                    buildQueryMethodCodeBody(executableElement, codeLines, sqlConnectionVariable, actualParameters);
+                                } else {
+                                    buildCustomQueryMethodCodeBody(methodInfo, executableElement, codeLines, sqlConnectionVariable, entityTypeMirror, actualParameters);
+                                }
+                                break;
                         }
                     }
                     methodCodeBody.append(
@@ -437,7 +442,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                  ArrayList<String> codeLines,
                                                  VariableElement sqlConnectionVariable,
                                                  List<VariableElement> actualParameters) {
-        final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
+        // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
+        final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n\" + \n                        \"");
         codeLines.add(
                 String.format("return %1$s.preparedQuery(\"%2$s\")",
                         sqlConnectionVariable.getSimpleName().toString(),
@@ -467,7 +473,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.SelectStatementBuilder.of(%2$s.class, \"$\").build(\"%3$s\", %4$s))",
+                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%2$s.class, \"$\").build(\"%3$s\", %4$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
@@ -489,7 +495,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.SelectStatementBuilder.of(%2$s.class, \"?\").build(\"%3$s\", %4$s))",
+                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%2$s.class, \"?\").build(\"%3$s\", %4$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
@@ -511,7 +517,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.SelectStatementBuilder.of(%2$s.class, \"@p\").build(\"%3$s\", %4$s))",
+                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%2$s.class, \"@p\").build(\"%3$s\", %4$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
@@ -533,7 +539,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.SelectStatementBuilder.of(%2$s.class, \"?\").build(\"%3$s\", %4$s))",
+                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%2$s.class, \"?\").build(\"%3$s\", %4$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
