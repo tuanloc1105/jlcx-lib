@@ -1,6 +1,8 @@
 package vn.com.lcx.common.constant;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class JavaSqlResultSetConstant {
@@ -58,6 +60,40 @@ public class JavaSqlResultSetConstant {
             put("String", "getString");
             put("LocalDateTime", "getLocalDateTime");
             put("LocalDate", "getLocalDate");
+        }
+    };
+
+    public static final Map<String, String> DATA_TYPE_DEFAULT_VALUE_MAP = new HashMap<>() {
+        private static final long serialVersionUID = 2607763254654075386L;
+
+        {
+            put("BigDecimal", "java.math.BigDecimal.ZERO");
+            put("BigInteger", "java.math.BigInteger.ZERO");
+            put("boolean", "false");
+            put("Boolean", "false");
+            put("double", "0D");
+            put("Double", "0D");
+            put("float", "0F");
+            put("Float", "0F");
+            put("int", "0");
+            put("Integer", "0");
+            put("long", "0L");
+            put("Long", "0L");
+            put("short", "0");
+            put("String", "\"\"");
+            put("LocalDateTime", "null");
+            put("LocalDate", "null");
+        }
+    };
+
+    public static final List<String> NUMBER_DATA_TYPE_CLASS_NAME = new ArrayList<>() {
+        private static final long serialVersionUID = 1163000042574556634L;
+
+        {
+            add("BigDecimal");
+            add("BigInteger");
+            add("long");
+            add("Long");
         }
     };
 

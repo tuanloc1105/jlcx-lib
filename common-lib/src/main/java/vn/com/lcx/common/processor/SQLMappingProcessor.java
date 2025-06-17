@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static vn.com.lcx.common.constant.JavaSqlResultSetConstant.DOT;
@@ -102,6 +103,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
         assert methodTemplate != null;
         final var resultSetMappingCodeLines = new ArrayList<String>();
         final var vertxRowMappingCodeLines = new ArrayList<String>();
+        final var idRowExtractCodeLines = new ArrayList<String>();
+        final var mySqlIdRowExtractCodeLines = new ArrayList<String>();
+        final var idRowType = new AtomicReference<String>();
         StringBuilder methodCodeBody = new StringBuilder();
         methodCodeBody.append("\n");
         // Optional<TableName> tableNameAnnotation = Optional.ofNullable(processorClassInfo.getClazz().getAnnotation(TableName.class));
@@ -174,6 +178,27 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                     setFieldMethodName,
                                     fieldTypeSimpleName
                             );
+                            if (Optional.ofNullable(element.getAnnotation(IdColumn.class)).isPresent()) {
+                                idRowType.set(fieldType);
+                                idRowExtractCode(
+                                        element,
+                                        vertxRowFunctionWillBeUse,
+                                        idRowExtractCodeLines,
+                                        fieldType,
+                                        databaseColumnNameToBeGet,
+                                        setFieldMethodName,
+                                        fieldTypeSimpleName
+                                );
+                                mySqlIdRowExtractCode(
+                                        element,
+                                        vertxRowFunctionWillBeUse,
+                                        mySqlIdRowExtractCodeLines,
+                                        fieldType,
+                                        databaseColumnNameToBeGet,
+                                        setFieldMethodName,
+                                        fieldTypeSimpleName
+                                );
+                            }
                         }
                 );
         resultSetMappingCodeLines.add("return instance;");
@@ -209,7 +234,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
         );
         methodCodeBody.append(
                 methodTemplate
-                        .replace("${return-type}", "static " + processorClassInfo.getClazz().getSimpleName())
+                        .replace("${return-type}", "static " + processorClassInfo.getClazz().getQualifiedName().toString())
                         .replace("${method-name}", "resultSetMapping")
                         .replace("${list-of-parameters}", "java.sql.ResultSet resultSet")
                         .replace("${method-body}", resultSetMappingCodeLines
@@ -226,7 +251,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static String")
                         .replace("${method-name}", "insertStatement")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", insertStatementCodeLines
                                 .stream()
                                 .collect(
@@ -241,7 +266,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static String")
                         .replace("${method-name}", "updateStatement")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", updateStatementCodeLines
                                 .stream()
                                 .collect(
@@ -256,7 +281,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static String")
                         .replace("${method-name}", "deleteStatement")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", deleteStatementCodeLines
                                 .stream()
                                 .collect(
@@ -271,7 +296,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static String")
                         .replace("${method-name}", "reactiveInsertStatement")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model, final String placeHolder")
                         .replace("${method-body}", reactiveInsertStatementCodeLines
                                 .stream()
                                 .collect(
@@ -286,7 +311,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static String")
                         .replace("${method-name}", "reactiveUpdateStatement")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model, final String placeHolder")
                         .replace("${method-body}", reactiveUpdateStatementCodeLines
                                 .stream()
                                 .collect(
@@ -301,7 +326,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static String")
                         .replace("${method-name}", "reactiveDeleteStatement")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model, final String placeHolder")
                         .replace("${method-body}", reactiveDeleteStatementCodeLines
                                 .stream()
                                 .collect(
@@ -316,7 +341,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static java.util.Map<Integer, Object>")
                         .replace("${method-name}", "insertJDBCParams")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", insertJdbcParameterCodeLines
                                 .stream()
                                 .collect(
@@ -331,7 +356,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static java.util.Map<Integer, Object>")
                         .replace("${method-name}", "updateJDBCParams")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", updateJdbcParameterCodeLines
                                 .stream()
                                 .collect(
@@ -346,7 +371,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static java.util.Map<Integer, Object>")
                         .replace("${method-name}", "deleteJDBCParams")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", deleteJdbcParameterCodeLines
                                 .stream()
                                 .collect(
@@ -359,7 +384,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         )
         ).append("\n").append(
                 methodTemplate
-                        .replace("${return-type}", "static " + processorClassInfo.getClazz().getSimpleName())
+                        .replace("${return-type}", "static " + processorClassInfo.getClazz().getQualifiedName())
                         .replace("${method-name}", "vertxRowMapping")
                         .replace("${list-of-parameters}", "io.vertx.sqlclient.Row row")
                         .replace("${method-body}", vertxRowMappingCodeLines
@@ -376,7 +401,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
                         .replace("${method-name}", "insertTupleParam")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", insertVertClientParameterCodeLines
                                 .stream()
                                 .collect(
@@ -391,7 +416,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
                         .replace("${method-name}", "updateTupleParam")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", updateVertClientParameterCodeLines
                                 .stream()
                                 .collect(
@@ -406,7 +431,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 methodTemplate
                         .replace("${return-type}", "static io.vertx.sqlclient.Tuple")
                         .replace("${method-name}", "deleteTupleParam")
-                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getSimpleName() + " model")
+                        .replace("${list-of-parameters}", processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", deleteVertClientParameterCodeLines
                                 .stream()
                                 .collect(
@@ -423,6 +448,36 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         .replace("${method-name}", "idColumnName")
                         .replace("${list-of-parameters}", CommonConstant.EMPTY_STRING)
                         .replace("${method-body}", idColumnNameCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static " + idRowType.get())
+                        .replace("${method-name}", "idRowExtract")
+                        .replace("${list-of-parameters}", "io.vertx.sqlclient.Row row, " + processorClassInfo.getClazz().getQualifiedName() + " model")
+                        .replace("${method-body}", idRowExtractCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static void")
+                        .replace("${method-name}", "mySqlIdRowExtract")
+                        .replace("${list-of-parameters}", "io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet, " + processorClassInfo.getClazz().getQualifiedName() + " model")
+                        .replace("${method-body}", mySqlIdRowExtractCodeLines
                                 .stream()
                                 .collect(
                                         Collectors.joining(
@@ -649,6 +704,104 @@ public class SQLMappingProcessor extends AbstractProcessor {
         }
     }
 
+    private void idRowExtractCode(final Element element,
+                                  final String resultSetFunctionWillBeUse,
+                                  final ArrayList<String> vertxRowMappingCodeLines,
+                                  final String fieldType,
+                                  final String databaseColumnNameToBeGet,
+                                  final String setFieldMethodName,
+                                  final String fieldTypeSimpleName) {
+        final String defaultValueCode = JavaSqlResultSetConstant.DATA_TYPE_DEFAULT_VALUE_MAP.getOrDefault(fieldTypeSimpleName, CommonConstant.NULL_STRING);
+        final String returnDefaultValueCode = "return " + defaultValueCode;
+        if (resultSetFunctionWillBeUse != null && !resultSetFunctionWillBeUse.isEmpty()) {
+            vertxRowMappingCodeLines.add(
+                    "try {"
+            );
+            vertxRowMappingCodeLines.add(
+                    String.format(
+                            "    %1$s value = row.%2$s(\"%3$s\");",
+                            fieldType,
+                            resultSetFunctionWillBeUse,
+                            databaseColumnNameToBeGet
+                    )
+            );
+            vertxRowMappingCodeLines.add(
+                    String.format("    model.%s(value);", setFieldMethodName)
+            );
+            vertxRowMappingCodeLines.add("    return value;");
+            vertxRowMappingCodeLines.add(
+                    "} catch (java.lang.Throwable ignored) {"
+            );
+            vertxRowMappingCodeLines.add(
+                    "    " + returnDefaultValueCode + ";"
+            );
+            vertxRowMappingCodeLines.add(
+                    "}"
+            );
+        } else {
+            if (!BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "// ################# Unknow type to generate code for field `%s` - `%s` #################",
+                                element.getSimpleName().toString(),
+                                element.asType()
+                        )
+                );
+                return;
+            }
+            vertxRowMappingCodeLines.add(
+                    "try {"
+            );
+            vertxRowMappingCodeLines.add(
+                    String.format(
+                            "    io.vertx.sqlclient.data.Numeric numericValue = row.get(io.vertx.sqlclient.data.Numeric.class, \"%s\");",
+                            databaseColumnNameToBeGet
+                    )
+            );
+            vertxRowMappingCodeLines.add("    if (numericValue != null) {");
+            vertxRowMappingCodeLines.add("        java.math.BigInteger bigIntValue = numericValue.bigIntegerValue();");
+            vertxRowMappingCodeLines.add(String.format("        model.%s(bigIntValue);", setFieldMethodName));
+            vertxRowMappingCodeLines.add("        return bigIntValue;");
+            vertxRowMappingCodeLines.add("    } else {");
+            vertxRowMappingCodeLines.add("        " + returnDefaultValueCode + ";");
+            vertxRowMappingCodeLines.add("    }");
+            vertxRowMappingCodeLines.add(
+                    "} catch (java.lang.Throwable ignored) {"
+            );
+            vertxRowMappingCodeLines.add(
+                    "    " + returnDefaultValueCode + ";"
+            );
+            vertxRowMappingCodeLines.add(
+                    "}"
+            );
+        }
+    }
+
+    private void mySqlIdRowExtractCode(final Element element,
+                                       final String resultSetFunctionWillBeUse,
+                                       final ArrayList<String> vertxRowMappingCodeLines,
+                                       final String fieldType,
+                                       final String databaseColumnNameToBeGet,
+                                       final String setFieldMethodName,
+                                       final String fieldTypeSimpleName) {
+        if (JavaSqlResultSetConstant.NUMBER_DATA_TYPE_CLASS_NAME.contains(fieldTypeSimpleName)) {
+            vertxRowMappingCodeLines.add("long lastInsertId = rowSet.property(io.vertx.mysqlclient.MySQLClient.LAST_INSERTED_ID);");
+            if (fieldTypeSimpleName.equals("BigDecimal")) {
+                vertxRowMappingCodeLines.add("final java.math.BigDecimal value = java.math.BigDecimal.valueOf(lastInsertId);");
+            }
+            if (fieldTypeSimpleName.equals("BigInteger")) {
+                vertxRowMappingCodeLines.add("final java.math.BigInteger value = java.math.BigInteger.valueOf(lastInsertId);");
+            } else {
+                vertxRowMappingCodeLines.add("final long value = java.math.BigInteger.valueOf(lastInsertId);");
+            }
+            vertxRowMappingCodeLines.add(
+                    String.format("model.%s(value);", setFieldMethodName)
+            );
+        } else {
+            vertxRowMappingCodeLines.add("// ID column is not number");
+        }
+    }
+
     private void buildStatement(final ArrayList<String> insertStatementCodeLines,
                                 final ArrayList<String> reactiveInsertStatementCodeLines,
                                 final ArrayList<String> insertJdbcParameterCodeLines,
@@ -677,6 +830,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            idColumnNameCodeLines.add("return null;");
             return;
         }
         var idElements = processorClassInfo.getFields().stream()
@@ -789,7 +943,11 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         updateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
                         updateStatementCodeLines.add("}");
                         reactiveUpdateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        reactiveUpdateStatementCodeLines.add(String.format("    cols.add(\"%s = $\" + (++count));", databaseColumnNameToBeGet));
+                        reactiveUpdateStatementCodeLines.add("    if (placeHolder.equals(\"?\")) {");
+                        reactiveUpdateStatementCodeLines.add(String.format("        cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
+                        reactiveUpdateStatementCodeLines.add("    } else {");
+                        reactiveUpdateStatementCodeLines.add(String.format("        cols.add(\"%s = \" + placeHolder + (++count));", databaseColumnNameToBeGet));
+                        reactiveUpdateStatementCodeLines.add("    }");
                         reactiveUpdateStatementCodeLines.add("}");
                         updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
@@ -804,14 +962,29 @@ public class SQLMappingProcessor extends AbstractProcessor {
         insertStatementCodeLines.add("        cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
         insertStatementCodeLines.add("        \"VALUES\" +");
         insertStatementCodeLines.add("        cols.stream().map(it -> \"?\").collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
-        reactiveInsertStatementCodeLines.add(String.format("return \"INSERT INTO %s\" +", tableName));
-        reactiveInsertStatementCodeLines.add("        cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
-        reactiveInsertStatementCodeLines.add("        \"VALUES\" +");
-        reactiveInsertStatementCodeLines.add("        java.util.stream.IntStream.range(0, cols.size()).mapToObj(i -> \"$\" + (i + 1)).collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
+        reactiveInsertStatementCodeLines.add("if (placeHolder.equals(\"?\")) {");
+        reactiveInsertStatementCodeLines.add(String.format("    return \"INSERT INTO %s\" +", tableName));
+        reactiveInsertStatementCodeLines.add("            cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
+        reactiveInsertStatementCodeLines.add("            \"VALUES\" +");
+        reactiveInsertStatementCodeLines.add("            cols.stream().map(it -> \"?\").collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
+        reactiveInsertStatementCodeLines.add("} else {");
+        reactiveInsertStatementCodeLines.add(String.format("    return \"INSERT INTO %s\" +", tableName));
+        reactiveInsertStatementCodeLines.add("            cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
+        reactiveInsertStatementCodeLines.add("            \"VALUES\" +");
+        reactiveInsertStatementCodeLines.add("            java.util.stream.IntStream.range(0, cols.size()).mapToObj(i -> placeHolder + (i + 1)).collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
+        reactiveInsertStatementCodeLines.add("}");
         updateStatementCodeLines.add(String.format("return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
-        reactiveUpdateStatementCodeLines.add(String.format("return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = $\" + (++count);", tableName, idDatabaseColumnNameToBeGet));
+        reactiveUpdateStatementCodeLines.add("if (placeHolder.equals(\"?\")) {");
+        reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
+        reactiveUpdateStatementCodeLines.add("} else {");
+        reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = $\" + (++count);", tableName, idDatabaseColumnNameToBeGet));
+        reactiveUpdateStatementCodeLines.add("}");
         deleteStatementCodeLines.add(String.format("return \"DELETE FROM %s WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
-        reactiveDeleteStatementCodeLines.add(String.format("return \"DELETE FROM %s WHERE %s = $1\";", tableName, idDatabaseColumnNameToBeGet));
+        reactiveDeleteStatementCodeLines.add("if (placeHolder.equals(\"?\")) {");
+        reactiveDeleteStatementCodeLines.add(String.format("    return \"DELETE FROM %s WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
+        reactiveDeleteStatementCodeLines.add("} else {");
+        reactiveDeleteStatementCodeLines.add(String.format("    return \"DELETE FROM %s WHERE %s = $1\";", tableName, idDatabaseColumnNameToBeGet));
+        reactiveDeleteStatementCodeLines.add("}");
         deleteJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
         deleteJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(idFieldName)));
         deleteJdbcParameterCodeLines.add("}");

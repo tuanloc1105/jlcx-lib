@@ -112,22 +112,82 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                     "if (databaseName.equals(\"PostgreSQL\")) {"
                             );
                             codeLines.add(
-                                    String.format("    future %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model) + \" returning \" + %2$sUtils.idColumnName())",
+                                    String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model) + \" returning \" + %2$sUtils.idColumnName())",
                                             sqlConnectionVariable.getSimpleName().toString(),
                                             entityTypeMirror.toString())
                             );
                             codeLines.add(
-                                    String.format("            .execute(%sUtils.insertTupleParam(model));", entityTypeMirror)
+                                    String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
                             );
+                            codeLines.add("            .onComplete(ar -> {");
+                            codeLines.add("                if (ar.succeeded()) {");
+                            codeLines.add("                    io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet = ar.result();");
+                            codeLines.add("                    for (io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rows = rowSet; rows != null; rows = rows.next()) {");
+                            codeLines.add(
+                                    String.format(
+                                            "                        %sUtils.idRowExtract(rows.iterator().next(), model);",
+                                            entityTypeMirror
+                                    )
+                            );
+                            codeLines.add("                    }");
+                            codeLines.add("                }");
+                            codeLines.add("            });");
                             codeLines.add(
                                     "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
                             );
                             codeLines.add(
+                                    String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model))",
+                                            sqlConnectionVariable.getSimpleName().toString(),
+                                            entityTypeMirror)
+                            );
+                            codeLines.add(
+                                    String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
+                            );
+                            codeLines.add("            .onComplete(ar -> {");
+                            codeLines.add("                if (ar.succeeded()) {");
+                            codeLines.add("                    io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet = ar.result();");
+                            codeLines.add(
+                                    String.format(
+                                            "                    %sUtils.mySqlIdRowExtract(rowSet, model);",
+                                            entityTypeMirror
+                                    )
+                            );
+                            codeLines.add("                }");
+                            codeLines.add("            });");
+                            codeLines.add(
                                     "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
                             );
                             codeLines.add(
+                                    String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model))",
+                                            sqlConnectionVariable.getSimpleName().toString(),
+                                            entityTypeMirror.toString())
+                            );
+                            codeLines.add(
+                                    String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
+                            );
+                            codeLines.add("            .onComplete(ar -> {");
+                            codeLines.add("                if (ar.succeeded()) {");
+                            codeLines.add("                    io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet = ar.result();");
+
+                            codeLines.add("                }");
+                            codeLines.add("            });");
+                            codeLines.add(
                                     "} else if (databaseName.contains(\"Oracle\")) {"
                             );
+                            codeLines.add(
+                                    String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model))",
+                                            sqlConnectionVariable.getSimpleName().toString(),
+                                            entityTypeMirror.toString())
+                            );
+                            codeLines.add(
+                                    String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
+                            );
+                            codeLines.add("            .onComplete(ar -> {");
+                            codeLines.add("                if (ar.succeeded()) {");
+                            codeLines.add("                    io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet = ar.result();");
+
+                            codeLines.add("                }");
+                            codeLines.add("            });");
                             codeLines.add(
                                     "} else {"
                             );
@@ -136,6 +196,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             );
                             codeLines.add(
                                     "}"
+                            );
+                            codeLines.add(
+                                    "return future;"
                             );
                         }
                     }
