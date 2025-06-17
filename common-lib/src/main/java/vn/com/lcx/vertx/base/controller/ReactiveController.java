@@ -211,12 +211,13 @@ public abstract class ReactiveController {
                     )
             );
         }
+        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Header:\n{}", String.join("\n", headerLogMsg));
+        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Url:\n{}", ctx.request().uri());
         if (VOID.equals(reqType)) {
             return null;
         }
         final var requestBody = MyStringUtils.minifyJsonString(ctx.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
         T requestObject = gson.fromJson(requestBody, reqType);
-        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Header:\n", String.join("\n", headerLogMsg));
         final var errorFields = AutoValidation.validate(requestObject);
         if (!errorFields.isEmpty()) {
             throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());

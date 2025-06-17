@@ -8,6 +8,7 @@ import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
+import vn.com.lcx.common.utils.LogUtils;
 
 import java.util.List;
 import java.util.function.Function;
@@ -21,6 +22,19 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
 
     @Override
     public Future<T> execute(Tuple tuple) {
+        StringBuilder parametersLog = new StringBuilder("parameters:");
+        final int size = tuple.size();
+        for (int i = 0; i < size; ++i) {
+            Object value = tuple.getValue(i);
+            parametersLog.append(
+                    String.format(
+                            "\n\t- parameter %s: %s",
+                            String.format("%-3d %-20s)", i, "(" + value.getClass().getSimpleName()),
+                            value
+                    )
+            );
+        }
+        LogUtils.writeLog(context, LogUtils.Level.INFO, parametersLog.toString());
         return realPreparedQuery.execute(tuple);
     }
 

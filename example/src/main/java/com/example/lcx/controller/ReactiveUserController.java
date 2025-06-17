@@ -23,7 +23,8 @@ public class ReactiveUserController extends ReactiveController {
     @Post(path = "/create_new")
     public void createNew(RoutingContext ctx) {
         try {
-            CreateNewUserRequest req = gson.fromJson(ctx.body().asString(), CreateNewUserRequest.class);
+            CreateNewUserRequest req = handleRequest(ctx, gson, new TypeToken<>() {
+            });
             userService.createNew(ctx, req).onSuccess(user -> {
                 handleResponse(ctx, gson, new CommonResponse());
             }).onFailure(err -> {

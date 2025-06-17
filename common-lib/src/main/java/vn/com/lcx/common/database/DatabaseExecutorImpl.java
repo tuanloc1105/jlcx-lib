@@ -85,7 +85,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                     parametersLog.append(
                             String.format(
                                     "\n\t- parameter %s: %s",
-                                    String.format("%-3d %-20s)", i, "(" + parameterSimpleClassName),
+                                    String.format("%-3d %-20s)", i + 1, "(" + parameterSimpleClassName),
                                     parameterValue
                             )
                     );
