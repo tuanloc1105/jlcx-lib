@@ -17,7 +17,7 @@ public interface TaskRepository extends ReactiveRepository<TaskEntity> {
     Future<RowSet<Row>> findByIdAndFinished(SqlConnection client, BigInteger id, Boolean finished);
 
     @Query("SELECT\n" +
-            "    *\n" +
+            "    t.*\n" +
             "FROM\n" +
             "    r_lcx.task t\n" +
             "    LEFT JOIN r_lcx.user u ON t.user_id = u.id\n" +
