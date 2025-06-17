@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
+import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.vertx.base.annotation.app.ContextHandler;
 import vn.com.lcx.common.context.AuthContext;
 import vn.com.lcx.vertx.base.custom.VertxContextHandler;
@@ -29,6 +30,7 @@ public class AuthHandler implements VertxContextHandler {
                 final JsonObject jsonObject = routingContext.user().get("accessToken");
                 final var userInfo = gson.fromJson(jsonObject.encode(), UserJWTTokenInfo.class);
                 routingContext.put(OPERATION_NAME_MDC_KEY_NAME, userInfo.getUsername());
+                routingContext.put(CommonConstant.CURRENT_USER, userInfo);
                 AuthContext.set(userInfo);
                 routingContext.next();
                 AuthContext.clear();

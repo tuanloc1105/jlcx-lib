@@ -64,6 +64,7 @@ public final class CommonConstant {
             toString();
     public static final String TRACE_ID_MDC_KEY_NAME = "trace_id";
     public static final String OPERATION_NAME_MDC_KEY_NAME = "operation_name";
+    public static final String CURRENT_USER = "current_user";
     public final static ConcurrentHashMap<String, SelectStatementBuilder> BUILDER_MAP = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String, String> STATEMENT_OF_METHOD = new ConcurrentHashMap<>();
     public static volatile LCXProperties applicationConfig = PropertiesUtils.emptyProperty();
