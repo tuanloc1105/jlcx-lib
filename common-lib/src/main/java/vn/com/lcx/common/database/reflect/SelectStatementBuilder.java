@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static vn.com.lcx.common.constant.CommonConstant.BUILDER_MAP;
 import static vn.com.lcx.common.database.utils.EntityUtils.getTableShortenedName;
@@ -66,9 +65,11 @@ public final class SelectStatementBuilder {
     private final String tableName;
     private final String tableNameShortenedName;
     private final ArrayList<SubTableEntry> subTableStatementBuilders;
+    private final String placeHolder;
 
-    private SelectStatementBuilder(Class<?> entityClass, boolean getSelfColumnOnly, int... order) {
+    private SelectStatementBuilder(Class<?> entityClass, boolean getSelfColumnOnly, String placeHolder, int... order) {
         this.entityClass = entityClass;
+        this.placeHolder = placeHolder;
 
         final var tableNameAnnotation = entityClass.getAnnotation(TableName.class);
 
@@ -190,31 +191,39 @@ public final class SelectStatementBuilder {
     }
 
     public static SelectStatementBuilder of(Class<?> entityClass) {
-        return BUILDER_MAP.computeIfAbsent(entityClass.getName(), key -> new SelectStatementBuilder(entityClass, false));
+        return of(entityClass, "?");
+    }
+
+    public static SelectStatementBuilder of(Class<?> entityClass, String placeHolder) {
+        return BUILDER_MAP.computeIfAbsent(entityClass.getName(), key -> new SelectStatementBuilder(entityClass, false, placeHolder));
     }
 
     public String build(String methodName, Object... parameters) {
-        final String statement;
-        if (methodName.startsWith("count")) {
-            statement = this.generateCountStatement();
-        } else {
-            statement = this.generateSqlStatement();
+        String statement = CommonConstant.STATEMENT_OF_METHOD.get(methodName);
+        if (StringUtils.isBlank(statement)) {
+            if (methodName.startsWith("count")) {
+                statement = this.generateCountStatement();
+            } else {
+                statement = this.generateSqlStatement();
+            }
+            if (StringUtils.isNotBlank(methodName) && !methodName.equals("findAll") && !methodName.equals("countAll")) {
+                statement = String.format(
+                        "%s\nWHERE\n    %s",
+                        statement,
+                        this.parseMethodNameIntoConditionStatement(methodName, new ArrayList<>(Arrays.asList(parameters)))
+                );
+            } else {
+                statement = statement + (
+                        parameters.length != 0 && Pageable.class.isAssignableFrom(parameters[0].getClass()) ?
+                                ((Pageable) parameters[0]).toSql() : CommonConstant.EMPTY_STRING
+                );
+            }
+            CommonConstant.STATEMENT_OF_METHOD.put(methodName, statement);
         }
-        if (StringUtils.isNotBlank(methodName) && !methodName.equals("findAll") && !methodName.equals("countAll")) {
-            return String.format(
-                    "%s\nWHERE\n    %s",
-                    statement,
-                    this.parseMethodNameIntoConditionStatement(methodName, new ArrayList<>(Arrays.asList(parameters)))
-            );
-        } else {
-            return statement + (
-                    parameters.length != 0 && Pageable.class.isAssignableFrom(parameters[0].getClass()) ?
-                            ((Pageable) parameters[0]).toSql() : CommonConstant.EMPTY_STRING
-            );
-        }
+        return statement;
     }
 
-    public String buildFullJoin(String methodName, Object... parameters) {
+    private String buildFullJoin(String methodName, Object... parameters) {
         final String statement;
         if (methodName.startsWith("count")) {
             statement = this.generateCountStatement();
@@ -387,7 +396,11 @@ public final class SelectStatementBuilder {
                                 break;
                             case "notequal":
                             case "not":
-                                conditionSQLStatement.add(String.format("%s <> $%s", columnName, ++count));
+                                if (placeHolder.equals("?")) {
+                                    conditionSQLStatement.add(String.format("%s <> ?", columnName));
+                                } else {
+                                    conditionSQLStatement.add(String.format("%s <> %s%s", columnName, placeHolder, ++count));
+                                }
                                 break;
                             case "notin":
                             case "in":
@@ -418,55 +431,106 @@ public final class SelectStatementBuilder {
                                 //                         .collect(Collectors.joining(", "))
                                 //         )
                                 // );
-                                conditionSQLStatement.add(
-                                        String.format(
-                                                "%s %s $%s",
-                                                columnName,
-                                                condition.equals("in") ? "IN" : "NOT IN",
-                                                ++count
-                                        )
-                                );
+                                if (placeHolder.equals("?")) {
+                                    conditionSQLStatement.add(
+                                            String.format(
+                                                    "%s %s ?",
+                                                    columnName,
+                                                    condition.equals("in") ? "IN" : "NOT IN"
+                                            )
+                                    );
+                                } else {
+                                    conditionSQLStatement.add(
+                                            String.format(
+                                                    "%s %s %s%s",
+                                                    columnName,
+                                                    condition.equals("in") ? "IN" : "NOT IN",
+                                                    placeHolder,
+                                                    ++count
+                                            )
+                                    );
+                                }
                                 break;
                             case "notlike":
                             case "like":
                                 if (condition.equals("like")) {
                                     // conditionSQLStatement.add(columnName + " LIKE '%' || ? || '%'");
-                                    conditionSQLStatement.add(columnName + " LIKE $" + (++count));
+                                    if (placeHolder.equals("?")) {
+                                        conditionSQLStatement.add(columnName + " LIKE ?");
+                                    } else {
+                                        conditionSQLStatement.add(columnName + " LIKE " + placeHolder + (++count));
+                                    }
                                 } else {
                                     // conditionSQLStatement.add(columnName + " NOT LIKE '%' || ? || '%'");
-                                    conditionSQLStatement.add(columnName + " NOT LIKE $" + (++count));
+                                    if (placeHolder.equals("?")) {
+                                        conditionSQLStatement.add(columnName + " NOT LIKE ?");
+                                    } else {
+                                        conditionSQLStatement.add(columnName + " NOT LIKE " + placeHolder + (++count));
+                                    }
                                 }
                                 break;
                             case "notbetween":
                             case "between":
                                 if (condition.equals("between")) {
-                                    conditionSQLStatement.add(String.format("%s BETWEEN $%s AND $%s", columnName, ++count, ++count));
+                                    if (placeHolder.equals("?")) {
+                                        conditionSQLStatement.add(String.format("%s BETWEEN ? AND ?", columnName));
+                                    } else {
+                                        conditionSQLStatement.add(String.format("%s BETWEEN %s%s AND %s%s", columnName, placeHolder, ++count, placeHolder, ++count));
+                                    }
                                 } else {
-                                    conditionSQLStatement.add(String.format("%s NOT BETWEEN $%s AND $%s", columnName, ++count, ++count));
+                                    if (placeHolder.equals("?")) {
+                                        conditionSQLStatement.add(String.format("%s NOT BETWEEN ? AND ?", columnName));
+                                    } else {
+                                        conditionSQLStatement.add(String.format("%s NOT BETWEEN %s%s AND %s%s", columnName, placeHolder, ++count, placeHolder, ++count));
+                                    }
                                 }
                                 break;
                             case "lessthan":
-                                conditionSQLStatement.add(String.format("%s BETWEEN < $%s", columnName, ++count));
+                                if (placeHolder.equals("?")) {
+                                    conditionSQLStatement.add(String.format("%s BETWEEN < ?", columnName));
+                                } else {
+                                    conditionSQLStatement.add(String.format("%s BETWEEN < %s%s", columnName, placeHolder, ++count));
+                                }
                                 break;
                             case "greaterthan":
-                                conditionSQLStatement.add(String.format("%s BETWEEN > $%s", columnName, ++count));
+                                if (placeHolder.equals("?")) {
+                                    conditionSQLStatement.add(String.format("%s BETWEEN > ?", columnName));
+                                } else {
+                                    conditionSQLStatement.add(String.format("%s BETWEEN > %s%s", columnName, placeHolder, ++count));
+                                }
                                 break;
                             case "lessequal":
-                                conditionSQLStatement.add(String.format("%s BETWEEN <= $%s", columnName, ++count));
+                                if (placeHolder.equals("?")) {
+                                    conditionSQLStatement.add(String.format("%s BETWEEN <= ?", columnName));
+                                } else {
+                                    conditionSQLStatement.add(String.format("%s BETWEEN <= %s%s", columnName, placeHolder, ++count));
+                                }
                                 break;
                             case "greaterequal":
-                                conditionSQLStatement.add(String.format("%s BETWEEN >= $%s", columnName, ++count));
+                                if (placeHolder.equals("?")) {
+                                    conditionSQLStatement.add(String.format("%s BETWEEN >= ?", columnName));
+                                } else {
+                                    conditionSQLStatement.add(String.format("%s BETWEEN >= %s%s", columnName, placeHolder, ++count));
+                                }
                                 break;
                             case "null":
                                 conditionSQLStatement.add(String.format("%s IS NULL", columnName));
                                 break;
                             case "equal":
                             default:
-                                conditionSQLStatement.add(String.format("%s = $%s", columnName, ++count));
+                                if (placeHolder.equals("?")) {
+                                    conditionSQLStatement.add(String.format("%s = ?", columnName));
+                                } else {
+                                    conditionSQLStatement.add(String.format("%s = %s%s", columnName, placeHolder, ++count));
+                                }
                                 break;
                         }
                     } else {
-                        conditionSQLStatement.add(String.format("%s = $%s", columnName, ++count));
+                        if (placeHolder.equals("?")) {
+                            conditionSQLStatement.add(String.format("%s = ?", columnName));
+                        } else {
+                            conditionSQLStatement.add(String.format("%s = %s%s", columnName, placeHolder, ++count));
+                        }
                     }
 
                 }
