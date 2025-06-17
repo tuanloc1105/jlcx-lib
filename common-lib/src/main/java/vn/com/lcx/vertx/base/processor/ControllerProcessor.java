@@ -111,7 +111,6 @@ public class ControllerProcessor extends AbstractProcessor {
         }
 
         boolean applicationHaveAuthentication = false;
-        boolean applicationHaveAPIKeyAuthentication = false;
 
         if (!classMap.isEmpty()) {
 
@@ -215,7 +214,6 @@ public class ControllerProcessor extends AbstractProcessor {
                     }
 
                     if (e.getAnnotation(APIKey.class) != null) {
-                        applicationHaveAPIKeyAuthentication = true;
                         isAPIKeyMethod = true;
                     }
 
@@ -313,7 +311,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             routerConfigureCode += routerHandleCodeForFilter.toString();
                         }
                         routerConfigureCode += String.format(
-                                "\n                    .handler(this::createUUIDHandler)\n                    .handler(this.controller%d::%s);",
+                                "\n                    .handler(this::createUUIDHandler)\n                    .handler(ctx -> this.controller%d.%s(new vn.com.lcx.vertx.base.context.RoutingContextLcxWrapper(ctx)));",
                                 count,
                                 e.getSimpleName() + CommonConstant.EMPTY_STRING
                         );
@@ -324,7 +322,7 @@ public class ControllerProcessor extends AbstractProcessor {
                 routerConfigures.add("");
             }
             if (applicationHaveAuthentication) {
-                constructorParameters.add("JWTAuth jwtAuth");
+                constructorParameters.add("io.vertx.ext.auth.jwt.JWTAuth jwtAuth");
                 constructorBody.add("this.jwtAuth = jwtAuth;");
             }
             final String constructor = String.format(
