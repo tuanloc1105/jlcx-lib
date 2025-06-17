@@ -23,6 +23,7 @@ public class VertxWebClientHttpUtils {
         );
     }
 
+    @Deprecated
     public <T> Future<T> callApi(
             HttpMethod method,
             String url,
@@ -45,11 +46,49 @@ public class VertxWebClientHttpUtils {
         }
 
         return futureResponse.map(responseBody -> {
-            if (responseType == String.class) {
-                return responseType.cast(responseBody); // Trả về raw String nếu cần
-            }
-            return responseBody.mapTo(responseType); // Convert JSON thành class mong muốn
+            return responseBody.mapTo(responseType);
         });
+    }
+
+    public <T> Future<T> sendRequest(
+            HttpMethod method,
+            String url,
+            Map<String, String> headers,
+            JsonObject payload,
+            Class<T> responseType,
+            BodyType expectedBodyType
+    ) {
+        HttpRequest<Buffer> request = client.requestAbs(method, url);
+
+        if (headers != null) {
+            headers.forEach(request::putHeader);
+        }
+        Future<HttpResponse<Buffer>> sendFuture = (method == HttpMethod.GET || method == HttpMethod.DELETE) ?
+                request.send() :
+                (payload != null ? request.sendJson(payload) : request.send());
+        return sendFuture.compose(response -> {
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                if (expectedBodyType == BodyType.STRING) {
+                    // Ensure T is a String or compatible.
+                    return Future.succeededFuture(responseType.cast(response.bodyAsString()));
+                } else if (expectedBodyType == BodyType.JSON) {
+                    // Ensure T is a JsonObject or a mappable POJO.
+                    return Future.succeededFuture(response.bodyAsJsonObject().mapTo(responseType));
+                } else if (expectedBodyType == BodyType.BUFFER) {
+                    // Ensure T is a Buffer or compatible.
+                    return Future.succeededFuture(responseType.cast(response.body()));
+                } else {
+                    // In default or unexpected cases, it may fail or return null/an Exception.
+                    return Future.failedFuture(new IllegalArgumentException("Unsupported BodyType: " + expectedBodyType));
+                }
+            } else {
+                return Future.failedFuture(new RuntimeException("HTTP Error: " + response.statusCode()));
+            }
+        });
+    }
+
+    public enum BodyType {
+        JSON, STRING, BUFFER
     }
 
 }
