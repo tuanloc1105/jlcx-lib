@@ -3,6 +3,7 @@ package com.example.lcx.service.reactive;
 import com.example.lcx.entity.reactive.UserEntity;
 import com.example.lcx.entity.reactive.UserEntityUtils;
 import com.example.lcx.enums.AppError;
+import com.example.lcx.object.dto.UserJWTTokenInfo;
 import com.example.lcx.object.request.CreateNewUserRequest;
 import com.example.lcx.object.request.UserLoginRequest;
 import com.example.lcx.object.response.UserLoginResponse;
@@ -10,6 +11,8 @@ import com.example.lcx.respository.reactive.UserRepository;
 import com.google.gson.Gson;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Pool;
@@ -84,17 +87,25 @@ public class UserService {
                             if (users.isEmpty()) {
                                 return Future.failedFuture(new InternalServiceException(AppError.USER_NOT_EXIST));
                             }
+                            if (users.size() > 1) {
+                                return Future.failedFuture(new InternalServiceException(AppError.UNKNOWN_USER));
+                            }
                             UserEntity user = users.get(0);
                             try {
                                 BCryptUtils.comparePassword(request.getPassword(), user.getPassword());
                             } catch (Exception e) {
                                 return Future.failedFuture(new InternalServiceException(AppError.INCORRECT_PASSWORD));
                             }
-                            UserLoginResponse response = new UserLoginResponse();
-                            // response.setUsername(user.getUsername());
-                            // Nếu cần sinh token:
-                            // String token = jwtAuth.generateToken(...);
-                            // response.setToken(token);
+                            final var tokenInfo = UserJWTTokenInfo.builder()
+                                    .id(user.getId().longValue())
+                                    .username(user.getUsername())
+                                    .fullName(user.getFullName())
+                                    .build();
+                            String token = jwtAuth.generateToken(
+                                    new JsonObject(this.gson.toJson(tokenInfo)),
+                                    new JWTOptions().setAlgorithm("RS256").setExpiresInMinutes(14400)
+                            );
+                            UserLoginResponse response = new UserLoginResponse(token, user.getFullName());
                             return Future.succeededFuture(response);
                         })
                         .onSuccess(promise::complete)
