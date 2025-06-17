@@ -192,7 +192,7 @@ public final class EntityUtils {
                         if (
                                 idField != null && idField.getName().equals(field.getName())
                         ) {
-                            if ((fieldDataTypeName.contains("Long") || fieldDataTypeName.contains("BigDecimal"))) {
+                            if ((fieldDataTypeName.contains("Long") || fieldDataTypeName.contains("BigDecimal") || fieldDataTypeName.contains("BigInteger"))) {
                                 switch (databaseType) {
                                     case "postgresql":
                                         columnDefinitionLines.add(new ArrayList<>(Arrays.asList(fieldColumnName, "SERIAL", "PRIMARY KEY")));

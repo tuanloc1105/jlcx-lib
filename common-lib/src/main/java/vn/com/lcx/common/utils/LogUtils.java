@@ -1,7 +1,9 @@
 package vn.com.lcx.common.utils;
 
+import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import vn.com.lcx.common.constant.CommonConstant;
 
 @SuppressWarnings("DuplicatedCode")
@@ -136,6 +138,32 @@ public final class LogUtils {
         return methodNamePart + " " +
                 stepNamePart + " " +
                 ">>>>>>>> ";
+    }
+
+    public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
+        try {
+            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+            writeLog(level, message, messageParameter);
+        } finally {
+            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        }
+    }
+
+    public static void writeLog(RoutingContext context, String message, Throwable throwable, Level... level) {
+        try {
+            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+            writeLog(message, throwable, level);
+        } finally {
+            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        }
     }
 
     private static String buildStepNameLogMessage(String fullClassName, String methodName, String simpleClassName, int lineNumber) {

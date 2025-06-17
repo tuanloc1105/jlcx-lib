@@ -21,6 +21,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.UserContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
 
 import java.nio.charset.Charset;
@@ -114,12 +115,13 @@ public class RoutingContextLcxWrapper implements RoutingContext {
     public RequestBody body() {
         final RequestBody body = realContext.body();
         final String bodyString = body.asString(CommonConstant.UTF_8_STANDARD_CHARSET);
-        VertxBaseConstant.requestLogger.info(
-                "[{}] [{}] - Payload:\n{}",
-                realContext.request().uri(),
-                realContext.get(TRACE_ID_MDC_KEY_NAME),
-                bodyString
-        );
+        // VertxBaseConstant.requestLogger.info(
+        //         "[{}] [{}] - Payload:\n{}",
+        //         realContext.request().uri(),
+        //         realContext.get(TRACE_ID_MDC_KEY_NAME),
+        //         bodyString
+        // );
+        LogUtils.writeLog(this, LogUtils.Level.INFO, "Request Payload:\n{}", bodyString);
         return body;
     }
 
@@ -300,12 +302,13 @@ public class RoutingContextLcxWrapper implements RoutingContext {
 
     @Override
     public Future<Void> end(String chunk) {
-        VertxBaseConstant.responseLogger.info(
-                "[{}] [{}] - Payload:\n{}",
-                realContext.request().uri(),
-                realContext.get(TRACE_ID_MDC_KEY_NAME),
-                chunk
-        );
+        // VertxBaseConstant.responseLogger.info(
+        //         "[{}] [{}] - Payload:\n{}",
+        //         realContext.request().uri(),
+        //         realContext.get(TRACE_ID_MDC_KEY_NAME),
+        //         chunk
+        // );
+        LogUtils.writeLog(this, LogUtils.Level.INFO, "Response Payload:\n{}", chunk);
         return realContext.end(chunk);
     }
 
