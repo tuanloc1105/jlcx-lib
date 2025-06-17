@@ -50,6 +50,35 @@ public class VertxWebClientHttpUtils {
         });
     }
 
+    /**
+     * Sends an HTTP request using Vert.x WebClient and returns a Future of the expected response type.
+     *
+     * <p></p>
+     *
+     * <b>Usage:</b>
+     * <pre>
+     * sendRequest(HttpMethod.GET, "<a href="https://api.example.com/data">...</a>", null, null, JsonObject.class, BodyType.JSON)
+     *     .onSuccess(result -> { // handle result  })
+     *     .onFailure(err -> { // handle error });
+     * </pre>
+     *
+     * <b>Notes:</b>
+     * <ul>
+     *   <li>For GET/DELETE, payload is ignored.</li>
+     *   <li>For POST/PUT, payload is sent as JSON if provided.</li>
+     *   <li>Throws IllegalArgumentException if unsupported BodyType is provided.</li>
+     *   <li>Fails with RuntimeException if HTTP status code is not 2xx.</li>
+     * </ul>
+     *
+     * @param method           The HTTP method (e.g., GET, POST, PUT, DELETE).
+     * @param url              The absolute URL to send the request to.
+     * @param headers          Optional HTTP headers to include in the request (can be null).
+     * @param payload          Optional JSON payload for methods like POST/PUT (can be null).
+     * @param responseType     The class type to map the response body to (e.g., String.class, JsonObject.class, etc.).
+     * @param expectedBodyType The expected body type of the response (STRING, JSON, or BUFFER).
+     * @param <T>              The type of the response object.
+     * @return A Future containing the response mapped to the specified type, or a failed Future on error.
+     */
     public <T> Future<T> sendRequest(
             HttpMethod method,
             String url,
