@@ -1,0 +1,62 @@
+package vn.com.lcx.vertx.verticle;
+
+@vn.com.lcx.common.annotation.Verticle
+public class ApplicationVerticle extends vn.com.lcx.vertx.base.verticle.VertxBaseVerticle {
+
+${dependencies}
+
+${constructor}
+
+    @Override
+    public io.vertx.core.Future<io.vertx.core.http.HttpServer> start() {
+        try {
+            ${jwt-auth-handler}
+            io.vertx.ext.web.Router router = vn.com.lcx.vertx.base.custom.MyRouter.router(super.vertx);
+            ${static-resource-handler}
+            boolean enableMetric = Boolean.parseBoolean(
+                    vn.com.lcx.common.constant.CommonConstant.applicationConfig.getPropertyWithEnvironment("server.enable-metrics") + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING
+            );
+            if (enableMetric) {
+                router.route("/metrics").handler(io.vertx.micrometer.PrometheusScrapingHandler.create());
+            }
+            router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
+
+            router.get("/health").handler(routingContext -> routingContext.response().end("OK"));
+            router.get("/starting_probe").handler(routingContext -> {
+                routingContext.response().end("OK");
+            });
+
+            ${router-handler}
+
+            final String portString = vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.port");
+            int port;
+            if (vn.com.lcx.common.utils.MyStringUtils.isNotBlank(portString) && vn.com.lcx.common.utils.MyStringUtils.isNumeric(portString)) {
+                port = Integer.parseInt(portString);
+            } else {
+                port = 8080;
+            }
+
+            final boolean enableHttp2 = Boolean.parseBoolean(vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.enable-http-2") + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING);
+            io.vertx.core.Future<io.vertx.core.http.HttpServer> future;
+            if (enableHttp2) {
+                future = vertx.createHttpServer(vn.com.lcx.vertx.base.config.HttpOption.configureHttp2H2C(port))
+                        .requestHandler(router)
+                        .listen()
+                        .onSuccess(server -> {
+                            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "HTTP2 server started on port " + port);
+                        });
+            } else {
+                future = vertx.createHttpServer()
+                        .requestHandler(router)
+                        .listen(port)
+                        .onSuccess(server -> {
+                            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "HTTP server started on port " + port);
+                        });
+            }
+            return future;
+        } catch (Throwable e) {
+            vn.com.lcx.common.utils.LogUtils.writeLog(e.getMessage(), e);
+            throw e;
+        }
+    }
+}

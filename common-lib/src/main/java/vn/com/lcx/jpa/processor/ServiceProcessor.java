@@ -89,9 +89,8 @@ public class ServiceProcessor extends AbstractProcessor {
                 this.getClass().getClassLoader(),
                 "template/method-template.txt"
         );
-        if (StringUtils.isBlank(template) || StringUtils.isBlank(methodTemplate)) {
-            return;
-        }
+        assert StringUtils.isNotBlank(template);
+        assert StringUtils.isNotBlank(methodTemplate);
         StringBuilder methodCodeBody = new StringBuilder();
         methodCodeBody.append("\n");
         processorClassInfo.getMethods().forEach((method, executableElement) -> {

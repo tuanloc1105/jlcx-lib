@@ -3,6 +3,8 @@ package vn.com.lcx.vertx.base.processor;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.ExceptionUtils;
+import vn.com.lcx.common.utils.FileUtils;
+import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
 import vn.com.lcx.vertx.base.annotation.app.ContextHandler;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.annotation.process.APIKey;
@@ -75,6 +77,11 @@ public class ControllerProcessor extends AbstractProcessor {
                             })
                             .map(member -> (ExecutableElement) member).collect(Collectors.toList());
                     classMap.put(typeElement, allMethodsOfClass);
+                    // ProcessorClassInfo processorClassInfo = ProcessorClassInfo.init(
+                    //         typeElement,
+                    //         processingEnv.getTypeUtils(),
+                    //         processingEnv.getElementUtils()
+                    // );
                 } catch (Exception e) {
                     this.processingEnv.
                             getMessager().
@@ -325,113 +332,39 @@ public class ControllerProcessor extends AbstractProcessor {
                     String.join(",\n                               ", constructorParameters),
                     constructorBody.stream().collect(Collectors.joining("\n       ", "       ", CommonConstant.EMPTY_STRING))
             );
-            String codeToWrite = String.format(
-                    "package vn.com.lcx.vertx.verticle;\n" +
-                            "\n" +
-                            "import io.vertx.core.Promise;\n" +
-                            "import io.vertx.ext.auth.authentication.TokenCredentials;\n" +
-                            "import io.vertx.ext.auth.jwt.JWTAuth;\n" +
-                            "import io.vertx.ext.web.RoutingContext;\n" +
-                            "import io.vertx.ext.web.handler.BodyHandler;\n" +
-                            "import io.vertx.ext.web.handler.JWTAuthHandler;\n" +
-                            "import vn.com.lcx.common.annotation.Verticle;\n" +
-                            "import vn.com.lcx.common.constant.CommonConstant;\n" +
-                            "import vn.com.lcx.common.utils.LogUtils;\n" +
-                            "import vn.com.lcx.common.utils.MyStringUtils;\n" +
-                            "import vn.com.lcx.vertx.base.config.HttpOption;\n" +
-                            "import vn.com.lcx.vertx.base.custom.MyRouter;\n" +
-                            "import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;\n" +
-                            "\n" +
-                            "@Verticle\n" +
-                            "public class ApplicationVerticle extends VertxBaseVerticle {\n" +
-                            "\n" +
-                            "    %s\n" +
-                            "%s" +
-                            "%s\n" +
-                            "    @Override\n" +
-                            "    public io.vertx.core.Future<io.vertx.core.http.HttpServer> start() {\n" +
-                            "        try {\n" +
-                            "%s" +
-                            "            io.vertx.ext.web.Router router = MyRouter.router(super.vertx);\n" +
-                            "%s\n" +
-                            "\n" +
-                            "            boolean enableMetric = Boolean.parseBoolean(\n" +
-                            "                    CommonConstant.applicationConfig.getPropertyWithEnvironment(\"server.enable-metrics\") + CommonConstant.EMPTY_STRING\n" +
-                            "            );\n" +
-                            "            if (enableMetric) {\n" +
-                            "                router.route(\"/metrics\").handler(io.vertx.micrometer.PrometheusScrapingHandler.create());\n" +
-                            "            }\n" +
-                            "            router.route().handler(BodyHandler.create());\n" +
-                            "\n" +
-                            "            router.get(\"/health\").handler(routingContext -> routingContext.response().end(\"OK\"));\n" +
-                            "            router.get(\"/starting_probe\").handler(routingContext -> {\n" +
-                            "                routingContext.response().end(\"OK\");\n" +
-                            "            });\n\n" +
-                            "%s\n" +
-                            "            final String portString = CommonConstant.applicationConfig.getProperty(\"server.port\");\n" +
-                            "            int port;\n" +
-                            "            if (MyStringUtils.isNotBlank(portString) && MyStringUtils.isNumeric(portString)) {\n" +
-                            "                port = Integer.parseInt(portString);\n" +
-                            "            } else {\n" +
-                            "                port = 8080;\n" +
-                            "            }\n" +
-                            "\n" +
-                            "            final boolean enableHttp2 = Boolean.parseBoolean(CommonConstant.applicationConfig.getProperty(\"server.enable-http-2\") + CommonConstant.EMPTY_STRING);\n" +
-                            "            io.vertx.core.Future<io.vertx.core.http.HttpServer> future;\n" +
-                            "            if (enableHttp2) {\n" +
-                            "                future = vertx.createHttpServer(HttpOption.configureHttp2H2C(port))\n" +
-                            "                        .requestHandler(router)\n" +
-                            "                        .listen()\n" +
-                            "                        .onSuccess(server -> {\n" +
-                            "                            LogUtils.writeLog(LogUtils.Level.INFO, \"HTTP2 server started on port \" + port);\n" +
-                            "                        });\n" +
-                            "            } else {\n" +
-                            "                future = vertx.createHttpServer()\n" +
-                            "                        .requestHandler(router)\n" +
-                            "                        .listen(port)\n" +
-                            "                        .onSuccess(server -> {\n" +
-                            "                            LogUtils.writeLog(LogUtils.Level.INFO, \"HTTP server started on port \" + port);\n" +
-                            "                        });\n" +
-                            "            }\n" +
-                            "            return future;\n" +
-                            "        } catch (Throwable e) {\n" +
-                            "            LogUtils.writeLog(e.getMessage(), e);\n" +
-                            "            throw e;\n" +
-                            "        }\n" +
-                            "    }\n" +
-                            "\n" +
-                            "%s" +
-                            "\n" +
-                            "}\n",
-                    classProperties.stream().collect(Collectors.joining(";\n    ", CommonConstant.EMPTY_STRING, ";")),
-                    applicationHaveAuthentication ? "    private final JWTAuth jwtAuth;\n" : CommonConstant.EMPTY_STRING,
-                    constructor,
-                    applicationHaveAuthentication ? "            JWTAuthHandler authHandler = JWTAuthHandler.create(this.jwtAuth);\n" : CommonConstant.EMPTY_STRING,
-                    serveStaticResource ?
-                            "            router.route(\"/*\").handler(io.vertx.ext.web.handler.StaticHandler.create(\"webroot\"));\n" +
-                                    "            router.route().last().handler(ctx -> {\n" +
-                                    "                ctx.response()\n" +
-                                    "                        .putHeader(\"Content-Type\", \"text/html\")\n" +
-                                    "                        .sendFile(\"webroot/index.html\");\n" +
-                                    "            });\n" :
-                            CommonConstant.EMPTY_STRING,
-                    routerConfigures.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining("\n            ", "            ", "\n")),
-                    applicationHaveAPIKeyAuthentication ?
-                            "    public void validateApiKey(RoutingContext context) {\n" +
-                                    "        String apiKey = context.request().getHeader(\"x-api-key\");\n" +
-                                    "        String validApiKey = CommonConstant.applicationConfig.getProperty(\"server.api-key\");\n" +
-                                    "        if (!((apiKey + CommonConstant.EMPTY_STRING).equals(validApiKey))) {\n" +
-                                    "            context.response().setStatusCode(401).end(\"Invalid api key\");\n" +
-                                    "        } else {\n" +
-                                    "            context.next();\n" +
-                                    "        }\n" +
-                                    "    }\n" :
-                            CommonConstant.EMPTY_STRING
+            String vertxVerticleTemplate = FileUtils.readResourceFileAsText(
+                    this.getClass().getClassLoader(),
+                    "template/vertx-verticle-template.txt"
             );
+            assert StringUtils.isNotBlank(vertxVerticleTemplate);
+            String jwtAuthHandler = "// None of auth handler";
+            String staticResourceHandler = "// None of Static Resource";
+            if (applicationHaveAuthentication) {
+                classProperties.add("private final io.vertx.ext.auth.jwt.JWTAuth jwtAuth;");
+                jwtAuthHandler = "io.vertx.ext.web.handler.JWTAuthHandler authHandler = io.vertx.ext.web.handler.JWTAuthHandler.create(this.jwtAuth);";
+            }
+            if (serveStaticResource) {
+                staticResourceHandler =
+                        "            router.route(\"/*\").handler(io.vertx.ext.web.handler.StaticHandler.create(\"webroot\"));\n" +
+                        "            router.route().last().handler(ctx -> {\n" +
+                        "                ctx.response()\n" +
+                        "                        .putHeader(\"Content-Type\", \"text/html\")\n" +
+                        "                        .sendFile(\"webroot/index.html\");\n" +
+                        "            });";
+            }
+            String code = vertxVerticleTemplate
+                    .replace("${dependencies}", classProperties.stream().collect(Collectors.joining(";\n    ", "    ", ";")))
+                    .replace("${constructor}", constructor)
+                    .replace("${jwt-auth-handler}", jwtAuthHandler)
+                    .replace("${static-resource-handler}", staticResourceHandler)
+                    .replace("${router-handler}", routerConfigures.stream()
+                            .filter(StringUtils::isNotBlank)
+                            .collect(Collectors.joining("\n            ", "            ", "\n")))
+                    ;
             try {
                 JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile("vn.com.lcx.vertx.verticle.ApplicationVerticle");
                 try (Writer writer = builderFile.openWriter()) {
-                    writer.write(codeToWrite);
+                    writer.write(code);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -440,5 +373,34 @@ public class ControllerProcessor extends AbstractProcessor {
 
         return true;
     }
+
+    // public void generateProxyController(ProcessorClassInfo processorClassInfo) {
+    //     processingEnv.getMessager().printMessage(
+    //             Diagnostic.Kind.NOTE,
+    //             vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+    //                     String.format(
+    //                             "Generating code for controller : %s",
+    //                             processorClassInfo.getClazz().getQualifiedName()
+    //                     )
+    //     );
+    //     String controllerTemplate = FileUtils.readResourceFileAsText(
+    //             this.getClass().getClassLoader(),
+    //             "template/controller-template.txt"
+    //     );
+    //     String methodTemplate = FileUtils.readResourceFileAsText(
+    //             this.getClass().getClassLoader(),
+    //             "template/method-template.txt"
+    //     );
+    //     assert StringUtils.isNotBlank(controllerTemplate);
+    //     assert StringUtils.isNotBlank(methodTemplate);
+    //     StringBuilder methodCodeBody = new StringBuilder();
+    //     methodCodeBody.append("\n");
+    //     processorClassInfo.getMethods()
+    //             .forEach((method, executableElement) -> {
+    //                 final var codeLines = new ArrayList<String>();
+    //                 codeLines.add("String responseBody = CommonConstant.EMPTY_STRING;");
+    //                 codeLines.add("int httpStatusCode = 200;");
+    //             });
+    // }
 
 }
