@@ -147,6 +147,7 @@ public abstract class ReactiveController {
     }
 
     public void handleError(RoutingContext ctx, Gson gson, Throwable e) {
+        LogUtils.writeLog(ctx, e.getMessage(), e);
         CommonResponse response;
         int httpCode = 500;
         if (e instanceof InternalServiceException) {

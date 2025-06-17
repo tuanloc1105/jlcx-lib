@@ -2,6 +2,7 @@ package com.example.lcx.respository.reactive;
 
 import com.example.lcx.entity.reactive.TaskEntity;
 import io.vertx.core.Future;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlConnection;
@@ -14,7 +15,7 @@ import java.math.BigInteger;
 @RRepository
 public interface TaskRepository extends ReactiveRepository<TaskEntity> {
 
-    Future<RowSet<Row>> findByIdAndFinished(SqlConnection client, BigInteger id, Boolean finished);
+    Future<RowSet<Row>> findByIdAndFinished(RoutingContext context, SqlConnection client, BigInteger id, Boolean finished);
 
     @Query("SELECT\n" +
             "    t.*\n" +
@@ -25,6 +26,6 @@ public interface TaskRepository extends ReactiveRepository<TaskEntity> {
             "    t.id = $1\n" +
             "    AND t.finished = $2\n" +
             "    AND t.user_id = $3")
-    Future<RowSet<Row>> findByIdAndFinishedOfUser(SqlConnection client, BigInteger id, Boolean finished, BigInteger userId);
+    Future<RowSet<Row>> findByIdAndFinishedOfUser(RoutingContext context, SqlConnection client, BigInteger id, Boolean finished, BigInteger userId);
 
 }

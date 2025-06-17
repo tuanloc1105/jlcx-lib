@@ -311,7 +311,7 @@ public class ControllerProcessor extends AbstractProcessor {
                             routerConfigureCode += routerHandleCodeForFilter.toString();
                         }
                         routerConfigureCode += String.format(
-                                "\n                    .handler(this::createUUIDHandler)\n                    .handler(ctx -> this.controller%d.%s(new vn.com.lcx.vertx.base.context.RoutingContextLcxWrapper(ctx)));",
+                                "\n                    .handler(this::createUUIDHandler)\n                    .handler(ctx -> this.controller%d.%s(new vn.com.lcx.vertx.base.wrapper.RoutingContextLcxWrapper(ctx)));",
                                 count,
                                 e.getSimpleName() + CommonConstant.EMPTY_STRING
                         );

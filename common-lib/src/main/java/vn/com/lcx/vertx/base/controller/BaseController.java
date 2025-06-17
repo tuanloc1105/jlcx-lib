@@ -20,7 +20,7 @@ import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
-import vn.com.lcx.vertx.base.context.AuthContext;
+import vn.com.lcx.common.context.AuthContext;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import vn.com.lcx.vertx.base.http.request.BaseRequest;

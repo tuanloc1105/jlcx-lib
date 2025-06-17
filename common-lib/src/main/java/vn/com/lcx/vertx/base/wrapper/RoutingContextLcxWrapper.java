@@ -1,4 +1,4 @@
-package vn.com.lcx.vertx.base.context;
+package vn.com.lcx.vertx.base.wrapper;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.AsyncResult;
@@ -23,14 +23,11 @@ import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
-import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
 
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-
-import static vn.com.lcx.common.constant.CommonConstant.TRACE_ID_MDC_KEY_NAME;
 
 @RequiredArgsConstructor
 public class RoutingContextLcxWrapper implements RoutingContext {

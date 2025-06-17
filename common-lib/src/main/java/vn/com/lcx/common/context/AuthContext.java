@@ -1,4 +1,4 @@
-package vn.com.lcx.vertx.base.context;
+package vn.com.lcx.common.context;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

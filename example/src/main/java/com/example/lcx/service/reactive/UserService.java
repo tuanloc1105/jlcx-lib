@@ -36,7 +36,7 @@ public class UserService {
         final List<UserEntity> users = new ArrayList<>();
         pool.getConnection().compose(conn ->
                 conn.begin().compose(tx ->
-                        userRepository.findByUsername(conn, request.getUsername())
+                        userRepository.findByUsername(context, conn, request.getUsername())
                                 .compose(rowSet -> {
                                     for (Row row : rowSet) {
                                         users.add(UserEntityUtils.vertxRowMapping(row));
@@ -51,7 +51,7 @@ public class UserService {
                                         user.setFullName(request.getFullName());
                                         user.setCreatedAt(currentTime);
                                         user.setUpdatedAt(currentTime);
-                                        return userRepository.save(conn, user);
+                                        return userRepository.save(context, conn, user);
                                     }
                                 })
                                 .compose(user -> {
@@ -76,7 +76,7 @@ public class UserService {
         Promise<UserLoginResponse> promise = Promise.promise();
         final List<UserEntity> users = new ArrayList<>();
         pool.getConnection().compose(conn ->
-                userRepository.findByUsername(conn, request.getUsername())
+                userRepository.findByUsername(context, conn, request.getUsername())
                         .compose(rowSet -> {
                             for (Row row : rowSet) {
                                 users.add(UserEntityUtils.vertxRowMapping(row));

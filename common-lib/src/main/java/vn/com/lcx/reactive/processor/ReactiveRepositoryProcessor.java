@@ -98,12 +98,17 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         processorClassInfo.getMethods().forEach(
                 (methodInfo, executableElement) -> {
                     final var codeLines = new ArrayList<String>();
-                    if (!methodInfo.getInputParameters().get(0).asType().toString().equals("io.vertx.sqlclient.SqlConnection")) {
-                        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"First parameter must be a `io.vertx.sqlclient.SqlConnection`\");");
+                    if (methodInfo.getInputParameters().isEmpty() || methodInfo.getInputParameters().size() < 2) {
+                        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"First parameter must be a `io.vertx.ext.web.RoutingContext` and the second one must be a `io.vertx.sqlclient.SqlConnection`\");");
+                        return;
+                    }
+                    if (!methodInfo.getInputParameters().get(0).asType().toString().equals("io.vertx.ext.web.RoutingContext") || !methodInfo.getInputParameters().get(1).asType().toString().equals("io.vertx.sqlclient.SqlConnection")) {
+                        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"First parameter must be a `io.vertx.ext.web.RoutingContext` and the second one must be a `io.vertx.sqlclient.SqlConnection`\");");
                     } else {
-                        final VariableElement sqlConnectionVariable = methodInfo.getInputParameters().get(0);
+                        final VariableElement contextVariable = methodInfo.getInputParameters().get(0);
+                        final VariableElement sqlConnectionVariable = methodInfo.getInputParameters().get(1);
                         final List<VariableElement> actualParameters = new ArrayList<>();
-                        for (int i = 1; i < methodInfo.getInputParameters().size(); i++) {
+                        for (int i = 2; i < methodInfo.getInputParameters().size(); i++) {
                             actualParameters.add(methodInfo.getInputParameters().get(i));
                         }
                         codeLines.add(
@@ -114,19 +119,47 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         );
                         switch (methodInfo.getMethodName()) {
                             case "save":
-                                buildSaveModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
+                                buildSaveModelMethodCodeBody(
+                                        codeLines,
+                                        contextVariable,
+                                        sqlConnectionVariable,
+                                        entityTypeMirror
+                                );
                                 break;
                             case "update":
-                                buildUpdateModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
+                                buildUpdateModelMethodCodeBody(
+                                        codeLines,
+                                        contextVariable,
+                                        sqlConnectionVariable,
+                                        entityTypeMirror
+                                );
                                 break;
                             case "delete":
-                                buildDeleteModelMethodCodeBody(codeLines, sqlConnectionVariable, entityTypeMirror);
+                                buildDeleteModelMethodCodeBody(
+                                        codeLines,
+                                        contextVariable,
+                                        sqlConnectionVariable,
+                                        entityTypeMirror);
                                 break;
                             default:
                                 if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
-                                    buildQueryMethodCodeBody(executableElement, codeLines, sqlConnectionVariable, actualParameters);
+                                    buildQueryMethodCodeBody(
+                                            executableElement,
+                                            codeLines,
+                                            contextVariable,
+                                            sqlConnectionVariable,
+                                            actualParameters
+                                    );
                                 } else {
-                                    buildCustomQueryMethodCodeBody(methodInfo, executableElement, codeLines, sqlConnectionVariable, entityTypeMirror, actualParameters);
+                                    buildCustomQueryMethodCodeBody(
+                                            methodInfo,
+                                            executableElement,
+                                            codeLines,
+                                            contextVariable,
+                                            sqlConnectionVariable,
+                                            entityTypeMirror,
+                                            actualParameters
+                                    );
                                 }
                                 break;
                         }
@@ -199,6 +232,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private static void buildSaveModelMethodCodeBody(ArrayList<String> codeLines,
+                                                     VariableElement contextVariable,
                                                      VariableElement sqlConnectionVariable,
                                                      TypeMirror entityTypeMirror) {
         codeLines.add(
@@ -208,8 +242,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model, \"$\") + \" returning \" + %2$sUtils.idColumnName())",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"$\") + \" returning \" + %3$sUtils.idColumnName())",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString())
         );
         codeLines.add(
@@ -232,8 +267,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model, \"?\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         entityTypeMirror)
         );
         codeLines.add(
@@ -254,9 +290,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model, \"@p\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"@p\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
+                        contextVariable.getSimpleName().toString(),
+                        entityTypeMirror)
         );
         codeLines.add(
                 String.format("            .execute(%sUtils.insertTupleParam(model));", entityTypeMirror)
@@ -277,9 +314,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.contains(\"Oracle\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveInsertStatement(model, \"?\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
+                        contextVariable.getSimpleName().toString(),
+                        entityTypeMirror)
         );
         codeLines.add(
                 String.format("            .execute(%sUtils.insertTupleParam(model));", entityTypeMirror)
@@ -311,6 +349,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private static void buildUpdateModelMethodCodeBody(ArrayList<String> codeLines,
+                                                       VariableElement contextVariable,
                                                        VariableElement sqlConnectionVariable,
                                                        TypeMirror entityTypeMirror) {
         codeLines.add(
@@ -320,9 +359,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveUpdateStatement(model, \"$\") + \" returning \" + %2$sUtils.idColumnName())",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"$\") + \" returning \" + %3$sUtils.idColumnName())",
                         sqlConnectionVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
+                        contextVariable.getSimpleName().toString(),
+                        entityTypeMirror)
         );
         codeLines.add(
                 String.format("            .execute(%sUtils.updateTupleParam(model));", entityTypeMirror)
@@ -331,8 +371,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveUpdateStatement(model, \"?\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"?\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         entityTypeMirror)
         );
         codeLines.add(
@@ -342,9 +383,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveUpdateStatement(model, \"@p\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"@p\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
+                        contextVariable.getSimpleName().toString(),
+                        entityTypeMirror)
         );
         codeLines.add(
                 String.format("            .execute(%sUtils.updateTupleParam(model));", entityTypeMirror)
@@ -353,9 +395,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.contains(\"Oracle\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveUpdateStatement(model, \"?\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"?\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
+                        contextVariable.getSimpleName().toString(),
+                        entityTypeMirror)
         );
         codeLines.add(
                 String.format("            .execute(%sUtils.updateTupleParam(model));", entityTypeMirror)
@@ -375,6 +418,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private static void buildDeleteModelMethodCodeBody(ArrayList<String> codeLines,
+                                                       VariableElement contextVariable,
                                                        VariableElement sqlConnectionVariable,
                                                        TypeMirror entityTypeMirror) {
         codeLines.add(
@@ -384,9 +428,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveDeleteStatement(model, \"$\") + \" returning \" + %2$sUtils.idColumnName())",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"$\") + \" returning \" + %3$sUtils.idColumnName())",
                         sqlConnectionVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
+                        contextVariable.getSimpleName().toString(),
+                        entityTypeMirror)
         );
         codeLines.add(
                 String.format("            .execute(%sUtils.deleteTupleParam(model));", entityTypeMirror)
@@ -395,8 +440,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveDeleteStatement(model, \"?\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"?\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         entityTypeMirror)
         );
         codeLines.add(
@@ -406,9 +452,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveDeleteStatement(model, \"@p\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"@p\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
+                        contextVariable.getSimpleName().toString(),
+                        entityTypeMirror)
         );
         codeLines.add(
                 String.format("            .execute(%sUtils.deleteTupleParam(model));", entityTypeMirror)
@@ -417,9 +464,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "} else if (databaseName.contains(\"Oracle\")) {"
         );
         codeLines.add(
-                String.format("    future = %1$s.preparedQuery(%2$sUtils.reactiveDeleteStatement(model, \"?\"))",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"?\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
+                        contextVariable.getSimpleName().toString(),
+                        entityTypeMirror)
         );
         codeLines.add(
                 String.format("            .execute(%sUtils.deleteTupleParam(model));", entityTypeMirror)
@@ -440,13 +488,15 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
 
     private static void buildQueryMethodCodeBody(ExecutableElement executableElement,
                                                  ArrayList<String> codeLines,
+                                                 VariableElement contextVariable,
                                                  VariableElement sqlConnectionVariable,
                                                  List<VariableElement> actualParameters) {
         // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
         final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n\" + \n                        \"");
         codeLines.add(
-                String.format("return %1$s.preparedQuery(\"%2$s\")",
+                String.format("return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\")",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         queryStatement)
         );
         codeLines.add(
@@ -462,6 +512,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     private static void buildCustomQueryMethodCodeBody(MethodInfo methodInfo,
                                                        ExecutableElement executableElement,
                                                        ArrayList<String> codeLines,
+                                                       VariableElement contextVariable,
                                                        VariableElement sqlConnectionVariable,
                                                        TypeMirror entityTypeMirror,
                                                        List<VariableElement> actualParameters) {
@@ -473,8 +524,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%2$s.class, \"$\").build(\"%3$s\", %4$s))",
+                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"$\").build(\"%4$s\", %5$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
                         actualParameters.stream().map(
@@ -495,8 +547,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%2$s.class, \"?\").build(\"%3$s\", %4$s))",
+                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"?\").build(\"%4$s\", %5$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
                         actualParameters.stream().map(
@@ -517,8 +570,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%2$s.class, \"@p\").build(\"%3$s\", %4$s))",
+                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"@p\").build(\"%4$s\", %5$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
                         actualParameters.stream().map(
@@ -539,8 +593,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = %1$s.preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%2$s.class, \"?\").build(\"%3$s\", %4$s))",
+                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"?\").build(\"%4$s\", %5$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
+                        contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
                         actualParameters.stream().map(
