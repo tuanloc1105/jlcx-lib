@@ -22,6 +22,7 @@ import io.vertx.ext.web.UserContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.LogUtils;
+import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
 
 import java.nio.charset.Charset;
@@ -114,7 +115,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
     @Override
     public RequestBody body() {
         final RequestBody body = realContext.body();
-        final String bodyString = body.asString(CommonConstant.UTF_8_STANDARD_CHARSET);
+        final String bodyString = MyStringUtils.minifyJsonString(body.asString(CommonConstant.UTF_8_STANDARD_CHARSET));
         // VertxBaseConstant.requestLogger.info(
         //         "[{}] [{}] - Payload:\n{}",
         //         realContext.request().uri(),
@@ -308,7 +309,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
         //         realContext.get(TRACE_ID_MDC_KEY_NAME),
         //         chunk
         // );
-        LogUtils.writeLog(this, LogUtils.Level.INFO, "Response Payload:\n{}", chunk);
+        LogUtils.writeLog(this, LogUtils.Level.INFO, "Response Payload:\n{}", MyStringUtils.minifyJsonString(chunk));
         return realContext.end(chunk);
     }
 
