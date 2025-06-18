@@ -37,6 +37,7 @@
             <artifactId>processor</artifactId>
             <version>${processor-vn.com.lcx.version}</version>
         </dependency>
+
         <dependency>
             <groupId>vn.com.lcx</groupId>
             <artifactId>common-lib</artifactId>

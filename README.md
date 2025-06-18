@@ -1,123 +1,70 @@
 # jlcx-lib
 
-**jlcx-lib** is a lightweight and reusable Java library that provides utilities for database access, SQL generation, annotation processing, Vert.x integration, and gRPC support.
-It is designed to speed up backend development by minimizing boilerplate code and offering easy-to-use building blocks.
-
----
+**jlcx-lib** is a lightweight and reusable Java library designed to accelerate backend development by reducing boilerplate code and providing easy-to-use building blocks.
 
 ## Features
 
-* **Database Connection Utilities** – Simple connection pool management and configuration.
-* **Lightweight ORM** – Automatically maps Java entities to database tables.
-* **SQL Generator** – Generate SQL queries (CRUD) at compile time based on entity definitions.
-* **Annotation Processor** – Generate source code during compilation using custom annotations.
-* **Vert.x Integration** – Support for reactive programming with Vert.x.
-* **gRPC Proto Plugin** – Automatically generate gRPC code from `.proto` definitions.
-* **Dependency Injection** – Inspired by Spring Boot, supports annotation-based injection for modular.
-
----
+* **Database Connection Utilities**: Offers simple connection pool management and configuration.
+* **Lightweight ORM**: Automatically maps Java entities to database tables.
+* **SQL Generator**: Generates CRUD (Create, Read, Update, Delete) SQL queries at compile time based on entity definitions.
+* **Annotation Processor**: Enables source code generation during compilation using custom annotations.
+* **Vert.x Integration**: Provides support for reactive programming with Vert.x.
+* **gRPC Proto Plugin**: Automatically generates gRPC code from `.proto` definitions.
+* **Dependency Injection**: Features annotation-based injection for modularity, inspired by Spring Boot.
 
 ## 📦 Module Structure
 
+The project is organized into the following modules:
 ```txt
 jlcx-lib/
 ├── common-lib/           # Shared utilities and base classes
 ├── processor/            # Annotation processor for code generation
-├── vertx-processor/      # Vert.x-specific annotation processing
+├── vertx-processor/      # Vert.x-specific annotation processing (Note: The provided files do not include this module explicitly in the directory structure, but it's mentioned in the dependency section of the example pom.xml and common-lib pom.xml with version 1.0.0 and in common-lib/src/main/java/vn/com/lcx/vertx, common-lib/src/main/java/vn/com/lcx/vertx/base)
 ├── grpc-proto-plugin/    # Plugin for processing gRPC proto files
 └── example/              # Example usage of the library
 ```
 
----
-
 ## 🚀 Getting Started
 
-To start using **jlcx-lib** in your Maven project, follow the steps below.
+To use **jlcx-lib** in a Maven project:
 
 ### 1. Add the parent to your `pom.xml`:
 
 ```xml
 <parent>
-  <groupId>vn.com.lcx</groupId>
-  <artifactId>lcx-lib</artifactId>
-  <version>1.0</version>
-  <relativePath/>
+    <groupId>vn.com.lcx</groupId>
+    <artifactId>lcx-lib</artifactId>
+    <version>2.0</version>
+    <relativePath/>
 </parent>
 ```
-
----
+*(Note: The `pom.xml` in the root and `common-lib/pom.xml` indicates version 2.0 and 3.0.0 for `lcx-lib` and `common-lib` respectively, while the README shows 1.0. This might be a versioning discrepancy.)*
 
 ### 2. Add the required dependencies:
 
 ```xml
-<dependencies>
-  <dependency>
+<dependency>
     <groupId>vn.com.lcx</groupId>
     <artifactId>processor</artifactId>
-    <version>1.0.0</version>
-    <scope>provided</scope>
-  </dependency>
+    <version>3.0.0</version>
+</dependency>
 
-  <dependency>
+<dependency>
     <groupId>vn.com.lcx</groupId>
-    <artifactId>vertx-processor</artifactId>
-    <version>1.0.0</version>
-    <scope>provided</scope>
-  </dependency>
-
-  <dependency>
-    <groupId>vn.com.lcx</groupId>
-    <artifactId>base-vertx</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-</dependencies>
+    <artifactId>common-lib</artifactId>
+    <version>3.0.0</version>
+</dependency>
 ```
 
 ### 3. Define an entity using annotations:
 
-```java
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@SQLMapping
-@TableName(value = "user", schema = "lcx")
-public class User implements Serializable {
-    private static final long serialVersionUID = 2675938794277420417L;
+An example of an entity definition with annotations like `@AllArgsConstructor`, `@NoArgsConstructor`, `@Data`, `@SQLMapping`, `@TableName`, `@IdColumn`, and `@ColumnName` is provided. The library automatically generates SQL queries and helper classes during compilation.
 
-    @IdColumn
-    @ColumnName(name = "id")
-    private Long id;
-
-    @ColumnName(name = "username", nullable = false)
-    private String username;
-
-    @ColumnName(name = "password", nullable = false)
-    private String password;
-
-    @ColumnName(name = "full_name")
-    private String fullName;
-
-    @ColumnName(name = "active", defaultValue = "false")
-    private Boolean active;
-
-    @ColumnName(name = "created_time", defaultValue = "current_timestamp")
-    private LocalDateTime createdTime;
-
-    @ColumnName(name = "updated_time", defaultValue = "current_timestamp")
-    private LocalDateTime updatedTime;
-
-}
-```
-
-The library will automatically generate SQL queries and necessary helper classes during compilation.
-
-👉 **Refer to the [`example/`](./example)** directory for a complete demo on configuration, entity creation, and usage examples.
-
----
+A complete demo on configuration, entity creation, and usage examples can be found in the `example/` directory.
 
 ## 🛠 Build & Run
 
-Use the provided shell script or Maven:
+The project can be built using the provided shell script or Maven:
 
 ```bash
 # Build the entire project
@@ -132,27 +79,19 @@ cd example
 ./build.sh
 java -jar target/todo-app-example-1.0.0-jar-with-dependencies.jar
 ```
-
----
+*(Note: The build scripts refer to `jdk-11` and `maven` being located in `$HOME/dev-kit` which would need to be set up by the user running the build.)*
 
 ## ✅ Requirements
 
 * Java 11 or higher
 * Maven 3.6+
 
----
-
 ## 🤝 Contributing
 
-We welcome contributions from the community!
-
-* Open an issue for bugs or feature requests
-* Fork the repo and submit a pull request
-
----
+Contributions are welcome. Users can:
+* Open an issue for bugs or feature requests.
+* Fork the repository and submit a pull request.
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
-
----
+This project is licensed under the MIT License.
