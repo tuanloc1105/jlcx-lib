@@ -9,20 +9,18 @@ import com.example.lcx.object.response.UserLoginResponse;
 import com.example.lcx.respository.reactive.UserRepository;
 import com.google.gson.Gson;
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Pool;
+import io.vertx.sqlclient.SqlConnection;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.utils.BCryptUtils;
 import vn.com.lcx.common.utils.DateTimeUtils;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -33,9 +31,7 @@ public class UserService {
     private final JWTAuth jwtAuth;
 
     public Future<Void> createNew(final RoutingContext context, final CreateNewUserRequest request) {
-        Promise<Void> promise = Promise.promise();
-        final List<UserEntity> users = new ArrayList<>();
-        pool.getConnection().compose(conn ->
+        return pool.getConnection().compose(conn ->
                 conn.begin().compose(tx ->
                         userRepository.findByUsername(context, conn, request.getUsername())
                                 .compose(optionalUserEntity -> {
@@ -57,22 +53,20 @@ public class UserService {
                                     // com.example.lcx.entity.reactive.UserEntityUtils.idRowExtract(...);
                                     return tx.commit();
                                 })
-                                .onSuccess(v -> promise.complete())
                                 .onFailure(err -> {
-                                    tx.rollback();
+                                    tx.rollback().onComplete(rollbackResult -> {
+                                        if (rollbackResult.failed()) {
+                                            err.addSuppressed(rollbackResult.cause());
+                                        }
+                                    });
                                 })
-                                .eventually(() -> {
-                                    conn.close();
-                                    return Future.succeededFuture();
-                                })
-                )
-        ).onFailure(promise::fail);
-        return promise.future();
+                                .eventually(conn::close)
+                ).map(it -> null)
+        );
     }
 
     public Future<UserLoginResponse> login(final RoutingContext context, final UserLoginRequest request) {
-        Promise<UserLoginResponse> promise = Promise.promise();
-        pool.getConnection().compose(conn ->
+        return pool.getConnection().compose(conn ->
                 userRepository.findByUsername(context, conn, request.getUsername())
                         .compose(optionalUserEntity -> {
                             if (optionalUserEntity.isEmpty()) {
@@ -96,10 +90,22 @@ public class UserService {
                             UserLoginResponse response = new UserLoginResponse(token, user.getFullName());
                             return Future.succeededFuture(response);
                         })
-                        .onSuccess(promise::complete)
-                        .onFailure(promise::fail)
                         .eventually(conn::close)
-        ).onFailure(promise::fail);
-        return promise.future();
+        );
     }
+
+    public Future<UserEntity> validateUser(final RoutingContext context, SqlConnection sqlConnection, final String username) {
+        return userRepository.findByUsername(context, sqlConnection, username)
+                .compose(optionalUserEntity -> {
+                    if (optionalUserEntity.isEmpty()) {
+                        return Future.failedFuture(new InternalServiceException(AppError.USER_NOT_EXIST));
+                    }
+                    final UserEntity user = optionalUserEntity.get();
+                    if (user.getDeletedAt() != null) {
+                        return Future.failedFuture(new InternalServiceException(AppError.INACTIVE_USER));
+                    }
+                    return Future.succeededFuture(user);
+                });
+    }
+
 }

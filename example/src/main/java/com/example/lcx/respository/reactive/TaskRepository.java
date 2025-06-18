@@ -37,4 +37,14 @@ public interface TaskRepository extends ReactiveRepository<TaskEntity> {
             "    AND t.user_id = $1")
     Future<List<TaskEntity>> findTasksOfUser(RoutingContext context, SqlConnection client, BigInteger userId);
 
+    @Query("SELECT\n" +
+            "    t.*\n" +
+            "FROM\n" +
+            "    r_lcx.task t\n" +
+            "    LEFT JOIN r_lcx.user u ON t.user_id = u.id\n" +
+            "WHERE\n" +
+            "    t.id = $1\n" +
+            "    AND t.user_id = $2")
+    Future<Optional<TaskEntity>> findTaskDetailOfUser(RoutingContext context, SqlConnection client, BigInteger id, BigInteger userId);
+
 }
