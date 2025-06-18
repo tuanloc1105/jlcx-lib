@@ -40,27 +40,22 @@ public class BaseController {
 
     public final static TypeToken<Void> VOID = new TypeToken<Void>() {
     };
-    @Getter
-    protected final Vertx vertx;
-    protected Gson gson;
-    @SuppressWarnings("FieldMayBeFinal")
-    private Logger requestLogger;
-    @SuppressWarnings("FieldMayBeFinal")
-    private Logger responseLogger;
-    @SuppressWarnings("FieldMayBeFinal")
-    private Logger exceptionLogger;
 
-    public BaseController(Vertx vertx) {
-        this.vertx = vertx;
+    private static final Gson gson;
+    private static final Logger requestLogger;
+    private static final Logger responseLogger;
+    private static final Logger exceptionLogger;
+
+    static {
         final var dateFormatType = System.getenv("DATE_FORMAT_TYPE");
         if ("VN".equals(dateFormatType)) {
-            this.gson = BuildGson.getVietnameseDateFormatGson();
+            gson = BuildGson.getVietnameseDateFormatGson();
         } else {
-            this.gson = BuildGson.getGson();
+            gson = BuildGson.getGson();
         }
-        this.requestLogger = LoggerFactory.getLogger("request");
-        this.responseLogger = LoggerFactory.getLogger("response");
-        this.exceptionLogger = LoggerFactory.getLogger("exception");
+        requestLogger = LoggerFactory.getLogger("request");
+        responseLogger = LoggerFactory.getLogger("response");
+        exceptionLogger = LoggerFactory.getLogger("exception");
     }
 
     protected String getRequestQueryParam(RoutingContext context, String paramName) {
@@ -188,7 +183,7 @@ public class BaseController {
 
         Object authInfo = AuthContext.get();
 
-        final Future<@Nullable CommonResponse> blockingFutureTask = vertx.executeBlocking(() -> {
+        final Future<@Nullable CommonResponse> blockingFutureTask = context.vertx().executeBlocking(() -> {
             AuthContext.set(authInfo);
             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
@@ -312,136 +307,6 @@ public class BaseController {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
         });
-    }
-
-    /**
-     * Not suitable in the Vert.x environment
-     */
-    @Deprecated(forRemoval = true)
-    protected <T extends CommonResponse, B> void execute(RoutingContext context, RequestHandler<T, B> requestHandler, TypeToken<B> requestBodyClass) {
-        LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());
-        LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
-        final var startingTime = (double) System.currentTimeMillis();
-        final var trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-        final var operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-        MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-        MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-        String responseBody = CommonConstant.EMPTY_STRING;
-        int httpStatusCode = 200;
-        try {
-            final MultiMap requestHeader = context.request().headers();
-
-            final var headerLogMsg = new ArrayList<String>();
-
-            for (Map.Entry<String, String> requestQueryParam : requestHeader) {
-                headerLogMsg.add(
-                        String.format(
-                                "        - Name: %s\n          Value: %s",
-                                requestQueryParam.getKey(),
-                                requestQueryParam.getValue()
-                        )
-                );
-            }
-
-            final var requestBody = MyStringUtils.minifyJsonString(context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
-
-            LogUtils.writeLog(
-                    LogUtils.Level.INFO,
-                    "Request:\n    - URL: {}\n    - Header:\n{}\n    - Payload:\n        {}",
-                    context.request().uri(),
-                    String.join("\n", headerLogMsg),
-                    requestBody
-            );
-
-            final T response;
-            if (VOID.equals(requestBodyClass)) {
-                response = requestHandler.handle(context, null);
-            } else {
-                if (StringUtils.isBlank(requestBody)) {
-                    throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, "Empty request body");
-                }
-                B requestObject = gson.fromJson(requestBody, requestBodyClass.getType());
-                final var errorFields = AutoValidation.validate(requestObject);
-                if (!errorFields.isEmpty()) {
-                    throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());
-                }
-                response = requestHandler.handle(context, requestObject);
-            }
-
-            response.setTrace(trace);
-            response.setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
-            response.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
-            response.setHttpCode(200);
-
-            responseBody = gson.toJson(response);
-
-            context.response()
-                    .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
-                    .putHeader(
-                            VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
-                            DateTimeUtils.generateCurrentTimeDefault()
-                                    .format(
-                                            DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
-                                    )
-                    )
-                    .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, trace)
-                    .end(responseBody);
-        } catch (Exception e) {
-            LogUtils.writeLog(e.getMessage(), e);
-            CommonResponse response;
-            int httpCode = 500;
-            if (e instanceof InternalServiceException) {
-                InternalServiceException internalServiceException = (InternalServiceException) e;
-                httpCode = internalServiceException.getHttpCode();
-                response = CommonResponse.builder()
-                        .trace(trace)
-                        .errorCode(internalServiceException.getCode())
-                        .errorDescription(internalServiceException.getMessage())
-                        .httpCode(httpCode)
-                        .build();
-            } else {
-                response = CommonResponse.builder()
-                        .trace(trace)
-                        .errorCode(-1)
-                        .errorDescription(e.getMessage())
-                        .httpCode(httpCode)
-                        .build();
-            }
-            responseBody = this.gson.toJson(response);
-            context.response().setStatusCode(httpCode)
-                    .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
-                    .putHeader(
-                            VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
-                            DateTimeUtils.generateCurrentTimeDefault()
-                                    .format(
-                                            DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
-                                    )
-                    )
-                    .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, trace)
-                    .end(responseBody);
-            httpStatusCode = httpCode;
-            // LogUtils.writeLog(LogUtils.Level.WARN, responseBody);
-        } finally {
-            final var endingTime = (double) System.currentTimeMillis();
-            final var duration = (endingTime - startingTime) / 1000D;
-            if (httpStatusCode == 200) {
-                LogUtils.writeLog(
-                        LogUtils.Level.INFO,
-                        "Response ({} second(s)):\n    - Payload:\n        {}",
-                        duration,
-                        responseBody
-                );
-            } else {
-                LogUtils.writeLog(
-                        LogUtils.Level.WARN,
-                        "Response ({} second(s)):\n    - Payload:\n        {}",
-                        duration,
-                        responseBody
-                );
-            }
-        }
-        MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-        MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
     }
 
     protected <T> T getUser(RoutingContext context, TypeToken<T> typeToken) {

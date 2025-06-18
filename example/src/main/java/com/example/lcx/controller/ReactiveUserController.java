@@ -15,8 +15,9 @@ import vn.com.lcx.vertx.base.http.response.CommonResponse;
 
 @Component
 @RequiredArgsConstructor
-@Controller(path = "/reactive-api/v1/user")
+@Controller(path = "/api/v2/user")
 public class ReactiveUserController extends ReactiveController {
+
     private final UserService userService;
     private final Gson gson;
 

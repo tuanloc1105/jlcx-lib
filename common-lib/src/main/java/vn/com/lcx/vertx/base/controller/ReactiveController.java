@@ -212,7 +212,7 @@ public abstract class ReactiveController {
             );
         }
         LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Header:\n{}", String.join("\n", headerLogMsg));
-        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Url:\n{}", ctx.request().uri());
+        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Url: {}", ctx.request().uri());
         if (VOID.equals(reqType)) {
             return null;
         }

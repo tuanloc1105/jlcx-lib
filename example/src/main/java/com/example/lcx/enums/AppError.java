@@ -17,6 +17,7 @@ public enum AppError implements ErrorCode {
     INVALID_REMIND_TIME(400, 20007, "Invalid remind time"),
     TASK_NOT_FOUND(404, 20008, "Task not found"),
     TASK_ALREADY_FINISHED(400, 20009, "Task already finished"),
+    TASK_ALREADY_DELETED(400, 20010, "Task already deleted"),
 
     ;
 
