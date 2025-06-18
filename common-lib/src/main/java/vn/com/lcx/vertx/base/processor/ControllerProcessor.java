@@ -367,7 +367,7 @@ public class ControllerProcessor extends AbstractProcessor {
                     .replace("${static-resource-handler}", staticResourceHandler)
                     .replace("${router-handler}", routerConfigures.stream()
                             .filter(StringUtils::isNotBlank)
-                            .collect(Collectors.joining("\n            ", "            ", "\n")))
+                            .collect(Collectors.joining("\n            ", CommonConstant.EMPTY_STRING, "\n")))
                     ;
             try {
                 JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile("vn.com.lcx.vertx.verticle.ApplicationVerticle");
