@@ -22,7 +22,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -169,7 +171,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                             codeLines,
                                             contextVariable,
                                             sqlConnectionVariable,
-                                            actualParameters
+                                            actualParameters,
+                                            isReturningList,
+                                            futureOutputType
                                     );
                                 } else {
                                     buildCustomQueryMethodCodeBody(
@@ -179,7 +183,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                             contextVariable,
                                             sqlConnectionVariable,
                                             entityTypeMirror,
-                                            actualParameters
+                                            actualParameters,
+                                            isReturningList,
+                                            futureOutputType
                                     );
                                 }
                                 break;
@@ -241,15 +247,15 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 .replace("${interface-class-name}", processorClassInfo.getClazz().getSimpleName())
                 .replace("${methods}", MyStringUtils.removeSuffixOfString(methodCodeBody.toString(), "\n"));
         String fullClassName = packageName + "." + className;
-        processingEnv.getMessager().printMessage(
-                Diagnostic.Kind.NOTE,
-                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": \n" +
-                        code
-        );
-        // JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
-        // try (Writer writer = builderFile.openWriter()) {
-        //     writer.write(code);
-        // }
+        // processingEnv.getMessager().printMessage(
+        //         Diagnostic.Kind.NOTE,
+        //         vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": \n" +
+        //                 code
+        // );
+        JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
+        try (Writer writer = builderFile.openWriter()) {
+            writer.write(code);
+        }
     }
 
     private void buildSaveModelMethodCodeBody(ArrayList<String> codeLines,
@@ -353,7 +359,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
@@ -365,7 +371,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
@@ -377,7 +383,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.contains(\"Oracle\")) {"
@@ -389,7 +395,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
                 "} else {"
@@ -419,7 +425,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
@@ -431,7 +437,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
@@ -443,7 +449,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.contains(\"Oracle\")) {"
@@ -455,7 +461,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
                 "} else {"
@@ -475,7 +481,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                           ArrayList<String> codeLines,
                                           VariableElement contextVariable,
                                           VariableElement sqlConnectionVariable,
-                                          List<VariableElement> actualParameters) {
+                                          List<VariableElement> actualParameters,
+                                          boolean isReturningList,
+                                          String futureOutputType) {
         // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
         final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n\" + \n                        \"");
         codeLines.add(
@@ -486,11 +494,96 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "        .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                        "        .execute(io.vertx.sqlclient.Tuple.of(%s))",
                         actualParameters.stream().map(
                                 VariableElement::getSimpleName
                         ).collect(Collectors.joining(", "))
                 )
+        );
+        codeLines.add(
+                "        .map(rowSet -> {"
+        );
+        if (isReturningList) {
+            final var genericTypeOfList = MyStringUtils
+                    .removeSuffixOfString(
+                            MyStringUtils.removePrefixOfString(futureOutputType, "java.util.List<"),
+                            ">"
+                    );
+            codeLines.add(
+                    "            final java.util.List<" + genericTypeOfList + "> result = new java.util.ArrayList<>();"
+            );
+            codeLines.add(
+                    "            for (io.vertx.sqlclient.Row row : rowSet) {"
+            );
+            codeLines.add(
+                    "                result.add(" + genericTypeOfList + "Utils.vertxRowMapping(row));"
+            );
+            codeLines.add(
+                    "            }"
+            );
+            codeLines.add(
+                    "            return result;"
+            );
+        } else {
+            final boolean isOptional = futureOutputType.startsWith("java.util.Optional");
+            final String genericType;
+            if (isOptional) {
+                genericType = MyStringUtils
+                        .removeSuffixOfString(
+                                MyStringUtils.removePrefixOfString(futureOutputType, "java.util.Optional<"),
+                                ">"
+                        );
+            } else {
+                genericType = futureOutputType;
+            }
+            codeLines.add(
+                    "            if (rowSet.size() == 0) {"
+            );
+            if (isOptional) {
+                codeLines.add(
+                        "                return java.util.Optional.empty();"
+                );
+            } else {
+                codeLines.add(
+                        "                return null;"
+                );
+            }
+            codeLines.add(
+                    "            }"
+            );
+            codeLines.add(
+                    "            if (rowSet.size() > 1) {"
+            );
+            codeLines.add(
+                    "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
+            );
+            codeLines.add(
+                    "            }"
+            );
+            codeLines.add(
+                    "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
+            );
+            codeLines.add(
+                    "            for (io.vertx.sqlclient.Row row : rowSet) {"
+            );
+            codeLines.add(
+                    "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
+            );
+            codeLines.add(
+                    "            }"
+            );
+            if (isOptional) {
+                codeLines.add(
+                        "            return java.util.Optional.of(result.get(0));"
+                );
+            } else {
+                codeLines.add(
+                        "            return result.get(0);"
+                );
+            }
+        }
+        codeLines.add(
+                "        });"
         );
     }
 
@@ -500,7 +593,19 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 VariableElement contextVariable,
                                                 VariableElement sqlConnectionVariable,
                                                 TypeMirror entityTypeMirror,
-                                                List<VariableElement> actualParameters) {
+                                                List<VariableElement> actualParameters,
+                                                boolean isReturningList,
+                                                String futureOutputType) {
+        codeLines.clear();
+        codeLines.add(
+                String.format(
+                        "String databaseName = %s.databaseMetadata().productName();",
+                        sqlConnectionVariable.getSimpleName().toString()
+                )
+        );
+        codeLines.add(
+                "io.vertx.core.Future<io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row>> future;"
+        );
         codeLines.add(
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
@@ -603,7 +708,92 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "}"
         );
         codeLines.add(
-                "return future;"
+                "return future"
+        );
+        codeLines.add(
+                "        .map(rowSet -> {"
+        );
+        if (isReturningList) {
+            final var genericTypeOfList = MyStringUtils
+                    .removeSuffixOfString(
+                            MyStringUtils.removePrefixOfString(futureOutputType, "java.util.List<"),
+                            ">"
+                    );
+            codeLines.add(
+                    "            final java.util.List<" + genericTypeOfList + "> result = new java.util.ArrayList<>();"
+            );
+            codeLines.add(
+                    "            for (io.vertx.sqlclient.Row row : rowSet) {"
+            );
+            codeLines.add(
+                    "                result.add(" + genericTypeOfList + "Utils.vertxRowMapping(row));"
+            );
+            codeLines.add(
+                    "            }"
+            );
+            codeLines.add(
+                    "            return result;"
+            );
+        } else {
+            final boolean isOptional = futureOutputType.startsWith("java.util.Optional");
+            final String genericType;
+            if (isOptional) {
+                genericType = MyStringUtils
+                        .removeSuffixOfString(
+                                MyStringUtils.removePrefixOfString(futureOutputType, "java.util.Optional<"),
+                                ">"
+                        );
+            } else {
+                genericType = futureOutputType;
+            }
+            codeLines.add(
+                    "            if (rowSet.size() == 0) {"
+            );
+            if (isOptional) {
+                codeLines.add(
+                        "                return java.util.Optional.empty();"
+                );
+            } else {
+                codeLines.add(
+                        "                return null;"
+                );
+            }
+            codeLines.add(
+                    "            }"
+            );
+            codeLines.add(
+                    "            if (rowSet.size() > 1) {"
+            );
+            codeLines.add(
+                    "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
+            );
+            codeLines.add(
+                    "            }"
+            );
+            codeLines.add(
+                    "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
+            );
+            codeLines.add(
+                    "            for (io.vertx.sqlclient.Row row : rowSet) {"
+            );
+            codeLines.add(
+                    "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
+            );
+            codeLines.add(
+                    "            }"
+            );
+            if (isOptional) {
+                codeLines.add(
+                        "            return java.util.Optional.of(result.get(0));"
+                );
+            } else {
+                codeLines.add(
+                        "            return result.get(0);"
+                );
+            }
+        }
+        codeLines.add(
+                "        });"
         );
     }
 

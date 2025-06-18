@@ -8,8 +8,8 @@ public interface ReactiveRepository<T> {
 
     Future<T> save(RoutingContext context, SqlConnection client, T entity);
 
-    Future<Void> update(RoutingContext context, SqlConnection client, T entity);
+    Future<Integer> update(RoutingContext context, SqlConnection client, T entity);
 
-    Future<Void> delete(RoutingContext context, SqlConnection client, T entity);
+    Future<Integer> delete(RoutingContext context, SqlConnection client, T entity);
 
 }
