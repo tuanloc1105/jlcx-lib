@@ -309,9 +309,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
         );
         codeLines.add("            .map(rowSet -> {");
-        codeLines.add("                for (io.vertx.sqlclient.Row row : rowSet) {");
-        codeLines.add("                    " + entityTypeMirror + "Utils.idRowExtract(row, model);");
-        codeLines.add("                }");
+        codeLines.add("                " + entityTypeMirror + "Utils.idRowExtract(rowSet.iterator().next(), model);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
