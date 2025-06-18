@@ -5,10 +5,8 @@ import com.google.gson.reflect.TypeToken;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,11 +14,11 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import vn.com.lcx.common.config.BuildGson;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.context.AuthContext;
 import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
-import vn.com.lcx.common.context.AuthContext;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import vn.com.lcx.vertx.base.http.request.BaseRequest;
@@ -175,8 +173,6 @@ public class BaseController {
     }
 
     protected <T extends CommonResponse, B> void executeThreadBlock(RoutingContext context, RequestHandler<T, B> requestHandler, TypeToken<B> requestBodyClass) {
-        LogUtils.writeLog(LogUtils.Level.DEBUG, context.toString());
-        LogUtils.writeLog(LogUtils.Level.DEBUG, context.getClass().getName());
         final var startingTime = (double) System.currentTimeMillis();
         final var trace = (String) context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
         final var operation = (String) context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
@@ -254,7 +250,7 @@ public class BaseController {
                     )
                     .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, trace)
                     .end(responseBody);
-            BaseController.this.responseLogger.info(
+            responseLogger.info(
                     "Response ({} second(s)):\n    - Payload:\n        {}",
                     duration,
                     responseBody
@@ -267,7 +263,7 @@ public class BaseController {
             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
-            BaseController.this.exceptionLogger.error("- {}", e.getMessage(), e);
+            exceptionLogger.error("- {}", e.getMessage(), e);
             CommonResponse response;
             int httpCode = 500;
             if (e instanceof InternalServiceException) {
@@ -287,7 +283,7 @@ public class BaseController {
                         .httpCode(httpCode)
                         .build();
             }
-            String responseBody = this.gson.toJson(response);
+            String responseBody = gson.toJson(response);
             context.response().setStatusCode(httpCode)
                     .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
                     .putHeader(
@@ -299,7 +295,7 @@ public class BaseController {
                     )
                     .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, trace)
                     .end(responseBody);
-            BaseController.this.responseLogger.warn(
+            responseLogger.warn(
                     "Response ({} second(s)):\n    - Payload:\n        {}",
                     duration,
                     responseBody
@@ -311,7 +307,7 @@ public class BaseController {
 
     protected <T> T getUser(RoutingContext context, TypeToken<T> typeToken) {
         final JsonObject jsonObject = context.user().get("accessToken");
-        return this.gson.fromJson(
+        return gson.fromJson(
                 jsonObject.encode(),
                 typeToken.getType()
         );
@@ -319,7 +315,7 @@ public class BaseController {
 
     protected SimpleUserAuthenticationInfo getUser(RoutingContext context) {
         final JsonObject jsonObject = context.user().get("accessToken");
-        return this.gson.fromJson(
+        return gson.fromJson(
                 jsonObject.encode(),
                 new TypeToken<SimpleUserAuthenticationInfo>() {
                 }

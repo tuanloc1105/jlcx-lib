@@ -9,6 +9,7 @@ import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
+import vn.com.lcx.vertx.base.annotation.process.Block;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
 import vn.com.lcx.vertx.base.annotation.process.Get;
 import vn.com.lcx.vertx.base.annotation.process.Post;
@@ -18,6 +19,7 @@ import vn.com.lcx.vertx.base.http.response.CommonResponse;
 @RequiredArgsConstructor
 @Component
 @Controller(path = "/api/v1/user")
+@Block
 public class UserController extends BaseController {
 
     private final UserService userService;

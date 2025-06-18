@@ -133,6 +133,7 @@ public class TaskService {
                                                                 PostgreSQLPageable.builder()
                                                                         .pageSize(10)
                                                                         .pageNumber(request.getPageNumber())
+                                                                        .entityClass(TaskEntity.class)
                                                                         .build().add("id", Direction.DESC)
                                                         ).compose(taskEntity -> {
                                                                     final var dtos = taskEntity.stream()
@@ -179,6 +180,7 @@ public class TaskService {
                                                                 PostgreSQLPageable.builder()
                                                                         .pageSize(10)
                                                                         .pageNumber(request.getPageNumber())
+                                                                        .entityClass(TaskEntity.class)
                                                                         .build().add("id", Direction.DESC)
                                                         ).compose(taskEntity -> {
                                                                     final var dtos = taskEntity.stream()

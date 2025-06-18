@@ -17,6 +17,7 @@ import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
+import vn.com.lcx.vertx.base.annotation.process.Block;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
 import vn.com.lcx.vertx.base.annotation.process.Post;
 import vn.com.lcx.vertx.base.controller.BaseController;
@@ -25,6 +26,7 @@ import vn.com.lcx.vertx.base.http.response.CommonResponse;
 @RequiredArgsConstructor
 @Component
 @Controller(path = "/api/v1/task")
+@Block
 public class TaskController extends BaseController {
 
     private final TaskService taskService;
