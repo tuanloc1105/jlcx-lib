@@ -38,6 +38,7 @@ public class TaskService {
     private final TaskMapper taskMapper;
 
     public Future<Void> createTask(final RoutingContext context, final CreateTaskRequest request) {
+        // final var promise = Promise.<Void>promise();
         // return Future.<UserJWTTokenInfo>future(
         //                 promise -> promise.complete(context.get(CommonConstant.CURRENT_USER))
         //         )
@@ -212,46 +213,46 @@ public class TaskService {
                     }
                 })
                 .compose(userJWTTokenInfo ->
-                pool.getConnection()
-                        .compose(connection ->
-                                userService.validateUser(context, connection, userJWTTokenInfo.getUsername())
-                                        .eventually(connection::close)
-                        ).compose(userEntity ->
-                                pool.getConnection()
-                                        .compose(connection ->
-                                                connection.begin().compose(transaction ->
-                                                                taskRepository.findTaskDetailOfUser(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
-                                                                        .compose(taskEntity -> {
-                                                                            if (taskEntity.isEmpty()) {
-                                                                                return Future.failedFuture(new InternalServiceException(AppError.TASK_NOT_FOUND));
-                                                                            }
-                                                                            final var task = taskEntity.get();
-                                                                            if (task.getDeletedAt() != null) {
-                                                                                return Future.failedFuture(new InternalServiceException(AppError.TASK_ALREADY_DELETED));
-                                                                            }
-                                                                            final var currentDateTime = DateTimeUtils.generateCurrentTimeDefault();
-                                                                            task.setTaskName(request.getTaskName());
-                                                                            task.setTaskDetail(request.getTaskDetail());
-                                                                            task.setRemindAt(request.getRemindAt());
-                                                                            task.setUpdatedBy(userEntity.getUsername());
-                                                                            task.setUpdatedAt(currentDateTime);
-                                                                            return taskRepository.update(context, connection, task);
-                                                                        })
-                                                                        .compose(it -> transaction.commit())
-                                                                        .onFailure(
-                                                                                err -> transaction.rollback()
-                                                                                        .onComplete(rollbackResult -> {
-                                                                                            if (rollbackResult.failed()) {
-                                                                                                err.addSuppressed(rollbackResult.cause());
-                                                                                            }
-                                                                                        })
-                                                                        )
+                        pool.getConnection()
+                                .compose(connection ->
+                                        userService.validateUser(context, connection, userJWTTokenInfo.getUsername())
+                                                .eventually(connection::close)
+                                ).compose(userEntity ->
+                                        pool.getConnection()
+                                                .compose(connection ->
+                                                        connection.begin().compose(transaction ->
+                                                                        taskRepository.findTaskDetailOfUser(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
+                                                                                .compose(taskEntity -> {
+                                                                                    if (taskEntity.isEmpty()) {
+                                                                                        return Future.failedFuture(new InternalServiceException(AppError.TASK_NOT_FOUND));
+                                                                                    }
+                                                                                    final var task = taskEntity.get();
+                                                                                    if (task.getDeletedAt() != null) {
+                                                                                        return Future.failedFuture(new InternalServiceException(AppError.TASK_ALREADY_DELETED));
+                                                                                    }
+                                                                                    final var currentDateTime = DateTimeUtils.generateCurrentTimeDefault();
+                                                                                    task.setTaskName(request.getTaskName());
+                                                                                    task.setTaskDetail(request.getTaskDetail());
+                                                                                    task.setRemindAt(request.getRemindAt());
+                                                                                    task.setUpdatedBy(userEntity.getUsername());
+                                                                                    task.setUpdatedAt(currentDateTime);
+                                                                                    return taskRepository.update(context, connection, task);
+                                                                                })
+                                                                                .compose(it -> transaction.commit())
+                                                                                .onFailure(
+                                                                                        err -> transaction.rollback()
+                                                                                                .onComplete(rollbackResult -> {
+                                                                                                    if (rollbackResult.failed()) {
+                                                                                                        err.addSuppressed(rollbackResult.cause());
+                                                                                                    }
+                                                                                                })
+                                                                                )
 
-                                                        )
-                                                        .eventually(connection::close)
-                                        )
-                        )
-        );
+                                                                )
+                                                                .eventually(connection::close)
+                                                )
+                                )
+                );
     }
 
     public Future<Void> deleteTask(final RoutingContext context, final DeleteTaskRequest request) {
@@ -264,42 +265,42 @@ public class TaskService {
                     }
                 })
                 .compose(userJWTTokenInfo ->
-                pool.getConnection()
-                        .compose(connection ->
-                                userService.validateUser(context, connection, userJWTTokenInfo.getUsername())
-                                        .eventually(connection::close)
-                        ).compose(userEntity ->
-                                pool.getConnection()
-                                        .compose(connection ->
-                                                connection.begin().compose(transaction ->
-                                                                taskRepository.findTaskDetailOfUser(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
-                                                                        .compose(taskEntity -> {
-                                                                            if (taskEntity.isEmpty()) {
-                                                                                return Future.failedFuture(new InternalServiceException(AppError.TASK_NOT_FOUND));
-                                                                            }
-                                                                            final var task = taskEntity.get();
-                                                                            if (task.getDeletedAt() != null) {
-                                                                                return Future.failedFuture(new InternalServiceException(AppError.TASK_ALREADY_DELETED));
-                                                                            }
-                                                                            task.setUpdatedBy(userEntity.getUsername());
-                                                                            task.setDeletedAt(DateTimeUtils.generateCurrentTimeDefault());
-                                                                            return taskRepository.update(context, connection, task);
-                                                                        })
-                                                                        .compose(it -> transaction.commit())
-                                                                        .onFailure(
-                                                                                err -> transaction.rollback()
-                                                                                        .onComplete(rollbackResult -> {
-                                                                                            if (rollbackResult.failed()) {
-                                                                                                err.addSuppressed(rollbackResult.cause());
-                                                                                            }
-                                                                                        })
-                                                                        )
+                        pool.getConnection()
+                                .compose(connection ->
+                                        userService.validateUser(context, connection, userJWTTokenInfo.getUsername())
+                                                .eventually(connection::close)
+                                ).compose(userEntity ->
+                                        pool.getConnection()
+                                                .compose(connection ->
+                                                        connection.begin().compose(transaction ->
+                                                                        taskRepository.findTaskDetailOfUser(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
+                                                                                .compose(taskEntity -> {
+                                                                                    if (taskEntity.isEmpty()) {
+                                                                                        return Future.failedFuture(new InternalServiceException(AppError.TASK_NOT_FOUND));
+                                                                                    }
+                                                                                    final var task = taskEntity.get();
+                                                                                    if (task.getDeletedAt() != null) {
+                                                                                        return Future.failedFuture(new InternalServiceException(AppError.TASK_ALREADY_DELETED));
+                                                                                    }
+                                                                                    task.setUpdatedBy(userEntity.getUsername());
+                                                                                    task.setDeletedAt(DateTimeUtils.generateCurrentTimeDefault());
+                                                                                    return taskRepository.update(context, connection, task);
+                                                                                })
+                                                                                .compose(it -> transaction.commit())
+                                                                                .onFailure(
+                                                                                        err -> transaction.rollback()
+                                                                                                .onComplete(rollbackResult -> {
+                                                                                                    if (rollbackResult.failed()) {
+                                                                                                        err.addSuppressed(rollbackResult.cause());
+                                                                                                    }
+                                                                                                })
+                                                                                )
 
-                                                        )
-                                                        .eventually(connection::close)
-                                        )
-                        )
-        );
+                                                                )
+                                                                .eventually(connection::close)
+                                                )
+                                )
+                );
     }
 
     public Future<Void> markTaskAsFinished(final RoutingContext context, final MarkTaskAsFinishedRequest request) {
@@ -312,44 +313,44 @@ public class TaskService {
                     }
                 })
                 .compose(userJWTTokenInfo ->
-                pool.getConnection()
-                        .compose(connection ->
-                                userService.validateUser(context, connection, userJWTTokenInfo.getUsername())
-                                        .eventually(connection::close)
-                        ).compose(userEntity ->
-                                pool.getConnection()
-                                        .compose(connection ->
-                                                connection.begin().compose(transaction ->
-                                                                taskRepository.findTaskDetailOfUser(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
-                                                                        .compose(taskEntity -> {
-                                                                            if (taskEntity.isEmpty()) {
-                                                                                return Future.failedFuture(new InternalServiceException(AppError.TASK_NOT_FOUND));
-                                                                            }
-                                                                            final var task = taskEntity.get();
-                                                                            if (task.getDeletedAt() != null) {
-                                                                                return Future.failedFuture(new InternalServiceException(AppError.TASK_ALREADY_DELETED));
-                                                                            }
-                                                                            if (task.getFinished()) {
-                                                                                return Future.failedFuture(new InternalServiceException(AppError.TASK_ALREADY_FINISHED));
-                                                                            }
-                                                                            task.setUpdatedBy(userEntity.getUsername());
-                                                                            task.setUpdatedAt(DateTimeUtils.generateCurrentTimeDefault());
-                                                                            return taskRepository.update(context, connection, task);
-                                                                        })
-                                                                        .compose(it -> transaction.commit())
-                                                                        .onFailure(
-                                                                                err -> transaction.rollback()
-                                                                                        .onComplete(rollbackResult -> {
-                                                                                            if (rollbackResult.failed()) {
-                                                                                                err.addSuppressed(rollbackResult.cause());
-                                                                                            }
-                                                                                        })
-                                                                        )
+                        pool.getConnection()
+                                .compose(connection ->
+                                        userService.validateUser(context, connection, userJWTTokenInfo.getUsername())
+                                                .eventually(connection::close)
+                                ).compose(userEntity ->
+                                        pool.getConnection()
+                                                .compose(connection ->
+                                                        connection.begin().compose(transaction ->
+                                                                        taskRepository.findTaskDetailOfUser(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
+                                                                                .compose(taskEntity -> {
+                                                                                    if (taskEntity.isEmpty()) {
+                                                                                        return Future.failedFuture(new InternalServiceException(AppError.TASK_NOT_FOUND));
+                                                                                    }
+                                                                                    final var task = taskEntity.get();
+                                                                                    if (task.getDeletedAt() != null) {
+                                                                                        return Future.failedFuture(new InternalServiceException(AppError.TASK_ALREADY_DELETED));
+                                                                                    }
+                                                                                    if (task.getFinished()) {
+                                                                                        return Future.failedFuture(new InternalServiceException(AppError.TASK_ALREADY_FINISHED));
+                                                                                    }
+                                                                                    task.setUpdatedBy(userEntity.getUsername());
+                                                                                    task.setUpdatedAt(DateTimeUtils.generateCurrentTimeDefault());
+                                                                                    return taskRepository.update(context, connection, task);
+                                                                                })
+                                                                                .compose(it -> transaction.commit())
+                                                                                .onFailure(
+                                                                                        err -> transaction.rollback()
+                                                                                                .onComplete(rollbackResult -> {
+                                                                                                    if (rollbackResult.failed()) {
+                                                                                                        err.addSuppressed(rollbackResult.cause());
+                                                                                                    }
+                                                                                                })
+                                                                                )
 
-                                                        )
-                                                        .eventually(connection::close)
-                                        )
-                        )
-        );
+                                                                )
+                                                                .eventually(connection::close)
+                                                )
+                                )
+                );
     }
 }
