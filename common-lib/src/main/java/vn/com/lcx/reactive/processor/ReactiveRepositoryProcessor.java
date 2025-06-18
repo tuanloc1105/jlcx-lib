@@ -338,9 +338,6 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add(
                 "}"
         );
-        // codeLines.add(
-        //         "return future;"
-        // );
     }
 
     private void buildUpdateModelMethodCodeBody(ArrayList<String> codeLines,
@@ -490,14 +487,20 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         contextVariable.getSimpleName().toString(),
                         queryStatement)
         );
-        codeLines.add(
-                String.format(
-                        "        .execute(io.vertx.sqlclient.Tuple.of(%s))",
-                        actualParameters.stream().map(
-                                VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
-                )
-        );
+        if (actualParameters.isEmpty()) {
+            codeLines.add(
+                    "        .execute()"
+            );
+        } else {
+            codeLines.add(
+                    String.format(
+                            "        .execute(io.vertx.sqlclient.Tuple.of(%s))",
+                            actualParameters.stream().map(
+                                    VariableElement::getSimpleName
+                            ).collect(Collectors.joining(", "))
+                    )
+            );
+        }
         codeLines.add(
                 "        .map(rowSet -> {"
         );
@@ -534,50 +537,68 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             } else {
                 genericType = futureOutputType;
             }
-            codeLines.add(
-                    "            if (rowSet.size() == 0) {"
-            );
-            if (isOptional) {
+            if (genericType.equals("java.lang.Long")) {
                 codeLines.add(
-                        "                return java.util.Optional.empty();"
+                        "            long result = 0;"
+                );
+                codeLines.add(
+                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                result += row.getLong(0);"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                codeLines.add(
+                        "            return result;"
                 );
             } else {
                 codeLines.add(
-                        "                return null;"
+                        "            if (rowSet.size() == 0) {"
                 );
-            }
-            codeLines.add(
-                    "            }"
-            );
-            codeLines.add(
-                    "            if (rowSet.size() > 1) {"
-            );
-            codeLines.add(
-                    "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
-            );
-            codeLines.add(
-                    "            }"
-            );
-            codeLines.add(
-                    "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
-            );
-            codeLines.add(
-                    "            for (io.vertx.sqlclient.Row row : rowSet) {"
-            );
-            codeLines.add(
-                    "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
-            );
-            codeLines.add(
-                    "            }"
-            );
-            if (isOptional) {
+                if (isOptional) {
+                    codeLines.add(
+                            "                return java.util.Optional.empty();"
+                    );
+                } else {
+                    codeLines.add(
+                            "                return null;"
+                    );
+                }
                 codeLines.add(
-                        "            return java.util.Optional.of(result.get(0));"
+                        "            }"
                 );
-            } else {
                 codeLines.add(
-                        "            return result.get(0);"
+                        "            if (rowSet.size() > 1) {"
                 );
+                codeLines.add(
+                        "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                codeLines.add(
+                        "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
+                );
+                codeLines.add(
+                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                if (isOptional) {
+                    codeLines.add(
+                            "            return java.util.Optional.of(result.get(0));"
+                    );
+                } else {
+                    codeLines.add(
+                            "            return result.get(0);"
+                    );
+                }
             }
         }
         codeLines.add(
@@ -609,93 +630,117 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add(
                 String.format(
-                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"$\").build(\"%4$s\", %5$s))",
+                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"$\").build(\"%4$s\"%5$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
-                        actualParameters.stream().map(
+                        actualParameters.isEmpty() ? CommonConstant.EMPTY_STRING : actualParameters.stream().map(
                                 VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
+                        ).collect(Collectors.joining(", ", ", ", CommonConstant.EMPTY_STRING))
                 )
         );
-        codeLines.add(
-                String.format(
-                        "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
-                        actualParameters.stream().map(
-                                VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
-                )
-        );
+        if (actualParameters.isEmpty()) {
+            codeLines.add(
+                    "            .execute();"
+            );
+        } else {
+            codeLines.add(
+                    String.format(
+                            "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                            actualParameters.stream().map(
+                                    VariableElement::getSimpleName
+                            ).collect(Collectors.joining(", "))
+                    )
+            );
+        }
         codeLines.add(
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
         );
         codeLines.add(
                 String.format(
-                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"?\").build(\"%4$s\", %5$s))",
+                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"?\").build(\"%4$s\"%5$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
-                        actualParameters.stream().map(
+                        actualParameters.isEmpty() ? CommonConstant.EMPTY_STRING : actualParameters.stream().map(
                                 VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
+                        ).collect(Collectors.joining(", ", ", ", CommonConstant.EMPTY_STRING))
                 )
         );
-        codeLines.add(
-                String.format(
-                        "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
-                        actualParameters.stream().map(
-                                VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
-                )
-        );
+        if (actualParameters.isEmpty()) {
+            codeLines.add(
+                    "            .execute();"
+            );
+        } else {
+            codeLines.add(
+                    String.format(
+                            "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                            actualParameters.stream().map(
+                                    VariableElement::getSimpleName
+                            ).collect(Collectors.joining(", "))
+                    )
+            );
+        }
         codeLines.add(
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
         );
         codeLines.add(
                 String.format(
-                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"@p\").build(\"%4$s\", %5$s))",
+                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"@p\").build(\"%4$s\"%5$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
-                        actualParameters.stream().map(
+                        actualParameters.isEmpty() ? CommonConstant.EMPTY_STRING : actualParameters.stream().map(
                                 VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
+                        ).collect(Collectors.joining(", ", ", ", CommonConstant.EMPTY_STRING))
                 )
         );
-        codeLines.add(
-                String.format(
-                        "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
-                        actualParameters.stream().map(
-                                VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
-                )
-        );
+        if (actualParameters.isEmpty()) {
+            codeLines.add(
+                    "            .execute();"
+            );
+        } else {
+            codeLines.add(
+                    String.format(
+                            "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                            actualParameters.stream().map(
+                                    VariableElement::getSimpleName
+                            ).collect(Collectors.joining(", "))
+                    )
+            );
+        }
         codeLines.add(
                 "} else if (databaseName.contains(\"Oracle\")) {"
         );
         codeLines.add(
                 String.format(
-                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"?\").build(\"%4$s\", %5$s))",
+                        "    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(vn.com.lcx.common.database.reflect.SelectStatementBuilder.of(%3$s.class, \"?\").build(\"%4$s\"%5$s))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString(),
                         methodInfo.getMethodName(),
-                        actualParameters.stream().map(
+                        actualParameters.isEmpty() ? CommonConstant.EMPTY_STRING : actualParameters.stream().map(
                                 VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
+                        ).collect(Collectors.joining(", ", ", ", CommonConstant.EMPTY_STRING))
                 )
         );
-        codeLines.add(
-                String.format(
-                        "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
-                        actualParameters.stream().map(
-                                VariableElement::getSimpleName
-                        ).collect(Collectors.joining(", "))
-                )
-        );
+        if (actualParameters.isEmpty()) {
+            codeLines.add(
+                    "            .execute();"
+            );
+        } else {
+            codeLines.add(
+                    String.format(
+                            "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                            actualParameters.stream().map(
+                                    VariableElement::getSimpleName
+                            ).collect(Collectors.joining(", "))
+                    )
+            );
+        }
         codeLines.add(
                 "} else {"
         );
@@ -744,50 +789,68 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             } else {
                 genericType = futureOutputType;
             }
-            codeLines.add(
-                    "            if (rowSet.size() == 0) {"
-            );
-            if (isOptional) {
+            if (genericType.equals("java.lang.Long")) {
                 codeLines.add(
-                        "                return java.util.Optional.empty();"
+                        "            long result = 0;"
+                );
+                codeLines.add(
+                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                result += row.getLong(0);"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                codeLines.add(
+                        "            return result;"
                 );
             } else {
                 codeLines.add(
-                        "                return null;"
+                        "            if (rowSet.size() == 0) {"
                 );
-            }
-            codeLines.add(
-                    "            }"
-            );
-            codeLines.add(
-                    "            if (rowSet.size() > 1) {"
-            );
-            codeLines.add(
-                    "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
-            );
-            codeLines.add(
-                    "            }"
-            );
-            codeLines.add(
-                    "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
-            );
-            codeLines.add(
-                    "            for (io.vertx.sqlclient.Row row : rowSet) {"
-            );
-            codeLines.add(
-                    "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
-            );
-            codeLines.add(
-                    "            }"
-            );
-            if (isOptional) {
+                if (isOptional) {
+                    codeLines.add(
+                            "                return java.util.Optional.empty();"
+                    );
+                } else {
+                    codeLines.add(
+                            "                return null;"
+                    );
+                }
                 codeLines.add(
-                        "            return java.util.Optional.of(result.get(0));"
+                        "            }"
                 );
-            } else {
                 codeLines.add(
-                        "            return result.get(0);"
+                        "            if (rowSet.size() > 1) {"
                 );
+                codeLines.add(
+                        "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                codeLines.add(
+                        "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
+                );
+                codeLines.add(
+                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                if (isOptional) {
+                    codeLines.add(
+                            "            return java.util.Optional.of(result.get(0));"
+                    );
+                } else {
+                    codeLines.add(
+                            "            return result.get(0);"
+                    );
+                }
             }
         }
         codeLines.add(
