@@ -22,9 +22,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -97,6 +95,14 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         methodCodeBody.append("\n");
         processorClassInfo.getMethods().forEach(
                 (methodInfo, executableElement) -> {
+                    final String actualReturnType;
+                    if (methodInfo.getOutputParameter().toString().equals("T")) {
+                        actualReturnType = entityTypeMirror.toString();
+                    } else if (methodInfo.getOutputParameter().toString().contains("<T>")) {
+                        actualReturnType = methodInfo.getOutputParameter().toString().replace("<T>", "<" + entityTypeMirror.toString() + ">");
+                    } else {
+                        actualReturnType = methodInfo.getOutputParameter().toString();
+                    }
                     final var codeLines = new ArrayList<String>();
                     if (methodInfo.getInputParameters().isEmpty() || methodInfo.getInputParameters().size() < 2) {
                         codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"First parameter must be a `io.vertx.ext.web.RoutingContext` and the second one must be a `io.vertx.sqlclient.SqlConnection`\");");
@@ -105,6 +111,21 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     if (!methodInfo.getInputParameters().get(0).asType().toString().equals("io.vertx.ext.web.RoutingContext") || !methodInfo.getInputParameters().get(1).asType().toString().equals("io.vertx.sqlclient.SqlConnection")) {
                         codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"First parameter must be a `io.vertx.ext.web.RoutingContext` and the second one must be a `io.vertx.sqlclient.SqlConnection`\");");
                     } else {
+                        final String futureOutputType = MyStringUtils
+                                .removeSuffixOfString(
+                                        MyStringUtils.removePrefixOfString(
+                                                actualReturnType,
+                                                "io.vertx.core.Future<"
+                                        ),
+                                        ">"
+                                );
+                        codeLines.add(
+                                String.format(
+                                        "io.vertx.core.Future<%s> future;",
+                                        futureOutputType
+                                )
+                        );
+                        final boolean isReturningList = futureOutputType.contains("java.util.List");
                         final VariableElement contextVariable = methodInfo.getInputParameters().get(0);
                         final VariableElement sqlConnectionVariable = methodInfo.getInputParameters().get(1);
                         final List<VariableElement> actualParameters = new ArrayList<>();
@@ -168,7 +189,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             methodTemplate
                                     .replace(
                                             "${return-type}",
-                                            methodInfo.getOutputParameter().toString()
+                                            actualReturnType
                                     )
                                     .replace(
                                             "${method-name}",
@@ -208,11 +229,6 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     ).append("\n");
                 }
         );
-        // processingEnv.getMessager().printMessage(
-        //         Diagnostic.Kind.NOTE,
-        //         vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": \n" +
-        //                 methodCodeBody
-        // );
         final var packageName = processingEnv
                 .getElementUtils()
                 .getPackageOf(processorClassInfo.getClazz())
@@ -225,115 +241,90 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 .replace("${interface-class-name}", processorClassInfo.getClazz().getSimpleName())
                 .replace("${methods}", MyStringUtils.removeSuffixOfString(methodCodeBody.toString(), "\n"));
         String fullClassName = packageName + "." + className;
-        JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
-        try (Writer writer = builderFile.openWriter()) {
-            writer.write(code);
-        }
+        processingEnv.getMessager().printMessage(
+                Diagnostic.Kind.NOTE,
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": \n" +
+                        code
+        );
+        // JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
+        // try (Writer writer = builderFile.openWriter()) {
+        //     writer.write(code);
+        // }
     }
 
-    private static void buildSaveModelMethodCodeBody(ArrayList<String> codeLines,
-                                                     VariableElement contextVariable,
-                                                     VariableElement sqlConnectionVariable,
-                                                     TypeMirror entityTypeMirror) {
-        codeLines.add(
-                "io.vertx.core.Future<io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row>> future;"
-        );
+    private void buildSaveModelMethodCodeBody(ArrayList<String> codeLines,
+                                              VariableElement contextVariable,
+                                              VariableElement sqlConnectionVariable,
+                                              TypeMirror entityTypeMirror) {
         codeLines.add(
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
         codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"$\") + \" returning \" + %3$sUtils.idColumnName())",
+                String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"$\") + \" returning \" + %3$sUtils.idColumnName())",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror.toString())
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.insertTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
         );
-        codeLines.add("            // .onComplete(ar -> {");
-        codeLines.add("            //     if (ar.succeeded()) {");
-        codeLines.add("            //         io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet = ar.result();");
-        codeLines.add("            //         for (io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rows = rowSet; rows != null; rows = rows.next()) {");
-        codeLines.add(
-                String.format(
-                        "            //             %sUtils.idRowExtract(rows.iterator().next(), model);",
-                        entityTypeMirror
-                )
-        );
-        codeLines.add("            //         }");
-        codeLines.add("            //     }");
-        codeLines.add("            // });");
+        codeLines.add("            .map(rowSet -> {");
+        codeLines.add("                for (io.vertx.sqlclient.Row row : rowSet) {");
+        codeLines.add("                    " + entityTypeMirror + "Utils.idRowExtract(row, model);");
+        codeLines.add("                }");
+        codeLines.add("                return model;");
+        codeLines.add("            });");
         codeLines.add(
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
         );
         codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"))",
+                String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.insertTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
         );
-        codeLines.add("            // .onComplete(ar -> {");
-        codeLines.add("            //     if (ar.succeeded()) {");
-        codeLines.add("            //         io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet = ar.result();");
-        codeLines.add(
-                String.format(
-                        "            //         %sUtils.mySqlIdRowExtract(rowSet, model);",
-                        entityTypeMirror
-                )
-        );
-        codeLines.add("            //     }");
-        codeLines.add("            // });");
+        codeLines.add("            .map(rowSet -> {");
+        codeLines.add("                " + entityTypeMirror + "Utils.mySqlIdRowExtract(rowSet, model);");
+        codeLines.add("                return model;");
+        codeLines.add("            });");
         codeLines.add(
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
         );
         codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"@p\"))",
+                String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"@p\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.insertTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
         );
-        codeLines.add("            // .onComplete(ar -> {");
-        codeLines.add("            //     if (ar.succeeded()) {");
-        codeLines.add("            //         io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet = ar.result();");
-        codeLines.add("            //         io.vertx.sqlclient.Row row = rowSet.iterator().next();");
-        codeLines.add(
-                String.format(
-                        "            //         %sUtils.idRowExtract(row, model);",
-                        entityTypeMirror
-                )
-        );
-        codeLines.add("            //     }");
-        codeLines.add("            // });");
+        codeLines.add("            .map(rowSet -> {");
+        codeLines.add("                for (io.vertx.sqlclient.Row row : rowSet) {");
+        codeLines.add("                    " + entityTypeMirror + "Utils.idRowExtract(row, model);");
+        codeLines.add("                }");
+        codeLines.add("                return model;");
+        codeLines.add("            });");
         codeLines.add(
                 "} else if (databaseName.contains(\"Oracle\")) {"
         );
         codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"))",
+                String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.insertTupleParam(model));", entityTypeMirror)
+                String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
         );
-        codeLines.add("            // .onComplete(ar -> {");
-        codeLines.add("            //     if (ar.succeeded()) {");
-        codeLines.add("            //         io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet = ar.result();");
-        codeLines.add("            //         io.vertx.sqlclient.Row row = rowSet.property(io.vertx.oracleclient.OracleClient.GENERATED_KEYS);");
-        codeLines.add(
-                String.format(
-                        "            //         %sUtils.idRowExtract(row, model);",
-                        entityTypeMirror
-                )
-        );
-        codeLines.add("            //     }");
-        codeLines.add("            // });");
+        codeLines.add("            .map(rowSet -> {");
+        codeLines.add("                io.vertx.sqlclient.Row row = rowSet.property(io.vertx.oracleclient.OracleClient.GENERATED_KEYS);");
+        codeLines.add("                " + entityTypeMirror + "Utils.idRowExtract(row, model);");
+        codeLines.add("                return model;");
+        codeLines.add("            });");
         codeLines.add(
                 "} else {"
         );
@@ -343,18 +334,15 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add(
                 "}"
         );
-        codeLines.add(
-                "return future;"
-        );
+        // codeLines.add(
+        //         "return future;"
+        // );
     }
 
-    private static void buildUpdateModelMethodCodeBody(ArrayList<String> codeLines,
-                                                       VariableElement contextVariable,
-                                                       VariableElement sqlConnectionVariable,
-                                                       TypeMirror entityTypeMirror) {
-        codeLines.add(
-                "io.vertx.core.Future<io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row>> future;"
-        );
+    private void buildUpdateModelMethodCodeBody(ArrayList<String> codeLines,
+                                                VariableElement contextVariable,
+                                                VariableElement sqlConnectionVariable,
+                                                TypeMirror entityTypeMirror) {
         codeLines.add(
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
@@ -417,13 +405,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
     }
 
-    private static void buildDeleteModelMethodCodeBody(ArrayList<String> codeLines,
-                                                       VariableElement contextVariable,
-                                                       VariableElement sqlConnectionVariable,
-                                                       TypeMirror entityTypeMirror) {
-        codeLines.add(
-                "io.vertx.core.Future<io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row>> future;"
-        );
+    private void buildDeleteModelMethodCodeBody(ArrayList<String> codeLines,
+                                                VariableElement contextVariable,
+                                                VariableElement sqlConnectionVariable,
+                                                TypeMirror entityTypeMirror) {
         codeLines.add(
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
@@ -486,11 +471,11 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
     }
 
-    private static void buildQueryMethodCodeBody(ExecutableElement executableElement,
-                                                 ArrayList<String> codeLines,
-                                                 VariableElement contextVariable,
-                                                 VariableElement sqlConnectionVariable,
-                                                 List<VariableElement> actualParameters) {
+    private void buildQueryMethodCodeBody(ExecutableElement executableElement,
+                                          ArrayList<String> codeLines,
+                                          VariableElement contextVariable,
+                                          VariableElement sqlConnectionVariable,
+                                          List<VariableElement> actualParameters) {
         // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
         final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n\" + \n                        \"");
         codeLines.add(
@@ -509,16 +494,13 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
     }
 
-    private static void buildCustomQueryMethodCodeBody(MethodInfo methodInfo,
-                                                       ExecutableElement executableElement,
-                                                       ArrayList<String> codeLines,
-                                                       VariableElement contextVariable,
-                                                       VariableElement sqlConnectionVariable,
-                                                       TypeMirror entityTypeMirror,
-                                                       List<VariableElement> actualParameters) {
-        codeLines.add(
-                "io.vertx.core.Future<io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row>> future;"
-        );
+    private void buildCustomQueryMethodCodeBody(MethodInfo methodInfo,
+                                                ExecutableElement executableElement,
+                                                ArrayList<String> codeLines,
+                                                VariableElement contextVariable,
+                                                VariableElement sqlConnectionVariable,
+                                                TypeMirror entityTypeMirror,
+                                                List<VariableElement> actualParameters) {
         codeLines.add(
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );

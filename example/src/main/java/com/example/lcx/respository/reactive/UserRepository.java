@@ -16,4 +16,6 @@ public interface UserRepository extends ReactiveRepository<UserEntity> {
 
     Future<RowSet<Row>> findByUsername(RoutingContext context, SqlConnection client, String username);
 
+    Future<RowSet<Row>> findByUsernameAndDeletedAtIsNull(RoutingContext context, SqlConnection client, String username);
+
 }

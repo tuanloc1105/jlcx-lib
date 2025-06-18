@@ -37,81 +37,81 @@ public class UserService {
     public Future<Void> createNew(final RoutingContext context, final CreateNewUserRequest request) {
         Promise<Void> promise = Promise.promise();
         final List<UserEntity> users = new ArrayList<>();
-        pool.getConnection().compose(conn ->
-                conn.begin().compose(tx ->
-                        userRepository.findByUsername(context, conn, request.getUsername())
-                                .compose(rowSet -> {
-                                    for (Row row : rowSet) {
-                                        users.add(UserEntityUtils.vertxRowMapping(row));
-                                    }
-                                    if (!users.isEmpty()) {
-                                        return Future.failedFuture(new InternalServiceException(AppError.USER_EXISTED));
-                                    } else {
-                                        final var currentTime = DateTimeUtils.generateCurrentTimeDefault();
-                                        UserEntity user = new UserEntity();
-                                        user.setUsername(request.getUsername());
-                                        user.setPassword(BCryptUtils.hashPassword(request.getPassword()));
-                                        user.setFullName(request.getFullName());
-                                        user.setCreatedAt(currentTime);
-                                        user.setUpdatedAt(currentTime);
-                                        return userRepository.save(context, conn, user);
-                                    }
-                                })
-                                .compose(user -> {
-                                    // Optionally extract ID or do something with the saved user, if needed
-                                    // com.example.lcx.entity.reactive.UserEntityUtils.idRowExtract(...);
-                                    return tx.commit();
-                                })
-                                .onSuccess(v -> promise.complete())
-                                .onFailure(err -> {
-                                    tx.rollback();
-                                })
-                                .eventually(() -> {
-                                    conn.close();
-                                    return Future.succeededFuture();
-                                })
-                )
-        ).onFailure(promise::fail);
+        // pool.getConnection().compose(conn ->
+        //         conn.begin().compose(tx ->
+        //                 userRepository.findByUsername(context, conn, request.getUsername())
+        //                         .compose(rowSet -> {
+        //                             for (Row row : rowSet) {
+        //                                 users.add(UserEntityUtils.vertxRowMapping(row));
+        //                             }
+        //                             if (!users.isEmpty()) {
+        //                                 return Future.failedFuture(new InternalServiceException(AppError.USER_EXISTED));
+        //                             } else {
+        //                                 final var currentTime = DateTimeUtils.generateCurrentTimeDefault();
+        //                                 UserEntity user = new UserEntity();
+        //                                 user.setUsername(request.getUsername());
+        //                                 user.setPassword(BCryptUtils.hashPassword(request.getPassword()));
+        //                                 user.setFullName(request.getFullName());
+        //                                 user.setCreatedAt(currentTime);
+        //                                 user.setUpdatedAt(currentTime);
+        //                                 return userRepository.save(context, conn, user);
+        //                             }
+        //                         })
+        //                         .compose(user -> {
+        //                             // Optionally extract ID or do something with the saved user, if needed
+        //                             // com.example.lcx.entity.reactive.UserEntityUtils.idRowExtract(...);
+        //                             return tx.commit();
+        //                         })
+        //                         .onSuccess(v -> promise.complete())
+        //                         .onFailure(err -> {
+        //                             tx.rollback();
+        //                         })
+        //                         .eventually(() -> {
+        //                             conn.close();
+        //                             return Future.succeededFuture();
+        //                         })
+        //         )
+        // ).onFailure(promise::fail);
         return promise.future();
     }
 
     public Future<UserLoginResponse> login(final RoutingContext context, final UserLoginRequest request) {
         Promise<UserLoginResponse> promise = Promise.promise();
-        final List<UserEntity> users = new ArrayList<>();
-        pool.getConnection().compose(conn ->
-                userRepository.findByUsername(context, conn, request.getUsername())
-                        .compose(rowSet -> {
-                            for (Row row : rowSet) {
-                                users.add(UserEntityUtils.vertxRowMapping(row));
-                            }
-                            if (users.isEmpty()) {
-                                return Future.failedFuture(new InternalServiceException(AppError.USER_NOT_EXIST));
-                            }
-                            if (users.size() > 1) {
-                                return Future.failedFuture(new InternalServiceException(AppError.UNKNOWN_USER));
-                            }
-                            UserEntity user = users.get(0);
-                            try {
-                                BCryptUtils.comparePassword(request.getPassword(), user.getPassword());
-                            } catch (Exception e) {
-                                return Future.failedFuture(new InternalServiceException(AppError.INCORRECT_PASSWORD));
-                            }
-                            final var tokenInfo = UserJWTTokenInfo.builder()
-                                    .id(user.getId().longValue())
-                                    .username(user.getUsername())
-                                    .fullName(user.getFullName())
-                                    .build();
-                            String token = jwtAuth.generateToken(
-                                    new JsonObject(this.gson.toJson(tokenInfo)),
-                                    new JWTOptions().setAlgorithm("RS256").setExpiresInMinutes(14400)
-                            );
-                            UserLoginResponse response = new UserLoginResponse(token, user.getFullName());
-                            return Future.succeededFuture(response);
-                        })
-                        .onSuccess(promise::complete)
-                        .onFailure(promise::fail)
-                        .eventually(conn::close)
-        ).onFailure(promise::fail);
+        // final List<UserEntity> users = new ArrayList<>();
+        // pool.getConnection().compose(conn ->
+        //         userRepository.findByUsername(context, conn, request.getUsername())
+        //                 .compose(rowSet -> {
+        //                     for (Row row : rowSet) {
+        //                         users.add(UserEntityUtils.vertxRowMapping(row));
+        //                     }
+        //                     if (users.isEmpty()) {
+        //                         return Future.failedFuture(new InternalServiceException(AppError.USER_NOT_EXIST));
+        //                     }
+        //                     if (users.size() > 1) {
+        //                         return Future.failedFuture(new InternalServiceException(AppError.UNKNOWN_USER));
+        //                     }
+        //                     UserEntity user = users.get(0);
+        //                     try {
+        //                         BCryptUtils.comparePassword(request.getPassword(), user.getPassword());
+        //                     } catch (Exception e) {
+        //                         return Future.failedFuture(new InternalServiceException(AppError.INCORRECT_PASSWORD));
+        //                     }
+        //                     final var tokenInfo = UserJWTTokenInfo.builder()
+        //                             .id(user.getId().longValue())
+        //                             .username(user.getUsername())
+        //                             .fullName(user.getFullName())
+        //                             .build();
+        //                     String token = jwtAuth.generateToken(
+        //                             new JsonObject(this.gson.toJson(tokenInfo)),
+        //                             new JWTOptions().setAlgorithm("RS256").setExpiresInMinutes(14400)
+        //                     );
+        //                     UserLoginResponse response = new UserLoginResponse(token, user.getFullName());
+        //                     return Future.succeededFuture(response);
+        //                 })
+        //                 .onSuccess(promise::complete)
+        //                 .onFailure(promise::fail)
+        //                 .eventually(conn::close)
+        // ).onFailure(promise::fail);
         return promise.future();
     }
 }
