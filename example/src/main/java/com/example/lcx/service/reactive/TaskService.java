@@ -39,7 +39,7 @@ public class TaskService {
 
     public Future<Void> createTask(final RoutingContext context, final CreateTaskRequest request) {
         return Future.<UserJWTTokenInfo>future(
-                        event -> Future.succeededFuture(context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER))
+                        promise -> promise.complete(context.get(CommonConstant.CURRENT_USER))
                 )
                 .compose(userJWTTokenInfo ->
                         pool.getConnection().compose(sqlConnection ->
@@ -47,10 +47,13 @@ public class TaskService {
                                         .compose(userEntity ->
                                                 sqlConnection.begin()
                                                         .compose(transaction -> {
+                                                            final var currentDateTime = DateTimeUtils.generateCurrentTimeDefault();
                                                             final TaskEntity newTask = taskMapper.mapToReactiveEntity(request);
                                                             newTask.setUserId(userEntity.getId());
                                                             newTask.setCreatedBy(userEntity.getUsername());
                                                             newTask.setUpdatedBy(userEntity.getUsername());
+                                                            newTask.setUpdatedAt(currentDateTime);
+                                                            newTask.setCreatedAt(currentDateTime);
                                                             return taskRepository.save(context, sqlConnection, newTask)
                                                                     .compose(taskEntity -> transaction.commit().map(it -> taskEntity))
                                                                     .onFailure(
@@ -70,9 +73,7 @@ public class TaskService {
     }
 
     public Future<ReactiveTaskDTO> getTaskDetail(final RoutingContext context, final GetTaskDetailRequest request) {
-        return Future.<UserJWTTokenInfo>future(
-                        event -> context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER)
-                )
+        return Future.succeededFuture(context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER))
                 .compose(userJWTTokenInfo ->
                         pool.getConnection()
                                 .compose(sqlConnection ->
@@ -95,9 +96,7 @@ public class TaskService {
     }
 
     public Future<Page<ReactiveTaskDTO>> searchTasksByName(final RoutingContext context, final SearchTasksByNameRequest request) {
-        return Future.<UserJWTTokenInfo>future(
-                        event -> context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER)
-                )
+        return Future.succeededFuture(context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER))
                 .compose(userJWTTokenInfo ->
                         pool.getConnection()
                                 .compose(sqlConnection ->
@@ -137,9 +136,7 @@ public class TaskService {
     }
 
     public Future<Page<ReactiveTaskDTO>> getAllTask(final RoutingContext context, final GetAllTaskRequest request) {
-        return Future.<UserJWTTokenInfo>future(
-                        event -> context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER)
-                )
+        return Future.succeededFuture(context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER))
                 .compose(userJWTTokenInfo ->
                         pool.getConnection()
                                 .compose(sqlConnection ->
@@ -177,9 +174,8 @@ public class TaskService {
     }
 
     public Future<Void> updateTask(final RoutingContext context, final UpdateTaskRequest request) {
-        return Future.<UserJWTTokenInfo>future(
-                event -> context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER)
-        ).compose(userJWTTokenInfo ->
+        return Future.succeededFuture(context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER))
+                .compose(userJWTTokenInfo ->
                 pool.getConnection()
                         .compose(connection ->
                                 userService.validateUser(context, connection, userJWTTokenInfo.getUsername())
@@ -223,9 +219,8 @@ public class TaskService {
     }
 
     public Future<Void> deleteTask(final RoutingContext context, final DeleteTaskRequest request) {
-        return Future.<UserJWTTokenInfo>future(
-                event -> context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER)
-        ).compose(userJWTTokenInfo ->
+        return Future.succeededFuture(context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER))
+                .compose(userJWTTokenInfo ->
                 pool.getConnection()
                         .compose(connection ->
                                 userService.validateUser(context, connection, userJWTTokenInfo.getUsername())
@@ -265,9 +260,8 @@ public class TaskService {
     }
 
     public Future<Void> markTaskAsFinished(final RoutingContext context, final MarkTaskAsFinishedRequest request) {
-        return Future.<UserJWTTokenInfo>future(
-                event -> context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER)
-        ).compose(userJWTTokenInfo ->
+        return Future.succeededFuture(context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER))
+                .compose(userJWTTokenInfo ->
                 pool.getConnection()
                         .compose(connection ->
                                 userService.validateUser(context, connection, userJWTTokenInfo.getUsername())

@@ -34,7 +34,6 @@ public class AuthHandler implements VertxContextHandler {
                 AuthContext.set(userInfo);
                 routingContext.next();
                 AuthContext.clear();
-                routingContext.remove(OPERATION_NAME_MDC_KEY_NAME);
             } catch (Exception e) {
                 routingContext.end(e.getMessage());
             }
