@@ -1,5 +1,6 @@
 vn.com.lcx.common.processor.MapperClassProcessor
 vn.com.lcx.common.processor.SQLMappingProcessor
-vn.com.lcx.common.processor.LCXRepositoryProcessor
+vn.com.lcx.reactive.processor.ReactiveRepositoryProcessor
 vn.com.lcx.jpa.processor.ServiceProcessor
 vn.com.lcx.jpa.processor.RepositoryProcessor
+vn.com.lcx.vertx.base.processor.ControllerProcessor

@@ -14,6 +14,7 @@ import com.example.lcx.service.TaskService;
 import com.google.gson.reflect.TypeToken;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
+import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
@@ -21,16 +22,12 @@ import vn.com.lcx.vertx.base.annotation.process.Post;
 import vn.com.lcx.vertx.base.controller.BaseController;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
 
+@RequiredArgsConstructor
 @Component
 @Controller(path = "/api/v1/task")
 public class TaskController extends BaseController {
 
     private final TaskService taskService;
-
-    public TaskController(Vertx vertx, TaskService taskService) {
-        super(vertx);
-        this.taskService = taskService;
-    }
 
     @Post(path = "/create_task")
     @Auth

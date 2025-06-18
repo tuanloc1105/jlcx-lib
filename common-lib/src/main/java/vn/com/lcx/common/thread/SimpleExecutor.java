@@ -90,7 +90,6 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         this.taskList.addAll(tasks);
     }
 
-    @SuppressWarnings("Convert2Diamond")
     @Override
     public ExecutorService createExecutorService() {
         if (minThread == 0 || maxThread == 0) {

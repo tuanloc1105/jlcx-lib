@@ -418,10 +418,34 @@ public final class MyStringUtils {
         return listOfResult;
     }
 
+    /**
+     * Remove the suffix from the input string if it ends with the specified suffix.
+     *
+     * @param input               The original string
+     * @param suffixWillBeRemoved The suffix to remove
+     * @return String without the suffix if present, otherwise the original string
+     */
     public static String removeSuffixOfString(String input, String suffixWillBeRemoved) {
         int indexOfSuffix = input.lastIndexOf(suffixWillBeRemoved);
         if (indexOfSuffix > 0) {
             return input.substring(0, indexOfSuffix);
+        }
+        return input;
+    }
+
+    /**
+     * Remove prefix from the input string if it starts with the prefix.
+     *
+     * @param input  The original string
+     * @param prefix The prefix to remove
+     * @return String without prefix if present, otherwise the original string
+     */
+    public static String removePrefixOfString(String input, String prefix) {
+        if (input == null || prefix == null) {
+            return input;
+        }
+        if (input.startsWith(prefix)) {
+            return input.substring(prefix.length());
         }
         return input;
     }

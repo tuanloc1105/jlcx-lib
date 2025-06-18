@@ -52,7 +52,7 @@ public final class TypeHierarchyAnalyzer {
                                                                       final Types typeUtils,
                                                                       final TypeElement typeElement,
                                                                       final String fullExtendingInterfaceClassName) {
-        TypeElement extendingInterfaceElement = elementUtils.getTypeElement("vn.com.lcx.jpa.respository.JpaRepository");
+        TypeElement extendingInterfaceElement = elementUtils.getTypeElement(fullExtendingInterfaceClassName);
         TypeMirror extendingInterfaceType = extendingInterfaceElement.asType();
         TypeMirror mirror = typeElement.asType();
         List<? extends TypeMirror> mirrors = typeUtils.directSupertypes(mirror);

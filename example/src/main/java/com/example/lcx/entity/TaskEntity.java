@@ -10,9 +10,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import vn.com.lcx.jpa.entity.BaseEntity;
@@ -20,11 +22,13 @@ import vn.com.lcx.jpa.entity.BaseEntity;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "task", schema = "lcx")
-@EqualsAndHashCode(callSuper = false)
 public class TaskEntity extends BaseEntity {
     private static final long serialVersionUID = 782212564767904813L;
 

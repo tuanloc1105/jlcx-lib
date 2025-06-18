@@ -192,7 +192,7 @@ public final class EntityUtils {
                         if (
                                 idField != null && idField.getName().equals(field.getName())
                         ) {
-                            if ((fieldDataTypeName.contains("Long") || fieldDataTypeName.contains("BigDecimal"))) {
+                            if ((fieldDataTypeName.contains("Long") || fieldDataTypeName.contains("BigDecimal") || fieldDataTypeName.contains("BigInteger"))) {
                                 switch (databaseType) {
                                     case "postgresql":
                                         columnDefinitionLines.add(new ArrayList<>(Arrays.asList(fieldColumnName, "SERIAL", "PRIMARY KEY")));
@@ -604,7 +604,11 @@ public final class EntityUtils {
                     String.join(System.lineSeparator(), addForeignKeyList)
             );
             writeContentToFile(
-                    FileUtils.pathJoining(folderPath, tableNameAnnotation.value() + ".sql"),
+                    FileUtils.pathJoining(folderPath,
+                            (StringUtils.isNotBlank(tableNameAnnotation.schema().toLowerCase()) ?
+                                    tableNameAnnotation.schema().toLowerCase() + '-' : CommonConstant.EMPTY_STRING) +
+                                    tableNameAnnotation.value().toLowerCase() + ".sql"
+                    ),
                     createTableStatement
             );
         }

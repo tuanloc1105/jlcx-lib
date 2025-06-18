@@ -75,6 +75,7 @@ public class OraclePageable implements Pageable {
             );
 
         }
+        fieldToColumn();
         if (this.columnNameAndDirectionMap != null && !this.columnNameAndDirectionMap.isEmpty()) {
             if (this.entityClass != null) {
                 final var tableShortName = getTableShortenedName(this.entityClass);
