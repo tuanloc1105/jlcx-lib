@@ -459,7 +459,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         )
         ).append("\n").append(
                 methodTemplate
-                        .replace("${return-type}", "static " + idRowType.get())
+                        .replace("${return-type}", "static " + Optional.ofNullable(idRowType.get()).orElse("void"))
                         .replace("${method-name}", "idRowExtract")
                         .replace("${list-of-parameters}", "io.vertx.sqlclient.Row row, " + processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", idRowExtractCodeLines
