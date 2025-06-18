@@ -4,6 +4,7 @@ import com.example.lcx.entity.reactive.TaskEntity;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.SqlConnection;
+import vn.com.lcx.common.database.pageable.Pageable;
 import vn.com.lcx.reactive.annotation.Query;
 import vn.com.lcx.reactive.annotation.RRepository;
 import vn.com.lcx.reactive.repository.ReactiveRepository;
@@ -46,6 +47,28 @@ public interface TaskRepository extends ReactiveRepository<TaskEntity> {
             "    t.id = $1\n" +
             "    AND t.user_id = $2")
     Future<Optional<TaskEntity>> findTaskDetailOfUser(RoutingContext context, SqlConnection client, BigInteger id, BigInteger userId);
+
+    @Query("SELECT\n" +
+            "    t.*\n" +
+            "FROM\n" +
+            "    r_lcx.task t\n" +
+            "    LEFT JOIN r_lcx.user u ON t.user_id = u.id\n" +
+            "WHERE\n" +
+            "    t.task_name ilike $1\n" +
+            "    AND t.deleted_at is null\n" +
+            "    AND t.user_id = $2")
+    Future<Optional<TaskEntity>> searchTaskOfUser(RoutingContext context, SqlConnection client, String taskName, BigInteger userId, Pageable pageable);
+
+    @Query("SELECT\n" +
+            "    COUNT(1)\n" +
+            "FROM\n" +
+            "    r_lcx.task t\n" +
+            "    LEFT JOIN r_lcx.user u ON t.user_id = u.id\n" +
+            "WHERE\n" +
+            "    t.task_name ilike $1\n" +
+            "    AND t.deleted_at is null\n" +
+            "    AND t.user_id = $2")
+    Future<Long> countSearchTaskOfUser(RoutingContext context, SqlConnection client, String taskName, BigInteger userId);
 
     Future<Long> count(RoutingContext context, SqlConnection client);
 

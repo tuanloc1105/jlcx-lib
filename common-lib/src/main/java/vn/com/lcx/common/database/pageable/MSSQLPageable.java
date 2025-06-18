@@ -18,7 +18,7 @@ import static vn.com.lcx.common.database.utils.EntityUtils.getTableShortenedName
 @NoArgsConstructor
 @Builder
 @Data
-public class OraclePageable implements Pageable {
+public class MSSQLPageable implements Pageable {
 
     private int pageNumber;
     private int pageSize;
@@ -35,7 +35,7 @@ public class OraclePageable implements Pageable {
     }
 
     @Override
-    public OraclePageable add(String fieldName, Direction direction) {
+    public MSSQLPageable add(String fieldName, Direction direction) {
         if (this.fieldNameAndDirectionMap == null) {
             this.fieldNameAndDirectionMap = new HashMap<>();
         }
@@ -69,7 +69,7 @@ public class OraclePageable implements Pageable {
                 throw new IllegalArgumentException("page number should be started from 1");
             }
             offSetClause = String.format(
-                    "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY",
+                    "OFFSET %s ROWS FETCH NEXT %s ROWS ONLY",
                     offset,
                     pageSize
             );

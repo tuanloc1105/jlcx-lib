@@ -481,25 +481,41 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                           String futureOutputType) {
         // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
         final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n\" + \n                        \"");
-        codeLines.add(
-                String.format("return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\")",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        queryStatement)
-        );
+        if (lastParameterIsPageable(actualParameters)) {
+            codeLines.add(
+                    String.format("return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\" + %4$s)",
+                            sqlConnectionVariable.getSimpleName().toString(),
+                            contextVariable.getSimpleName().toString(),
+                            queryStatement,
+                            actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".toSql()")
+            );
+        } else {
+            codeLines.add(
+                    String.format("return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\")",
+                            sqlConnectionVariable.getSimpleName().toString(),
+                            contextVariable.getSimpleName().toString(),
+                            queryStatement)
+            );
+        }
         if (actualParameters.isEmpty()) {
             codeLines.add(
                     "        .execute()"
             );
         } else {
-            codeLines.add(
-                    String.format(
-                            "        .execute(io.vertx.sqlclient.Tuple.of(%s))",
-                            actualParameters.stream().map(
-                                    VariableElement::getSimpleName
-                            ).collect(Collectors.joining(", "))
-                    )
-            );
+            if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
+                codeLines.add(
+                        "        .execute()"
+                );
+            } else {
+                codeLines.add(
+                        String.format(
+                                "        .execute(io.vertx.sqlclient.Tuple.of(%s))",
+                                actualParameters.stream().filter(it -> !isPageable(it)).map(
+                                        VariableElement::getSimpleName
+                                ).collect(Collectors.joining(", "))
+                        )
+                );
+            }
         }
         codeLines.add(
                 "        .map(rowSet -> {"
@@ -645,14 +661,20 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     "            .execute();"
             );
         } else {
-            codeLines.add(
-                    String.format(
-                            "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
-                            actualParameters.stream().map(
-                                    VariableElement::getSimpleName
-                            ).collect(Collectors.joining(", "))
-                    )
-            );
+            if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
+                codeLines.add(
+                        "        .execute()"
+                );
+            } else {
+                codeLines.add(
+                        String.format(
+                                "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                                actualParameters.stream().filter(it -> !isPageable(it)).map(
+                                        VariableElement::getSimpleName
+                                ).collect(Collectors.joining(", "))
+                        )
+                );
+            }
         }
         codeLines.add(
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
@@ -674,14 +696,20 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     "            .execute();"
             );
         } else {
-            codeLines.add(
-                    String.format(
-                            "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
-                            actualParameters.stream().map(
-                                    VariableElement::getSimpleName
-                            ).collect(Collectors.joining(", "))
-                    )
-            );
+            if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
+                codeLines.add(
+                        "        .execute()"
+                );
+            } else {
+                codeLines.add(
+                        String.format(
+                                "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                                actualParameters.stream().filter(it -> !isPageable(it)).map(
+                                        VariableElement::getSimpleName
+                                ).collect(Collectors.joining(", "))
+                        )
+                );
+            }
         }
         codeLines.add(
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
@@ -703,14 +731,20 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     "            .execute();"
             );
         } else {
-            codeLines.add(
-                    String.format(
-                            "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
-                            actualParameters.stream().map(
-                                    VariableElement::getSimpleName
-                            ).collect(Collectors.joining(", "))
-                    )
-            );
+            if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
+                codeLines.add(
+                        "        .execute()"
+                );
+            } else {
+                codeLines.add(
+                        String.format(
+                                "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                                actualParameters.stream().filter(it -> !isPageable(it)).map(
+                                        VariableElement::getSimpleName
+                                ).collect(Collectors.joining(", "))
+                        )
+                );
+            }
         }
         codeLines.add(
                 "} else if (databaseName.contains(\"Oracle\")) {"
@@ -732,14 +766,20 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     "            .execute();"
             );
         } else {
-            codeLines.add(
-                    String.format(
-                            "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
-                            actualParameters.stream().map(
-                                    VariableElement::getSimpleName
-                            ).collect(Collectors.joining(", "))
-                    )
-            );
+            if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
+                codeLines.add(
+                        "        .execute()"
+                );
+            } else {
+                codeLines.add(
+                        String.format(
+                                "            .execute(io.vertx.sqlclient.Tuple.of(%s));",
+                                actualParameters.stream().filter(it -> !isPageable(it)).map(
+                                        VariableElement::getSimpleName
+                                ).collect(Collectors.joining(", "))
+                        )
+                );
+            }
         }
         codeLines.add(
                 "} else {"
@@ -855,6 +895,20 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         }
         codeLines.add(
                 "        });"
+        );
+    }
+
+    public boolean lastParameterIsPageable(List<VariableElement> actualParameters) {
+        return !actualParameters.isEmpty() && isPageable(actualParameters.get(actualParameters.size() - 1));
+    }
+
+    private boolean isPageable(VariableElement variableElement) {
+        return processingEnv.getTypeUtils().isAssignable(
+                variableElement.asType(),
+                TypeHierarchyAnalyzer.getTypeElementFromClassName(
+                        processingEnv.getElementUtils(),
+                        "vn.com.lcx.common.database.pageable.Pageable"
+                ).asType()
         );
     }
 

@@ -6,6 +6,7 @@ import com.example.lcx.object.dto.ReactiveTaskDTO;
 import com.example.lcx.object.dto.UserJWTTokenInfo;
 import com.example.lcx.object.request.CreateTaskRequest;
 import com.example.lcx.object.request.GetTaskDetailRequest;
+import com.example.lcx.object.request.SearchTasksByNameRequest;
 import com.example.lcx.respository.reactive.TaskRepository;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
@@ -13,6 +14,7 @@ import io.vertx.sqlclient.Pool;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.database.pageable.Page;
 
 import java.math.BigInteger;
 
@@ -80,5 +82,30 @@ public class TaskService {
                                 )
                 );
     }
+
+    // public Future<Page<ReactiveTaskDTO>> searchTasksByName(final RoutingContext context, final SearchTasksByNameRequest request) {
+    //     return Future.<UserJWTTokenInfo>future(
+    //                     event -> context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER)
+    //             )
+    //             .compose(userJWTTokenInfo ->
+    //                     pool.getConnection()
+    //                             .compose(sqlConnection ->
+    //                                     userService.validateUser(context, sqlConnection, userJWTTokenInfo.getUsername())
+    //                                             .compose(userEntity ->
+    //                                                     taskRepository.searchTaskOfUser(
+    //                                                             context,
+    //                                                             sqlConnection,
+    //                                                             request.getSearchContent(),
+    //                                                             userEntity.getId()
+    //                                                     ).compose(taskEntity ->
+    //                                                             taskEntity
+    //                                                                     .map(it -> Future.succeededFuture(taskMapper.mapToReactiveDTO(it)))
+    //                                                                     .orElse(Future.succeededFuture((new ReactiveTaskDTO())))
+    //                                                     )
+    //                                             )
+    //                                             .eventually(sqlConnection::close)
+    //                             )
+    //             );
+    // }
 
 }
