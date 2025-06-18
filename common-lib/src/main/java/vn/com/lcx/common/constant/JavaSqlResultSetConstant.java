@@ -52,8 +52,8 @@ public class JavaSqlResultSetConstant {
             put("Double", "getDouble");
             put("float", "getFloat");
             put("Float", "getFloat");
-            put("int", "getInt");
-            put("Integer", "getInt");
+            put("int", "getInteger");
+            put("Integer", "getInteger");
             put("long", "getLong");
             put("Long", "getLong");
             put("short", "getShort");
