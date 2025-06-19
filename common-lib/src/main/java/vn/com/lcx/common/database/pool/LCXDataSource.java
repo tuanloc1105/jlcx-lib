@@ -34,6 +34,7 @@ import static vn.com.lcx.common.utils.RandomUtils.generateRandomString;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class LCXDataSource {
 
+    @Getter
     private final String poolName;
     private final String defaultDriverClassName;
     private final String showDbVersionSqlStatement;
@@ -47,7 +48,7 @@ public class LCXDataSource {
 
     // private final transient Object lock = new Object();
 
-    private static Connection createConnection(String url, String user, String password, int maxTimeoutSecond) throws SQLException, ClassNotFoundException {
+    static Connection createConnection(String url, String user, String password, int maxTimeoutSecond) throws SQLException, ClassNotFoundException {
         DriverManager.setLoginTimeout(maxTimeoutSecond);
         return DriverManager.getConnection(url, user, password);
     }
