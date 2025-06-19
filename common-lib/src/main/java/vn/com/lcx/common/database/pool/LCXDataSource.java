@@ -346,11 +346,11 @@ public class LCXDataSource {
     }
 
     public int getActiveConnections() {
-        return (int) this.pool.stream().filter(con -> !con.getIdle().get()).count();
+        return (int) this.pool.stream().filter(con -> con.getIdle() != null && !con.getIdle().get()).count();
     }
 
     public int getIdleConnections() {
-        return (int) this.pool.stream().filter(con -> con.getIdle().get()).count();
+        return (int) this.pool.stream().filter(con -> con.getIdle() == null || con.getIdle().get()).count();
     }
 
     public void validateEntry(final ConnectionEntry entry) {
