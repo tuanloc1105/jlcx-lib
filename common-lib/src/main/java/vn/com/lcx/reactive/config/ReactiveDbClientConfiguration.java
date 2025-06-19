@@ -1,5 +1,6 @@
 package vn.com.lcx.reactive.config;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.mssqlclient.MSSQLBuilder;
 import io.vertx.mssqlclient.MSSQLConnectOptions;
@@ -12,6 +13,7 @@ import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.SqlConnection;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.PostConstruct;
@@ -59,15 +61,7 @@ public class ReactiveDbClientConfiguration {
                 })
                 .onFailure(err -> LogUtils.writeLog(err.getMessage(), err))));
         pool.withConnection(conn ->
-                        conn.query(type.getShowDbVersionSqlStatement())
-                                .execute()
-                                .map(rowSet -> {
-                                    final StringBuilder info = new StringBuilder(conn.databaseMetadata().productName()).append(": ");
-                                    for (Row row : rowSet) {
-                                        info.append(row.getString(0));
-                                    }
-                                    return info.toString();
-                                })
+                        showDbVersion(conn, type)
                                 .eventually(conn::close)
                 )
                 .onSuccess(
@@ -108,15 +102,7 @@ public class ReactiveDbClientConfiguration {
                 })
                 .onFailure(err -> LogUtils.writeLog(err.getMessage(), err))));
         pool.withConnection(conn ->
-                        conn.query(type.getShowDbVersionSqlStatement())
-                                .execute()
-                                .map(rowSet -> {
-                                    final StringBuilder info = new StringBuilder(conn.databaseMetadata().productName()).append(": ");
-                                    for (Row row : rowSet) {
-                                        info.append(row.getString(0));
-                                    }
-                                    return info.toString();
-                                })
+                        showDbVersion(conn, type)
                                 .eventually(conn::close)
                 )
                 .onSuccess(
@@ -157,15 +143,7 @@ public class ReactiveDbClientConfiguration {
                 })
                 .onFailure(err -> LogUtils.writeLog(err.getMessage(), err))));
         pool.withConnection(conn ->
-                        conn.query(type.getShowDbVersionSqlStatement())
-                                .execute()
-                                .map(rowSet -> {
-                                    final StringBuilder info = new StringBuilder(conn.databaseMetadata().productName()).append(": ");
-                                    for (Row row : rowSet) {
-                                        info.append(row.getString(0));
-                                    }
-                                    return info.toString();
-                                })
+                        showDbVersion(conn, type)
                                 .eventually(conn::close)
                 )
                 .onSuccess(
@@ -206,15 +184,7 @@ public class ReactiveDbClientConfiguration {
                 })
                 .onFailure(err -> LogUtils.writeLog(err.getMessage(), err))));
         pool.withConnection(conn ->
-                        conn.query(type.getShowDbVersionSqlStatement())
-                                .execute()
-                                .map(rowSet -> {
-                                    final StringBuilder info = new StringBuilder(conn.databaseMetadata().productName()).append(": ");
-                                    for (Row row : rowSet) {
-                                        info.append(row.getString(0));
-                                    }
-                                    return info.toString();
-                                })
+                        showDbVersion(conn, type)
                                 .eventually(conn::close)
                 )
                 .onSuccess(
@@ -224,6 +194,18 @@ public class ReactiveDbClientConfiguration {
                         err -> LogUtils.writeLog(err.getMessage(), err)
                 );
         return pool;
+    }
+
+    private Future<String> showDbVersion(SqlConnection conn, DBTypeEnum type) {
+        return conn.query(type.getShowDbVersionSqlStatement())
+                .execute()
+                .map(rowSet -> {
+                    final StringBuilder info = new StringBuilder(conn.databaseMetadata().productName()).append(": ");
+                    for (Row row : rowSet) {
+                        info.append(row.getString(0));
+                    }
+                    return info.toString();
+                });
     }
 
     @PostConstruct
