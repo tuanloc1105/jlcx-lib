@@ -64,6 +64,7 @@
         <junit-jupiter-api-org.junit.jupiter.version>5.13.1</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>5.13.1</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>5.13.1</junit-jupiter-params-org.junit.jupiter.version>
+        <mockito-core-org.mockito.version>5.18.0</mockito-core-org.mockito.version>
         <byte-buddy-net.bytebuddy.version>1.17.6</byte-buddy-net.bytebuddy.version>
         <vertx-oracle-client-io.vertx.version>5.0.0</vertx-oracle-client-io.vertx.version>
         <vertx-mysql-client-io.vertx.version>5.0.0</vertx-mysql-client-io.vertx.version>
@@ -437,6 +438,13 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
                 <version>${junit-jupiter-params-org.junit.jupiter.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito-core-org.mockito.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
