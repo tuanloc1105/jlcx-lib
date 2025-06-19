@@ -788,8 +788,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             vertxRowMappingCodeLines.add("long lastInsertId = rowSet.property(io.vertx.mysqlclient.MySQLClient.LAST_INSERTED_ID);");
             if (fieldTypeSimpleName.equals("BigDecimal")) {
                 vertxRowMappingCodeLines.add("final java.math.BigDecimal value = java.math.BigDecimal.valueOf(lastInsertId);");
-            }
-            if (fieldTypeSimpleName.equals("BigInteger")) {
+            } else if (fieldTypeSimpleName.equals("BigInteger")) {
                 vertxRowMappingCodeLines.add("final java.math.BigInteger value = java.math.BigInteger.valueOf(lastInsertId);");
             } else {
                 vertxRowMappingCodeLines.add("final long value = lastInsertId;");
