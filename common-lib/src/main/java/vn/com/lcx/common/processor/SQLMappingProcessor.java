@@ -792,7 +792,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             if (fieldTypeSimpleName.equals("BigInteger")) {
                 vertxRowMappingCodeLines.add("final java.math.BigInteger value = java.math.BigInteger.valueOf(lastInsertId);");
             } else {
-                vertxRowMappingCodeLines.add("final long value = java.math.BigInteger.valueOf(lastInsertId);");
+                vertxRowMappingCodeLines.add("final long value = lastInsertId;");
             }
             vertxRowMappingCodeLines.add(
                     String.format("model.%s(value);", setFieldMethodName)
