@@ -277,7 +277,7 @@ public class ReactiveDbClientConfiguration {
                 break;
         }
         if (Optional.ofNullable(pool).isPresent()) {
-            ClassPool.setInstance("pool", pool);
+            ClassPool.setInstance(pool);
         }
     }
 

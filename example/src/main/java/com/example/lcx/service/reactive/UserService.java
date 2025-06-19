@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.utils.BCryptUtils;
 import vn.com.lcx.common.utils.DateTimeUtils;
-import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
 @Component

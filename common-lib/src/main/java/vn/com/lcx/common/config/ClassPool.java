@@ -349,6 +349,10 @@ public class ClassPool {
 
     public static void setInstance(Object instance) {
         CLASS_POOL.put(instance.getClass().getName(), instance);
+        final var iFaces = instance.getClass().getInterfaces();
+        for (Class<?> iFaceClass : iFaces) {
+            CLASS_POOL.put(iFaceClass.getName(), instance);
+        }
     }
 
     public static void loadProperties() {
