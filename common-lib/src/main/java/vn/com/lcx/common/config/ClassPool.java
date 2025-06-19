@@ -61,7 +61,7 @@ public class ClassPool {
             listOfClassInPackage.clear();
             listOfClassInPackage.addAll(setOfClassInPackage);
 
-            final var sourceType = CommonConstant.applicationConfig.getProperty("database.source_type");
+            final var sourceType = CommonConstant.applicationConfig.getProperty("server.database.type");
             final var folderPath = FileUtils.pathJoining(
                     CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
                     "data",
@@ -81,7 +81,7 @@ public class ClassPool {
             for (Class<?> aClass : listOfClassInPackage) {
 
                 if (aClass.getAnnotation(TableName.class) != null) {
-                    EntityUtils.analyzeEntityClass(aClass, sourceType, folderPath);
+                    EntityUtils.analyzeEntityClass(aClass, sourceType.toLowerCase(), folderPath);
                     continue;
                 }
 
