@@ -313,7 +313,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
-                "} else if (databaseName.contains(\"Oracle\")) {"
+                "} else if (databaseName.equals(\"Oracle\")) {"
         );
         codeLines.add(
                 String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"))",
@@ -381,7 +381,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
-                "} else if (databaseName.contains(\"Oracle\")) {"
+                "} else if (databaseName.equals(\"Oracle\")) {"
         );
         codeLines.add(
                 String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"?\"))",
@@ -447,7 +447,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
         );
         codeLines.add(
-                "} else if (databaseName.contains(\"Oracle\")) {"
+                "} else if (databaseName.equals(\"Oracle\")) {"
         );
         codeLines.add(
                 String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"?\"))",
@@ -747,7 +747,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             }
         }
         codeLines.add(
-                "} else if (databaseName.contains(\"Oracle\")) {"
+                "} else if (databaseName.equals(\"Oracle\")) {"
         );
         codeLines.add(
                 String.format(
