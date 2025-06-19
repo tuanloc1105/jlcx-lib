@@ -2,6 +2,7 @@ package vn.com.lcx.common.thread;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -22,5 +23,11 @@ public interface BaseExecutor<RETURN_TYPE> {
     void executeTasksWithCountDownLatch();
 
     void cancelFutureTasks(Future<RETURN_TYPE> futureTasks);
+
+    public CompletableFuture<Void> runAsync(Runnable runnable);
+
+    public CompletableFuture<Void> runAsync(Runnable... runnable);
+
+    public void shutdownExecutor();
 
 }

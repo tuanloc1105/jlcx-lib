@@ -8,6 +8,7 @@ import vn.com.lcx.common.utils.LogUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,6 +29,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     private int maxThread;
     private long timeout;
     private TimeUnit unit;
+    private ExecutorService executorService;
 
     public static <T> SimpleExecutor<T> init(int minNumberOfThreads,
                                              int maxNumberOfThreads,
@@ -40,14 +42,14 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                 minNumberOfThreads,
                 maxNumberOfThreads,
                 timeout,
-                unit
+                unit,
+                null
         );
     }
 
     public static <T> SimpleExecutor<T> init(RejectMode rejectMode,
                                              final long timeout,
-                                             final TimeUnit unit,
-                                             final boolean isUsingVirtualThread) {
+                                             final TimeUnit unit) {
         final var asd = new SimpleExecutor<T>(
                 new ArrayList<>(),
                 SimpleExecutor.getRejectHandlerClass(rejectMode)
@@ -92,20 +94,27 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     @Override
     public ExecutorService createExecutorService() {
+        if (executorService != null && !executorService.isTerminated()) {
+            return executorService;
+        }
+        final ExecutorService service;
         if (minThread == 0 || maxThread == 0) {
-            return Executors.newCachedThreadPool(
+            service = Executors.newCachedThreadPool(
                     new LcxThreadFactory.MyThreadFactory("lcx-worker")
             );
+        } else {
+            service = new ThreadPoolExecutor(
+                    this.minThread,
+                    this.maxThread,
+                    0L,
+                    TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<>(this.taskList.size()),
+                    new LcxThreadFactory.MyThreadFactory("lcx-worker"),
+                    this.rejectedExecutionHandler
+            );
         }
-        return new ThreadPoolExecutor(
-                this.minThread,
-                this.maxThread,
-                0L,
-                TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(this.taskList.size()),
-                new LcxThreadFactory.MyThreadFactory("lcx-worker"),
-                this.rejectedExecutionHandler
-        );
+        executorService = service;
+        return service;
     }
 
     /**
@@ -237,4 +246,30 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     public void cancelFutureTasks(Future<T> futureTasks) {
         futureTasks.cancel(true);
     }
+
+    @Override
+    public CompletableFuture<Void> runAsync(Runnable runnable) {
+        return runAsync(new Runnable[]{runnable});
+    }
+
+    @Override
+    public CompletableFuture<Void> runAsync(Runnable... runnable) {
+        if (runnable.length == 0) {
+            return CompletableFuture.completedFuture(null);
+        }
+        final ExecutorService executor = createExecutorService();
+        CompletableFuture<Void> currentFuture = CompletableFuture.completedFuture(null);
+        for (Runnable r : runnable) {
+            currentFuture = currentFuture.thenRunAsync(r, executor);
+        }
+        return currentFuture;
+    }
+
+    @Override
+    public void shutdownExecutor() {
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+        }
+    }
+
 }
