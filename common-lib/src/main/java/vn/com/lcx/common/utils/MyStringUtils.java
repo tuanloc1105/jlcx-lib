@@ -506,6 +506,24 @@ public final class MyStringUtils {
     }
 
     /**
+     * Masks the values of default sensitive fields in a JSON string.
+     * <p>
+     * This method is an overload of {@link #maskJsonFields(Gson, String, String...)} that uses a predefined
+     * list of sensitive field names from {@link CommonConstant#SENSITIVE_FIELD_NAMES}.
+     * It will traverse the JSON structure recursively and replace the value of any matching field
+     * with a masked value.
+     * </p>
+     *
+     * @param gson            Gson instance for parsing and serializing JSON.
+     * @param inputJsonString The input JSON string.
+     * @return The JSON string with default sensitive fields' values masked.
+     * @see #maskJsonFields(Gson, String, String...)
+     */
+    public static String maskJsonFields(final Gson gson, final String inputJsonString) {
+        return maskJsonFields(gson, inputJsonString, CommonConstant.SENSITIVE_FIELD_NAMES.toArray(String[]::new));
+    }
+
+    /**
      * Recursively traverse a JSON object (Map/List) and mask the values of specified fields.
      *
      * @param jsonObject The JSON object (Map or List) to process

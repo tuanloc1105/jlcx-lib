@@ -199,11 +199,11 @@ public class BaseController {
 
             final var requestBody = MyStringUtils.minifyJsonString(context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
 
-            BaseController.this.requestLogger.info(
+            requestLogger.info(
                     "Request:\n    - URL: {}\n    - Header:\n{}\n    - Payload:\n        {}",
                     context.request().uri(),
                     String.join("\n", headerLogMsg),
-                    requestBody
+                    MyStringUtils.maskJsonFields(gson, requestBody)
             );
 
             final T response;
@@ -253,7 +253,7 @@ public class BaseController {
             responseLogger.info(
                     "Response ({} second(s)):\n    - Payload:\n        {}",
                     duration,
-                    responseBody
+                    MyStringUtils.maskJsonFields(gson, responseBody)
             );
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);

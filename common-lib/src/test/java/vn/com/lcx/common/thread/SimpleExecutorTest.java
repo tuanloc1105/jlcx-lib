@@ -58,7 +58,7 @@ class SimpleExecutorTest {
         assertEquals(1000, executor.getTimeout());
         assertEquals(TimeUnit.MILLISECONDS, executor.getUnit());
         assertNotNull(executor.getRejectedExecutionHandler());
-        assertTrue(executor.getRejectedExecutionHandler() instanceof ThreadPoolExecutor.AbortPolicy);
+        assertInstanceOf(ThreadPoolExecutor.AbortPolicy.class, executor.getRejectedExecutionHandler());
     }
 
     @Test
@@ -70,7 +70,7 @@ class SimpleExecutorTest {
         assertEquals(2000, executor.getTimeout());
         assertEquals(TimeUnit.SECONDS, executor.getUnit());
         assertNotNull(executor.getRejectedExecutionHandler());
-        assertTrue(executor.getRejectedExecutionHandler() instanceof ThreadPoolExecutor.CallerRunsPolicy);
+        assertInstanceOf(ThreadPoolExecutor.CallerRunsPolicy.class, executor.getRejectedExecutionHandler());
     }
 
     @ParameterizedTest
@@ -82,16 +82,16 @@ class SimpleExecutorTest {
         
         switch (rejectMode) {
             case ABORT_POLICY:
-                assertTrue(handler instanceof ThreadPoolExecutor.AbortPolicy);
+                assertInstanceOf(ThreadPoolExecutor.AbortPolicy.class, handler);
                 break;
             case DISCARD_OLDEST_POLICY:
-                assertTrue(handler instanceof ThreadPoolExecutor.DiscardOldestPolicy);
+                assertInstanceOf(ThreadPoolExecutor.DiscardOldestPolicy.class, handler);
                 break;
             case CALLER_RUNS_POLICY:
-                assertTrue(handler instanceof ThreadPoolExecutor.CallerRunsPolicy);
+                assertInstanceOf(ThreadPoolExecutor.CallerRunsPolicy.class, handler);
                 break;
             case DISCARD_POLICY:
-                assertTrue(handler instanceof ThreadPoolExecutor.DiscardPolicy);
+                assertInstanceOf(ThreadPoolExecutor.DiscardPolicy.class, handler);
                 break;
         }
     }

@@ -73,7 +73,6 @@
         <vertx-pg-client-io.vertx.version>5.0.0</vertx-pg-client-io.vertx.version>
         <vertx-mssql-client-io.vertx.version>5.0.0</vertx-mssql-client-io.vertx.version>
 
-
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
         <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.0

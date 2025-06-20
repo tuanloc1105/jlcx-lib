@@ -17,7 +17,6 @@ import vn.com.lcx.common.database.pool.LCXDataSource;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.scanner.PackageScanner;
-import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.ObjectUtils;
@@ -28,7 +27,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -96,15 +94,18 @@ public class ClassPool {
                 }
                 final var instanceClassAnnotation = aClass.getAnnotation(InstanceClass.class);
                 if (instanceClassAnnotation != null) {
-                    final var methodsOfInstance = Arrays.stream(aClass.getDeclaredMethods()).filter(m -> m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
+                    final var methodsOfInstance = Arrays.stream(
+                            aClass.getDeclaredMethods()
+                    ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
                     if (!methodsOfInstance.isEmpty()) {
                         final var instanceClass = aClass.getDeclaredConstructor().newInstance();
                         for (Method method : methodsOfInstance) {
                             final var instanceMethodResult = method.invoke(instanceClass);
-                            if (!CLASS_POOL.contains(instanceMethodResult.getClass().getName())) {
-                                CLASS_POOL.put(instanceMethodResult.getClass().getName(), instanceMethodResult);
-                            }
-                            CLASS_POOL.put(method.getName(), instanceMethodResult);
+                            putInstanceToClassPool(instanceMethodResult.getClass(), instanceMethodResult);
+                            // if (!CLASS_POOL.contains(instanceMethodResult.getClass().getName())) {
+                            //     CLASS_POOL.put(instanceMethodResult.getClass().getName(), instanceMethodResult);
+                            // }
+                            // CLASS_POOL.put(method.getName(), instanceMethodResult);
                         }
                     }
                     continue;

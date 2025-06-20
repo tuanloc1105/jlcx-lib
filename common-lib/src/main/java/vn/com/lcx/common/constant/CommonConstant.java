@@ -18,8 +18,11 @@ import vn.com.lcx.common.utils.LCXProperties;
 import vn.com.lcx.common.utils.PropertiesUtils;
 
 import java.nio.file.FileSystems;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,6 +42,51 @@ public final class CommonConstant {
     public static final String UTF_8_STANDARD_CHARSET = "UTF-8";
     public static final TypeToken<LinkedHashMap<String, Object>> HASH_MAP_GSON_TYPE_TOKEN = new TypeToken<LinkedHashMap<String, Object>>() {
     };
+    /**
+     * A list of sensitive field names that should be masked in a JSON string.
+     * This list is static and final, ensuring it's initialized only once
+     * and cannot be modified after initialization.
+     */
+    public static final List<String> SENSITIVE_FIELD_NAMES = Collections.unmodifiableList(Arrays.asList(
+            // Personal Identifiable Information (PII)
+            "password", "pwd", "secret", "passcode",
+            "ssn", "socialSecurityNumber",
+            "creditCardNumber", "cardNumber", "ccNum",
+            "cvv", "cvc", "securityCode",
+            "bankAccountNumber", "accountNumber", "iban",
+            "driverLicense", "driverLicenseNumber",
+            "passportNumber",
+            "dob", "dateOfBirth",
+            "email", "emailAddress",
+            "phone", "phoneNumber", "mobile",
+            "address", "homeAddress", "shippingAddress", "billingAddress",
+            "fullName", "firstName", "lastName",
+            /*"username",*/ // Consider if username can directly identify a user
+            "medicalRecordNumber", "healthID",
+            "biometricData", "fingerprint", "faceID",
+
+            // Access and Security Related Information
+            "token", "accessToken", "refreshToken",
+            "apiKey", "clientSecret",
+            "privateKey", "publicKey", // If not encrypted
+            "sessionID", "sessionId",
+            "cookie",
+            "authorizationHeader",
+
+            // Financial and Transaction Information
+            "amount", "transactionAmount", // Consider if specific transaction values need masking
+            "balance",
+            "currency", // Consider if specific transaction values need masking
+            "payoutDetails",
+
+            // Other potentially sensitive information
+            "ipAddress",
+            "geoLocation", "latitude", "longitude",
+            "deviceName", "deviceID",
+            "userAgent",
+            // Free-text fields that might contain unexpected sensitive data
+            "comments", "notes", "description"
+    ));
     public static final Map<String, SqlStatementHandler> DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP = new HashMap<String, SqlStatementHandler>() {
         private static final long serialVersionUID = 7280484430132716574L;
 
