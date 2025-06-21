@@ -480,7 +480,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                           boolean isReturningList,
                                           String futureOutputType) {
         // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
-        final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n\" + \n                        \"");
+        final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n\" +\n                        \"");
         if (lastParameterIsPageable(actualParameters)) {
             codeLines.add(
                     String.format("return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\" + %4$s)",
