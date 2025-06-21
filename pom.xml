@@ -72,6 +72,7 @@
         <vertx-mysql-client-io.vertx.version>5.0.0</vertx-mysql-client-io.vertx.version>
         <vertx-pg-client-io.vertx.version>5.0.0</vertx-pg-client-io.vertx.version>
         <vertx-mssql-client-io.vertx.version>5.0.0</vertx-mssql-client-io.vertx.version>
+        <datafaker-net.datafaker.version>2.4.3</datafaker-net.datafaker.version>
 
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
@@ -495,6 +496,13 @@
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-mssql-client</artifactId>
                 <version>${vertx-mssql-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/net.datafaker/datafaker -->
+            <dependency>
+                <groupId>net.datafaker</groupId>
+                <artifactId>datafaker</artifactId>
+                <version>${datafaker-net.datafaker.version}</version>
             </dependency>
 
         </dependencies>
