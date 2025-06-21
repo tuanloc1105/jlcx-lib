@@ -85,7 +85,10 @@ public class HikariLcxDataSource extends LCXDataSource {
                         dbType,
                         hikariDs
                 );
-                Runtime.getRuntime().addShutdownHook(new Thread(hikariDs::close));
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    Thread.currentThread().setName("shutdown");
+                    hikariDs.close();
+                }));
                 return pool;
             }
             throw new LCXDataSourcePropertiesException("Database properties is not all set");

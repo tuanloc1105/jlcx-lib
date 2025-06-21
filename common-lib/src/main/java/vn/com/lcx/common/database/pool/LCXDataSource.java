@@ -102,6 +102,7 @@ public class LCXDataSource {
                         maxTimeout
                 );
                 Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    Thread.currentThread().setName("shutdown");
                     LoggerFactory.getLogger(databaseName).info("Shutting down pool");
                     for (ConnectionEntry entry : lcxPool.getPool()) {
                         try {

@@ -206,6 +206,7 @@ public class HibernateConfiguration {
         final SessionFactory finalSessionFactory = sessionFactory;
         final HikariDataSource finalDataSource = dataSource;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Thread.currentThread().setName("shutdown");
             if (finalSessionFactory != null && !finalSessionFactory.isClosed()) {
                 finalSessionFactory.close();
             }
