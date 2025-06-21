@@ -1,7 +1,7 @@
 package com.example.lcx.service.reactive;
 
-import com.example.lcx.entity.reactive.UserEntity;
 import com.example.lcx.entity.reactive.TaskEntity;
+import com.example.lcx.entity.reactive.UserEntity;
 import com.example.lcx.enums.AppError;
 import com.example.lcx.mapper.TaskMapper;
 import com.example.lcx.object.dto.ReactiveTaskDTO;
@@ -15,7 +15,6 @@ import com.example.lcx.object.request.SearchTasksByNameRequest;
 import com.example.lcx.object.request.UpdateTaskRequest;
 import com.example.lcx.respository.reactive.TaskRepository;
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.SqlConnection;

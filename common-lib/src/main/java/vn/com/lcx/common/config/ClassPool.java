@@ -183,7 +183,7 @@ public class ClassPool {
                         )
                 );
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             throw new RuntimeException(e);
         }

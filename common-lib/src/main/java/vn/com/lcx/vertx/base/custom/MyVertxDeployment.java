@@ -146,7 +146,7 @@ public class MyVertxDeployment {
             }
         } catch (Exception e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
-            throw new RuntimeException(e);
+            System.exit(1);
         } finally {
             Thread.currentThread().setName(oldThreadName);
         }
@@ -170,16 +170,7 @@ public class MyVertxDeployment {
     }
 
     public void deployVerticle(Class<?> mainClass) {
-        if (mainClass.getAnnotation(VertxApplication.class) == null) {
-            throw new RuntimeException("Class must by annotated with @VertxApplication");
-        }
-        final var listOfPackageToScan = new ArrayList<String>();
-        listOfPackageToScan.add(mainClass.getPackage().getName());
-        if (mainClass.getAnnotation(ComponentScan.class) != null && mainClass.getAnnotation(ComponentScan.class).value().length > 0) {
-            final var pkgs = mainClass.getAnnotation(ComponentScan.class).value();
-            listOfPackageToScan.addAll(new ArrayList<>(Arrays.asList(pkgs)));
-        }
-        this.deployVerticle(listOfPackageToScan, null);
+        deployVerticle(mainClass, null);
     }
 
 }
