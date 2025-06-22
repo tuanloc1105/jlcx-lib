@@ -100,23 +100,23 @@ public class EmailInfo {
         private String body;
         private List<String> fileAttachments;
 
-        public EmailInfoBuilder id(List<String> bccUser) {
-            this.bccUser = bccUser;
-            return this;
-        }
-
-        public EmailInfoBuilder toUsers(String id) {
+        public EmailInfoBuilder id(String id) {
             this.id = id;
             return this;
         }
 
-        public EmailInfoBuilder ccUsers(List<String> toUsers) {
+        public EmailInfoBuilder toUsers(List<String> toUsers) {
             this.toUsers = toUsers;
             return this;
         }
 
-        public EmailInfoBuilder bccUser(List<String> ccUsers) {
+        public EmailInfoBuilder ccUsers(List<String> ccUsers) {
             this.ccUsers = ccUsers;
+            return this;
+        }
+
+        public EmailInfoBuilder bccUser(List<String> bccUser) {
+            this.bccUser = bccUser;
             return this;
         }
 
