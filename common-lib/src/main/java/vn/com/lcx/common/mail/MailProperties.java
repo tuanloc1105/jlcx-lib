@@ -75,6 +75,10 @@ public class MailProperties {
         this.emailInfos = emailInfos;
     }
 
+    public static MailPropertiesBuilder builder() {
+        return new MailPropertiesBuilder();
+    }
+
     public static class MailPropertiesBuilder {
         private String host;
         private String port;
