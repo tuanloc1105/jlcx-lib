@@ -31,6 +31,10 @@ public class EmailInfo {
         this.fileAttachments = fileAttachments;
     }
 
+    public static EmailInfoBuilder builder() {
+        return new EmailInfoBuilder();
+    }
+
     public String getId() {
         return id;
     }
