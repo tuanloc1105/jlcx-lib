@@ -1,8 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
@@ -54,6 +51,7 @@ import static vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING;
  * @author LCX Team
  * @since 1.0
  */
+@SuppressWarnings({"UnusedReturnValue", "BooleanMethodIsAlwaysInverted"})
 public final class FileUtils {
 
     /**
@@ -890,7 +888,6 @@ public final class FileUtils {
      * @return the file extension (without the dot), or empty string if no extension exists
      * @throws IllegalArgumentException if file is null
      */
-    @SuppressWarnings("JavaExistingMethodCanBeUsed")
     public static String getFileExtension(File file) {
         if (file == null) {
             throw new IllegalArgumentException("File cannot be null");
@@ -960,7 +957,7 @@ public final class FileUtils {
             while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
                 buffer.write(data, 0, bytesRead);
             }
-            final var result = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+            final var result = buffer.toString(StandardCharsets.UTF_8);
             buffer.close();
             return result;
         } catch (IOException e) {
@@ -975,9 +972,6 @@ public final class FileUtils {
      * <p>This class encapsulates read, write, and execute permissions for a file or directory.
      * It provides methods to convert these permissions to the numeric format used by Unix/Linux systems.</p>
      */
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Data
     public static class SystemUserPermission {
         /**
          * Whether the user can read the file/directory
@@ -991,6 +985,39 @@ public final class FileUtils {
          * Whether the user can execute the file or access the directory
          */
         private boolean executable;
+
+        public SystemUserPermission() {
+        }
+
+        public SystemUserPermission(boolean readable, boolean writeable, boolean executable) {
+            this.readable = readable;
+            this.writeable = writeable;
+            this.executable = executable;
+        }
+
+        public boolean isReadable() {
+            return readable;
+        }
+
+        public void setReadable(boolean readable) {
+            this.readable = readable;
+        }
+
+        public boolean isWriteable() {
+            return writeable;
+        }
+
+        public void setWriteable(boolean writeable) {
+            this.writeable = writeable;
+        }
+
+        public boolean isExecutable() {
+            return executable;
+        }
+
+        public void setExecutable(boolean executable) {
+            this.executable = executable;
+        }
 
         /**
          * Converts the permissions to a numeric value.

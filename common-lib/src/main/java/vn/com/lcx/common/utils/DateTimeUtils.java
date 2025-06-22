@@ -1,8 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -74,8 +71,6 @@ public final class DateTimeUtils {
         return calendar.getTime();
     }
 
-    @AllArgsConstructor
-    @Getter
     public enum TimezoneEnum {
         ACT("ACT"), // Australia/Darwin
         AET("AET"), // Australia/Sydney
@@ -107,6 +102,14 @@ public final class DateTimeUtils {
         HST("HST"), // -10:00
         ;
         private final String value;
+
+        TimezoneEnum(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 
 }

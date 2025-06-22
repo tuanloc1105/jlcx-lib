@@ -1,16 +1,8 @@
 package vn.com.lcx.common.dto;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Data
 public class Response<T> {
 
     private int code;
@@ -19,17 +11,70 @@ public class Response<T> {
     private Map<String, List<String>> responseHeaders;
     private String errorResponse;
 
+    private Response() {
+    }
+
+    private Response(int code, String msg, T response, Map<String, List<String>> responseHeaders, String errorResponse) {
+        this.code = code;
+        this.msg = msg;
+        this.response = response;
+        this.responseHeaders = responseHeaders;
+        this.errorResponse = errorResponse;
+    }
+
     public static <T> Builder<T> builder() {
         return new Builder<>();
     }
 
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+    public T getResponse() {
+        return response;
+    }
+
+    public void setResponse(T response) {
+        this.response = response;
+    }
+
+    public Map<String, List<String>> getResponseHeaders() {
+        return responseHeaders;
+    }
+
+    public void setResponseHeaders(Map<String, List<String>> responseHeaders) {
+        this.responseHeaders = responseHeaders;
+    }
+
+    public String getErrorResponse() {
+        return errorResponse;
+    }
+
+    public void setErrorResponse(String errorResponse) {
+        this.errorResponse = errorResponse;
+    }
+
     public static class Builder<T> {
         private int code;
         private String msg;
         private T response;
         private Map<String, List<String>> responseHeaders;
         private String errorResponse;
+
+        public Builder() {
+        }
 
         public Builder<T> code(int code) {
             this.code = code;

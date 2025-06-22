@@ -1,10 +1,5 @@
 package vn.com.lcx.common.database.type;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
 public enum PostgresTypeEnum {
 
     BIT(java.sql.Types.BIT),
@@ -50,5 +45,13 @@ public enum PostgresTypeEnum {
     ;
 
     private final int type;
+
+    PostgresTypeEnum(int type) {
+        this.type = type;
+    }
+
+    public int getType() {
+        return type;
+    }
 
 }

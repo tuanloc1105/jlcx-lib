@@ -5,13 +5,14 @@ import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.micrometer.MicrometerMetricsFactory;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.config.ClassPool;
@@ -33,7 +34,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class MyVertxDeployment {
 
     private final static MyVertxDeployment INSTANCE = new MyVertxDeployment();
@@ -129,7 +129,10 @@ public class MyVertxDeployment {
                 }
             }
             if (!listOfVerticleFuture.isEmpty()) {
+                JsonArray results = new JsonArray();
+                //noinspection StatementWithEmptyBody
                 while (listOfVerticleFuture.stream().noneMatch(Future::isComplete)) {
+                    // do nothing here
                 }
                 final var appFinishingStartingTime = (double) System.currentTimeMillis();
                 final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;

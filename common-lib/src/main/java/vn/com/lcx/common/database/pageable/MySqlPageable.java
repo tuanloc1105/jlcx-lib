@@ -1,9 +1,5 @@
 package vn.com.lcx.common.database.pageable;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.utils.EntityUtils;
@@ -14,10 +10,6 @@ import java.util.Map;
 
 import static vn.com.lcx.common.database.utils.EntityUtils.getTableShortenedName;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@Data
 public class MySqlPageable implements Pageable {
 
     private int pageNumber;
@@ -25,6 +17,73 @@ public class MySqlPageable implements Pageable {
     private Map<String, Direction> columnNameAndDirectionMap;
     private Map<String, Direction> fieldNameAndDirectionMap;
     private Class<?> entityClass;
+
+    public MySqlPageable() {
+    }
+
+    public MySqlPageable(int pageNumber,
+                         int pageSize,
+                         Map<String, Direction> columnNameAndDirectionMap,
+                         Map<String, Direction> fieldNameAndDirectionMap,
+                         Class<?> entityClass) {
+        this.pageNumber = pageNumber;
+        this.pageSize = pageSize;
+        this.columnNameAndDirectionMap = columnNameAndDirectionMap;
+        this.fieldNameAndDirectionMap = fieldNameAndDirectionMap;
+        this.entityClass = entityClass;
+    }
+
+    public static MySqlPageable.MySqlPageableBuilder builder() {
+        return new MySqlPageable.MySqlPageableBuilder();
+    }
+
+    @Override
+    public Map<String, Direction> getColumnNameAndDirectionMap() {
+        return columnNameAndDirectionMap;
+    }
+
+    @Override
+    public void setColumnNameAndDirectionMap(Map<String, Direction> columnNameAndDirectionMap) {
+        this.columnNameAndDirectionMap = columnNameAndDirectionMap;
+    }
+
+    @Override
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    @Override
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
+    @Override
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    @Override
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public Map<String, Direction> getFieldNameAndDirectionMap() {
+        return fieldNameAndDirectionMap;
+    }
+
+    public void setFieldNameAndDirectionMap(Map<String, Direction> fieldNameAndDirectionMap) {
+        this.fieldNameAndDirectionMap = fieldNameAndDirectionMap;
+    }
+
+    @Override
+    public Class<?> getEntityClass() {
+        return entityClass;
+    }
+
+    @Override
+    public void setEntityClass(Class<?> entityClass) {
+        this.entityClass = entityClass;
+    }
 
     @Override
     public void addNewColumnAndDirectionOrder(String columnName, Direction direction) {
@@ -100,6 +159,46 @@ public class MySqlPageable implements Pageable {
                 orderClause,
                 offSetClause
         );
+    }
+
+    public static class MySqlPageableBuilder {
+        private int pageNumber;
+        private int pageSize;
+        private Map<String, Direction> columnNameAndDirectionMap;
+        private Map<String, Direction> fieldNameAndDirectionMap;
+        private Class<?> entityClass;
+
+        public MySqlPageableBuilder() {
+        }
+
+        public MySqlPageable.MySqlPageableBuilder pageNumber(int pageNumber) {
+            this.pageNumber = pageNumber;
+            return this;
+        }
+
+        public MySqlPageable.MySqlPageableBuilder pageSize(int pageSize) {
+            this.pageSize = pageSize;
+            return this;
+        }
+
+        public MySqlPageable.MySqlPageableBuilder columnNameAndDirectionMap(Map<String, Direction> columnNameAndDirectionMap) {
+            this.columnNameAndDirectionMap = columnNameAndDirectionMap;
+            return this;
+        }
+
+        public MySqlPageable.MySqlPageableBuilder fieldNameAndDirectionMap(Map<String, Direction> fieldNameAndDirectionMap) {
+            this.fieldNameAndDirectionMap = fieldNameAndDirectionMap;
+            return this;
+        }
+
+        public MySqlPageable.MySqlPageableBuilder entityClass(Class<?> entityClass) {
+            this.entityClass = entityClass;
+            return this;
+        }
+
+        public MySqlPageable build() {
+            return new MySqlPageable(pageNumber, pageSize, columnNameAndDirectionMap, fieldNameAndDirectionMap, entityClass);
+        }
     }
 
 }

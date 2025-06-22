@@ -1,7 +1,5 @@
 package vn.com.lcx.common.database.utils;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.IdColumn;
@@ -22,8 +20,6 @@ import java.util.stream.Collectors;
 import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 import static vn.com.lcx.common.utils.FileUtils.writeContentToFile;
 
-@Setter
-@Getter
 @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
 public final class DBEntityAnalysis {
 
@@ -174,6 +170,30 @@ public final class DBEntityAnalysis {
     public DBEntityAnalysis(HashSet<Element> fieldsOfClass, String fullClassName, TableName tableNameAnnotation) {
         this.fieldsOfClass = fieldsOfClass;
         this.fullClassName = fullClassName;
+        this.tableNameAnnotation = tableNameAnnotation;
+    }
+
+    public HashSet<Element> getFieldsOfClass() {
+        return fieldsOfClass;
+    }
+
+    public void setFieldsOfClass(HashSet<Element> fieldsOfClass) {
+        this.fieldsOfClass = fieldsOfClass;
+    }
+
+    public String getFullClassName() {
+        return fullClassName;
+    }
+
+    public void setFullClassName(String fullClassName) {
+        this.fullClassName = fullClassName;
+    }
+
+    public TableName getTableNameAnnotation() {
+        return tableNameAnnotation;
+    }
+
+    public void setTableNameAnnotation(TableName tableNameAnnotation) {
         this.tableNameAnnotation = tableNameAnnotation;
     }
 

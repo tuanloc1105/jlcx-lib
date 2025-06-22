@@ -20,7 +20,6 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.UserContext;
-import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.LogUtils;
@@ -31,10 +30,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-@RequiredArgsConstructor
 public class RoutingContextLcxWrapper implements RoutingContext {
 
     private final RoutingContext realContext;
+
+    public RoutingContextLcxWrapper(RoutingContext realContext) {
+        this.realContext = realContext;
+    }
 
     @Override
     public HttpServerRequest request() {
@@ -170,6 +172,11 @@ public class RoutingContextLcxWrapper implements RoutingContext {
     }
 
     @Override
+    public void setAcceptableContentType(@Nullable String contentType) {
+        realContext.setAcceptableContentType(contentType);
+    }
+
+    @Override
     public ParsedHeaderValues parsedHeaders() {
         return realContext.parsedHeaders();
     }
@@ -207,11 +214,6 @@ public class RoutingContextLcxWrapper implements RoutingContext {
     @Override
     public boolean failed() {
         return realContext.failed();
-    }
-
-    @Override
-    public void setAcceptableContentType(@Nullable String contentType) {
-        realContext.setAcceptableContentType(contentType);
     }
 
     @Override

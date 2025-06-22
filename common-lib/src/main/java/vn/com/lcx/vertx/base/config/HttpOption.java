@@ -3,11 +3,11 @@ package vn.com.lcx.vertx.base.config;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.KeyCertOptions;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class HttpOption {
+
+    private HttpOption() {
+    }
 
     /**
      * HTTP/2 với TLS (h2)

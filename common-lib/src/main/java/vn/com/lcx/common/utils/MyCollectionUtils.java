@@ -1,16 +1,15 @@
 package vn.com.lcx.common.utils;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MyCollectionUtils {
+
+    private MyCollectionUtils() {
+    }
 
     public static <T> List<List<T>> splitListIntoBatches(List<T> inputList, int maxBatchSize, int maxBatches) {
         if (maxBatchSize == 0) {

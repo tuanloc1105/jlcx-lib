@@ -1,8 +1,5 @@
 package vn.com.lcx.common.database.pageable;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.io.Serializable;
@@ -10,9 +7,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class Page<T> implements Serializable {
     private static final long serialVersionUID = -2413109919435477982L;
 
@@ -24,6 +18,27 @@ public class Page<T> implements Serializable {
     private Boolean firstPage;
     private Boolean lastPage;
     private List<T> content;
+
+    public Page() {
+    }
+
+    public Page(Integer pageNumber,
+                Integer pageSize,
+                Integer totalPages,
+                Integer numberOfElements,
+                Long totalElements,
+                Boolean firstPage,
+                Boolean lastPage,
+                List<T> content) {
+        this.pageNumber = pageNumber;
+        this.pageSize = pageSize;
+        this.totalPages = totalPages;
+        this.numberOfElements = numberOfElements;
+        this.totalElements = totalElements;
+        this.firstPage = firstPage;
+        this.lastPage = lastPage;
+        this.content = content;
+    }
 
     public static <V> Page<V> create(List<V> list, int totalElements, int pageNumber, int pageSize) {
         return create(list, (long) totalElements, pageNumber, pageSize);
@@ -57,6 +72,70 @@ public class Page<T> implements Serializable {
         page.setFirstPage(anotherPage.getFirstPage());
         page.setLastPage(anotherPage.getLastPage());
         return page;
+    }
+
+    public Integer getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(Integer pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
+    public Integer getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(Integer pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public Integer getTotalPages() {
+        return totalPages;
+    }
+
+    public void setTotalPages(Integer totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public Integer getNumberOfElements() {
+        return numberOfElements;
+    }
+
+    public void setNumberOfElements(Integer numberOfElements) {
+        this.numberOfElements = numberOfElements;
+    }
+
+    public Long getTotalElements() {
+        return totalElements;
+    }
+
+    public void setTotalElements(Long totalElements) {
+        this.totalElements = totalElements;
+    }
+
+    public Boolean getFirstPage() {
+        return firstPage;
+    }
+
+    public void setFirstPage(Boolean firstPage) {
+        this.firstPage = firstPage;
+    }
+
+    public Boolean getLastPage() {
+        return lastPage;
+    }
+
+    public void setLastPage(Boolean lastPage) {
+        this.lastPage = lastPage;
+    }
+
+    public List<T> getContent() {
+        return content;
+    }
+
+    public void setContent(List<T> content) {
+        this.content = content;
     }
 
 }

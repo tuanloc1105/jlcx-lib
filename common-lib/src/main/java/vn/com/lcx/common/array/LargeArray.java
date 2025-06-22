@@ -1,11 +1,8 @@
 package vn.com.lcx.common.array;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
 public class LargeArray<T> {
     private static final int CHUNK_SIZE = Integer.MAX_VALUE - 8; // Slightly less than max
     private final List<T[]> chunks = new ArrayList<>();
@@ -15,9 +12,22 @@ public class LargeArray<T> {
         this.size = size;
         long remaining = size;
         while (remaining > 0) {
+            //noinspection unchecked
             chunks.add((T[]) new Object[(int) Math.min(CHUNK_SIZE, remaining)]);
             remaining -= CHUNK_SIZE;
         }
+    }
+
+    public List<T[]> getChunks() {
+        return chunks;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
     }
 
     public T get(long index) {

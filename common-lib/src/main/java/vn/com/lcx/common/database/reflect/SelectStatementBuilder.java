@@ -1,6 +1,5 @@
 package vn.com.lcx.common.database.reflect;
 
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.SubTable;
@@ -27,7 +26,6 @@ import static vn.com.lcx.common.constant.CommonConstant.BUILDER_MAP;
 import static vn.com.lcx.common.database.utils.EntityUtils.getTableShortenedName;
 import static vn.com.lcx.common.utils.MyStringUtils.removeSuffixOfString;
 
-@Getter
 public final class SelectStatementBuilder {
 
     private static final List<String> WHERE_STATEMENT_DELIMITER_KEYWORDS = Arrays.asList(
@@ -138,8 +136,9 @@ public final class SelectStatementBuilder {
                         // selectStatementBuilderOfSubTable = new SelectStatementBuilder(clz, true);
                         selectStatementBuilderOfSubTable = SelectStatementBuilder.of(clz);
                     }
-                    final var optionalMatchedField = selectStatementBuilderOfSubTable.getListOfField().stream().filter(f -> f.getName().equals(subTableAnnotation.mapField())).findFirst();
-                    if (!optionalMatchedField.isPresent()) {
+                    final var optionalMatchedField = selectStatementBuilderOfSubTable
+                            .getListOfField().stream().filter(f -> f.getName().equals(subTableAnnotation.mapField())).findFirst();
+                    if (optionalMatchedField.isEmpty()) {
                         throw new RuntimeException("Cannot find appropriate field of sub class");
                     }
                     final var matchedField = optionalMatchedField.get();
@@ -168,6 +167,34 @@ public final class SelectStatementBuilder {
                 LogUtils.writeLog(e.getMessage(), e);
             }
         }
+    }
+
+    public Class<?> getEntityClass() {
+        return entityClass;
+    }
+
+    public ArrayList<String> getListOfColumnName() {
+        return listOfColumnName;
+    }
+
+    public ArrayList<Field> getListOfField() {
+        return listOfField;
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public String getTableNameShortenedName() {
+        return tableNameShortenedName;
+    }
+
+    public ArrayList<SubTableEntry> getSubTableStatementBuilders() {
+        return subTableStatementBuilders;
+    }
+
+    public String getPlaceHolder() {
+        return placeHolder;
     }
 
     private static List<String> splitByKeywords(String input) {

@@ -1,7 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -15,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
 public final class ObjectUtils {
 
     private ObjectUtils() {
@@ -71,7 +68,7 @@ public final class ObjectUtils {
     }
 
     public static boolean isNullOrEmpty(Object object) {
-        if (!Optional.ofNullable(object).isPresent()) {
+        if (Optional.ofNullable(object).isEmpty()) {
             return true;
         }
         if (object instanceof Iterable) {

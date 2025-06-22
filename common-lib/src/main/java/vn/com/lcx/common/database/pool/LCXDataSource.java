@@ -1,8 +1,5 @@
 package vn.com.lcx.common.database.pool;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.database.DatabaseProperty;
@@ -31,22 +28,37 @@ import java.util.concurrent.TimeUnit;
 
 import static vn.com.lcx.common.utils.RandomUtils.generateRandomString;
 
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class LCXDataSource {
 
-    @Getter
     private final String poolName;
     private final String defaultDriverClassName;
     private final String showDbVersionSqlStatement;
     private final DatabaseProperty property;
     private final SimpleExecutor<Boolean> myExecutor;
-    @Getter
     private final DBTypeEnum dbType;
     private final int maxPoolWaitingTime;
-    @Getter(AccessLevel.PRIVATE)
     private final ConcurrentLinkedQueue<ConnectionEntry> pool;
 
     // private final transient Object lock = new Object();
+
+
+    protected LCXDataSource(String poolName,
+                            String defaultDriverClassName,
+                            String showDbVersionSqlStatement,
+                            DatabaseProperty property,
+                            SimpleExecutor<Boolean> myExecutor,
+                            DBTypeEnum dbType,
+                            int maxPoolWaitingTime,
+                            ConcurrentLinkedQueue<ConnectionEntry> pool) {
+        this.poolName = poolName;
+        this.defaultDriverClassName = defaultDriverClassName;
+        this.showDbVersionSqlStatement = showDbVersionSqlStatement;
+        this.property = property;
+        this.myExecutor = myExecutor;
+        this.dbType = dbType;
+        this.maxPoolWaitingTime = maxPoolWaitingTime;
+        this.pool = pool;
+    }
 
     static Connection createConnection(String url, String user, String password, int maxTimeoutSecond) throws SQLException, ClassNotFoundException {
         DriverManager.setLoginTimeout(maxTimeoutSecond);
@@ -122,6 +134,18 @@ public class LCXDataSource {
             LogUtils.writeLog2(e.getMessage(), e);
             throw new LCXDataSourceException(e);
         }
+    }
+
+    public DBTypeEnum getDbType() {
+        return dbType;
+    }
+
+    public String getPoolName() {
+        return poolName;
+    }
+
+    private ConcurrentLinkedQueue<ConnectionEntry> getPool() {
+        return pool;
     }
 
     private void create(String url, String user, String password, String driverClassName, int maxTimeoutSecond) throws SQLException, ClassNotFoundException {

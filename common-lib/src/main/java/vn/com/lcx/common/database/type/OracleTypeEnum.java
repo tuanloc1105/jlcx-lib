@@ -1,11 +1,7 @@
 package vn.com.lcx.common.database.type;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import oracle.jdbc.OracleTypes;
 
-@AllArgsConstructor
-@Getter
 public enum OracleTypeEnum {
 
     BIT(OracleTypes.BIT),
@@ -64,5 +60,13 @@ public enum OracleTypeEnum {
     ;
 
     private final int type;
+
+    OracleTypeEnum(int type) {
+        this.type = type;
+    }
+
+    public int getType() {
+        return type;
+    }
 
 }

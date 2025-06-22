@@ -1,7 +1,5 @@
-package vn.com.lcx.common.utils;
+package vn.com.lcx.common.cache;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import vn.com.lcx.common.exception.CacheException;
 
 import java.lang.ref.SoftReference;
@@ -60,34 +58,47 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @param <K> the type of keys maintained by this cache
  * @param <V> the type of mapped values
- *
  * @author LCX Team
  * @since 1.0.0
  */
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CacheUtils<K, V> {
 
-    /** Scheduler for handling TTL expiration */
+    /**
+     * Scheduler for handling TTL expiration
+     */
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    /** Maximum number of entries in the cache */
+    /**
+     * Maximum number of entries in the cache
+     */
     private final int capacity;
 
-    /** Main cache storage using soft references */
+    /**
+     * Main cache storage using soft references
+     */
     private final ConcurrentHashMap<K, SoftReference<V>> cache;
 
-    /** Tasks for removing expired entries */
+    /**
+     * Tasks for removing expired entries
+     */
     private final ConcurrentHashMap<K, ScheduledFuture<SoftReference<V>>> removeExpiredKeyTasks = new ConcurrentHashMap<>();
 
-    /** Counter for tracking cache size (atomic for thread safety) */
+    /**
+     * Counter for tracking cache size (atomic for thread safety)
+     */
     private final AtomicInteger size = new AtomicInteger(0);
+
+    private CacheUtils(int capacity, ConcurrentHashMap<K, SoftReference<V>> cache) {
+        this.capacity = capacity;
+        this.cache = cache;
+    }
 
     /**
      * Creates a new cache instance with the specified capacity.
      *
      * @param capacity the maximum number of entries the cache can hold
-     * @param <K> the type of keys
-     * @param <V> the type of values
+     * @param <K>      the type of keys
+     * @param <V>      the type of values
      * @return a new CacheUtils instance
      * @throws CacheException if capacity is less than 1
      */
@@ -99,10 +110,28 @@ public class CacheUtils<K, V> {
     }
 
     /**
+     * Shuts down the scheduler used for TTL expiration.
+     * This method should be called when the cache is no longer needed to prevent memory leaks.
+     *
+     * <p>Note: This is a static method that affects all cache instances since they share the same scheduler.</p>
+     */
+    public static void shutdown() {
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
      * Adds an entry to the cache without expiration.
      * If the cache is full, the least recently used entry will be evicted.
      *
-     * @param key the key with which the specified value is to be associated
+     * @param key   the key with which the specified value is to be associated
      * @param value the value to be associated with the specified key
      * @throws IllegalArgumentException if key or value is null
      */
@@ -117,8 +146,8 @@ public class CacheUtils<K, V> {
      * Adds an entry to the cache with time-based expiration.
      * If the cache is full, the least recently used entry will be evicted.
      *
-     * @param key the key with which the specified value is to be associated
-     * @param value the value to be associated with the specified key
+     * @param key      the key with which the specified value is to be associated
+     * @param value    the value to be associated with the specified key
      * @param duration the time duration after which the entry will expire
      * @throws IllegalArgumentException if key, value, or duration is null, or if duration is negative
      */
@@ -249,24 +278,6 @@ public class CacheUtils<K, V> {
     }
 
     /**
-     * Shuts down the scheduler used for TTL expiration.
-     * This method should be called when the cache is no longer needed to prevent memory leaks.
-     *
-     * <p>Note: This is a static method that affects all cache instances since they share the same scheduler.</p>
-     */
-    public static void shutdown() {
-        scheduler.shutdown();
-        try {
-            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            scheduler.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
      * Evicts the least recently used entry if the cache is at capacity.
      * This is a simple implementation that removes the first entry found.
      * For better LRU implementation, consider using LinkedHashMap or a custom LRU structure.
@@ -299,7 +310,7 @@ public class CacheUtils<K, V> {
     /**
      * Validates that key and value are not null.
      *
-     * @param key the key to validate
+     * @param key   the key to validate
      * @param value the value to validate
      * @throws IllegalArgumentException if key or value is null
      */

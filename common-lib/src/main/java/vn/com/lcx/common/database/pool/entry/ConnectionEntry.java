@@ -1,12 +1,5 @@
 package vn.com.lcx.common.database.pool.entry;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.database.type.DBTypeEnum;
@@ -18,52 +11,43 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Represents a database connection entry in the connection pool.
  * This class manages the lifecycle of a database connection including activation, deactivation,
  * transaction management, and resource cleanup.
- * 
+ *
  * <p>Implements {@link AutoCloseable} to ensure proper resource cleanup using try-with-resources.</p>
  *
  * @see AutoCloseable
  */
-@Getter
-@EqualsAndHashCode
-@ToString
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ConnectionEntry implements AutoCloseable {
 
     /**
      * The underlying database connection.
      */
-    @Setter
     private Connection connection;
 
     /**
      * The timestamp when this connection was last active.
      */
-    @Setter(AccessLevel.PRIVATE)
     private LocalDateTime lastActiveTime;
 
     /**
      * The type of database this connection is associated with.
      */
-    @Setter(AccessLevel.PRIVATE)
     private DBTypeEnum dbType;
 
     /**
      * The unique name identifying this connection.
      */
-    @Setter(AccessLevel.PRIVATE)
     private String connectionName;
 
     /**
      * Logger instance for this connection entry.
      */
-    @Setter(AccessLevel.PRIVATE)
     private Logger connectionLog;
 
     /**
@@ -74,22 +58,39 @@ public final class ConnectionEntry implements AutoCloseable {
     /**
      * Flag indicating if this connection is under a critical section.
      */
-    @Setter
     private boolean criticalLock;
 
+    private ConnectionEntry() {
+    }
+
+    private ConnectionEntry(Connection connection,
+                            LocalDateTime lastActiveTime,
+                            DBTypeEnum dbType,
+                            String connectionName,
+                            Logger connectionLog,
+                            AtomicBoolean idle,
+                            boolean criticalLock) {
+        this.connection = connection;
+        this.lastActiveTime = lastActiveTime;
+        this.dbType = dbType;
+        this.connectionName = connectionName;
+        this.connectionLog = connectionLog;
+        this.idle = idle;
+        this.criticalLock = criticalLock;
+    }
 
     /**
      * Initializes a new ConnectionEntry with the specified connection details.
      *
-     * @param connection the database connection to be managed
-     * @param dbType the type of the database
+     * @param connection     the database connection to be managed
+     * @param dbType         the type of the database
      * @param connectionName a unique name for the connection
      * @return a new initialized ConnectionEntry
      * @throws RuntimeException if there's an error creating the connection lock file
      */
     public static ConnectionEntry init(Connection connection,
-                                     DBTypeEnum dbType,
-                                     String connectionName) {
+                                       DBTypeEnum dbType,
+                                       String connectionName) {
         final var folder = new File(FileUtils.pathJoining(System.getProperty("java.io.tmpdir"), "lcx-pool"));
         //noinspection ResultOfMethodCallIgnored
         folder.mkdirs();
@@ -118,6 +119,86 @@ public final class ConnectionEntry implements AutoCloseable {
         return entry;
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
+    public LocalDateTime getLastActiveTime() {
+        return lastActiveTime;
+    }
+
+    private void setLastActiveTime(LocalDateTime lastActiveTime) {
+        this.lastActiveTime = lastActiveTime;
+    }
+
+    public DBTypeEnum getDbType() {
+        return dbType;
+    }
+
+    private void setDbType(DBTypeEnum dbType) {
+        this.dbType = dbType;
+    }
+
+    public String getConnectionName() {
+        return connectionName;
+    }
+
+    private void setConnectionName(String connectionName) {
+        this.connectionName = connectionName;
+    }
+
+    public Logger getConnectionLog() {
+        return connectionLog;
+    }
+
+    private void setConnectionLog(Logger connectionLog) {
+        this.connectionLog = connectionLog;
+    }
+
+    public AtomicBoolean getIdle() {
+        return idle;
+    }
+
+    public boolean isCriticalLock() {
+        return criticalLock;
+    }
+
+    public void setCriticalLock(boolean criticalLock) {
+        this.criticalLock = criticalLock;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        ConnectionEntry that = (ConnectionEntry) o;
+        return isCriticalLock() == that.isCriticalLock() &&
+                Objects.equals(getConnection(), that.getConnection()) &&
+                Objects.equals(getLastActiveTime(), that.getLastActiveTime()) &&
+                getDbType() == that.getDbType() &&
+                Objects.equals(getConnectionName(), that.getConnectionName()) &&
+                Objects.equals(getConnectionLog(), that.getConnectionLog());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getConnection(), getLastActiveTime(), getDbType(), getConnectionName(), getConnectionLog(), getIdle(), isCriticalLock());
+    }
+
+    @Override
+    public String toString() {
+        return "ConnectionEntry{" + "connection=" + connection +
+                ", lastActiveTime=" + lastActiveTime +
+                ", dbType=" + dbType +
+                ", connectionName='" + connectionName + '\'' +
+                ", idle=" + idle +
+                ", criticalLock=" + criticalLock +
+                '}';
+    }
+
     /**
      * Locks this connection, marking it as in-use.
      */
@@ -130,6 +211,7 @@ public final class ConnectionEntry implements AutoCloseable {
      *
      * @return true if the connection is active, false otherwise
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isActive() {
         return !this.idle.get();
     }
@@ -322,8 +404,6 @@ public final class ConnectionEntry implements AutoCloseable {
     /**
      * Enum representing standard JDBC transaction isolation levels.
      */
-    @AllArgsConstructor
-    @Getter
     public static enum TransactionIsolation {
         TRANSACTION_NONE(Connection.TRANSACTION_NONE),
         TRANSACTION_READ_UNCOMMITTED(Connection.TRANSACTION_READ_UNCOMMITTED),
@@ -335,6 +415,14 @@ public final class ConnectionEntry implements AutoCloseable {
          * The JDBC constant value for this isolation level.
          */
         private final int value;
+
+        TransactionIsolation(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
     }
 
 }

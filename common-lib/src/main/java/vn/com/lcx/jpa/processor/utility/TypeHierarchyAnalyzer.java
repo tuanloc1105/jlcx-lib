@@ -1,9 +1,5 @@
 package vn.com.lcx.jpa.processor.utility;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -19,9 +15,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Data
 public final class TypeHierarchyAnalyzer {
+
+    private TypeHierarchyAnalyzer() {
+    }
 
     public static Optional<TypeElement> getExtendedClass(final Elements elementUtils,
                                                          final Types typeUtils,

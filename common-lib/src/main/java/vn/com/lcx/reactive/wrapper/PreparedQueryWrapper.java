@@ -7,18 +7,21 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.Tuple;
-import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collector;
 
-@RequiredArgsConstructor
 public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
 
     private final PreparedQuery<T> realPreparedQuery;
     private final RoutingContext context;
+
+    public PreparedQueryWrapper(PreparedQuery<T> realPreparedQuery, RoutingContext context) {
+        this.realPreparedQuery = realPreparedQuery;
+        this.context = context;
+    }
 
     @Override
     public Future<T> execute(Tuple tuple) {

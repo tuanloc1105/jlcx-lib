@@ -1,8 +1,5 @@
 package vn.com.lcx.common.thread;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.util.ArrayList;
@@ -20,12 +17,12 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A flexible and configurable thread pool executor for managing concurrent task execution.
- * 
+ *
  * <p>This class provides a simplified interface for creating and managing thread pools
  * with various rejection policies and timeout configurations. It supports both
  * synchronous task execution with result collection and asynchronous execution
  * with CountDownLatch for coordination.</p>
- * 
+ *
  * <p>Key features:</p>
  * <ul>
  *   <li>Configurable thread pool size (min/max threads)</li>
@@ -35,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  *   <li>Automatic resource cleanup</li>
  *   <li>Comprehensive logging</li>
  * </ul>
- * 
+ *
  * <p>Usage example:</p>
  * <pre>{@code
  * // Create executor with custom configuration
@@ -46,64 +43,95 @@ import java.util.concurrent.TimeUnit;
  *     30, // timeout
  *     TimeUnit.SECONDS
  * );
- * 
+ *
  * // Add tasks
  * executor.addNewTask(() -> "Task 1 result");
  * executor.addNewTask(() -> "Task 2 result");
- * 
+ *
  * // Execute and get results
  * List<String> results = executor.executeTasks();
- * 
+ *
  * // Or execute asynchronously
  * executor.executeTasksWithCountDownLatch();
  * }</pre>
- * 
+ *
  * @param <T> the type of result returned by the tasks
  * @author LCX Team
  * @since 1.0
  */
-@AllArgsConstructor
-@RequiredArgsConstructor
-@Data
 public class SimpleExecutor<T> implements BaseExecutor<T> {
 
-    /** List of callable tasks to be executed */
+    /**
+     * List of callable tasks to be executed
+     */
     private final List<Callable<T>> taskList;
-    
-    /** Handler for rejected task execution */
+
+    /**
+     * Handler for rejected task execution
+     */
     private final RejectedExecutionHandler rejectedExecutionHandler;
-    
-    /** Minimum number of threads in the pool */
+
+    /**
+     * Minimum number of threads in the pool
+     */
     private int minThread;
-    
-    /** Maximum number of threads in the pool */
+
+    /**
+     * Maximum number of threads in the pool
+     */
     private int maxThread;
-    
-    /** Timeout duration for task execution */
+
+    /**
+     * Timeout duration for task execution
+     */
     private long timeout;
-    
-    /** Time unit for timeout */
+
+    /**
+     * Time unit for timeout
+     */
     private TimeUnit unit;
-    
-    /** The underlying executor service */
+
+    /**
+     * The underlying executor service
+     */
     private ExecutorService executorService;
+
+    public SimpleExecutor(List<Callable<T>> taskList, RejectedExecutionHandler rejectedExecutionHandler) {
+        this.taskList = taskList;
+        this.rejectedExecutionHandler = rejectedExecutionHandler;
+    }
+
+    public SimpleExecutor(List<Callable<T>> taskList,
+                          RejectedExecutionHandler rejectedExecutionHandler,
+                          int minThread,
+                          int maxThread,
+                          long timeout,
+                          TimeUnit unit,
+                          ExecutorService executorService) {
+        this.taskList = taskList;
+        this.rejectedExecutionHandler = rejectedExecutionHandler;
+        this.minThread = minThread;
+        this.maxThread = maxThread;
+        this.timeout = timeout;
+        this.unit = unit;
+        this.executorService = executorService;
+    }
 
     /**
      * Creates a new SimpleExecutor with full configuration.
-     * 
+     *
      * <p>This factory method creates an executor with specified thread pool size,
      * rejection policy, and timeout configuration.</p>
-     * 
+     *
      * @param minNumberOfThreads the minimum number of threads in the pool
      * @param maxNumberOfThreads the maximum number of threads in the pool
-     * @param rejectMode the rejection policy to use when the pool is full
-     * @param timeout the timeout duration for task execution
-     * @param unit the time unit for the timeout
-     * @param <T> the type of result returned by tasks
+     * @param rejectMode         the rejection policy to use when the pool is full
+     * @param timeout            the timeout duration for task execution
+     * @param unit               the time unit for the timeout
+     * @param <T>                the type of result returned by tasks
      * @return a new SimpleExecutor instance
-     * 
      * @throws IllegalArgumentException if minNumberOfThreads or maxNumberOfThreads is negative
-     * @throws NullPointerException if rejectMode, timeout, or unit is null
+     * @throws NullPointerException     if rejectMode, timeout, or unit is null
      */
     public static <T> SimpleExecutor<T> init(int minNumberOfThreads,
                                              int maxNumberOfThreads,
@@ -123,17 +151,16 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Creates a new SimpleExecutor with default thread pool configuration.
-     * 
+     *
      * <p>This factory method creates an executor with a cached thread pool
      * (unbounded thread pool that creates new threads as needed) and specified
      * timeout configuration.</p>
-     * 
+     *
      * @param rejectMode the rejection policy to use when the pool is full
-     * @param timeout the timeout duration for task execution
-     * @param unit the time unit for the timeout
-     * @param <T> the type of result returned by tasks
+     * @param timeout    the timeout duration for task execution
+     * @param unit       the time unit for the timeout
+     * @param <T>        the type of result returned by tasks
      * @return a new SimpleExecutor instance with cached thread pool
-     * 
      * @throws NullPointerException if rejectMode, timeout, or unit is null
      */
     public static <T> SimpleExecutor<T> init(RejectMode rejectMode,
@@ -150,10 +177,10 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Converts a RejectMode enum to the corresponding RejectedExecutionHandler.
-     * 
+     *
      * <p>This method maps the enum values to their corresponding ThreadPoolExecutor
      * rejection policy implementations.</p>
-     * 
+     *
      * @param rejectMode the rejection mode to convert
      * @return the corresponding RejectedExecutionHandler implementation
      * @throws IllegalArgumentException if rejectMode is null
@@ -181,12 +208,62 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         return rejectedExecutionHandler;
     }
 
+    public List<Callable<T>> getTaskList() {
+        return taskList;
+    }
+
+    public RejectedExecutionHandler getRejectedExecutionHandler() {
+        return rejectedExecutionHandler;
+    }
+
+    public int getMinThread() {
+        return minThread;
+    }
+
+    @Override
+    public void setMinThread(int minThread) {
+        this.minThread = minThread;
+    }
+
+    public int getMaxThread() {
+        return maxThread;
+    }
+
+    @Override
+    public void setMaxThread(int maxThread) {
+        this.maxThread = maxThread;
+    }
+
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+
+    public TimeUnit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(TimeUnit unit) {
+        this.unit = unit;
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    public void setExecutorService(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
     /**
      * Adds a single task to the executor's task list.
-     * 
+     *
      * <p>The task will be executed when {@link #executeTasks()} or
      * {@link #executeTasksWithCountDownLatch()} is called.</p>
-     * 
+     *
      * @param task the callable task to add
      * @throws NullPointerException if task is null
      */
@@ -197,10 +274,10 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Adds multiple tasks to the executor's task list.
-     * 
+     *
      * <p>All tasks will be executed when {@link #executeTasks()} or
      * {@link #executeTasksWithCountDownLatch()} is called.</p>
-     * 
+     *
      * @param tasks the list of callable tasks to add
      * @throws NullPointerException if tasks is null or contains null elements
      */
@@ -211,13 +288,13 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Creates and returns an ExecutorService based on the current configuration.
-     * 
+     *
      * <p>If minThread and maxThread are both 0, creates a cached thread pool.
      * Otherwise, creates a ThreadPoolExecutor with the specified configuration.</p>
-     * 
+     *
      * <p>This method implements lazy initialization - the executor service is only
      * created when needed and reused if already created and not terminated.</p>
-     * 
+     *
      * @return the configured ExecutorService
      */
     @Override
@@ -247,19 +324,18 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Executes all tasks synchronously and returns their results.
-     * 
+     *
      * <p>This method executes all tasks in the task list and waits for their completion.
      * If any task fails, all remaining futures are cancelled and a RuntimeException
      * is thrown.</p>
-     * 
+     *
      * <p><strong>Note:</strong> This method is deprecated. Use
      * {@link #executeTasksWithCountDownLatch()} instead for better error handling
      * and resource management.</p>
-     * 
+     *
      * @return a list containing the results of all tasks in the order they were added
-     * @throws RuntimeException if any task fails or if the execution is interrupted
+     * @throws RuntimeException      if any task fails or if the execution is interrupted
      * @throws IllegalStateException if no tasks have been added
-     * 
      * @deprecated Use {@link #executeTasksWithCountDownLatch()} instead
      */
     @Override
@@ -314,11 +390,11 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Executes all tasks asynchronously using CountDownLatch for coordination.
-     * 
+     *
      * <p>This method submits all tasks to the executor service and uses a CountDownLatch
      * to wait for their completion. Each task is executed in its own thread, and
      * the method waits for all tasks to complete or timeout.</p>
-     * 
+     *
      * <p>Key features of this method:</p>
      * <ul>
      *   <li>Non-blocking task submission</li>
@@ -327,11 +403,11 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
      *   <li>Comprehensive error logging</li>
      *   <li>Automatic task list cleanup</li>
      * </ul>
-     * 
+     *
      * <p>After execution, the task list is cleared and the executor service is
      * properly shut down.</p>
-     * 
-     * @throws RuntimeException if the waiting is interrupted
+     *
+     * @throws RuntimeException      if the waiting is interrupted
      * @throws IllegalStateException if no tasks have been added
      */
     @Override
@@ -407,10 +483,10 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Cancels a future task.
-     * 
+     *
      * <p>This method attempts to cancel the given future task. If the task is
      * already running, it may not be cancelled immediately.</p>
-     * 
+     *
      * @param futureTasks the future task to cancel
      */
     @Override
@@ -420,10 +496,10 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Executes a single runnable task asynchronously.
-     * 
+     *
      * <p>This method creates a CompletableFuture that executes the given runnable
      * using the executor service.</p>
-     * 
+     *
      * @param runnable the runnable task to execute
      * @return a CompletableFuture that completes when the task finishes
      * @throws NullPointerException if runnable is null
@@ -435,13 +511,13 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Executes multiple runnable tasks asynchronously in sequence.
-     * 
+     *
      * <p>This method creates a chain of CompletableFuture tasks that execute
      * sequentially. Each task waits for the previous one to complete before
      * starting.</p>
-     * 
+     *
      * <p>If no runnables are provided, returns a completed future immediately.</p>
-     * 
+     *
      * @param runnable the array of runnable tasks to execute sequentially
      * @return a CompletableFuture that completes when all tasks finish
      * @throws NullPointerException if runnable array is null or contains null elements
@@ -461,11 +537,11 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
 
     /**
      * Shuts down the executor service gracefully.
-     * 
+     *
      * <p>This method initiates a graceful shutdown of the executor service.
      * No new tasks will be accepted, but already submitted tasks will be
      * allowed to complete.</p>
-     * 
+     *
      * <p>Note: This method only initiates shutdown. For complete cleanup,
      * consider using {@link #executeTasksWithCountDownLatch()} which handles
      * shutdown automatically.</p>

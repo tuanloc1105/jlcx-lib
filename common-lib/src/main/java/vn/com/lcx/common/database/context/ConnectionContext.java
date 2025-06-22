@@ -1,17 +1,17 @@
 package vn.com.lcx.common.database.context;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.sql.Connection;
 import java.util.concurrent.ConcurrentHashMap;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConnectionContext {
 
     private static final ThreadLocal<Connection> connetionThreadLocal = new ThreadLocal<>();
     private static final ConcurrentHashMap<String, Connection> connectionMap = new ConcurrentHashMap<>();
+
+    private ConnectionContext() {
+    }
 
     public static void set(Connection connection) {
         connetionThreadLocal.set(connection);

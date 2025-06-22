@@ -1,8 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,16 +7,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SerializeUtils {
+
+    private SerializeUtils() {
+    }
 
     /**
      * Serializes the given object to a file in the given path and fileName.
      *
-     * @param object the object to serialize
-     * @param path   the path to the file
+     * @param object   the object to serialize
+     * @param path     the path to the file
      * @param fileName the name of the file
-     *
      * @throws IOException if an I/O error occurs
      */
     public static <T extends Serializable> void serialize(final T object, final String path, final String fileName) throws IOException {
@@ -40,12 +38,10 @@ public final class SerializeUtils {
     /**
      * Deserializes the given object from a file in the given path and fileName.
      *
-     * @param path   the path to the file
+     * @param path     the path to the file
      * @param fileName the name of the file
-     *
      * @return the deserialized object
-     *
-     * @throws IOException           if an I/O error occurs
+     * @throws IOException            if an I/O error occurs
      * @throws ClassNotFoundException if the class of the object cannot be found
      */
     public static <T extends Serializable> T deserialize(final String path, final String fileName) throws IOException, ClassNotFoundException {

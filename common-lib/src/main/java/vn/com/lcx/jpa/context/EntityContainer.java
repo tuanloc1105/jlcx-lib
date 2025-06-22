@@ -1,7 +1,5 @@
 package vn.com.lcx.jpa.context;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.SessionFactory;
 import vn.com.lcx.common.utils.LogUtils;
@@ -12,10 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EntityContainer {
     private final static Map<String, UUID> entityContainer = new HashMap<>();
     private final static Map<UUID, SessionFactory> factoryContainer = new HashMap<>();
+
+    private EntityContainer() {
+    }
 
     /**
      * Maps a list of entity classes to a SessionFactory, and stores the mapping in memory.

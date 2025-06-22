@@ -1,10 +1,5 @@
 package vn.com.lcx.common.database.type;
 
-import lombok.AllArgsConstructor;
-import lombok.Generated;
-
-@AllArgsConstructor
-@Generated
 public enum DBTypeEnum implements DBType {
 
     ORACLE {
@@ -91,5 +86,9 @@ public enum DBTypeEnum implements DBType {
             return "org.hibernate.dialect.SQLServerDialect";
         }
     },
+    ;
+
+    DBTypeEnum() {
+    }
 
 }

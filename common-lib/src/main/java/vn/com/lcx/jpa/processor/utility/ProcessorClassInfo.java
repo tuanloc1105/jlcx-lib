@@ -1,7 +1,5 @@
 package vn.com.lcx.jpa.processor.utility;
 
-import lombok.Data;
-
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -14,13 +12,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Data
 public class ProcessorClassInfo {
     private final Types typeUtils;
     private final Elements elementUtils;
     private final HashSet<Element> fields;
     private final HashMap<MethodInfo, ExecutableElement> methods;
     private final TypeElement clazz;
+
+    public ProcessorClassInfo(Types typeUtils, Elements elementUtils, HashSet<Element> fields, HashMap<MethodInfo, ExecutableElement> methods, TypeElement clazz) {
+        this.typeUtils = typeUtils;
+        this.elementUtils = elementUtils;
+        this.fields = fields;
+        this.methods = methods;
+        this.clazz = clazz;
+    }
 
     public static ProcessorClassInfo init(TypeElement clazz, Types typeUtils, Elements elementUtils) {
         final HashMap<MethodInfo, ExecutableElement> allMethods = new HashMap<>();
@@ -58,6 +63,26 @@ public class ProcessorClassInfo {
                 allMethods,
                 clazz
         );
+    }
+
+    public Types getTypeUtils() {
+        return typeUtils;
+    }
+
+    public Elements getElementUtils() {
+        return elementUtils;
+    }
+
+    public HashSet<Element> getFields() {
+        return fields;
+    }
+
+    public HashMap<MethodInfo, ExecutableElement> getMethods() {
+        return methods;
+    }
+
+    public TypeElement getClazz() {
+        return clazz;
     }
 
 }

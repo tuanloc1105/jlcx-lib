@@ -1,14 +1,14 @@
 package vn.com.lcx.common.utils;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.mindrot.jbcrypt.BCrypt;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BCryptUtils {
 
     private static final Integer[] HASH_ROUND = new Integer[]{4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+
+    private BCryptUtils() {
+    }
 
     public static String hashPassword(String password) {
         if (StringUtils.isBlank(password)) {

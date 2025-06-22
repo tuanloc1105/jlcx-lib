@@ -1,21 +1,17 @@
 package vn.com.lcx.common.utils;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-@Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AESUtils {
 
+    private AESUtils() {
+    }
+
     public static String encryptCBC(String data, String key) throws Exception {
-        log.info("START ENCRYPT");
         String iv = key.substring(0, 16);
         // Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
         // Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -39,7 +35,6 @@ public final class AESUtils {
     }
 
     public static String decryptCBC(String encrypted, String key) throws Exception {
-        log.info("START DECRYPT");
         String iv = key.substring(0, 16);
 
         byte[] encrypt = Base64.getDecoder().decode(encrypted.getBytes(StandardCharsets.UTF_8));
@@ -63,7 +58,6 @@ public final class AESUtils {
     }
 
     public static String encrypt(String data, String key) throws Exception {
-        log.info("START ENCRYPT");
         SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
         // Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -80,7 +74,6 @@ public final class AESUtils {
     }
 
     public static String decrypt(String encrypted, String key) throws Exception {
-        log.info("START DECRYPT");
         SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
         // Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");

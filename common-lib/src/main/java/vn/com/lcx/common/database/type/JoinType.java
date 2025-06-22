@@ -1,10 +1,5 @@
 package vn.com.lcx.common.database.type;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
 public enum JoinType {
 
     INNER_JOIN("INNER JOIN"),
@@ -13,6 +8,14 @@ public enum JoinType {
     FULL_JOIN("FULL JOIN"),
     CROSS_JOIN("CROSS JOIN"),
     ;
-    private String statement;
+    private final String statement;
+
+    JoinType(String statement) {
+        this.statement = statement;
+    }
+
+    public String getStatement() {
+        return statement;
+    }
 
 }

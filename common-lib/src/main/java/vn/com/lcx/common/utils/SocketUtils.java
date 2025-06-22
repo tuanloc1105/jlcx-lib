@@ -1,6 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
@@ -11,7 +10,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
-@NoArgsConstructor
 public class SocketUtils {
 
     public String sendAndReceive(String socketHost, int socketPort, String inputMessage) {

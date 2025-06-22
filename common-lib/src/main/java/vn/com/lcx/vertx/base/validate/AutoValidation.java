@@ -1,8 +1,6 @@
 package vn.com.lcx.vertx.base.validate;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.vertx.base.annotation.GreaterThan;
@@ -20,8 +18,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AutoValidation {
+
+    private AutoValidation() {
+    }
 
     public static List<String> validate(Object validateObject) {
         if (!(validateObject.getClass().getName().contains("vn.")) && !(validateObject.getClass().getName().contains("com."))) {

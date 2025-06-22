@@ -1,10 +1,9 @@
 package vn.com.lcx.common.context;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AuthContext {
+
+    private AuthContext() {
+    }
 
     private static final ThreadLocal<Object> authThreadLocal = new ThreadLocal<>();
 

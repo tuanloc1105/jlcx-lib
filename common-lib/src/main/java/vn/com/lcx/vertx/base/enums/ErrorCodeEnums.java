@@ -1,8 +1,5 @@
 package vn.com.lcx.vertx.base.enums;
 
-import lombok.Getter;
-
-@Getter
 public enum ErrorCodeEnums implements ErrorCode {
 
     SUCCESS(200, 100000, "Success"),
@@ -21,6 +18,21 @@ public enum ErrorCodeEnums implements ErrorCode {
         this.httpCode = httpCode;
         this.code = code;
         this.message = message;
+    }
+
+    @Override
+    public int getHttpCode() {
+        return httpCode;
+    }
+
+    @Override
+    public int getCode() {
+        return code;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
     }
 
 }

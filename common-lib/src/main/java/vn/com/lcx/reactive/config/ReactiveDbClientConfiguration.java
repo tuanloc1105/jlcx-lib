@@ -14,7 +14,6 @@ import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.SqlConnection;
-import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.common.config.ClassPool;
@@ -27,10 +26,13 @@ import java.util.Optional;
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 
 @Component
-@RequiredArgsConstructor
 public class ReactiveDbClientConfiguration {
 
     private final Vertx vertx;
+
+    public ReactiveDbClientConfiguration(Vertx vertx) {
+        this.vertx = vertx;
+    }
 
     public Pool createPg(final int port,
                          final String host,

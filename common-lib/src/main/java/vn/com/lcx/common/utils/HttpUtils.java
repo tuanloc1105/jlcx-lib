@@ -5,9 +5,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import vn.com.lcx.common.config.BuildGson;
 import vn.com.lcx.common.config.BuildObjectMapper;
 import vn.com.lcx.common.constant.CommonConstant;
@@ -41,8 +38,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @SuppressWarnings("DuplicatedCode")
-@NoArgsConstructor
-@Getter
 public class HttpUtils {
 
     private final static String CONTENT_TYPE_HEADER_NAME = "Content-Type";
@@ -59,8 +54,10 @@ public class HttpUtils {
     private final Gson gsonBeautify = BuildGson.getGsonPrettyPrint();
     private final JsonMapper jsonMapper = BuildObjectMapper.getJsonMapper();
     private final XmlMapper xmlMapper = BuildObjectMapper.getXMLMapper();
-    @Setter
     private boolean isBeautifyPrinting = false;
+
+    public HttpUtils() {
+    }
 
     public static void disableSSLVerification() throws Exception {
         // Create a TrustManager that trusts all certificates
@@ -88,6 +85,30 @@ public class HttpUtils {
 
         // Install the all-trusting HostnameVerifier
         HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+    }
+
+    public Gson getGson() {
+        return gson;
+    }
+
+    public Gson getGsonBeautify() {
+        return gsonBeautify;
+    }
+
+    public JsonMapper getJsonMapper() {
+        return jsonMapper;
+    }
+
+    public XmlMapper getXmlMapper() {
+        return xmlMapper;
+    }
+
+    public boolean isBeautifyPrinting() {
+        return isBeautifyPrinting;
+    }
+
+    public void setBeautifyPrinting(boolean beautifyPrinting) {
+        isBeautifyPrinting = beautifyPrinting;
     }
 
     private HttpURLConnection generateConnection(String host) throws Exception {

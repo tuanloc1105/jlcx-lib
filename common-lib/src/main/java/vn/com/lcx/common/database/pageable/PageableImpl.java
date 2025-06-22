@@ -1,8 +1,5 @@
 package vn.com.lcx.common.database.pageable;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.HashMap;
@@ -10,12 +7,8 @@ import java.util.Map;
 
 public class PageableImpl implements Pageable {
 
-    @Getter
     private final Map<String, Direction> fieldNameAndDirectionMap;
-    @Getter
     private int pageNumber;
-    @Getter
-    @Setter
     private int pageSize;
 
     {
@@ -24,10 +17,22 @@ public class PageableImpl implements Pageable {
         fieldNameAndDirectionMap = new HashMap<>();
     }
 
-    @Builder
-    public PageableImpl(int pageSize, int pageNumber) {
-        this.pageSize = pageSize;
+    public PageableImpl(int pageNumber, int pageSize) {
         this.pageNumber = pageNumber;
+        this.pageSize = pageSize;
+    }
+
+    public static PageableImplBuilder builder() {
+        return new PageableImplBuilder();
+    }
+
+    public Map<String, Direction> getFieldNameAndDirectionMap() {
+        return fieldNameAndDirectionMap;
+    }
+
+    @Override
+    public int getPageNumber() {
+        return pageNumber;
     }
 
     @Override
@@ -36,6 +41,16 @@ public class PageableImpl implements Pageable {
             throw new IllegalArgumentException("Page number must be started from 1");
         }
         this.pageNumber = pageNumber;
+    }
+
+    @Override
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    @Override
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
     }
 
     @Override
@@ -89,4 +104,28 @@ public class PageableImpl implements Pageable {
         }
         throw new IllegalArgumentException("Invalid `pageNumber` and `pageSize`");
     }
+
+    public static class PageableImplBuilder {
+        private int pageNumber;
+        private int pageSize;
+
+        public PageableImplBuilder() {
+        }
+
+        public PageableImplBuilder pageNumber(int pageNumber) {
+            this.pageNumber = pageNumber;
+            return this;
+        }
+
+        public PageableImplBuilder pageSize(int pageSize) {
+            this.pageSize = pageSize;
+            return this;
+        }
+
+        public PageableImpl build() {
+            return new PageableImpl(pageNumber, pageSize);
+        }
+
+    }
+
 }

@@ -1,7 +1,5 @@
 package vn.com.lcx.common.proxy;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
@@ -19,11 +17,15 @@ import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ServiceProxyHandler<T> implements InvocationHandler {
 
     private final Object target;
     private final boolean interfaze;
+
+    private ServiceProxyHandler(Object target, boolean interfaze) {
+        this.target = target;
+        this.interfaze = interfaze;
+    }
 
     /**
      * Creates a proxy instance for the given interface type and target object.

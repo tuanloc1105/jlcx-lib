@@ -1,9 +1,5 @@
 package vn.com.lcx.common.database.specification;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.util.ArrayList;
@@ -17,16 +13,11 @@ import static vn.com.lcx.common.database.utils.EntityUtils.getTableShortenedName
  * This class is still being tested
  */
 @SuppressWarnings("unused")
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SimpleSpecificationImpl implements Specification {
 
     private final Class<?> entityClass;
-    @Getter
     private StringBuilder finalSQL;
-    @Getter
     private List<Object> parameters;
-    @Getter
     private int times;
 
     {
@@ -35,8 +26,34 @@ public class SimpleSpecificationImpl implements Specification {
         times = 0;
     }
 
+    private SimpleSpecificationImpl(Class<?> entityClass) {
+        this.entityClass = entityClass;
+    }
+
+    private SimpleSpecificationImpl(Class<?> entityClass, StringBuilder finalSQL, List<Object> parameters, int times) {
+        this.entityClass = entityClass;
+        this.finalSQL = finalSQL;
+        this.parameters = parameters;
+        this.times = times;
+    }
+
     public static SimpleSpecificationImpl of(Class<?> entityClass) {
         return new SimpleSpecificationImpl(entityClass);
+    }
+
+    @Override
+    public StringBuilder getFinalSQL() {
+        return finalSQL;
+    }
+
+    @Override
+    public List<Object> getParameters() {
+        return parameters;
+    }
+
+    @Override
+    public int getTimes() {
+        return times;
     }
 
     public SimpleSpecificationImpl where(String fieldName, Object value) {

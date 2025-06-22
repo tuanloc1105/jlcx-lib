@@ -1,18 +1,22 @@
 package vn.com.lcx.common.utils;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.util.Properties;
 import java.util.function.Function;
 
-@AllArgsConstructor
-@NoArgsConstructor
 public class LCXProperties {
     private YamlProperties yamlProperties;
     private Properties properties;
+
+    public LCXProperties() {
+    }
+
+    public LCXProperties(YamlProperties yamlProperties, Properties properties) {
+        this.yamlProperties = yamlProperties;
+        this.properties = properties;
+    }
 
     public String getProperty(String key) {
         if (properties != null) {

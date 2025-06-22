@@ -1,12 +1,8 @@
 package vn.com.lcx.vertx.base.exception;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import vn.com.lcx.vertx.base.enums.ErrorCode;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
 public class InternalServiceException extends RuntimeException {
     private static final long serialVersionUID = -615514778045395314L;
 
@@ -46,5 +42,30 @@ public class InternalServiceException extends RuntimeException {
                 enums.getCode(),
                 enums.getMessage() + (additionalMessage.length > 0 ? "; " + String.join("; ", additionalMessage) : "")
         );
+    }
+
+    public int getHttpCode() {
+        return httpCode;
+    }
+
+    public void setHttpCode(int httpCode) {
+        this.httpCode = httpCode;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

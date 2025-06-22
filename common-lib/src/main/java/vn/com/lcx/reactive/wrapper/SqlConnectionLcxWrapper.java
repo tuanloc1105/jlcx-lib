@@ -12,15 +12,18 @@ import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Transaction;
 import io.vertx.sqlclient.spi.DatabaseMetadata;
-import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.utils.LogUtils;
 
 @SuppressWarnings("SqlSourceToSinkFlow")
-@RequiredArgsConstructor
 public class SqlConnectionLcxWrapper implements SqlConnection {
 
     private final SqlConnection realConnection;
     private final RoutingContext context;
+
+    public SqlConnectionLcxWrapper(SqlConnection realConnection, RoutingContext context) {
+        this.realConnection = realConnection;
+        this.context = context;
+    }
 
     public static SqlConnectionLcxWrapper init(SqlConnection realConnection, RoutingContext context) {
         return new SqlConnectionLcxWrapper(realConnection, context);

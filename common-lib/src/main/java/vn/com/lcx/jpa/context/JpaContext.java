@@ -1,7 +1,5 @@
 package vn.com.lcx.jpa.context;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -9,10 +7,12 @@ import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JpaContext {
 
     private static final ThreadLocal<Map<String, Object>> threadData = ThreadLocal.withInitial(HashMap::new);
+
+    private JpaContext() {
+    }
 
     /**
      * Check if the JPA context is empty or not.

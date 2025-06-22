@@ -1,9 +1,5 @@
 package vn.com.lcx.common.utils;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
@@ -93,8 +89,6 @@ public final class ShellCommandRunningUtils {
         return new ShellCommandOutput(exitCode, stdOut, stdErr);
     }
 
-    @Setter
-    @Getter
     private static class StreamGobbler implements Runnable {
         private InputStream inputStream;
         private Function<String, String> consumer;
@@ -110,6 +104,30 @@ public final class ShellCommandRunningUtils {
             this.result = new ArrayList<>();
         }
 
+        public InputStream getInputStream() {
+            return inputStream;
+        }
+
+        public void setInputStream(InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        public Function<String, String> getConsumer() {
+            return consumer;
+        }
+
+        public void setConsumer(Function<String, String> consumer) {
+            this.consumer = consumer;
+        }
+
+        public List<String> getResult() {
+            return result;
+        }
+
+        public void setResult(List<String> result) {
+            this.result = result;
+        }
+
         @Override
         public void run() {
             this.setResult(new BufferedReader(new InputStreamReader(inputStream)).lines()
@@ -117,19 +135,47 @@ public final class ShellCommandRunningUtils {
         }
     }
 
-    @Data
-    @RequiredArgsConstructor
     public static class ProcessEnvironment {
         private final String envName;
         private final String envValue;
+
+        public ProcessEnvironment(String envName, String envValue) {
+            this.envName = envName;
+            this.envValue = envValue;
+        }
+
+        public String getEnvName() {
+            return envName;
+        }
+
+        public String getEnvValue() {
+            return envValue;
+        }
     }
 
-    @Data
-    @RequiredArgsConstructor
     public static class ShellCommandOutput {
         private final int exitCode;
         private final List<String> stdOut;
         private final List<String> stdErr;
+
+        public ShellCommandOutput(int exitCode, List<String> stdOut, List<String> stdErr) {
+            this.exitCode = exitCode;
+            this.stdOut = stdOut;
+            this.stdErr = stdErr;
+        }
+
+        public int getExitCode() {
+            return exitCode;
+        }
+
+        public List<String> getStdOut() {
+            return stdOut;
+        }
+
+        public List<String> getStdErr() {
+            return stdErr;
+        }
+
     }
 
 }
