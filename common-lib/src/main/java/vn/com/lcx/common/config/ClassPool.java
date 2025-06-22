@@ -167,21 +167,30 @@ public class ClassPool {
                 }
             }
             if (limit == count && postHandleComponent.size() != handledPostHandleComponent.size()) {
-                final var classCannotBeCreated = new ArrayList<Class<?>>();
+                final var message = new StringBuilder("[");
                 for (Class<?> aClass : postHandleComponent) {
                     if (handledPostHandleComponent.stream().noneMatch(handledClass -> handledClass.isAssignableFrom(aClass))) {
-                        classCannotBeCreated.add(aClass);
+                        final var fields = new ArrayList<Field>();
+                        getFieldsOfClass(fields, aClass);
+                        final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+                        final var fieldNotCreated = fieldsOfComponent.stream()
+                                .filter(
+                                        field ->
+                                                !CLASS_POOL.containsKey(field.getType().getName()) &&
+                                                        !CLASS_POOL.containsKey(field.getName())
+                                ).map(f -> f.getName() + ": " + f.getType().getName())
+                                .collect(Collectors.toCollection(ArrayList::new));
+                        message.append(
+                                String.format(
+                                        "Cannot found instance of fields (%s) of class %s",
+                                        String.join(", ", fieldNotCreated),
+                                        aClass.getName()
+                                )
+                        ).append(", ");
                     }
                 }
-                throw new ExceptionInInitializerError(
-                        String.format(
-                                "Cannot create instance of classes %s",
-                                classCannotBeCreated
-                                        .stream()
-                                        .map(Class::getName)
-                                        .collect(Collectors.joining(", ", "[", "]"))
-                        )
-                );
+                message.append("]");
+                throw new ExceptionInInitializerError(message.toString());
             }
         } catch (Throwable e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
