@@ -95,6 +95,14 @@ public class ServiceProcessor extends AbstractProcessor {
         methodCodeBody.append("\n");
         processorClassInfo.getMethods().forEach((method, executableElement) -> {
 
+            if (executableElement.getModifiers().contains(Modifier.PRIVATE) ||
+                    executableElement.getModifiers().contains(Modifier.ABSTRACT) ||
+                    executableElement.getModifiers().contains(Modifier.PROTECTED) ||
+                    executableElement.getModifiers().contains(Modifier.STATIC) ||
+                    executableElement.getModifiers().contains(Modifier.FINAL)) {
+                return;
+            }
+
             final var codeLines = new ArrayList<String>();
 
             codeLines.add(
@@ -274,7 +282,8 @@ public class ServiceProcessor extends AbstractProcessor {
                         "${super-parameters}",
                         processorClassInfo.getFields()
                                 .stream()
-                                .filter(element -> !element.getModifiers().contains(Modifier.STATIC))
+                                .filter(element -> !element.getModifiers().contains(Modifier.STATIC) &&
+                                        element.getModifiers().contains(Modifier.FINAL))
                                 .map(it -> "null")
                                 .collect(Collectors.joining(", "))
                 )
