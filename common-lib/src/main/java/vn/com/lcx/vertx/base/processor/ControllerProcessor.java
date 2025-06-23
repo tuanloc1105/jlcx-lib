@@ -353,18 +353,7 @@ public class ControllerProcessor extends AbstractProcessor {
                 classProperties.add("private final io.vertx.ext.auth.jwt.JWTAuth jwtAuth;");
                 jwtAuthHandler = "io.vertx.ext.web.handler.JWTAuthHandler authHandler = io.vertx.ext.web.handler.JWTAuthHandler.create(this.jwtAuth);";
             }
-            String apiKeyAuthHandler = "// None of api key auth handler";
-            if (applicationHaveAPIKey) {
-                apiKeyAuthHandler = "\n    public void validateApiKey(RoutingContext context) {\n" +
-                        "        String apiKey = context.request().getHeader(\"x-api-key\");\n" +
-                        "        String validApiKey = CommonConstant.applicationConfig.getProperty(\"server.api-key\");\n" +
-                        "        if (!((apiKey + CommonConstant.EMPTY_STRING).equals(validApiKey))) {\n" +
-                        "            context.response().setStatusCode(401).end(\"Invalid api key\");\n" +
-                        "        } else {\n" +
-                        "            context.next();\n" +
-                        "        }\n" +
-                        "    }\n\n";
-            }
+            String apiKeyAuthHandler = extractApiKeyValidationMethod(applicationHaveAPIKey);
             if (serveStaticResource) {
                 staticResourceHandler =
                         "            router.route(\"/*\").handler(io.vertx.ext.web.handler.StaticHandler.create(\"webroot\"));\n" +
@@ -395,6 +384,22 @@ public class ControllerProcessor extends AbstractProcessor {
         }
 
         return true;
+    }
+
+    private static String extractApiKeyValidationMethod(boolean applicationHaveAPIKey) {
+        String apiKeyAuthHandler = "    // None of api key auth handler";
+        if (applicationHaveAPIKey) {
+            apiKeyAuthHandler = "\n    public void validateApiKey(io.vertx.ext.web.RoutingContext context) {\n" +
+                    "        String apiKey = context.request().getHeader(\"x-api-key\");\n" +
+                    "        String validApiKey = vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty(\"server.api-key\");\n" +
+                    "        if (!((apiKey + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING).equals(validApiKey))) {\n" +
+                    "            context.response().setStatusCode(401).end(\"Invalid api key\");\n" +
+                    "        } else {\n" +
+                    "            context.next();\n" +
+                    "        }\n" +
+                    "    }\n\n";
+        }
+        return apiKeyAuthHandler;
     }
 
     // public void generateProxyController(ProcessorClassInfo processorClassInfo) {
