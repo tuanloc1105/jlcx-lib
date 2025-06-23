@@ -72,7 +72,7 @@ public class RepositoryProcessor extends AbstractProcessor {
             "GreaterEqual"
     );
 
-    private static String NOT_IMPLEMENT_CODE_TEMPLATE = "    public ${return-type} ${method-name}(${list-of-parameters}) {\n" +
+    private final static String NOT_IMPLEMENT_CODE_TEMPLATE = "    public ${return-type} ${method-name}(${list-of-parameters}) {\n" +
             "        throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException(\"${error-message}\");\n" +
             "    }\n";
 
@@ -619,15 +619,25 @@ public class RepositoryProcessor extends AbstractProcessor {
     }
 
     private String getGenericTypeOfListOrPage(String listTypeName) {
-        if (!listTypeName.startsWith("java.util.List") && !listTypeName.startsWith("vn.com.lcx.common.database.pageable.Page")) {
+        if (!listTypeName.startsWith("java.util.List") &&
+                !listTypeName.startsWith("vn.com.lcx.common.database.pageable.Page") &&
+                !listTypeName.startsWith("java.util.Optional")) {
             return listTypeName;
         }
-        if ((listTypeName.startsWith("java.util.List") || listTypeName.startsWith("vn.com.lcx.common.database.pageable.Page")) && !listTypeName.contains("<")) {
+        if (
+                (
+                        listTypeName.startsWith("java.util.List") ||
+                                listTypeName.startsWith("vn.com.lcx.common.database.pageable.Page") ||
+                                listTypeName.startsWith("java.util.Optional")
+                ) &&
+                        !listTypeName.contains("<")
+        ) {
             throw new CodeGenError("Unknow type " + listTypeName);
         }
         return listTypeName
                 .replace("java.util.List<", CommonConstant.EMPTY_STRING)
                 .replace("vn.com.lcx.common.database.pageable.Page<", CommonConstant.EMPTY_STRING)
+                .replace("java.util.Optional<", CommonConstant.EMPTY_STRING)
                 .replace(">", CommonConstant.EMPTY_STRING);
     }
 
@@ -658,7 +668,7 @@ public class RepositoryProcessor extends AbstractProcessor {
             } else {
                 codeLines.add(
                         String.format(
-                                isCountQuery ? "countQuery.setParameter(\"%1$s\", %2$s);" : "query.setParameter(%1$s, %2$s);",
+                                isCountQuery ? "countQuery.setParameter(%1$s, %2$s);" : "query.setParameter(%1$s, %2$s);",
                                 i + 1,
                                 variableElement.getSimpleName()
                         )
