@@ -113,6 +113,7 @@ public class ControllerProcessor extends AbstractProcessor {
         }
 
         boolean applicationHaveAuthentication = false;
+        boolean applicationHaveAPIKey = false;
 
         if (!classMap.isEmpty()) {
 
@@ -217,6 +218,7 @@ public class ControllerProcessor extends AbstractProcessor {
 
                     if (e.getAnnotation(APIKey.class) != null) {
                         isAPIKeyMethod = true;
+                        applicationHaveAPIKey = true;
                     }
 
                     String basePath;
@@ -351,6 +353,18 @@ public class ControllerProcessor extends AbstractProcessor {
                 classProperties.add("private final io.vertx.ext.auth.jwt.JWTAuth jwtAuth;");
                 jwtAuthHandler = "io.vertx.ext.web.handler.JWTAuthHandler authHandler = io.vertx.ext.web.handler.JWTAuthHandler.create(this.jwtAuth);";
             }
+            String apiKeyAuthHandler = "// None of api key auth handler";
+            if (applicationHaveAPIKey) {
+                apiKeyAuthHandler = "\n    public void validateApiKey(RoutingContext context) {\n" +
+                        "        String apiKey = context.request().getHeader(\"x-api-key\");\n" +
+                        "        String validApiKey = CommonConstant.applicationConfig.getProperty(\"server.api-key\");\n" +
+                        "        if (!((apiKey + CommonConstant.EMPTY_STRING).equals(validApiKey))) {\n" +
+                        "            context.response().setStatusCode(401).end(\"Invalid api key\");\n" +
+                        "        } else {\n" +
+                        "            context.next();\n" +
+                        "        }\n" +
+                        "    }\n\n";
+            }
             if (serveStaticResource) {
                 staticResourceHandler =
                         "            router.route(\"/*\").handler(io.vertx.ext.web.handler.StaticHandler.create(\"webroot\"));\n" +
@@ -364,6 +378,7 @@ public class ControllerProcessor extends AbstractProcessor {
                     .replace("${dependencies}", classProperties.stream().collect(Collectors.joining(";\n    ", "    ", ";")))
                     .replace("${constructor}", constructor)
                     .replace("${jwt-auth-handler}", jwtAuthHandler)
+                    .replace("${auth-method}", apiKeyAuthHandler)
                     .replace("${static-resource-handler}", staticResourceHandler)
                     .replace("${router-handler}", routerConfigures.stream()
                             .filter(StringUtils::isNotBlank)

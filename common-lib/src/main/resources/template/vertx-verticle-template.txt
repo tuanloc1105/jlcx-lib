@@ -59,4 +59,5 @@ ${constructor}
             throw e;
         }
     }
+${auth-method}
 }
