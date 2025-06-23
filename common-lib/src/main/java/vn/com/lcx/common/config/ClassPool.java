@@ -102,10 +102,8 @@ public class ClassPool {
                         for (Method method : methodsOfInstance) {
                             final var instanceMethodResult = method.invoke(instanceClass);
                             putInstanceToClassPool(instanceMethodResult.getClass(), instanceMethodResult);
-                            // if (!CLASS_POOL.contains(instanceMethodResult.getClass().getName())) {
-                            //     CLASS_POOL.put(instanceMethodResult.getClass().getName(), instanceMethodResult);
-                            // }
-                            // CLASS_POOL.put(method.getName(), instanceMethodResult);
+                            CLASS_POOL.put(method.getName(), instanceMethodResult);
+                            CLASS_POOL.put(method.getReturnType().getName(), instanceMethodResult);
                         }
                     }
                     continue;

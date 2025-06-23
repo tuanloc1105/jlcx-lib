@@ -397,7 +397,7 @@ public class ControllerProcessor extends AbstractProcessor {
                     "        } else {\n" +
                     "            context.next();\n" +
                     "        }\n" +
-                    "    }\n\n";
+                    "    }\n";
         }
         return apiKeyAuthHandler;
     }
