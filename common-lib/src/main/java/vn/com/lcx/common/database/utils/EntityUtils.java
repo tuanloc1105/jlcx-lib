@@ -614,4 +614,17 @@ public final class EntityUtils {
         }
     }
 
+    /**
+     * Improved version of analyzeEntityClass with better structure and maintainability
+     */
+    public static void analyzeEntityClassV2(Class<?> entityClass, String databaseType, String folderPath) {
+        try {
+            EntityAnalysisContext context = new EntityAnalysisContext(entityClass, databaseType, folderPath);
+            EntityAnalyzer analyzer = new EntityAnalyzer(context);
+            analyzer.analyze();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to analyze entity class: " + entityClass.getName(), e);
+        }
+    }
+
 }
