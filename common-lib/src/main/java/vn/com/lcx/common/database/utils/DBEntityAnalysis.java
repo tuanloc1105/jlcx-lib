@@ -35,18 +35,16 @@ public final class DBEntityAnalysis {
         private static final long serialVersionUID = -2343568510347376282L;
 
         {
-            put("String", "VARCHAR");
-            // put("String", "TEXT");
+            put("String", "VARCHAR(255)");
             put("Boolean", "BOOLEAN");
-            // put("Boolean", "BOOLEAN");
             put("Integer", "INTEGER");
             put("Long", "BIGINT");
             put("Short", "SMALLINT");
             put("Byte", "SMALLINT");
             put("Float", "REAL");
             put("Double", "DOUBLE PRECISION");
-            put("BigDecimal", "NUMERIC");
-            // put("BigDecimal", "DECIMAL");
+            put("BigDecimal", "NUMERIC(19,2)");
+            put("BigInteger", "NUMERIC(38)");
             put("Character", "CHAR(1)");
             put("byte[]", "BYTEA");
             put("java.util.Date", "TIMESTAMP");
@@ -55,11 +53,19 @@ public final class DBEntityAnalysis {
             put("java.sql.Timestamp", "TIMESTAMP");
             put("LocalDate", "DATE");
             put("LocalDateTime", "TIMESTAMP");
+            put("LocalTime", "TIME");
+            put("ZonedDateTime", "TIMESTAMP WITH TIME ZONE");
+            put("Instant", "TIMESTAMP");
             put("UUID", "UUID");
-            put("Enum", "VARCHAR");
+            put("Enum", "VARCHAR(50)");
             put("Blob", "BYTEA");
-            // put("Blob", "OID");
             put("Clob", "TEXT");
+            put("List", "TEXT");
+            put("Set", "TEXT");
+            put("Map", "JSONB");
+            put("JSON", "JSONB");
+            put("XML", "XML");
+            put("Array", "TEXT[]");
         }
     };
 
@@ -67,30 +73,37 @@ public final class DBEntityAnalysis {
         private static final long serialVersionUID = 601202175188150937L;
 
         {
-            // put("String", "TEXT");
-            put("String", "VARCHAR(10000)");
-            put("Boolean", "TINYINT(1)");
-            // put("Boolean", "TINYINT(1)");
+            put("String", "VARCHAR(255)");
+            put("Boolean", "BOOLEAN");
             put("Integer", "INT");
             put("Long", "BIGINT");
             put("Short", "SMALLINT");
             put("Byte", "TINYINT");
             put("Float", "FLOAT");
             put("Double", "DOUBLE");
-            put("BigDecimal", "DECIMAL");
+            put("BigDecimal", "DECIMAL(19,2)");
+            put("BigInteger", "DECIMAL(38,0)");
             put("Character", "CHAR(1)");
             put("byte[]", "BLOB");
-            // put("byte[]", "VARBINARY");
             put("java.util.Date", "DATETIME");
             put("java.sql.Date", "DATE");
             put("java.sql.Time", "TIME");
             put("java.sql.Timestamp", "DATETIME");
             put("LocalDate", "DATE");
             put("LocalDateTime", "DATETIME");
+            put("LocalTime", "TIME");
+            put("ZonedDateTime", "DATETIME");
+            put("Instant", "DATETIME");
             put("UUID", "CHAR(36)");
-            put("Enum", "VARCHAR");
+            put("Enum", "VARCHAR(50)");
             put("Blob", "BLOB");
             put("Clob", "TEXT");
+            put("List", "TEXT");
+            put("Set", "TEXT");
+            put("Map", "JSON");
+            put("JSON", "JSON");
+            put("XML", "TEXT");
+            put("Array", "TEXT");
         }
     };
 
@@ -98,35 +111,37 @@ public final class DBEntityAnalysis {
         private static final long serialVersionUID = 1255172379342418894L;
 
         {
-            put("String", "VARCHAR2(4000)");
+            put("String", "VARCHAR2(255)");
             put("Boolean", "NUMBER(1)");
-            // put("Boolean", "NUMBER(1)");
-            put("Integer", "NUMBER");
-            // put("Integer", "INTEGER");
-            put("Long", "NUMBER");
-            // put("Long", "LONG");
+            put("Integer", "NUMBER(10)");
+            put("Long", "NUMBER(19)");
             put("Short", "NUMBER(5)");
             put("Byte", "NUMBER(3)");
             put("Float", "BINARY_FLOAT");
-            // put("Float", "FLOAT");
             put("Double", "BINARY_DOUBLE");
-            // put("Double", "FLOAT");
-            put("BigDecimal", "NUMBER(18, 0)");
+            put("BigDecimal", "NUMBER(19,2)");
+            put("BigInteger", "NUMBER(38)");
             put("Character", "CHAR(1)");
-            put("byte[]", "RAW");
-            // put("byte[]", "BLOB");
+            put("byte[]", "RAW(2000)");
             put("java.util.Date", "DATE");
-            // put("java.util.Date", "TIMESTAMP");
             put("java.sql.Date", "DATE");
             put("java.sql.Time", "DATE");
             put("java.sql.Timestamp", "TIMESTAMP");
             put("LocalDate", "DATE");
-            // put("LocalDateTime", "DATE");
             put("LocalDateTime", "TIMESTAMP");
+            put("LocalTime", "DATE");
+            put("ZonedDateTime", "TIMESTAMP WITH TIME ZONE");
+            put("Instant", "TIMESTAMP");
             put("UUID", "RAW(16)");
-            put("Enum", "VARCHAR2");
+            put("Enum", "VARCHAR2(50)");
             put("Blob", "BLOB");
             put("Clob", "CLOB");
+            put("List", "CLOB");
+            put("Set", "CLOB");
+            put("Map", "CLOB");
+            put("JSON", "CLOB");
+            put("XML", "XMLTYPE");
+            put("Array", "VARRAY");
         }
     };
 
@@ -134,32 +149,37 @@ public final class DBEntityAnalysis {
         private static final long serialVersionUID = 4121761359733723975L;
 
         {
-            put("String", "NVARCHAR(4000)");
-            // put("String", "TEXT");
+            put("String", "NVARCHAR(255)");
             put("Boolean", "BIT");
-            // put("Boolean", "BIT");
             put("Integer", "INT");
             put("Long", "BIGINT");
             put("Short", "SMALLINT");
             put("Byte", "TINYINT");
             put("Float", "REAL");
-            put("Double", "FLOAT");
-            // put("Double", "DOUBLE");
-            put("BigDecimal", "DECIMAL");
-            // put("BigDecimal", "NUMERIC");
+            put("Double", "FLOAT(53)");
+            put("BigDecimal", "DECIMAL(19,2)");
+            put("BigInteger", "DECIMAL(38,0)");
             put("Character", "CHAR(1)");
-            put("byte[]", "VARBINARY");
-            // put("byte[]", "BLOB");
+            put("byte[]", "VARBINARY(MAX)");
             put("java.util.Date", "DATETIME");
             put("java.sql.Date", "DATE");
             put("java.sql.Time", "TIME");
             put("java.sql.Timestamp", "DATETIME2");
             put("LocalDate", "DATE");
-            put("LocalDateTime", "DATETIME");
+            put("LocalDateTime", "DATETIME2");
+            put("LocalTime", "TIME");
+            put("ZonedDateTime", "DATETIMEOFFSET");
+            put("Instant", "DATETIME2");
             put("UUID", "UNIQUEIDENTIFIER");
-            put("Enum", "NVARCHAR");
+            put("Enum", "NVARCHAR(50)");
             put("Blob", "VARBINARY(MAX)");
             put("Clob", "NTEXT");
+            put("List", "NTEXT");
+            put("Set", "NTEXT");
+            put("Map", "NTEXT");
+            put("JSON", "NVARCHAR(MAX)");
+            put("XML", "XML");
+            put("Array", "NTEXT");
         }
     };
 
@@ -195,56 +215,6 @@ public final class DBEntityAnalysis {
 
     public void setTableNameAnnotation(TableName tableNameAnnotation) {
         this.tableNameAnnotation = tableNameAnnotation;
-    }
-
-    public void generateTableCreationSQL() {
-        try {
-            TableName tableName = this.getTableNameAnnotation();
-
-            Optional<Element> idField = this.getFieldsOfClass().stream()
-                    .filter(field ->
-                            field.getAnnotation(IdColumn.class) != null &&
-                                    field.getAnnotation(ColumnName.class) != null &&
-                                    StringUtils.isNotBlank(field.getAnnotation(ColumnName.class).name())
-                    )
-                    .findAny();
-
-            if (!idField.isPresent()) {
-                return;
-            }
-
-            List<List<String>> columnDefinitionLines = this.getFieldsOfClass().stream().map(field -> {
-                ColumnName columnname = field.getAnnotation(ColumnName.class);
-
-                String sqlDataType = "";
-
-                for (Map.Entry<String, String> entry : ORACLE_DATATYPE_MAP.entrySet()) {
-                    String k = entry.getKey();
-                    String v = entry.getValue();
-                    if (field.asType().toString().contains(k)) {
-                        sqlDataType = v;
-                        break;
-                    }
-                }
-
-                return Arrays.asList(columnname.name(), sqlDataType, "NULL");
-            }).filter(array -> array.stream().noneMatch(StringUtils::isBlank)).collect(Collectors.toList());
-            String createTableStatement = String.format(
-                    CREATE_TABLE_TEMPLATE + "\n",
-                    tableName.value(),
-                    MyStringUtils.formatStringSpace2(columnDefinitionLines, ",\n    "),
-                    String.format(PRIMARY_KEY_TEMPLATE, idField.get().getAnnotation(ColumnName.class).name())
-            );
-            String folderPath = FileUtils.pathJoining(CommonConstant.ROOT_DIRECTORY_PROJECT_PATH, "data", "sql");
-            createFolderIfNotExists(folderPath);
-            writeContentToFile(
-                    FileUtils.pathJoining(folderPath, tableName.value() + ".sql"),
-                    createTableStatement
-            );
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
     }
 
 }
