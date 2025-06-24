@@ -93,7 +93,7 @@ public final class EntityUtils {
             createFolderIfNotExists(folderPath);
             List<Class<?>> listOfClassInPackage = PackageScanner.findClasses(packageName);
             for (Class<?> aClass : listOfClassInPackage) {
-                analyzeEntityClass(aClass, databaseType, folderPath);
+                analyzeEntityClassV2(aClass, databaseType, folderPath);
             }
 
         } catch (IOException | ClassNotFoundException e) {
@@ -101,6 +101,11 @@ public final class EntityUtils {
         }
     }
 
+    /**
+     * @deprecated Please use {@link #analyzeEntityClassV2(Class, String, String)} instead for better structure and maintainability.
+     * This method will be removed in future versions.
+     */
+    @Deprecated(forRemoval = true)
     public static void analyzeEntityClass(Class<?> aClass, String databaseType, String folderPath) {
         if (!aClass.isInterface()) {
             TableName tableNameAnnotation = aClass.getAnnotation(TableName.class);
