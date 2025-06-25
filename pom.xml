@@ -14,7 +14,7 @@
         <main.class></main.class>
 
         <logback-classic-ch.qos.logback.version>1.5.18</logback-classic-ch.qos.logback.version>
-        <slf4j-api-org.slf4j.version>2.1.0-alpha1</slf4j-api-org.slf4j.version>
+        <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.13.1</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.17.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
@@ -22,7 +22,7 @@
         <ojdbc11-com.oracle.database.jdbc.version>23.8.0.25.04</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.7</postgresql-org.postgresql.version>
         <mysql-connector-j-com.mysql.version>9.3.0</mysql-connector-j-com.mysql.version>
-        <mssql-jdbc-com.microsoft.sqlserver.version>12.10.0.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
+        <mssql-jdbc-com.microsoft.sqlserver.version>12.10.1.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
         <gson-com.google.code.gson.version>2.13.1</gson-com.google.code.gson.version>
         <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.2</jakarta.xml.bind-api-jakarta.xml.bind.version>
         <jaxb-runtime-org.glassfish.jaxb.version>4.0.5</jaxb-runtime-org.glassfish.jaxb.version>
@@ -41,9 +41,9 @@
         <micrometer-core-io.micrometer.version>1.15.1</micrometer-core-io.micrometer.version>
         <micrometer-registry-prometheus-io.micrometer.version>1.15.1
         </micrometer-registry-prometheus-io.micrometer.version>
-        <metrics-core-io.dropwizard.metrics.version>4.2.32</metrics-core-io.dropwizard.metrics.version>
-        <metrics-healthchecks-io.dropwizard.metrics.version>4.2.32</metrics-healthchecks-io.dropwizard.metrics.version>
-        <metrics-core-io.dropwizard.metrics5.version>5.0.0</metrics-core-io.dropwizard.metrics5.version>
+        <metrics-core-io.dropwizard.metrics.version>4.2.33</metrics-core-io.dropwizard.metrics.version>
+        <metrics-healthchecks-io.dropwizard.metrics.version>4.2.33</metrics-healthchecks-io.dropwizard.metrics.version>
+        <metrics-core-io.dropwizard.metrics5.version>5.0.1</metrics-core-io.dropwizard.metrics5.version>
         <javassist-org.javassist.version>3.30.2-GA</javassist-org.javassist.version>
         <snakeyaml-org.yaml.version>2.4</snakeyaml-org.yaml.version>
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
@@ -53,25 +53,25 @@
         <hibernate-tools-orm-org.hibernate.tool.version>6.6.17.Final</hibernate-tools-orm-org.hibernate.tool.version>
         <hibernate-jcache-org.hibernate.orm.version>6.6.18.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.10.8</ehcache-org.ehcache.version>
-        <vertx-core-io.vertx.version>5.0.0</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>5.0.0</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>5.0.0</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>5.0.0</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>5.0.0</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>5.0.0</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>5.0.0</vertx-auth-jwt-io.vertx.version>
-        <vertx-micrometer-metrics-io.vertx.version>5.0.0</vertx-micrometer-metrics-io.vertx.version>
-        <junit-jupiter-api-org.junit.jupiter.version>5.13.1</junit-jupiter-api-org.junit.jupiter.version>
-        <junit-jupiter-engine-org.junit.jupiter.version>5.13.1</junit-jupiter-engine-org.junit.jupiter.version>
-        <junit-jupiter-params-org.junit.jupiter.version>5.13.1</junit-jupiter-params-org.junit.jupiter.version>
+        <vertx-core-io.vertx.version>5.0.1</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>5.0.1</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>5.0.1</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>5.0.1</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>5.0.1</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>5.0.1</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>5.0.1</vertx-auth-jwt-io.vertx.version>
+        <vertx-micrometer-metrics-io.vertx.version>5.0.1</vertx-micrometer-metrics-io.vertx.version>
+        <junit-jupiter-api-org.junit.jupiter.version>5.13.2</junit-jupiter-api-org.junit.jupiter.version>
+        <junit-jupiter-engine-org.junit.jupiter.version>5.13.2</junit-jupiter-engine-org.junit.jupiter.version>
+        <junit-jupiter-params-org.junit.jupiter.version>5.13.2</junit-jupiter-params-org.junit.jupiter.version>
         <mockito-core-org.mockito.version>5.18.0</mockito-core-org.mockito.version>
         <mockito-junit-jupiter-org.mockito.version>5.18.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
         <byte-buddy-net.bytebuddy.version>1.17.6</byte-buddy-net.bytebuddy.version>
-        <vertx-oracle-client-io.vertx.version>5.0.0</vertx-oracle-client-io.vertx.version>
-        <vertx-mysql-client-io.vertx.version>5.0.0</vertx-mysql-client-io.vertx.version>
-        <vertx-pg-client-io.vertx.version>5.0.0</vertx-pg-client-io.vertx.version>
-        <vertx-mssql-client-io.vertx.version>5.0.0</vertx-mssql-client-io.vertx.version>
+        <vertx-oracle-client-io.vertx.version>5.0.1</vertx-oracle-client-io.vertx.version>
+        <vertx-mysql-client-io.vertx.version>5.0.1</vertx-mysql-client-io.vertx.version>
+        <vertx-pg-client-io.vertx.version>5.0.1</vertx-pg-client-io.vertx.version>
+        <vertx-mssql-client-io.vertx.version>5.0.1</vertx-mssql-client-io.vertx.version>
         <datafaker-net.datafaker.version>2.4.3</datafaker-net.datafaker.version>
 
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
@@ -83,7 +83,7 @@
         <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
         <maven-resources-plugin-org.apache.maven.plugins.version>3.3.1
         </maven-resources-plugin-org.apache.maven.plugins.version>
-        <maven-clean-plugin-org.apache.maven.plugins.version>3.4.1</maven-clean-plugin-org.apache.maven.plugins.version>
+        <maven-clean-plugin-org.apache.maven.plugins.version>3.5.0</maven-clean-plugin-org.apache.maven.plugins.version>
         <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.3
         </maven-surefire-plugin-org.apache.maven.plugins.version>
         <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
@@ -514,6 +514,7 @@
         <plugins>
 
             <plugin>
+                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-assembly-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>${maven-assembly-plugin-org.apache.maven.plugins.version}</version>
@@ -544,6 +545,7 @@
             </plugin>
 
             <plugin>
+                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin-org.apache.maven.plugins.version}</version>
@@ -558,6 +560,7 @@
             </plugin>
 
             <plugin>
+                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-dependency-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>${maven-dependency-plugin-org.apache.maven.plugins.version}</version>
@@ -594,6 +597,7 @@
             </plugin>
 
             <plugin>
+                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${maven-jar-plugin-org.apache.maven.plugins.version}</version>
@@ -609,6 +613,7 @@
             </plugin>
 
             <plugin>
+                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-resources-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>${maven-resources-plugin-org.apache.maven.plugins.version}</version>
@@ -641,24 +646,28 @@
             <plugins>
 
                 <plugin>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-clean-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>${maven-clean-plugin-org.apache.maven.plugins.version}</version>
                 </plugin>
 
                 <plugin>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin-org.apache.maven.plugins.version}</version>
                 </plugin>
 
                 <plugin>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>${maven-jar-plugin-org.apache.maven.plugins.version}</version>
                 </plugin>
 
                 <plugin>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-install-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
                     <version>${maven-install-plugin-org.apache.maven.plugins.version}</version>
