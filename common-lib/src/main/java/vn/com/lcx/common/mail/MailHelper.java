@@ -1,22 +1,22 @@
 package vn.com.lcx.common.mail;
 
+import jakarta.activation.DataHandler;
+import jakarta.mail.Authenticator;
+import jakarta.mail.Message;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.LogUtils;
 
-import javax.activation.DataHandler;
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
