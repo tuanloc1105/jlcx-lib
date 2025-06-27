@@ -12,9 +12,6 @@ import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.annotation.mapper.Mapper;
 import vn.com.lcx.common.annotation.mapper.MapperClass;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.database.pool.HikariLcxDataSource;
-import vn.com.lcx.common.database.pool.LCXDataSource;
-import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.FileUtils;
@@ -23,6 +20,7 @@ import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.common.utils.PropertiesUtils;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,7 +33,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 
 public class ClassPool {
@@ -140,8 +137,12 @@ public class ClassPool {
                     getFieldsOfClass(fields, aClass);
                     final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
 
-                    // final Class<?>[] asd = getConstructorWithMostParameters(aClass).getParameterTypes();
-                    final Class<?>[] fieldArr = fieldsOfComponent.stream().map(Field::getType).toArray(Class[]::new);
+                    if (aClass.getDeclaredConstructors().length > 1) {
+                        throw new ExceptionInInitializerError(String.format("Class `%s` should have only 1 constructor", aClass));
+                    }
+
+                    // final Class<?>[] fieldArr = fieldsOfComponent.stream().map(Field::getType).toArray(Class[]::new);
+                    final Class<?>[] fieldArr = getConstructorParameters(aClass.getDeclaredConstructors()[0]);
 
                     final Object[] args = fieldsOfComponent
                             .stream()
@@ -194,106 +195,6 @@ public class ClassPool {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             System.exit(1);
         }
-    }
-
-    private static void putInstanceToClassPool(Class<?> aClass, Object instance) {
-        CLASS_POOL.put(aClass.getName(), instance);
-
-        final var superClass = aClass.getSuperclass();
-
-        if (superClass != null && superClass != Object.class) {
-            ClassPool.CLASS_POOL.put(superClass.getName(), instance);
-        }
-
-        final var iFace = aClass.getInterfaces();
-
-        for (Class<?> iFaceClass : iFace) {
-            ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
-        }
-    }
-
-    private static boolean checkProxy(Object instance) {
-        final var proxyClassName = instance.getClass().getName() + "Proxy";
-        try {
-            Class<?> proxyClass = Class.forName(proxyClassName);
-            Object proxyInstance = proxyClass.getDeclaredConstructor(instance.getClass()).newInstance(instance);
-            var superClasses = ObjectUtils.getExtendAndInterfaceClasses(proxyClass);
-            setInstance(proxyInstance);
-            for (Class<?> superClass : superClasses) {
-                setInstance(superClass.getName(), proxyInstance);
-            }
-            return true;
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException ignore) {
-        }
-        return false;
-    }
-
-    private static Object getInstanceOfField(Field field) {
-        Object o1 = CLASS_POOL.get(field.getName());
-        if (o1 != null) {
-            return o1;
-        }
-        return CLASS_POOL.get(field.getType().getName());
-    }
-
-    private static void getFieldsOfClass(final ArrayList<Field> fields, Class<?> aClass) {
-        if (aClass.getSuperclass() != null) {
-            List<Field> superClassField = Arrays.asList(aClass.getSuperclass().getDeclaredFields());
-            fields.addAll(superClassField);
-        }
-        fields.addAll(Arrays.asList(aClass.getDeclaredFields()));
-    }
-
-    private static void createDatasource() {
-        String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.host");
-        int port;
-        try {
-            port = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.port"));
-        } catch (NumberFormatException e) {
-            port = 0;
-        }
-        String username = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.username");
-        String password = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.password");
-        String name = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.name");
-        String driverClassName = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.driver_class_name");
-        int initialPoolSize;
-        try {
-            initialPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.initial_pool_size"));
-        } catch (NumberFormatException e) {
-            initialPoolSize = 0;
-        }
-        int maxPoolSize;
-        try {
-            maxPoolSize = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_pool_size"));
-        } catch (NumberFormatException e) {
-            maxPoolSize = 0;
-        }
-        int maxTimeout;
-        try {
-            maxTimeout = Integer.parseInt(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.max_timeout"));
-        } catch (NumberFormatException e) {
-            maxTimeout = 0;
-        }
-        DBTypeEnum type;
-        try {
-            type = DBTypeEnum.valueOf(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.type"));
-        } catch (IllegalArgumentException e) {
-            type = null;
-        }
-        if (host.equals(CommonConstant.NULL_STRING) || username.equals(CommonConstant.NULL_STRING) || password.equals(CommonConstant.NULL_STRING) || name.equals(CommonConstant.NULL_STRING) ||
-                // driverClassName.equals(CommonConstant.NULL_STRING) ||
-                port == 0 || initialPoolSize == 0 || maxPoolSize == 0 || maxTimeout == 0 || type == null) {
-            return;
-        }
-        boolean hikari = Boolean.parseBoolean(CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.hikari"));
-        LCXDataSource dataSource;
-        if (hikari) {
-            dataSource = HikariLcxDataSource.init(host, port, username, password, name, driverClassName, initialPoolSize, maxPoolSize, maxTimeout, type);
-        } else {
-            dataSource = LCXDataSource.init(host, port, username, password, name, driverClassName, initialPoolSize, maxPoolSize, maxTimeout, type);
-        }
-        CLASS_POOL.put(LCXDataSource.class.getName(), dataSource);
     }
 
     public static void handlePostConstructMethod(Class<?> aClass, Object instance) throws Exception {
@@ -371,6 +272,60 @@ public class ClassPool {
         } else {
             CommonConstant.applicationConfig = PropertiesUtils.getProperties(classLoader, "application.yaml");
         }
+    }
+
+    private static void putInstanceToClassPool(Class<?> aClass, Object instance) {
+        CLASS_POOL.put(aClass.getName(), instance);
+
+        final var superClass = aClass.getSuperclass();
+
+        if (superClass != null && superClass != Object.class) {
+            ClassPool.CLASS_POOL.put(superClass.getName(), instance);
+        }
+
+        final var iFace = aClass.getInterfaces();
+
+        for (Class<?> iFaceClass : iFace) {
+            ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
+        }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean checkProxy(Object instance) {
+        final var proxyClassName = instance.getClass().getName() + "Proxy";
+        try {
+            Class<?> proxyClass = Class.forName(proxyClassName);
+            Object proxyInstance = proxyClass.getDeclaredConstructor(instance.getClass()).newInstance(instance);
+            var superClasses = ObjectUtils.getExtendAndInterfaceClasses(proxyClass);
+            setInstance(proxyInstance);
+            for (Class<?> superClass : superClasses) {
+                setInstance(superClass.getName(), proxyInstance);
+            }
+            return true;
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException ignore) {
+        }
+        return false;
+    }
+
+    private static Object getInstanceOfField(Field field) {
+        Object o1 = CLASS_POOL.get(field.getName());
+        if (o1 != null) {
+            return o1;
+        }
+        return CLASS_POOL.get(field.getType().getName());
+    }
+
+    private static void getFieldsOfClass(final ArrayList<Field> fields, Class<?> aClass) {
+        if (aClass.getSuperclass() != null) {
+            List<Field> superClassField = Arrays.asList(aClass.getSuperclass().getDeclaredFields());
+            fields.addAll(superClassField);
+        }
+        fields.addAll(Arrays.asList(aClass.getDeclaredFields()));
+    }
+
+    private static Class<?>[] getConstructorParameters(Constructor<?> constructor) {
+        return constructor.getParameterTypes();
     }
 
 }
