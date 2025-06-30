@@ -56,18 +56,18 @@
 
 ```
 jlcx-lib/
-├── common-lib/           # Core utilities, database tools, and shared components
-│   ├── annotation/       # Custom annotations for code generation
-│   ├── database/         # Database utilities and connection management
-│   ├── utils/           # Common utility classes
-│   ├── vertx/           # Vert.x integration components
-│   ├── reactive/        # Reactive programming support
-│   └── jpa/            # JPA/Hibernate integration
-├── processor/           # Annotation processors for code generation
-├── grpc-proto-plugin/   # Maven plugin for gRPC code generation
-└── example/             # Complete example application
-    ├── src/main/java/   # Backend example code
-    └── web/             # Frontend React application
+├── common-lib/        # Core utilities, database tools, and shared components
+│   ├── annotation/    # Custom annotations for code generation
+│   ├── database/      # Database utilities and connection management
+│   ├── utils/         # Common utility classes
+│   ├── vertx/         # Vert.x integration components
+│   ├── reactive/      # Reactive programming support
+│   └── jpa/           # JPA/Hibernate integration
+├── processor/         # Annotation processors for code generation
+├── grpc-proto-plugin/ # Maven plugin for gRPC code generation
+└── example/           # Complete example application
+    ├── src/main/java/ # Backend example code
+    └── web/           # Frontend React application
 ```
 
 ---

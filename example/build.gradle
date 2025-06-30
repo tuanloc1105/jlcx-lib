@@ -1,0 +1,60 @@
+group = 'com.example.lcx'
+version = '1.0.0'
+
+jar {
+    archiveBaseName = 'todo-app-example'
+    archiveVersion = version
+}
+
+dependencies {
+    // Add internal dependencies
+    implementation project(':processor')
+    implementation project(':common-lib')
+    
+    // Add Lombok dependency (was provided scope in Maven)
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    
+    // Add specific dependencies for example
+    implementation "org.hibernate.orm:hibernate-jcache:${hibernateJcacheVersion}"
+    implementation "org.ehcache:ehcache:${ehcacheVersion}"
+}
+
+// Configure main class for jar
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.example.lcx.App'
+    }
+}
+
+// Assembly equivalent - create fat jar with dependencies
+task fatJar(type: Jar) {
+    archiveBaseName = 'todo-app-example'
+    archiveVersion = version
+    archiveClassifier = 'with-dependencies'
+    
+    manifest {
+        attributes 'Main-Class': 'com.example.lcx.App'
+    }
+    
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    
+    with jar
+}
+
+// Publishing configuration
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            
+            pom {
+                name = 'todo-app-example'
+                description = 'Todo application example using LCX library'
+                url = 'https://maven.apache.org'
+            }
+        }
+    }
+} 

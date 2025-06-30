@@ -13,7 +13,6 @@ import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
-import vn.com.lcx.vertx.base.http.request.BaseRequest;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
@@ -136,14 +135,6 @@ public abstract class ReactiveController {
             new ArrayList<>();
         }
         return paramValue.stream().map(function).collect(Collectors.toList());
-    }
-
-    public <T extends BaseRequest> T getRequestBodyFromContext(RoutingContext context, Gson gson, Class<T> clz) {
-        context.request().uri();
-        final var requestBody = context.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET);
-        final var request = gson.fromJson(requestBody, clz);
-        request.validate();
-        return request;
     }
 
     public void handleError(RoutingContext ctx, Gson gson, Throwable e) {

@@ -1,0 +1,227 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+allprojects {
+    group = 'vn.com.lcx'
+    version = '2.0'
+    
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    
+    java {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    
+    compileJava {
+        options.encoding = 'UTF-8'
+        options.compilerArgs += ['-proc:full']
+    }
+    
+    test {
+        useJUnitPlatform()
+    }
+}
+
+// Dependency versions
+ext {
+    jdkVersion = '11'
+    projectBuildSourceEncoding = 'UTF-8'
+    mainClass = ''
+    
+    // Logging
+    logbackClassicVersion = '1.5.18'
+    slf4jApiVersion = '2.0.17'
+    
+    // Apache Commons
+    commonsTextVersion = '1.13.1'
+    commonsLang3Version = '3.17.0'
+    commonsCollections4Version = '4.5.0'
+    
+    // Lombok
+    lombokVersion = '1.18.38'
+    
+    // Database drivers
+    ojdbc11Version = '23.8.0.25.04'
+    postgresqlVersion = '42.7.7'
+    mysqlConnectorJVersion = '9.3.0'
+    mssqlJdbcVersion = '12.10.1.jre11'
+    
+    // JSON/XML
+    gsonVersion = '2.13.1'
+    jakartaXmlBindApiVersion = '4.0.2'
+    jaxbRuntimeVersion = '4.0.5'
+    
+    // Jackson
+    jacksonVersion = '2.19.1'
+    
+    // Mail
+    jakartaMailApiVersion = '2.1.3'
+    jakartaMailVersion = '2.0.3'
+    
+    // Redis
+    jedisVersion = '6.0.0'
+    
+    // Metrics
+    micrometerCoreVersion = '1.15.1'
+    micrometerRegistryPrometheusVersion = '1.15.1'
+    metricsCoreVersion = '4.2.33'
+    metricsHealthchecksVersion = '4.2.33'
+    metricsCore5Version = '5.0.1'
+    
+    // JavaAssist
+    javassistVersion = '3.30.2-GA'
+    
+    // YAML
+    snakeyamlVersion = '2.4'
+    
+    // BCrypt
+    jbcryptVersion = '0.4'
+    
+    // HikariCP
+    hikariCPVersion = '6.3.0'
+    
+    // Kafka
+    kafkaClientsVersion = '4.0.0'
+    
+    // Hibernate
+    hibernateCoreVersion = '6.6.18.Final'
+    hibernateToolsOrmVersion = '6.6.17.Final'
+    hibernateJcacheVersion = '6.6.18.Final'
+    
+    // EhCache
+    ehcacheVersion = '3.10.8'
+    
+    // Vert.x
+    vertxVersion = '5.0.1'
+    
+    // Testing
+    junitJupiterVersion = '5.13.2'
+    mockitoVersion = '5.18.0'
+    mockitoJunitJupiterVersion = '5.18.0'
+    mockitoInlineVersion = '5.2.0'
+    
+    // ByteBuddy
+    byteBuddyVersion = '1.17.6'
+    
+    // DataFaker
+    datafakerVersion = '2.4.3'
+    
+    // Maven Plugin
+    mavenPluginApiVersion = '3.9.10'
+    mavenPluginAnnotationsVersion = '3.15.1'
+    mavenCoreVersion = '3.9.10'
+    mavenPluginPluginVersion = '3.15.1'
+}
+
+// Common dependencies for all subprojects
+subprojects {
+    dependencies {
+        // Logging
+        implementation "ch.qos.logback:logback-classic:${logbackClassicVersion}"
+        implementation "org.slf4j:slf4j-api:${slf4jApiVersion}"
+        
+        // Apache Commons
+        implementation "org.apache.commons:commons-text:${commonsTextVersion}"
+        implementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
+        implementation "org.apache.commons:commons-collections4:${commonsCollections4Version}"
+        
+        // Lombok
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        
+        // Database drivers
+        implementation "com.oracle.database.jdbc:ojdbc11:${ojdbc11Version}"
+        implementation "org.postgresql:postgresql:${postgresqlVersion}"
+        implementation("com.mysql:mysql-connector-j:${mysqlConnectorJVersion}") {
+            exclude group: 'com.google.protobuf', module: 'protobuf-java'
+        }
+        implementation "com.microsoft.sqlserver:mssql-jdbc:${mssqlJdbcVersion}"
+        
+        // JSON/XML
+        implementation "com.google.code.gson:gson:${gsonVersion}"
+        implementation "jakarta.xml.bind:jakarta.xml.bind-api:${jakartaXmlBindApiVersion}"
+        implementation "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
+        
+        // Jackson
+        implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:${jacksonVersion}"
+        implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+        implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVersion}"
+        implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+        implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${jacksonVersion}"
+        
+        // Mail
+        implementation "jakarta.mail:jakarta.mail-api:${jakartaMailApiVersion}"
+        implementation "org.eclipse.angus:jakarta.mail:${jakartaMailVersion}"
+        
+        // Redis
+        implementation "redis.clients:jedis:${jedisVersion}"
+        
+        // Metrics
+        implementation "io.micrometer:micrometer-core:${micrometerCoreVersion}"
+        implementation "io.micrometer:micrometer-registry-prometheus:${micrometerRegistryPrometheusVersion}"
+        compileOnly "io.dropwizard.metrics:metrics-core:${metricsCoreVersion}"
+        compileOnly "io.dropwizard.metrics:metrics-healthchecks:${metricsHealthchecksVersion}"
+        compileOnly "io.dropwizard.metrics5:metrics-core:${metricsCore5Version}"
+        
+        // JavaAssist
+        implementation "org.javassist:javassist:${javassistVersion}"
+        
+        // YAML
+        implementation "org.yaml:snakeyaml:${snakeyamlVersion}"
+        
+        // BCrypt
+        implementation "org.mindrot:jbcrypt:${jbcryptVersion}"
+        
+        // HikariCP
+        implementation "com.zaxxer:HikariCP:${hikariCPVersion}"
+        
+        // Kafka
+        implementation "org.apache.kafka:kafka-clients:${kafkaClientsVersion}"
+        
+        // Hibernate
+        implementation "org.hibernate.orm:hibernate-core:${hibernateCoreVersion}"
+        implementation "org.hibernate.tool:hibernate-tools-orm:${hibernateToolsOrmVersion}"
+        implementation "org.hibernate.orm:hibernate-jcache:${hibernateJcacheVersion}"
+        
+        // EhCache
+        implementation "org.ehcache:ehcache:${ehcacheVersion}"
+        
+        // Vert.x
+        implementation "io.vertx:vertx-core:${vertxVersion}"
+        implementation "io.vertx:vertx-web:${vertxVersion}"
+        implementation "io.vertx:vertx-web-client:${vertxVersion}"
+        implementation "io.vertx:vertx-json-schema:${vertxVersion}"
+        implementation "io.vertx:vertx-codegen:${vertxVersion}"
+        testImplementation "io.vertx:vertx-unit:${vertxVersion}"
+        implementation "io.vertx:vertx-auth-jwt:${vertxVersion}"
+        implementation "io.vertx:vertx-micrometer-metrics:${vertxVersion}"
+        implementation "io.vertx:vertx-oracle-client:${vertxVersion}"
+        implementation "io.vertx:vertx-mysql-client:${vertxVersion}"
+        implementation "io.vertx:vertx-pg-client:${vertxVersion}"
+        implementation "io.vertx:vertx-mssql-client:${vertxVersion}"
+        
+        // Testing
+        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter-params:${junitJupiterVersion}"
+        testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+        testImplementation "org.mockito:mockito-junit-jupiter:${mockitoJunitJupiterVersion}"
+        testImplementation "org.mockito:mockito-inline:${mockitoInlineVersion}"
+        
+        // ByteBuddy
+        implementation "net.bytebuddy:byte-buddy:${byteBuddyVersion}"
+        
+        // DataFaker
+        implementation "net.datafaker:datafaker:${datafakerVersion}"
+    }
+} 
