@@ -27,18 +27,45 @@ public final class MyStringUtils {
     private MyStringUtils() {
     }
 
+    /**
+     * Adds a new field with the specified name and value to a JSON string.
+     *
+     * @param gson the Gson instance to use for parsing and serialization
+     * @param inputJsonString the input JSON string
+     * @param fieldName the name of the field to add
+     * @param fieldValue the value of the field to add
+     * @return the resulting JSON string with the new field added
+     */
     public static String addNewFieldToJsonString(final Gson gson, final String inputJsonString, final String fieldName, final Object fieldValue) {
         final LinkedHashMap<String, Object> jsonMap = gson.fromJson(inputJsonString, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
         jsonMap.put(fieldName, fieldValue);
         return gson.toJson(jsonMap);
     }
 
+    /**
+     * Removes a field with the specified name from a JSON string.
+     *
+     * @param gson the Gson instance to use for parsing and serialization
+     * @param inputJsonString the input JSON string
+     * @param fieldName the name of the field to remove
+     * @return the resulting JSON string with the field removed
+     */
     public static String removeFieldValueFromJsonString(final Gson gson, final String inputJsonString, final String fieldName) {
         final LinkedHashMap<String, Object> jsonMap = gson.fromJson(inputJsonString, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
         jsonMap.remove(fieldName);
         return gson.toJson(jsonMap);
     }
 
+    /**
+     * Recursively retrieves all values of a specified field name from a JSON string.
+     *
+     * @param gson the Gson instance to use for parsing and serialization
+     * @param inputJsonString the input JSON string
+     * @param fieldName the name of the field to search for
+     * @param fieldDataType the expected type of the field value
+     * @param <T> the type of the field value
+     * @return a list of all values found for the specified field name
+     */
     public static <T> List<T> getFieldValueOfJsonString(final Gson gson, final String inputJsonString, final String fieldName, final Class<T> fieldDataType) {
         final var result = new ArrayList<T>();
         final LinkedHashMap<String, Object> jsonMap = gson.fromJson(inputJsonString, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
@@ -68,6 +95,14 @@ public final class MyStringUtils {
         return result;
     }
 
+    /**
+     * Minifies a JSON string by removing unnecessary whitespace and formatting.
+     * If the input is not valid JSON, an exception is thrown.
+     *
+     * @param input the JSON string to minify
+     * @return the minified JSON string
+     * @throws IllegalArgumentException if the input is not valid JSON
+     */
     public static String minifyJsonString(String input) {
         if (StringUtils.isBlank(input)) {
             return CommonConstant.EMPTY_STRING;
@@ -96,6 +131,12 @@ public final class MyStringUtils {
                 .replace("\" }", "\"}");
     }
 
+    /**
+     * Minifies a string by trimming, removing tabs, and condensing whitespace and formatting.
+     *
+     * @param inputString the string to minify
+     * @return the minified string
+     */
     public static String minifyString(String inputString) {
         if (StringUtils.isBlank(inputString)) {
             return CommonConstant.EMPTY_STRING;
@@ -128,6 +169,12 @@ public final class MyStringUtils {
         return minified;
     }
 
+    /**
+     * Encodes a string for safe use in URLs using UTF-8 encoding.
+     *
+     * @param value the string to encode
+     * @return the URL-encoded string, or an empty string if encoding fails
+     */
     public static String encodeUrl(String value) {
         try {
             return URLEncoder.encode(value, "UTF-8");
@@ -136,6 +183,12 @@ public final class MyStringUtils {
         }
     }
 
+    /**
+     * Decodes a URL-encoded string using UTF-8 encoding.
+     *
+     * @param value the string to decode
+     * @return the decoded string, or an empty string if decoding fails
+     */
     public static String decodeUrl(String value) {
         try {
             return URLDecoder.decode(value, "UTF-8");
@@ -144,6 +197,13 @@ public final class MyStringUtils {
         }
     }
 
+    /**
+     * Returns the last N characters of a string, or the whole string if shorter than the limit.
+     *
+     * @param input the input string
+     * @param lengthLimitation the number of characters to return from the end
+     * @return the last N characters, or the input if shorter
+     */
     public static String getLastChars(String input, int lengthLimitation) {
         if (input == null || lengthLimitation == 0) {
             return CommonConstant.EMPTY_STRING;
@@ -155,6 +215,12 @@ public final class MyStringUtils {
         }
     }
 
+    /**
+     * Checks if a string is in valid JSON format.
+     *
+     * @param input the string to check
+     * @return true if the string is valid JSON, false otherwise
+     */
     public static boolean stringIsJsonFormat(final String input) {
         try {
             if (StringUtils.isBlank(input)) {
@@ -174,6 +240,13 @@ public final class MyStringUtils {
                 .collect(Collectors.joining());
     }
 
+    /**
+     * Returns the input text centered within the specified console width, padded with spaces.
+     *
+     * @param text the text to center
+     * @param consoleWidth the width to center within
+     * @return the centered text
+     */
     public static String getCenteredText(String text, int consoleWidth) {
         if (StringUtils.isBlank(text) || consoleWidth == 0) {
             return CommonConstant.EMPTY_STRING;
@@ -185,6 +258,13 @@ public final class MyStringUtils {
         return repeatString(" ", Math.max(0, padding)) + text + repeatString(" ", Math.max(0, padding));
     }
 
+    /**
+     * Returns the input text left-aligned within the specified console width, padded with spaces.
+     *
+     * @param text the text to align left
+     * @param consoleWidth the width to align within
+     * @return the left-aligned text
+     */
     public static String alignLeftText(String text, int consoleWidth) {
         if (StringUtils.isBlank(text) || consoleWidth == 0) {
             return CommonConstant.EMPTY_STRING;
@@ -196,6 +276,13 @@ public final class MyStringUtils {
         return text + repeatString(" ", Math.max(0, padding)) + repeatString(" ", Math.max(0, padding));
     }
 
+    /**
+     * Returns the input text right-aligned within the specified console width, padded with spaces.
+     *
+     * @param text the text to align right
+     * @param consoleWidth the width to align within
+     * @return the right-aligned text
+     */
     public static String alignRightText(String text, int consoleWidth) {
         if (StringUtils.isBlank(text) || consoleWidth == 0) {
             return CommonConstant.EMPTY_STRING;
@@ -207,6 +294,14 @@ public final class MyStringUtils {
         return repeatString(" ", Math.max(0, padding)) + repeatString(" ", Math.max(0, padding)) + text;
     }
 
+    /**
+     * Puts one or more strings into a box with borders, optionally centering or aligning the text.
+     *
+     * @param logWithConsoleWidthIsTheLongestLine if true, box width is set to the longest line
+     * @param mode the paragraph alignment mode (center, left, right)
+     * @param linesOfString the lines of text to put in the box
+     * @return the boxed string
+     */
     public static String putStringIntoABox(final boolean logWithConsoleWidthIsTheLongestLine,
                                            ParagraphMode mode,
                                            String... linesOfString) {
@@ -285,6 +380,13 @@ public final class MyStringUtils {
 
     }
 
+    /**
+     * Converts a UTF-8 string to ASCII encoding.
+     *
+     * @param utf8String the UTF-8 string
+     * @return the ASCII-encoded string
+     * @throws NullPointerException if the input is blank
+     */
     public static String utf8ToAscii(String utf8String) {
         if (StringUtils.isBlank(utf8String)) {
             throw new NullPointerException();
@@ -298,6 +400,13 @@ public final class MyStringUtils {
         }
     }
 
+    /**
+     * Converts an ASCII string to UTF-8 encoding.
+     *
+     * @param asciiString the ASCII string
+     * @return the UTF-8 encoded string
+     * @throws NullPointerException if the input is blank
+     */
     public static String asciiToUtf8(String asciiString) {
         if (StringUtils.isBlank(asciiString)) {
             throw new NullPointerException();
@@ -311,14 +420,34 @@ public final class MyStringUtils {
         }
     }
 
+    /**
+     * Checks if a string is numeric (optionally negative).
+     *
+     * @param str the string to check
+     * @return true if the string is numeric, false otherwise
+     */
     public static boolean isNumeric(String str) {
         return StringUtils.isNotBlank(str) && str.matches("-?\\d+");
     }
 
+    /**
+     * Checks if a string is not numeric.
+     *
+     * @param str the string to check
+     * @return true if the string is not numeric, false otherwise
+     */
     public static boolean isNotNumeric(String str) {
         return !isNumeric(str);
     }
 
+    /**
+     * Deserializes an XML string to an object of the specified class.
+     *
+     * @param xml the XML string
+     * @param clz the class to deserialize to
+     * @param <T> the type of the object
+     * @return the deserialized object, or null if conversion fails
+     */
     public static <T> T fromXML(String xml, Class<T> clz) {
         try {
             final var jaxbContext = JAXBContext.newInstance(clz);
@@ -331,6 +460,13 @@ public final class MyStringUtils {
         }
     }
 
+    /**
+     * Serializes an object to an XML string.
+     *
+     * @param input the object to serialize
+     * @param <T> the type of the object
+     * @return the XML string, or empty string if conversion fails
+     */
     public static <T> String toXML(T input) {
         try {
             final var jaxbContext = JAXBContext.newInstance(input.getClass());
@@ -346,6 +482,12 @@ public final class MyStringUtils {
         }
     }
 
+    /**
+     * Formats a list of strings so that each word is padded to align with the longest word in its column.
+     *
+     * @param input the list of strings to format
+     * @return the formatted string with aligned columns
+     */
     public static String formatStringSpace(List<String> input) {
         var lengthOfEachPart = new ArrayList<Integer>();
         for (String currentLine : input) {
@@ -375,6 +517,13 @@ public final class MyStringUtils {
         return String.join(System.lineSeparator(), listOfResult);
     }
 
+    /**
+     * Formats a list of lists of strings so that each column is aligned, with an optional delimiter.
+     *
+     * @param input the list of lists of strings to format
+     * @param delimiter optional delimiter to use between lines
+     * @return the formatted string with aligned columns
+     */
     public static String formatStringSpace2(List<List<String>> input, String... delimiter) {
         final var formatedList = formatStringWithEqualSpaceLength(input);
         if (delimiter.length == 1 && StringUtils.isNotBlank(delimiter[0])) {
@@ -384,6 +533,12 @@ public final class MyStringUtils {
         }
     }
 
+    /**
+     * Formats a list of lists of strings so that each column is aligned to the maximum width in that column.
+     *
+     * @param input the list of lists of strings to format
+     * @return a list of formatted strings with aligned columns
+     */
     public static List<String> formatStringWithEqualSpaceLength(List<List<String>> input) {
         List<Integer> lengthOfEachPart = new ArrayList<>();
         for (List<String> wordsInLine : input) {
@@ -458,6 +613,12 @@ public final class MyStringUtils {
         return !isBlank(str);
     }
 
+    /**
+     * Normalizes a string by removing diacritical marks and converting special Vietnamese characters to ASCII.
+     *
+     * @param s the string to normalize
+     * @return the normalized string
+     */
     public static String normalizeString(String s) {
         if (StringUtils.isBlank(s)) {
             return CommonConstant.EMPTY_STRING;

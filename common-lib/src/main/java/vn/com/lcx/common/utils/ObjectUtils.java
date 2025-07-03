@@ -13,11 +13,42 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class for object-related operations such as mapping fields, checking null/empty, and type reflection.
+ * <p>
+ * This class provides static methods to:
+ * <ul>
+ *   <li>Map fields from one object to another with matching field names</li>
+ *   <li>Check if an object is null or empty (for collections and strings)</li>
+ *   <li>Wrap primitive types to their object equivalents</li>
+ *   <li>Get default values for primitive types</li>
+ *   <li>Retrieve superclasses and interfaces</li>
+ *   <li>Extract type parameters from interfaces</li>
+ * </ul>
+ * <p>
+ * All methods are static and the class cannot be instantiated.
+ *
+ * @author LCX
+ * @since 1.0
+ */
 public final class ObjectUtils {
 
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private ObjectUtils() {
     }
 
+    /**
+     * Maps fields with matching names from a source object to a new instance of the target class.
+     * Only non-static, non-final fields are mapped. Fields in superclasses are also considered.
+     *
+     * @param source the source object
+     * @param target the target class
+     * @param <SOURCE> the type of the source object
+     * @param <TARGET> the type of the target object
+     * @return a new instance of the target class with mapped fields, or null if instantiation fails
+     */
     public static <SOURCE, TARGET> TARGET mapObjects(SOURCE source, Class<TARGET> target) {
         // Get all field of source class and target class
         List<Field> sourceClassFields = new ArrayList<>(Arrays.asList(source.getClass().getDeclaredFields()));
@@ -67,6 +98,12 @@ public final class ObjectUtils {
         return result;
     }
 
+    /**
+     * Checks if an object is null or empty. Supports collections and strings.
+     *
+     * @param object the object to check
+     * @return true if the object is null, an empty collection, or a blank string; false otherwise
+     */
     public static boolean isNullOrEmpty(Object object) {
         if (Optional.ofNullable(object).isEmpty()) {
             return true;
@@ -158,6 +195,12 @@ public final class ObjectUtils {
         return null; // for objects
     }
 
+    /**
+     * Returns a list containing the superclass and interfaces of the given class, if not Object.
+     *
+     * @param target the class to inspect
+     * @return a list of superclasses and interfaces, or empty if none
+     */
     public static List<Class<?>> getExtendAndInterfaceClasses(Class<?> target) {
         List<Class<?>> result = new ArrayList<>();
         Class<?> extendingClass = target.getSuperclass();
@@ -171,6 +214,13 @@ public final class ObjectUtils {
         return result;
     }
 
+    /**
+     * Returns the type parameters of an interface, or an empty list if not found.
+     *
+     * @param clazz the interface class
+     * @return a list of type parameters, or empty if not found
+     * @throws IllegalArgumentException if type parameters cannot be determined
+     */
     public static List<Type> getTypeParameters(Class<?> clazz) {
         if (!clazz.isInterface()) {
             return Collections.emptyList();
