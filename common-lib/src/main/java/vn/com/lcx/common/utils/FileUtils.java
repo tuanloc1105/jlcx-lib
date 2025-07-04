@@ -81,7 +81,7 @@ public final class FileUtils {
             writer.write(content + System.lineSeparator());
             return true;
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
             return false;
         }
     }
@@ -108,7 +108,7 @@ public final class FileUtils {
             writer.write(content + System.lineSeparator());
             return true;
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
             return false;
         }
     }
@@ -135,7 +135,7 @@ public final class FileUtils {
                 contentBuilder.append(line).append("\n");
             }
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
         }
 
         String result = contentBuilder.toString();
@@ -168,7 +168,7 @@ public final class FileUtils {
                 }
             }
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
         }
         return result;
     }
@@ -242,14 +242,14 @@ public final class FileUtils {
         if (!folder.exists()) {
             // Attempt to create the folder
             if (folder.mkdirs()) {
-                LogUtils.writeLog(LogUtils.Level.INFO, "Folder created successfully: {}", folderPath);
+                LogUtils.writeLog(LogUtils.Level.DEBUG, "Folder created successfully: {}", folderPath);
                 return true;
             } else {
-                LogUtils.writeLog(LogUtils.Level.INFO, "Failed to create the folder: {}", folderPath);
+                LogUtils.writeLog(LogUtils.Level.DEBUG, "Failed to create the folder: {}", folderPath);
                 return false;
             }
         } else {
-            LogUtils.writeLog(LogUtils.Level.INFO, "Folder already exists: {}", folderPath);
+            LogUtils.writeLog(LogUtils.Level.DEBUG, "Folder already exists: {}", folderPath);
             return true;
         }
     }
@@ -278,7 +278,7 @@ public final class FileUtils {
         }
         final var folderDeleteSuccessfully = folder.delete();
         if (folder.isDirectory() && folderDeleteSuccessfully) {
-            LogUtils.writeLog(LogUtils.Level.INFO, "Deleted: {}", folder.getAbsolutePath());
+            LogUtils.writeLog(LogUtils.Level.DEBUG, "Deleted: {}", folder.getAbsolutePath());
         }
     }
 
@@ -406,7 +406,7 @@ public final class FileUtils {
             );
 
             Files.setPosixFilePermissions(path, permissions);
-            LogUtils.writeLog(LogUtils.Level.INFO, "Successfully changed POSIX permissions for: {}", path);
+            LogUtils.writeLog(LogUtils.Level.DEBUG, "Successfully changed POSIX permissions for: {}", path);
             return true;
         } catch (IOException e) {
             LogUtils.writeLog(LogUtils.Level.ERROR, "Failed to set POSIX permissions for {}: {}", path, e.getMessage());
@@ -436,11 +436,11 @@ public final class FileUtils {
             // Set read-only attribute (inverse of writable)
             if (!isWritable) {
                 path.toFile().setReadOnly();
-                LogUtils.writeLog(LogUtils.Level.INFO, "Set file as read-only: {}", path);
+                LogUtils.writeLog(LogUtils.Level.DEBUG, "Set file as read-only: {}", path);
             } else {
                 // Make writable if it was read-only
                 path.toFile().setWritable(true);
-                LogUtils.writeLog(LogUtils.Level.INFO, "Set file as writable: {}", path);
+                LogUtils.writeLog(LogUtils.Level.DEBUG, "Set file as writable: {}", path);
             }
 
             return true;
@@ -961,7 +961,7 @@ public final class FileUtils {
             buffer.close();
             return result;
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
             return null;
         }
     }
