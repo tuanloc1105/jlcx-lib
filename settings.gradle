@@ -1,6 +1,0 @@
-rootProject.name = 'lcx-lib'
-
-include 'common-lib'
-include 'grpc-proto-plugin'
-include 'processor'
-// include 'example'  // Commented out as in pom.xml 
