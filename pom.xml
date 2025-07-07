@@ -50,9 +50,9 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>6.3.0</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.18.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.17.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.18.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.20.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.18.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-jcache-org.hibernate.orm.version>6.6.20.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.10.8</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.1</vertx-core-io.vertx.version>
         <vertx-web-io.vertx.version>5.0.1</vertx-web-io.vertx.version>
