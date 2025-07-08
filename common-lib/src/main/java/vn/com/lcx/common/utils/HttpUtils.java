@@ -124,6 +124,7 @@ public class HttpUtils {
                                            HttpMethod method,
                                            Map<String, String> requestHeader,
                                            TypeToken<T> targetClass) throws Exception {
+        final var startingTime = (double) System.currentTimeMillis();
         final var httpLogMessage = new StringBuilder("\nURL: ").append(url);
         HttpURLConnection http = this.generateConnection(url);
         final var responseBuilder = Response.<T>builder();
@@ -185,6 +186,10 @@ public class HttpUtils {
                     .responseHeaders(http.getHeaderFields())
                     .response(result);
             return responseBuilder.build();
+        } finally {
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
+            LogUtils.writeLog2(LogUtils.Level.INFO, "Took {} second(s) to made a HTTP request", duration);
         }
     }
 
@@ -193,6 +198,7 @@ public class HttpUtils {
                                           HttpMethod method,
                                           Map<String, String> requestHeader,
                                           TypeReference<T> targetClass) throws Exception {
+        final var startingTime = (double) System.currentTimeMillis();
         final var httpLogMessage = new StringBuilder("\nURL: ").append(url);
         HttpURLConnection http = this.generateConnection(url);
         final var responseBuilder = Response.<T>builder();
@@ -250,6 +256,10 @@ public class HttpUtils {
                     .responseHeaders(http.getHeaderFields())
                     .response(result);
             return responseBuilder.build();
+        } finally {
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
+            LogUtils.writeLog2(LogUtils.Level.INFO, "Took {} second(s) to made a HTTP request", duration);
         }
     }
 
@@ -258,6 +268,7 @@ public class HttpUtils {
                                                      HttpMethod method,
                                                      Map<String, String> requestHeader,
                                                      TypeToken<T> targetClass) throws Exception {
+        final var startingTime = (double) System.currentTimeMillis();
         final var httpLogMessage = new StringBuilder("\nURL: ").append(url);
         HttpURLConnection http = this.generateConnection(url);
         final var responseBuilder = Response.<T>builder();
@@ -321,6 +332,10 @@ public class HttpUtils {
                     .responseHeaders(http.getHeaderFields())
                     .response(result);
             return responseBuilder.build();
+        } finally {
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
+            LogUtils.writeLog2(LogUtils.Level.INFO, "Took {} second(s) to made a HTTP request", duration);
         }
     }
 
