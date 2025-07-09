@@ -39,7 +39,7 @@ public final class DateTimeUtils {
     /**
      * Converts a {@link LocalDateTime} to a Unix timestamp (seconds since epoch) in the specified or default time zone.
      *
-     * @param time the LocalDateTime to convert
+     * @param time     the LocalDateTime to convert
      * @param timeZone optional short time zone ID (see {@link TimezoneEnum}); if not provided, defaults to VST
      * @return the Unix timestamp in seconds
      */
@@ -51,7 +51,7 @@ public final class DateTimeUtils {
     /**
      * Converts a {@link LocalDateTime} to a Unix timestamp in milliseconds in the specified or default time zone.
      *
-     * @param time the LocalDateTime to convert
+     * @param time     the LocalDateTime to convert
      * @param timeZone optional short time zone ID (see {@link TimezoneEnum}); if not provided, defaults to VST
      * @return the Unix timestamp in milliseconds
      */
@@ -104,7 +104,7 @@ public final class DateTimeUtils {
      * Converts a {@link LocalDateTime} to a {@link Calendar} in the specified or default time zone.
      *
      * @param localDateTime the LocalDateTime to convert (must not be null)
-     * @param timeZone optional time zone enum; if not provided, defaults to VST
+     * @param timeZone      optional time zone enum; if not provided, defaults to VST
      * @return the corresponding Calendar instance
      * @throws IllegalArgumentException if localDateTime is null
      */
@@ -134,7 +134,7 @@ public final class DateTimeUtils {
      * Converts a {@link LocalDateTime} to a {@link Date} in the specified or default time zone.
      *
      * @param localDateTime the LocalDateTime to convert
-     * @param timeZone optional time zone enum; if not provided, defaults to VST
+     * @param timeZone      optional time zone enum; if not provided, defaults to VST
      * @return the corresponding Date instance
      */
     public static Date localDateTimeToDate(LocalDateTime localDateTime, TimezoneEnum... timeZone) {
@@ -185,6 +185,7 @@ public final class DateTimeUtils {
 
         /**
          * Gets the short ID value for this time zone.
+         *
          * @return the short ID string
          */
         public String getValue() {

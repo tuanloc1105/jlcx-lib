@@ -6,7 +6,7 @@ import java.util.List;
  * MSSQL implementation of DatabaseStrategy
  */
 public class MSSQLStrategy implements DatabaseStrategy {
-    
+
     @Override
     public String generateIdColumnDefinition(String columnName, String dataType) {
         return String.format("%s INT IDENTITY(1,1) PRIMARY KEY", columnName);
@@ -29,7 +29,7 @@ public class MSSQLStrategy implements DatabaseStrategy {
 
     @Override
     public String generateAddColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        return String.format("ALTER TABLE %s\n  ADD %s %s %s;\n", 
+        return String.format("ALTER TABLE %s\n  ADD %s %s %s;\n",
                 tableName, columnName, dataType, String.join(" ", constraints));
     }
 

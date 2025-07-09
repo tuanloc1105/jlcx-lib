@@ -1,18 +1,23 @@
 package vn.com.lcx.common.utils;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for {@link AESUtils}.
- * 
+ *
  * <p>This test class covers both ECB and CBC encryption/decryption methods
  * with various test scenarios including normal cases, edge cases, and error conditions.</p>
  */
@@ -407,8 +412,8 @@ class AESUtilsTest {
             String cbcEncrypted = AESUtils.encryptCBC(data, key);
 
             // When & Then
-            assertThrows(Exception.class, () -> 
-                AESUtils.decrypt(cbcEncrypted, key.substring(0, 16)));
+            assertThrows(Exception.class, () ->
+                    AESUtils.decrypt(cbcEncrypted, key.substring(0, 16)));
         }
 
         @Test
@@ -420,8 +425,8 @@ class AESUtilsTest {
             String ecbEncrypted = AESUtils.encrypt(data, key);
 
             // When & Then
-            assertThrows(Exception.class, () -> 
-                AESUtils.decryptCBC(ecbEncrypted, key + "extra"));
+            assertThrows(Exception.class, () ->
+                    AESUtils.decryptCBC(ecbEncrypted, key + "extra"));
         }
     }
 

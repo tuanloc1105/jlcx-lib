@@ -2,14 +2,13 @@ package vn.com.lcx.common.utils;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.util.Properties;
-import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class LCXPropertiesTest {
     private LCXProperties lcxProperties;

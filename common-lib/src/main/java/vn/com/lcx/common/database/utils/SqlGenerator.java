@@ -22,17 +22,17 @@ public class SqlGenerator {
     public String generate() {
         String generatedTime = DateTimeUtils.generateCurrentTimeDefault()
                 .format(DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN));
-        
+
         return String.format(
                 "-- GENERATED AT %s BY LCX-LIB V2\n\n" +
-                "-- ################# CREATE INDEX ####################### --\n\n%s\n" +
-                "-- ################# DROP INDEX ####################### --\n\n%s\n" +
-                "-- ################# ADD COLUMN ####################### --\n\n%s\n" +
-                "-- ################# DROP COLUMN ####################### --\n\n%s\n" +
-                "-- ################# MODIFY COLUMN ####################### --\n\n%s\n" +
-                "-- ################# RENAME COLUMN ####################### --\n\n%s\n" +
-                "-- ################# CREATE TABLE ####################### --\n%s\n%s\n" +
-                "-- ################# FOREIGN KEY ####################### --\n\n%s",
+                        "-- ################# CREATE INDEX ####################### --\n\n%s\n" +
+                        "-- ################# DROP INDEX ####################### --\n\n%s\n" +
+                        "-- ################# ADD COLUMN ####################### --\n\n%s\n" +
+                        "-- ################# DROP COLUMN ####################### --\n\n%s\n" +
+                        "-- ################# MODIFY COLUMN ####################### --\n\n%s\n" +
+                        "-- ################# RENAME COLUMN ####################### --\n\n%s\n" +
+                        "-- ################# CREATE TABLE ####################### --\n%s\n%s\n" +
+                        "-- ################# FOREIGN KEY ####################### --\n\n%s",
                 generatedTime,
                 String.join(System.lineSeparator(), context.getCreateIndexList()),
                 String.join(System.lineSeparator(), context.getDropIndexList()),

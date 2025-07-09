@@ -27,7 +27,7 @@ public class FieldProcessor {
         ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
         String columnName = columnNameAnnotation.name();
         String dataType = getSqlDataType(field, columnNameAnnotation);
-        
+
         if (isIdField(field)) {
             processIdField(columnName, field.getType().getName());
         } else {
@@ -43,7 +43,7 @@ public class FieldProcessor {
         if (StringUtils.isNotBlank(columnNameAnnotation.columnDataTypeDefinition())) {
             return columnNameAnnotation.columnDataTypeDefinition();
         }
-        
+
         String fieldTypeName = field.getType().getName();
         return context.getDatabaseDatatypeMap().entrySet().stream()
                 .filter(entry -> fieldTypeName.contains(entry.getKey()))
@@ -56,7 +56,7 @@ public class FieldProcessor {
         if (fieldTypeName.contains("Long") || fieldTypeName.contains("BigDecimal") || fieldTypeName.contains("BigInteger")) {
             String idDefinition = databaseStrategy.generateIdColumnDefinition(columnName, fieldTypeName);
             context.getColumnDefinitionLines().add(Arrays.asList(columnName, idDefinition.split(" ")[1], "PRIMARY KEY"));
-            
+
             String sequenceStatement = databaseStrategy.generateSequenceStatement(context.getFinalTableName());
             if (StringUtils.isNotBlank(sequenceStatement)) {
                 context.setCreateSequenceStatement(sequenceStatement);
@@ -69,29 +69,29 @@ public class FieldProcessor {
     private void processRegularField(Field field, String columnName, String dataType) {
         ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
         List<String> constraints = buildConstraints(columnNameAnnotation);
-        
+
         // Add column definition
         List<String> columnDefinition = new ArrayList<>();
         columnDefinition.add(columnName);
         columnDefinition.add(dataType);
         columnDefinition.addAll(constraints);
         context.getColumnDefinitionLines().add(columnDefinition);
-        
+
         // Process index
         if (columnNameAnnotation.index()) {
             processIndex(columnName, columnNameAnnotation.unique());
         }
-        
+
         // Process foreign key
         processForeignKey(field, columnName);
-        
+
         // Generate ALTER statements
         generateAlterStatements(columnName, dataType, constraints);
     }
 
     private List<String> buildConstraints(ColumnName columnNameAnnotation) {
         List<String> constraints = new ArrayList<>();
-        
+
         if (columnNameAnnotation.nullable()) {
             if (StringUtils.isBlank(columnNameAnnotation.defaultValue())) {
                 constraints.add("NULL");
@@ -109,14 +109,14 @@ public class FieldProcessor {
                 constraints.add("UNIQUE");
             }
         }
-        
+
         return constraints;
     }
 
     private void processIndex(String columnName, boolean isUnique) {
         String createIndex = databaseStrategy.generateCreateIndex(columnName, context.getFinalTableName(), isUnique);
         String dropIndex = databaseStrategy.generateDropIndex(columnName, context.getFinalTableName());
-        
+
         if (StringUtils.isNotBlank(createIndex)) {
             context.getCreateIndexList().add(createIndex);
         }
@@ -131,15 +131,15 @@ public class FieldProcessor {
             String referenceColumn = foreignKeyAnnotation.referenceColumn();
             String referenceTable = foreignKeyAnnotation.referenceTable();
             boolean cascade = foreignKeyAnnotation.cascade();
-            
+
             String schema = context.getTableNameAnnotation().schema();
             String schemaPrefix = StringUtils.isNotBlank(schema) ? schema + "." : CommonConstant.EMPTY_STRING;
-            
+
             String foreignKeyStatement = String.format(
                     "ALTER TABLE\n" +
-                    "    %1$s\n" +
-                    "ADD\n" +
-                    "    CONSTRAINT FK_%2$s FOREIGN KEY (%3$s) REFERENCES %4$s%5$s(%6$s)",
+                            "    %1$s\n" +
+                            "ADD\n" +
+                            "    CONSTRAINT FK_%2$s FOREIGN KEY (%3$s) REFERENCES %4$s%5$s(%6$s)",
                     context.getFinalTableName(),
                     String.format("%s_%s", referenceTable.toUpperCase(), referenceColumn.toUpperCase()),
                     columnName,
@@ -147,7 +147,7 @@ public class FieldProcessor {
                     referenceTable,
                     referenceColumn
             );
-            
+
             foreignKeyStatement += databaseStrategy.generateForeignKeyCascade(cascade) + "\n";
             context.getAddForeignKeyList().add(foreignKeyStatement);
         }
@@ -158,7 +158,7 @@ public class FieldProcessor {
         String alterAddColumn = databaseStrategy.generateAddColumn(columnName, dataType, constraints, context.getFinalTableName());
         String alterDropColumn = databaseStrategy.generateDropColumn(columnName, context.getFinalTableName());
         String alterModifyColumn = databaseStrategy.generateModifyColumn(columnName, dataType, constraints, context.getFinalTableName());
-        
+
         context.getRenameColumnList().add(renameColumn);
         context.getAlterAddColumnList().add(alterAddColumn);
         context.getAlterDropColumnList().add(alterDropColumn);

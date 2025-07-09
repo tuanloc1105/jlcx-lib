@@ -27,6 +27,10 @@ public class MailProperties {
         this.emailInfos = emailInfos;
     }
 
+    public static MailPropertiesBuilder builder() {
+        return new MailPropertiesBuilder();
+    }
+
     public String getHost() {
         return host;
     }
@@ -73,10 +77,6 @@ public class MailProperties {
 
     public void setEmailInfos(List<EmailInfo> emailInfos) {
         this.emailInfos = emailInfos;
-    }
-
-    public static MailPropertiesBuilder builder() {
-        return new MailPropertiesBuilder();
     }
 
     public static class MailPropertiesBuilder {

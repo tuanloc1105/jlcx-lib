@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -130,14 +129,14 @@ public class MyVertxDeployment {
             }
             if (!listOfVerticleFuture.isEmpty()) {
                 JsonArray results = new JsonArray();
-                //noinspection StatementWithEmptyBody
+                // noinspection StatementWithEmptyBody
                 while (listOfVerticleFuture.stream().noneMatch(Future::isComplete)) {
                     // do nothing here
                 }
                 final var appFinishingStartingTime = (double) System.currentTimeMillis();
                 final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
                 LoggerFactory.getLogger("APP").info("Application started in {} second(s)", appStartingDuration);
-                //noinspection SystemGetProperty
+                // noinspection SystemGetProperty
                 LoggerFactory.getLogger("ENCODING").info(
                         "Using Java {} - {}\nEncoding information:\n    - Default Charset: {}\n    - Default Charset encoding by java.nio.charset: {}\n    - Default Charset by InputStreamReader: {}",
                         System.getProperty("java.version"),

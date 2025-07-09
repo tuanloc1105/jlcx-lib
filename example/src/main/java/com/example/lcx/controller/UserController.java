@@ -4,7 +4,6 @@ import com.example.lcx.object.request.CreateNewUserRequest;
 import com.example.lcx.object.request.UserLoginRequest;
 import com.example.lcx.service.UserService;
 import com.google.gson.reflect.TypeToken;
-import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;

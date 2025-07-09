@@ -286,15 +286,15 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param resultSetType a result set type; one of
-     *                      ResultSet.TYPE_FORWARD_ONLY,
-     *                      ResultSet.TYPE_SCROLL_INSENSITIVE, or
-     *                      ResultSet.TYPE_SCROLL_SENSITIVE
+     * @param resultSetType        a result set type; one of
+     *                             ResultSet.TYPE_FORWARD_ONLY,
+     *                             ResultSet.TYPE_SCROLL_INSENSITIVE, or
+     *                             ResultSet.TYPE_SCROLL_SENSITIVE
      * @param resultSetConcurrency a concurrency type; one of
      *                             ResultSet.CONCUR_READ_ONLY or
      *                             ResultSet.CONCUR_UPDATABLE
      * @return a new Statement object that will generate ResultSet objects with the given
-     *         type and concurrency
+     * type and concurrency
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -305,16 +305,16 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param sql a String containing the SQL statement
-     * @param resultSetType a result set type; one of
-     *                      ResultSet.TYPE_FORWARD_ONLY,
-     *                      ResultSet.TYPE_SCROLL_INSENSITIVE, or
-     *                      ResultSet.TYPE_SCROLL_SENSITIVE
+     * @param sql                  a String containing the SQL statement
+     * @param resultSetType        a result set type; one of
+     *                             ResultSet.TYPE_FORWARD_ONLY,
+     *                             ResultSet.TYPE_SCROLL_INSENSITIVE, or
+     *                             ResultSet.TYPE_SCROLL_SENSITIVE
      * @param resultSetConcurrency a concurrency type; one of
      *                             ResultSet.CONCUR_READ_ONLY or
      *                             ResultSet.CONCUR_UPDATABLE
      * @return a new PreparedStatement object containing the pre-compiled SQL statement
-     *         that will produce ResultSet objects with the given type and concurrency
+     * that will produce ResultSet objects with the given type and concurrency
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -325,16 +325,16 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param sql a String containing the SQL statement
-     * @param resultSetType a result set type; one of
-     *                      ResultSet.TYPE_FORWARD_ONLY,
-     *                      ResultSet.TYPE_SCROLL_INSENSITIVE, or
-     *                      ResultSet.TYPE_SCROLL_SENSITIVE
+     * @param sql                  a String containing the SQL statement
+     * @param resultSetType        a result set type; one of
+     *                             ResultSet.TYPE_FORWARD_ONLY,
+     *                             ResultSet.TYPE_SCROLL_INSENSITIVE, or
+     *                             ResultSet.TYPE_SCROLL_SENSITIVE
      * @param resultSetConcurrency a concurrency type; one of
      *                             ResultSet.CONCUR_READ_ONLY or
      *                             ResultSet.CONCUR_UPDATABLE
      * @return a new CallableStatement object containing the pre-compiled SQL statement
-     *         that will produce ResultSet objects with the given type and concurrency
+     * that will produce ResultSet objects with the given type and concurrency
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -438,10 +438,10 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param resultSetType one of the following ResultSet constants:
-     *                      ResultSet.TYPE_FORWARD_ONLY,
-     *                      ResultSet.TYPE_SCROLL_INSENSITIVE, or
-     *                      ResultSet.TYPE_SCROLL_SENSITIVE
+     * @param resultSetType        one of the following ResultSet constants:
+     *                             ResultSet.TYPE_FORWARD_ONLY,
+     *                             ResultSet.TYPE_SCROLL_INSENSITIVE, or
+     *                             ResultSet.TYPE_SCROLL_SENSITIVE
      * @param resultSetConcurrency one of the following ResultSet constants
      *                             for specifying the result set's concurrency type:
      *                             ResultSet.CONCUR_READ_ONLY or
@@ -450,7 +450,7 @@ public class LCXConnection implements Connection {
      *                             ResultSet.HOLD_CURSORS_OVER_COMMIT or
      *                             ResultSet.CLOSE_CURSORS_AT_COMMIT
      * @return a new Statement object that will generate ResultSet objects with the given
-     *         type, concurrency, and holdability
+     * type, concurrency, and holdability
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -461,11 +461,11 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param sql a String containing the SQL statement
-     * @param resultSetType one of the following ResultSet constants:
-     *                      ResultSet.TYPE_FORWARD_ONLY,
-     *                      ResultSet.TYPE_SCROLL_INSENSITIVE, or
-     *                      ResultSet.TYPE_SCROLL_SENSITIVE
+     * @param sql                  a String containing the SQL statement
+     * @param resultSetType        one of the following ResultSet constants:
+     *                             ResultSet.TYPE_FORWARD_ONLY,
+     *                             ResultSet.TYPE_SCROLL_INSENSITIVE, or
+     *                             ResultSet.TYPE_SCROLL_SENSITIVE
      * @param resultSetConcurrency one of the following ResultSet constants
      *                             for specifying the result set's concurrency type:
      *                             ResultSet.CONCUR_READ_ONLY or
@@ -474,7 +474,7 @@ public class LCXConnection implements Connection {
      *                             ResultSet.HOLD_CURSORS_OVER_COMMIT or
      *                             ResultSet.CLOSE_CURSORS_AT_COMMIT
      * @return a new PreparedStatement object, containing the pre-compiled SQL statement,
-     *         that will generate ResultSet objects with the given type, concurrency, and holdability
+     * that will generate ResultSet objects with the given type, concurrency, and holdability
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -485,11 +485,11 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param sql a String containing the SQL statement
-     * @param resultSetType one of the following ResultSet constants:
-     *                      ResultSet.TYPE_FORWARD_ONLY,
-     *                      ResultSet.TYPE_SCROLL_INSENSITIVE, or
-     *                      ResultSet.TYPE_SCROLL_SENSITIVE
+     * @param sql                  a String containing the SQL statement
+     * @param resultSetType        one of the following ResultSet constants:
+     *                             ResultSet.TYPE_FORWARD_ONLY,
+     *                             ResultSet.TYPE_SCROLL_INSENSITIVE, or
+     *                             ResultSet.TYPE_SCROLL_SENSITIVE
      * @param resultSetConcurrency one of the following ResultSet constants
      *                             for specifying the result set's concurrency type:
      *                             ResultSet.CONCUR_READ_ONLY or
@@ -498,7 +498,7 @@ public class LCXConnection implements Connection {
      *                             ResultSet.HOLD_CURSORS_OVER_COMMIT or
      *                             ResultSet.CLOSE_CURSORS_AT_COMMIT
      * @return a new CallableStatement object, containing the pre-compiled SQL statement,
-     *         that will generate ResultSet objects with the given type, concurrency, and holdability
+     * that will generate ResultSet objects with the given type, concurrency, and holdability
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -509,11 +509,11 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param sql an SQL statement that may contain one or more '?' IN parameter placeholders
+     * @param sql               an SQL statement that may contain one or more '?' IN parameter placeholders
      * @param autoGeneratedKeys a flag indicating whether auto-generated keys should be returned;
      *                          one of Statement.RETURN_GENERATED_KEYS or Statement.NO_GENERATED_KEYS
      * @return a new PreparedStatement object, containing the pre-compiled SQL statement,
-     *         that will have the capability of returning auto-generated keys
+     * that will have the capability of returning auto-generated keys
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -524,11 +524,11 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param sql an SQL statement that may contain one or more '?' IN parameter placeholders
+     * @param sql           an SQL statement that may contain one or more '?' IN parameter placeholders
      * @param columnIndexes an array of column indexes indicating the columns that should be
      *                      returned from the inserted row or rows
      * @return a new PreparedStatement object, containing the pre-compiled statement,
-     *         that is capable of returning the auto-generated keys designated by the given array
+     * that is capable of returning the auto-generated keys designated by the given array
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -539,11 +539,11 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param sql an SQL statement that may contain one or more '?' IN parameter placeholders
+     * @param sql         an SQL statement that may contain one or more '?' IN parameter placeholders
      * @param columnNames an array of column names indicating the columns that should be
      *                    returned from the inserted row or rows
      * @return a new PreparedStatement object, containing the pre-compiled statement,
-     *         that is capable of returning the auto-generated keys designated by the given array
+     * that is capable of returning the auto-generated keys designated by the given array
      * @throws SQLException if a database access error occurs
      */
     @Override
@@ -613,7 +613,7 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param name the name of the client info property to set
+     * @param name  the name of the client info property to set
      * @param value the value to set the client info property to
      * @throws SQLClientInfoException if the database server returns an error while
      *                                setting the client info value on the database server
@@ -639,7 +639,7 @@ public class LCXConnection implements Connection {
      * {@inheritDoc}
      *
      * @return a Properties object that contains the name and current value of each of the
-     *         client info properties supported by the driver
+     * client info properties supported by the driver
      * @throws SQLException if the database server returns an error when fetching the client info values
      */
     @Override
@@ -676,7 +676,7 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param typeName the SQL type name of the SQL structured type that this Struct object maps to
+     * @param typeName   the SQL type name of the SQL structured type that this Struct object maps to
      * @param attributes the attributes that populate the returned object
      * @return a Struct object that maps to the given SQL type and is populated with the given attributes
      * @throws SQLException if a database error occurs, the type map is not found, or the typeName is not a supported type
@@ -722,7 +722,7 @@ public class LCXConnection implements Connection {
     /**
      * {@inheritDoc}
      *
-     * @param executor the Executor implementation which will be used by this method
+     * @param executor     the Executor implementation which will be used by this method
      * @param milliseconds the time in milliseconds to wait for the database operation
      *                     used to abort the connection to complete
      * @throws SQLException if a database access error occurs

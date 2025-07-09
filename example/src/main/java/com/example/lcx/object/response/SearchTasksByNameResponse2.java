@@ -1,7 +1,6 @@
 package com.example.lcx.object.response;
 
 import com.example.lcx.object.dto.ReactiveTaskDTO;
-import com.example.lcx.object.dto.TaskDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

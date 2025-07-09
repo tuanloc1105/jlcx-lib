@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.FileUtils;
-import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
 import vn.com.lcx.vertx.base.annotation.app.ContextHandler;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.annotation.process.APIKey;
@@ -42,6 +41,22 @@ import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes("vn.com.lcx.vertx.base.annotation.process.Controller")
 public class ControllerProcessor extends AbstractProcessor {
+
+    private static String extractApiKeyValidationMethod(boolean applicationHaveAPIKey) {
+        String apiKeyAuthHandler = "    // None of api key auth handler";
+        if (applicationHaveAPIKey) {
+            apiKeyAuthHandler = "\n    public void validateApiKey(io.vertx.ext.web.RoutingContext context) {\n" +
+                    "        String apiKey = context.request().getHeader(\"x-api-key\");\n" +
+                    "        String validApiKey = vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty(\"server.api-key\");\n" +
+                    "        if (!((apiKey + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING).equals(validApiKey))) {\n" +
+                    "            context.response().setStatusCode(401).end(\"Invalid api key\");\n" +
+                    "        } else {\n" +
+                    "            context.next();\n" +
+                    "        }\n" +
+                    "    }\n";
+        }
+        return apiKeyAuthHandler;
+    }
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -357,11 +372,11 @@ public class ControllerProcessor extends AbstractProcessor {
             if (serveStaticResource) {
                 staticResourceHandler =
                         "            router.route(\"/*\").handler(io.vertx.ext.web.handler.StaticHandler.create(\"webroot\"));\n" +
-                        "            router.route().last().handler(ctx -> {\n" +
-                        "                ctx.response()\n" +
-                        "                        .putHeader(\"Content-Type\", \"text/html\")\n" +
-                        "                        .sendFile(\"webroot/index.html\");\n" +
-                        "            });";
+                                "            router.route().last().handler(ctx -> {\n" +
+                                "                ctx.response()\n" +
+                                "                        .putHeader(\"Content-Type\", \"text/html\")\n" +
+                                "                        .sendFile(\"webroot/index.html\");\n" +
+                                "            });";
             }
             String code = vertxVerticleTemplate
                     .replace("${dependencies}", classProperties.stream().collect(Collectors.joining(";\n    ", "    ", ";")))
@@ -371,8 +386,7 @@ public class ControllerProcessor extends AbstractProcessor {
                     .replace("${static-resource-handler}", staticResourceHandler)
                     .replace("${router-handler}", routerConfigures.stream()
                             .filter(StringUtils::isNotBlank)
-                            .collect(Collectors.joining("\n            ", CommonConstant.EMPTY_STRING, "\n")))
-                    ;
+                            .collect(Collectors.joining("\n            ", CommonConstant.EMPTY_STRING, "\n")));
             try {
                 JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile("vn.com.lcx.vertx.verticle.ApplicationVerticle");
                 try (Writer writer = builderFile.openWriter()) {
@@ -384,22 +398,6 @@ public class ControllerProcessor extends AbstractProcessor {
         }
 
         return true;
-    }
-
-    private static String extractApiKeyValidationMethod(boolean applicationHaveAPIKey) {
-        String apiKeyAuthHandler = "    // None of api key auth handler";
-        if (applicationHaveAPIKey) {
-            apiKeyAuthHandler = "\n    public void validateApiKey(io.vertx.ext.web.RoutingContext context) {\n" +
-                    "        String apiKey = context.request().getHeader(\"x-api-key\");\n" +
-                    "        String validApiKey = vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty(\"server.api-key\");\n" +
-                    "        if (!((apiKey + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING).equals(validApiKey))) {\n" +
-                    "            context.response().setStatusCode(401).end(\"Invalid api key\");\n" +
-                    "        } else {\n" +
-                    "            context.next();\n" +
-                    "        }\n" +
-                    "    }\n";
-        }
-        return apiKeyAuthHandler;
     }
 
     // public void generateProxyController(ProcessorClassInfo processorClassInfo) {

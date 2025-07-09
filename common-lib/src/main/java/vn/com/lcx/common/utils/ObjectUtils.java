@@ -43,8 +43,8 @@ public final class ObjectUtils {
      * Maps fields with matching names from a source object to a new instance of the target class.
      * Only non-static, non-final fields are mapped. Fields in superclasses are also considered.
      *
-     * @param source the source object
-     * @param target the target class
+     * @param source   the source object
+     * @param target   the target class
      * @param <SOURCE> the type of the source object
      * @param <TARGET> the type of the target object
      * @return a new instance of the target class with mapped fields, or null if instantiation fails

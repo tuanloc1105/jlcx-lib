@@ -43,17 +43,21 @@ import java.util.concurrent.Executor;
  */
 public class HikariConnectionWrapper extends LCXConnection {
 
-    /** The underlying HikariCP connection being wrapped. */
+    /**
+     * The underlying HikariCP connection being wrapped.
+     */
     private final Connection realHikariConnection;
 
-    /** The type of database this connection is associated with. */
+    /**
+     * The type of database this connection is associated with.
+     */
     private final DBTypeEnum dbType;
 
     /**
      * Creates a new HikariConnectionWrapper instance.
      *
      * @param connection the HikariCP connection to wrap
-     * @param dbType the type of database this connection is associated with
+     * @param dbType     the type of database this connection is associated with
      * @throws IllegalArgumentException if connection is null
      */
     public HikariConnectionWrapper(Connection connection, DBTypeEnum dbType) {

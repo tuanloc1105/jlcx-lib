@@ -92,13 +92,13 @@ public final class ConnectionEntry implements AutoCloseable {
                                        DBTypeEnum dbType,
                                        String connectionName) {
         final var folder = new File(FileUtils.pathJoining(System.getProperty("java.io.tmpdir"), "lcx-pool"));
-        //noinspection ResultOfMethodCallIgnored
+        // noinspection ResultOfMethodCallIgnored
         folder.mkdirs();
         final var file = new File(FileUtils.pathJoining(System.getProperty("java.io.tmpdir"), "lcx-pool", String.format("%s.lock", connectionName)));
         final var fileIsNotExist = !file.exists();
         if (fileIsNotExist) {
             try {
-                //noinspection ResultOfMethodCallIgnored
+                // noinspection ResultOfMethodCallIgnored
                 file.createNewFile();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -297,7 +297,7 @@ public final class ConnectionEntry implements AutoCloseable {
             if (this.transactionIsOpen()) {
                 return;
             }
-            //noinspection MagicConstant
+            // noinspection MagicConstant
             connection.setTransactionIsolation(transactionIsolation.getValue());
             connection.setAutoCommit(false);
             this.connectionLog.info("Open transaction");

@@ -36,11 +36,11 @@ public class EntityAnalyzer {
     }
 
     private boolean isValidField(Field field) {
-        return !Modifier.isFinal(field.getModifiers()) && 
-               !Modifier.isStatic(field.getModifiers()) &&
-               field.getAnnotation(ColumnName.class) != null &&
-               StringUtils.isNotBlank(field.getAnnotation(ColumnName.class).name()) &&
-               !field.getType().isPrimitive();
+        return !Modifier.isFinal(field.getModifiers()) &&
+                !Modifier.isStatic(field.getModifiers()) &&
+                field.getAnnotation(ColumnName.class) != null &&
+                StringUtils.isNotBlank(field.getAnnotation(ColumnName.class).name()) &&
+                !field.getType().isPrimitive();
     }
 
     private void generateSqlFile() {

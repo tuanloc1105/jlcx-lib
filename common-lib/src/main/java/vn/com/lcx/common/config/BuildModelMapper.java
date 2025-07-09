@@ -1,9 +1,9 @@
-package vn.com.lcx.common.config;//package vn.com.lcx.common.config;
+package vn.com.lcx.common.config;// package vn.com.lcx.common.config;
 //
-//import org.modelmapper.ModelMapper;
-//import org.modelmapper.convention.MatchingStrategies;
+// import org.modelmapper.ModelMapper;
+// import org.modelmapper.convention.MatchingStrategies;
 //
-//public final class BuildModelMapper {
+// public final class BuildModelMapper {
 //
 //    private BuildModelMapper() {
 //    }

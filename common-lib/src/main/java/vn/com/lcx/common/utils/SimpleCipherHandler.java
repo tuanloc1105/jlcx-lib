@@ -2,15 +2,15 @@ package vn.com.lcx.common.utils;
 
 /**
  * SimpleCipherHandler provides basic encryption and decryption functionality using XOR cipher.
- * 
+ *
  * <p>This class implements a simple symmetric encryption algorithm based on XOR operation.
  * It uses a key to encrypt plain text and can decrypt the cipher text back to the original plain text.
  * The encryption is deterministic - the same plain text and key will always produce the same cipher text.</p>
- * 
+ *
  * <p><strong>Security Note:</strong> This implementation uses a simple XOR cipher which is not cryptographically secure.
  * It should only be used for basic obfuscation purposes and not for protecting sensitive data.
  * For production use cases requiring security, consider using AES or other strong encryption algorithms.</p>
- * 
+ *
  * <p>Features:</p>
  * <ul>
  *   <li>Simple XOR-based encryption/decryption</li>
@@ -19,23 +19,29 @@ package vn.com.lcx.common.utils;
  *   <li>Custom key support for flexibility</li>
  *   <li>Exception handling with logging</li>
  * </ul>
- * 
+ *
  * <p>Usage example:</p>
  * <pre>{@code
  * // Using default key
  * String encrypted = SimpleCipherHandler.simpleEncrypt("Hello World");
  * String decrypted = SimpleCipherHandler.simpleDecrypt(encrypted);
- * 
+ *
  * // Using custom key
  * String encrypted = SimpleCipherHandler.simpleEncrypt("Hello World", "mySecretKey");
  * String decrypted = SimpleCipherHandler.simpleDecrypt(encrypted, "mySecretKey");
  * }</pre>
- * 
+ *
  * @author tuanloc1105
  * @version 1.0
  * @since 3.0
  */
 public final class SimpleCipherHandler {
+
+    /**
+     * Default encryption key used when no custom key is provided.
+     * This key is used for the default encryption/decryption methods.
+     */
+    private static final String DEFAULT_KEY = "WOn965wvt999WwS955SAx258AsX939qL";
 
     /**
      * Private constructor to prevent instantiation.
@@ -45,21 +51,14 @@ public final class SimpleCipherHandler {
     }
 
     /**
-     * Default encryption key used when no custom key is provided.
-     * This key is used for the default encryption/decryption methods.
-     */
-    private static final String DEFAULT_KEY = "WOn965wvt999WwS955SAx258AsX939qL";
-
-    /**
      * Encrypts the given plain text using the default key.
-     * 
+     *
      * <p>This method is a convenience method that uses the default key for encryption.
      * The result is a hexadecimal string representing the encrypted data.</p>
-     * 
+     *
      * @param plainText the text to encrypt, must not be null
      * @return the encrypted text as a hexadecimal string, or empty string if encryption fails
      * @throws IllegalArgumentException if plainText is null
-     * 
      * @see #simpleEncrypt(String, String)
      */
     public static String simpleEncrypt(String plainText) {
@@ -68,14 +67,13 @@ public final class SimpleCipherHandler {
 
     /**
      * Decrypts the given cipher text using the default key.
-     * 
+     *
      * <p>This method is a convenience method that uses the default key for decryption.
      * The input should be a hexadecimal string that was produced by the encryption method.</p>
-     * 
+     *
      * @param cipherPass the encrypted text as a hexadecimal string, must not be null
      * @return the decrypted plain text, or empty string if decryption fails
      * @throws IllegalArgumentException if cipherPass is null
-     * 
      * @see #simpleDecrypt(String, String)
      */
     public static String simpleDecrypt(String cipherPass) {
@@ -84,7 +82,7 @@ public final class SimpleCipherHandler {
 
     /**
      * Encrypts the given plain text using the specified key.
-     * 
+     *
      * <p>The encryption process:</p>
      * <ol>
      *   <li>Converts the key to a hash code and ensures it's positive</li>
@@ -92,9 +90,9 @@ public final class SimpleCipherHandler {
      *   <li>Performs XOR operation between each byte and the key hash</li>
      *   <li>Converts the resulting bytes to a hexadecimal string</li>
      * </ol>
-     * 
+     *
      * @param plainText the text to encrypt, must not be null
-     * @param key the encryption key, must not be null
+     * @param key       the encryption key, must not be null
      * @return the encrypted text as a hexadecimal string, or empty string if encryption fails
      * @throws IllegalArgumentException if plainText or key is null
      */
@@ -105,7 +103,7 @@ public final class SimpleCipherHandler {
         if (key == null) {
             throw new IllegalArgumentException("Key cannot be null");
         }
-        
+
         String out = "";
         try {
             int i = (key.hashCode() < 0) ? key.hashCode() * -1 : key.hashCode();
@@ -125,7 +123,7 @@ public final class SimpleCipherHandler {
 
     /**
      * Decrypts the given cipher text using the specified key.
-     * 
+     *
      * <p>The decryption process:</p>
      * <ol>
      *   <li>Converts the key to a hash code and ensures it's positive</li>
@@ -133,9 +131,9 @@ public final class SimpleCipherHandler {
      *   <li>Performs XOR operation between each byte and the key hash</li>
      *   <li>Converts the resulting bytes back to characters</li>
      * </ol>
-     * 
+     *
      * @param cipherPass the encrypted text as a hexadecimal string, must not be null
-     * @param key the decryption key, must not be null
+     * @param key        the decryption key, must not be null
      * @return the decrypted plain text, or empty string if decryption fails
      * @throws IllegalArgumentException if cipherPass or key is null
      */
@@ -146,7 +144,7 @@ public final class SimpleCipherHandler {
         if (key == null) {
             throw new IllegalArgumentException("Key cannot be null");
         }
-        
+
         String out = "";
         try {
             int i = (key.hashCode() < 0) ? key.hashCode() * -1 : key.hashCode();
@@ -169,10 +167,10 @@ public final class SimpleCipherHandler {
 
     /**
      * Converts a hexadecimal string to a byte array.
-     * 
+     *
      * <p>This method parses a hexadecimal string and converts it to the corresponding byte array.
      * The input string should contain only valid hexadecimal characters (0-9, a-f, A-F).</p>
-     * 
+     *
      * @param str the hexadecimal string to convert, can be null
      * @return the byte array representation, or empty array if input is null
      * @throws IllegalArgumentException if the string contains invalid hexadecimal characters
@@ -193,10 +191,10 @@ public final class SimpleCipherHandler {
 
     /**
      * Converts a hexadecimal character to its 4-bit value.
-     * 
+     *
      * <p>This method converts a single hexadecimal character (0-9, a-f, A-F) to its corresponding
      * 4-bit value (0-15).</p>
-     * 
+     *
      * @param c the hexadecimal character to convert
      * @return the 4-bit value (0-15), or -1 if the character is not a valid hexadecimal digit
      */
@@ -215,10 +213,10 @@ public final class SimpleCipherHandler {
 
     /**
      * Converts a byte array to a hexadecimal string.
-     * 
+     *
      * <p>This method converts each byte in the array to its two-character hexadecimal representation.
      * The output uses lowercase letters (a-f) for hexadecimal digits.</p>
-     * 
+     *
      * @param data the byte array to convert, can be null
      * @return the hexadecimal string representation, or null if input is null
      */
@@ -236,10 +234,10 @@ public final class SimpleCipherHandler {
 
     /**
      * Converts a 4-bit value to its hexadecimal character representation.
-     * 
+     *
      * <p>This method converts a value in the range 0-15 to its corresponding hexadecimal character.
      * Values 0-9 are represented as '0'-'9', and values 10-15 are represented as 'a'-'f'.</p>
-     * 
+     *
      * @param i the 4-bit value to convert (0-15)
      * @return the hexadecimal character representation
      * @throws IllegalArgumentException if the value is not in the range 0-15

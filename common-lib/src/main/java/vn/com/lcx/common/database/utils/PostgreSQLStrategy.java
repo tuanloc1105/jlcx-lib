@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
  * PostgreSQL implementation of DatabaseStrategy
  */
 public class PostgreSQLStrategy implements DatabaseStrategy {
-    
+
     @Override
     public String generateIdColumnDefinition(String columnName, String dataType) {
         return String.format("%s SERIAL PRIMARY KEY", columnName);
@@ -34,15 +34,15 @@ public class PostgreSQLStrategy implements DatabaseStrategy {
         String constraintStr = constraints.stream()
                 .filter(c -> !c.equalsIgnoreCase("unique"))
                 .collect(Collectors.joining(" "));
-        
-        String result = String.format("ALTER TABLE %s\n  ADD COLUMN %s %s %s;\n", 
+
+        String result = String.format("ALTER TABLE %s\n  ADD COLUMN %s %s %s;\n",
                 tableName, columnName, dataType, constraintStr);
-        
+
         if (constraints.stream().anyMatch(c -> c.equalsIgnoreCase("unique"))) {
-            result += String.format("ALTER TABLE %s\n  ADD CONSTRAINT %s_unique UNIQUE (%s);\n", 
+            result += String.format("ALTER TABLE %s\n  ADD CONSTRAINT %s_unique UNIQUE (%s);\n",
                     tableName, columnName, columnName);
         }
-        
+
         return result;
     }
 
@@ -57,7 +57,7 @@ public class PostgreSQLStrategy implements DatabaseStrategy {
     public String generateModifyColumn(String columnName, String dataType, List<String> constraints, String tableName) {
         StringBuilder result = new StringBuilder();
         result.append(String.format("ALTER TABLE %s\n  ALTER COLUMN %s TYPE %s", tableName, columnName, dataType));
-        
+
         if (!constraints.isEmpty()) {
             result.append(",\n  ");
             result.append(constraints.stream()
@@ -73,7 +73,7 @@ public class PostgreSQLStrategy implements DatabaseStrategy {
                     .collect(Collectors.joining(",\n  ")));
         }
         result.append(";\n");
-        
+
         return result.toString();
     }
 

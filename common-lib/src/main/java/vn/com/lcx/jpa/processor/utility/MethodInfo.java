@@ -18,6 +18,10 @@ public class MethodInfo {
         this.outputParameter = outputParameter;
     }
 
+    public static MethodInfoBuilder builder() {
+        return new MethodInfoBuilder();
+    }
+
     public String getMethodName() {
         return methodName;
     }
@@ -40,10 +44,6 @@ public class MethodInfo {
 
     public void setOutputParameter(TypeMirror outputParameter) {
         this.outputParameter = outputParameter;
-    }
-
-    public static MethodInfoBuilder builder() {
-        return new MethodInfoBuilder();
     }
 
     public static class MethodInfoBuilder {

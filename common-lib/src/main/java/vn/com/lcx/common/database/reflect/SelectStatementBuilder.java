@@ -169,34 +169,6 @@ public final class SelectStatementBuilder {
         }
     }
 
-    public Class<?> getEntityClass() {
-        return entityClass;
-    }
-
-    public ArrayList<String> getListOfColumnName() {
-        return listOfColumnName;
-    }
-
-    public ArrayList<Field> getListOfField() {
-        return listOfField;
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public String getTableNameShortenedName() {
-        return tableNameShortenedName;
-    }
-
-    public ArrayList<SubTableEntry> getSubTableStatementBuilders() {
-        return subTableStatementBuilders;
-    }
-
-    public String getPlaceHolder() {
-        return placeHolder;
-    }
-
     private static List<String> splitByKeywords(String input) {
         List<String> result = new ArrayList<>();
         Matcher matcher = WHERE_STATEMENT_SPLIT_PATTERN.matcher(input);
@@ -223,6 +195,34 @@ public final class SelectStatementBuilder {
 
     public static SelectStatementBuilder of(Class<?> entityClass, String placeHolder) {
         return BUILDER_MAP.computeIfAbsent(entityClass.getName(), key -> new SelectStatementBuilder(entityClass, false, placeHolder));
+    }
+
+    public Class<?> getEntityClass() {
+        return entityClass;
+    }
+
+    public ArrayList<String> getListOfColumnName() {
+        return listOfColumnName;
+    }
+
+    public ArrayList<Field> getListOfField() {
+        return listOfField;
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public String getTableNameShortenedName() {
+        return tableNameShortenedName;
+    }
+
+    public ArrayList<SubTableEntry> getSubTableStatementBuilders() {
+        return subTableStatementBuilders;
+    }
+
+    public String getPlaceHolder() {
+        return placeHolder;
     }
 
     public String build(String methodName, Object... parameters) {
@@ -273,7 +273,7 @@ public final class SelectStatementBuilder {
         return String.format(
                 "SELECT\n    %s\nFROM\n    %s",
                 String.join(",\n    ", this.listOfColumnName),
-                //String.join(", ", this.listOfColumnName),
+                // String.join(", ", this.listOfColumnName),
                 tableNameWithShortenedName
         );
     }

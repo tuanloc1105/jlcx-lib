@@ -104,7 +104,7 @@ public interface JpaRepository<E, ID> {
      * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.
      *
      * @param criteriaHandler must not be {@literal null}
-     * @param pageable the pageable to request a paged result, must not be {@literal null}
+     * @param pageable        the pageable to request a paged result, must not be {@literal null}
      * @return a page of entities
      * @throws IllegalArgumentException if either criteriaHandler or pageable is {@literal null}
      */

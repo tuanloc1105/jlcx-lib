@@ -85,6 +85,59 @@ public class RepositoryProcessor extends AbstractProcessor {
         WHERE_STATEMENT_SPLIT_PATTERN = Pattern.compile(joinedKeywords);
     }
 
+    private static void generateCodeForPageable(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
+        VariableElement pageableParameter = methodInfo.getInputParameters().get(methodInfo.getInputParameters().size() - 1);
+        codeLines.add(
+                "StringBuilder orderStatement = new StringBuilder();"
+        );
+        codeLines.add(
+                String.format(
+                        "vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) %s;",
+                        pageableParameter.getSimpleName()
+                )
+        );
+        codeLines.add("if (!pageimpl.getFieldNameAndDirectionMap().isEmpty()) {");
+        codeLines.add("    orderStatement.append(\" order by \");");
+        codeLines.add("}");
+        codeLines.add("pageimpl.getFieldNameAndDirectionMap().forEach((field, direction) -> {");
+        codeLines.add("    if (vn.com.lcx.common.database.pageable.Direction.DESC.equals(direction)) {");
+        codeLines.add("        orderStatement.append(\" \").append(field).append(\" desc\");");
+        codeLines.add("    } else {");
+        codeLines.add("        orderStatement.append(\" \").append(field).append(\" asc\");");
+        codeLines.add("    }");
+        codeLines.add("});");
+        codeLines.add(
+                String.format(
+                        "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createQuery(\"%1$s\" + orderStatement.toString(), %2$s.class);",
+                        sql,
+                        outputClass
+                )
+        );
+        codeLines.add("query.setFirstResult(pageimpl.getOffset());");
+        codeLines.add("query.setMaxResults(pageimpl.getPageSize());");
+    }
+
+    private static String replaceSelectToCount(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return "";
+        }
+
+        String regex = "SELECT\\s+.*?\\s+FROM";
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(query);
+
+        if (matcher.find()) {
+            int selectKeywordStart = query.toLowerCase().indexOf("select");
+            String beforeSelect = query.substring(0, selectKeywordStart);
+
+            String afterFrom = query.substring(matcher.end() - "FROM".length());
+
+            return beforeSelect + "SELECT COUNT(1) " + afterFrom;
+        } else {
+            return "";
+        }
+    }
+
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latest();
@@ -378,6 +431,8 @@ public class RepositoryProcessor extends AbstractProcessor {
         }
     }
 
+    // TODO: implement a generate code technique for generating query from method name, base on `vn.com.lcx.common.database.reflect.SelectStatementBuilder`
+
     public void handleModifyingMethod(final TypeMirror genericEntityClass,
                                       final StringBuilder methodCodeBody,
                                       final String jpaMethodTemplate,
@@ -558,40 +613,6 @@ public class RepositoryProcessor extends AbstractProcessor {
         methodCodeBody.append(code).append("\n");
     }
 
-    // TODO: implement a generate code technique for generating query from method name, base on `vn.com.lcx.common.database.reflect.SelectStatementBuilder`
-
-    private static void generateCodeForPageable(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
-        VariableElement pageableParameter = methodInfo.getInputParameters().get(methodInfo.getInputParameters().size() - 1);
-        codeLines.add(
-                "StringBuilder orderStatement = new StringBuilder();"
-        );
-        codeLines.add(
-                String.format(
-                        "vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) %s;",
-                        pageableParameter.getSimpleName()
-                )
-        );
-        codeLines.add("if (!pageimpl.getFieldNameAndDirectionMap().isEmpty()) {");
-        codeLines.add("    orderStatement.append(\" order by \");");
-        codeLines.add("}");
-        codeLines.add("pageimpl.getFieldNameAndDirectionMap().forEach((field, direction) -> {");
-        codeLines.add("    if (vn.com.lcx.common.database.pageable.Direction.DESC.equals(direction)) {");
-        codeLines.add("        orderStatement.append(\" \").append(field).append(\" desc\");");
-        codeLines.add("    } else {");
-        codeLines.add("        orderStatement.append(\" \").append(field).append(\" asc\");");
-        codeLines.add("    }");
-        codeLines.add("});");
-        codeLines.add(
-                String.format(
-                        "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createQuery(\"%1$s\" + orderStatement.toString(), %2$s.class);",
-                        sql,
-                        outputClass
-                )
-        );
-        codeLines.add("query.setFirstResult(pageimpl.getOffset());");
-        codeLines.add("query.setMaxResults(pageimpl.getPageSize());");
-    }
-
     private String buildBaseCode(final String template,
                                  final TypeMirror genericEntityClass,
                                  final StringBuilder methodCodeBody,
@@ -689,27 +710,6 @@ public class RepositoryProcessor extends AbstractProcessor {
                         "vn.com.lcx.common.database.pageable.Pageable"
                 ).asType()
         );
-    }
-
-    private static String replaceSelectToCount(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return "";
-        }
-
-        String regex = "SELECT\\s+.*?\\s+FROM";
-        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(query);
-
-        if (matcher.find()) {
-            int selectKeywordStart = query.toLowerCase().indexOf("select");
-            String beforeSelect = query.substring(0, selectKeywordStart);
-
-            String afterFrom = query.substring(matcher.end() - "FROM".length());
-
-            return beforeSelect + "SELECT COUNT(1) " + afterFrom;
-        } else {
-            return "";
-        }
     }
 
 }

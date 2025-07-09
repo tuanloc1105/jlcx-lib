@@ -6,7 +6,7 @@ import java.util.List;
  * MySQL implementation of DatabaseStrategy
  */
 public class MySQLStrategy implements DatabaseStrategy {
-    
+
     @Override
     public String generateIdColumnDefinition(String columnName, String dataType) {
         return String.format("%s INT AUTO_INCREMENT PRIMARY KEY", columnName);
@@ -30,7 +30,7 @@ public class MySQLStrategy implements DatabaseStrategy {
 
     @Override
     public String generateAddColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        return String.format("ALTER TABLE %s\n  ADD %s %s %s;\n", 
+        return String.format("ALTER TABLE %s\n  ADD %s %s %s;\n",
                 tableName, columnName, dataType, String.join(" ", constraints));
     }
 
@@ -41,7 +41,7 @@ public class MySQLStrategy implements DatabaseStrategy {
 
     @Override
     public String generateModifyColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        return String.format("ALTER TABLE %s\n  MODIFY %s %s %s;\n", 
+        return String.format("ALTER TABLE %s\n  MODIFY %s %s %s;\n",
                 tableName, columnName, dataType, String.join(" ", constraints));
     }
 

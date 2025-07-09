@@ -2,10 +2,10 @@ package vn.com.lcx.common.context;
 
 public final class AuthContext {
 
+    private static final ThreadLocal<Object> authThreadLocal = new ThreadLocal<>();
+
     private AuthContext() {
     }
-
-    private static final ThreadLocal<Object> authThreadLocal = new ThreadLocal<>();
 
     public static void set(Object connection) {
         authThreadLocal.set(connection);

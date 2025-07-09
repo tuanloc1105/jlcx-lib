@@ -1,24 +1,11 @@
 package vn.com.lcx.common.database.utils;
 
-import org.apache.commons.lang3.StringUtils;
-import vn.com.lcx.common.annotation.ColumnName;
-import vn.com.lcx.common.annotation.IdColumn;
 import vn.com.lcx.common.annotation.TableName;
-import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.utils.FileUtils;
-import vn.com.lcx.common.utils.MyStringUtils;
 
 import javax.lang.model.element.Element;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
-import static vn.com.lcx.common.utils.FileUtils.writeContentToFile;
 
 @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
 public final class DBEntityAnalysis {

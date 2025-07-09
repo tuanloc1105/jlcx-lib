@@ -55,7 +55,7 @@ public final class SerializeUtils {
                         )
                 );
         ) {
-            //noinspection unchecked
+            // noinspection unchecked
             return (T) ois.readObject();
         }
 

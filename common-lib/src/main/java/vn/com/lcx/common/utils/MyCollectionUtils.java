@@ -32,10 +32,10 @@ public final class MyCollectionUtils {
      * Splits the input list into batches, each with a maximum size and a maximum number of batches.
      * If maxBatchSize or maxBatches is 0, defaults are used (50,000 and 8, respectively).
      *
-     * @param inputList the list to split
+     * @param inputList    the list to split
      * @param maxBatchSize the maximum size of each batch (0 for default)
-     * @param maxBatches the maximum number of batches (0 for default)
-     * @param <T> the type of elements in the list
+     * @param maxBatches   the maximum number of batches (0 for default)
+     * @param <T>          the type of elements in the list
      * @return a list of batches (each batch is a list)
      */
     public static <T> List<List<T>> splitListIntoBatches(List<T> inputList, int maxBatchSize, int maxBatches) {
@@ -64,9 +64,9 @@ public final class MyCollectionUtils {
      * Splits the input list into a specified maximum number of batches, distributing elements as evenly as possible.
      * If maxBatches is 0, a default of 8 is used.
      *
-     * @param inputList the list to split
+     * @param inputList  the list to split
      * @param maxBatches the maximum number of batches (0 for default)
-     * @param <T> the type of elements in the list
+     * @param <T>        the type of elements in the list
      * @return a list of batches (each batch is a list)
      */
     public static <T> List<List<T>> splitListIntoBatches(List<T> inputList, int maxBatches) {
@@ -95,7 +95,7 @@ public final class MyCollectionUtils {
      * Removes all null elements from the given collection.
      *
      * @param collection the collection to clean (modified in place)
-     * @param <T> the type of elements in the collection
+     * @param <T>        the type of elements in the collection
      */
     public static <T> void removeNullElement(final Collection<T> collection) {
         Collection<T> nonNullCollection = collection.stream().filter(Objects::nonNull).collect(Collectors.toList());

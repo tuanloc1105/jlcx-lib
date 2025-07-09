@@ -23,6 +23,10 @@ public class SubTableEntry {
         this.selectStatementBuilder = selectStatementBuilder;
     }
 
+    public static SubTableEntryBuilder builder() {
+        return new SubTableEntryBuilder();
+    }
+
     public String getColumnName() {
         return columnName;
     }
@@ -61,10 +65,6 @@ public class SubTableEntry {
 
     public void setSelectStatementBuilder(SelectStatementBuilder selectStatementBuilder) {
         this.selectStatementBuilder = selectStatementBuilder;
-    }
-
-    public static SubTableEntryBuilder builder() {
-        return new SubTableEntryBuilder();
     }
 
     public static class SubTableEntryBuilder {

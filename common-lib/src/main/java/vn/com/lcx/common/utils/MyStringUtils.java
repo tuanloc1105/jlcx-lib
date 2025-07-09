@@ -30,10 +30,10 @@ public final class MyStringUtils {
     /**
      * Adds a new field with the specified name and value to a JSON string.
      *
-     * @param gson the Gson instance to use for parsing and serialization
+     * @param gson            the Gson instance to use for parsing and serialization
      * @param inputJsonString the input JSON string
-     * @param fieldName the name of the field to add
-     * @param fieldValue the value of the field to add
+     * @param fieldName       the name of the field to add
+     * @param fieldValue      the value of the field to add
      * @return the resulting JSON string with the new field added
      */
     public static String addNewFieldToJsonString(final Gson gson, final String inputJsonString, final String fieldName, final Object fieldValue) {
@@ -45,9 +45,9 @@ public final class MyStringUtils {
     /**
      * Removes a field with the specified name from a JSON string.
      *
-     * @param gson the Gson instance to use for parsing and serialization
+     * @param gson            the Gson instance to use for parsing and serialization
      * @param inputJsonString the input JSON string
-     * @param fieldName the name of the field to remove
+     * @param fieldName       the name of the field to remove
      * @return the resulting JSON string with the field removed
      */
     public static String removeFieldValueFromJsonString(final Gson gson, final String inputJsonString, final String fieldName) {
@@ -59,11 +59,11 @@ public final class MyStringUtils {
     /**
      * Recursively retrieves all values of a specified field name from a JSON string.
      *
-     * @param gson the Gson instance to use for parsing and serialization
+     * @param gson            the Gson instance to use for parsing and serialization
      * @param inputJsonString the input JSON string
-     * @param fieldName the name of the field to search for
-     * @param fieldDataType the expected type of the field value
-     * @param <T> the type of the field value
+     * @param fieldName       the name of the field to search for
+     * @param fieldDataType   the expected type of the field value
+     * @param <T>             the type of the field value
      * @return a list of all values found for the specified field name
      */
     public static <T> List<T> getFieldValueOfJsonString(final Gson gson, final String inputJsonString, final String fieldName, final Class<T> fieldDataType) {
@@ -200,7 +200,7 @@ public final class MyStringUtils {
     /**
      * Returns the last N characters of a string, or the whole string if shorter than the limit.
      *
-     * @param input the input string
+     * @param input            the input string
      * @param lengthLimitation the number of characters to return from the end
      * @return the last N characters, or the input if shorter
      */
@@ -243,7 +243,7 @@ public final class MyStringUtils {
     /**
      * Returns the input text centered within the specified console width, padded with spaces.
      *
-     * @param text the text to center
+     * @param text         the text to center
      * @param consoleWidth the width to center within
      * @return the centered text
      */
@@ -261,7 +261,7 @@ public final class MyStringUtils {
     /**
      * Returns the input text left-aligned within the specified console width, padded with spaces.
      *
-     * @param text the text to align left
+     * @param text         the text to align left
      * @param consoleWidth the width to align within
      * @return the left-aligned text
      */
@@ -279,7 +279,7 @@ public final class MyStringUtils {
     /**
      * Returns the input text right-aligned within the specified console width, padded with spaces.
      *
-     * @param text the text to align right
+     * @param text         the text to align right
      * @param consoleWidth the width to align within
      * @return the right-aligned text
      */
@@ -298,8 +298,8 @@ public final class MyStringUtils {
      * Puts one or more strings into a box with borders, optionally centering or aligning the text.
      *
      * @param logWithConsoleWidthIsTheLongestLine if true, box width is set to the longest line
-     * @param mode the paragraph alignment mode (center, left, right)
-     * @param linesOfString the lines of text to put in the box
+     * @param mode                                the paragraph alignment mode (center, left, right)
+     * @param linesOfString                       the lines of text to put in the box
      * @return the boxed string
      */
     public static String putStringIntoABox(final boolean logWithConsoleWidthIsTheLongestLine,
@@ -464,7 +464,7 @@ public final class MyStringUtils {
      * Serializes an object to an XML string.
      *
      * @param input the object to serialize
-     * @param <T> the type of the object
+     * @param <T>   the type of the object
      * @return the XML string, or empty string if conversion fails
      */
     public static <T> String toXML(T input) {
@@ -520,7 +520,7 @@ public final class MyStringUtils {
     /**
      * Formats a list of lists of strings so that each column is aligned, with an optional delimiter.
      *
-     * @param input the list of lists of strings to format
+     * @param input     the list of lists of strings to format
      * @param delimiter optional delimiter to use between lines
      * @return the formatted string with aligned columns
      */
@@ -629,12 +629,6 @@ public final class MyStringUtils {
         return temp.replace("đ", "d").replace("Đ", "D");
     }
 
-    public enum ParagraphMode {
-        CENTER,
-        ALIGN_LEFT,
-        ALIGN_RIGHT,
-    }
-
     /**
      * Mask the values of specified fields in a JSON string, regardless of their nesting level.
      * <p>
@@ -732,6 +726,12 @@ public final class MyStringUtils {
                 }
             }
         }
+    }
+
+    public enum ParagraphMode {
+        CENTER,
+        ALIGN_LEFT,
+        ALIGN_RIGHT,
     }
 
 }

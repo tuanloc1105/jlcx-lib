@@ -43,22 +43,22 @@ public class EntityAnalysisContext {
         this.entityClass = entityClass;
         this.databaseType = databaseType;
         this.folderPath = folderPath;
-        
+
         // Validate entity class
         if (entityClass.isInterface()) {
             throw new IllegalArgumentException("Entity class cannot be an interface: " + entityClass.getName());
         }
-        
+
         this.tableNameAnnotation = entityClass.getAnnotation(TableName.class);
         if (tableNameAnnotation == null) {
             throw new IllegalArgumentException("Entity class must have @TableName annotation: " + entityClass.getName());
         }
-        
+
         this.finalTableName = buildFinalTableName();
         this.entityFields = getSortedEntityFields();
         this.idField = findIdField();
         this.databaseDatatypeMap = getDatabaseDatatypeMapFromDatabaseType();
-        
+
         // Initialize collections
         this.columnDefinitionLines = new ArrayList<>();
         this.createIndexList = new ArrayList<>();

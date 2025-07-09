@@ -12,7 +12,6 @@ import com.example.lcx.object.response.GetTaskDetailResponse;
 import com.example.lcx.object.response.SearchTasksByNameResponse;
 import com.example.lcx.service.TaskService;
 import com.google.gson.reflect.TypeToken;
-import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;

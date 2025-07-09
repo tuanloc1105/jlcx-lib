@@ -12,7 +12,7 @@ public class LargeArray<T> {
         this.size = size;
         long remaining = size;
         while (remaining > 0) {
-            //noinspection unchecked
+            // noinspection unchecked
             chunks.add((T[]) new Object[(int) Math.min(CHUNK_SIZE, remaining)]);
             remaining -= CHUNK_SIZE;
         }

@@ -7,8 +7,8 @@ import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.vertx.base.annotation.app.ContextHandler;
 import vn.com.lcx.common.context.AuthContext;
+import vn.com.lcx.vertx.base.annotation.app.ContextHandler;
 import vn.com.lcx.vertx.base.custom.VertxContextHandler;
 
 import static vn.com.lcx.common.constant.CommonConstant.OPERATION_NAME_MDC_KEY_NAME;

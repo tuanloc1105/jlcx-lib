@@ -4,10 +4,10 @@ package vn.com.lcx.common.database.utils;
  * Factory for creating database strategies
  */
 public class DatabaseStrategyFactory {
-    
+
     /**
      * Create a database strategy based on the database type
-     * 
+     *
      * @param databaseType the type of database (postgresql, mysql, mssql, oracle)
      * @return the appropriate database strategy
      */

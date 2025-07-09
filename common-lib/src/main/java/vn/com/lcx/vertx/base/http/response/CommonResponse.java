@@ -20,6 +20,10 @@ public class CommonResponse implements Serializable {
         this.httpCode = httpCode;
     }
 
+    public static CommonResponseBuilder builder() {
+        return new CommonResponseBuilder();
+    }
+
     public String getTrace() {
         return trace;
     }
@@ -50,10 +54,6 @@ public class CommonResponse implements Serializable {
 
     public void setHttpCode(int httpCode) {
         this.httpCode = httpCode;
-    }
-
-    public static CommonResponseBuilder builder() {
-        return new CommonResponseBuilder();
     }
 
     public static class CommonResponseBuilder {
