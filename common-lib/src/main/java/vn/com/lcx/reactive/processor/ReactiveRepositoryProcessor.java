@@ -571,7 +571,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 );
             } else if (genericType.equals("java.lang.Integer")) {
                 codeLines.add(
-                        "            long result = 0;"
+                        "            int result = 0;"
                 );
                 codeLines.add(
                         "            for (io.vertx.sqlclient.Row row : rowSet) {"
@@ -863,7 +863,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 );
             } else if (genericType.equals("java.lang.Integer")) {
                 codeLines.add(
-                        "            long result = 0;"
+                        "            int result = 0;"
                 );
                 codeLines.add(
                         "            for (io.vertx.sqlclient.Row row : rowSet) {"
