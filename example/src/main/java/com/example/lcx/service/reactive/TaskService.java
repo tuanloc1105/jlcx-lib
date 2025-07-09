@@ -8,6 +8,7 @@ import com.example.lcx.object.dto.ReactiveTaskDTO;
 import com.example.lcx.object.dto.UserJWTTokenInfo;
 import com.example.lcx.object.request.CreateTaskRequest;
 import com.example.lcx.object.request.DeleteTaskRequest;
+import com.example.lcx.object.request.DeleteTasksRequest;
 import com.example.lcx.object.request.GetAllTaskRequest;
 import com.example.lcx.object.request.GetTaskDetailRequest;
 import com.example.lcx.object.request.MarkTaskAsFinishedRequest;
@@ -30,7 +31,6 @@ import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -178,6 +178,28 @@ public class TaskService {
                                             task.setDeletedAt(DateTimeUtils.generateCurrentTimeDefault());
                                             return taskRepository.update(context, connection, task).map(it -> null);
                                         })
+                        )
+                );
+    }
+
+    public Future<Void> deleteTasks(final RoutingContext context, final DeleteTasksRequest request) {
+        return getUserFromContext(context)
+                .compose(userJWTTokenInfo -> validateUserAndGetConnection(context, userJWTTokenInfo.getUsername()))
+                .compose(userEntity ->
+                        TransactionUtils.executeInTransaction(pool, connection -> {
+                                    Future<Void> chain = Future.succeededFuture();
+                                    for (Long id : request.getId()) {
+                                        chain.compose(v ->
+                                                findAndValidateTask(context, connection, BigInteger.valueOf(id), userEntity.getId())
+                                                        .compose(task -> {
+                                                            task.setUpdatedBy(userEntity.getUsername());
+                                                            task.setDeletedAt(DateTimeUtils.generateCurrentTimeDefault());
+                                                            return taskRepository.update(context, connection, task).map(it -> null);
+                                                        })
+                                        );
+                                    }
+                                    return chain;
+                                }
                         )
                 );
     }
