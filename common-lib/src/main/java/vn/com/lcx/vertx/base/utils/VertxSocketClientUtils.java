@@ -3,16 +3,12 @@ package vn.com.lcx.vertx.base.utils;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetSocket;
-import io.vertx.core.buffer.Buffer;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
-
-// Sử dụng SLF4J nếu có, nếu không thì dùng System.err
-// import org.slf4j.Logger;
-// import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for sending and receiving messages over TCP sockets using Vert.x NetClient.
@@ -49,9 +45,9 @@ public class VertxSocketClientUtils {
     /**
      * Constructs a VertxSocketClientUtils with custom timeout and encoding.
      *
-     * @param vertx the Vertx instance
+     * @param vertx         the Vertx instance
      * @param timeoutMillis timeout in milliseconds for connect + receive
-     * @param encoding charset for encoding/decoding messages
+     * @param encoding      charset for encoding/decoding messages
      */
     public VertxSocketClientUtils(Vertx vertx, long timeoutMillis, Charset encoding) {
         this.vertx = vertx;
@@ -68,7 +64,7 @@ public class VertxSocketClientUtils {
      * @param socketPort   the port of the TCP server
      * @param inputMessage the message to send
      * @return a Future that will be completed with the response from the server,
-     *         or failed if the connection or communication fails
+     * or failed if the connection or communication fails
      */
     public Future<String> sendAndReceive(String socketHost, int socketPort, String inputMessage) {
         Promise<String> promise = Promise.promise();
