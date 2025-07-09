@@ -40,6 +40,7 @@ public final class CommonConstant {
     public static final String DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
     public static final String DEFAULT_LOCAL_DATE_STRING_PATTERN = "yyyy-MM-dd";
     public static final String UTF_8_STANDARD_CHARSET = "UTF-8";
+    public static final Void VOID = null;
     public static final TypeToken<LinkedHashMap<String, Object>> HASH_MAP_GSON_TYPE_TOKEN = new TypeToken<LinkedHashMap<String, Object>>() {
     };
     /**
