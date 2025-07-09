@@ -569,6 +569,22 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 codeLines.add(
                         "            return result;"
                 );
+            } else if (genericType.equals("java.lang.Integer")) {
+                codeLines.add(
+                        "            long result = 0;"
+                );
+                codeLines.add(
+                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                result += row.getInteger(0);"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                codeLines.add(
+                        "            return result;"
+                );
             } else {
                 codeLines.add(
                         "            if (rowSet.size() == 0) {"
@@ -663,7 +679,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         } else {
             if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
                 codeLines.add(
-                        "        .execute()"
+                        "        .execute();"
                 );
             } else {
                 codeLines.add(
@@ -698,7 +714,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         } else {
             if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
                 codeLines.add(
-                        "        .execute()"
+                        "        .execute();"
                 );
             } else {
                 codeLines.add(
@@ -733,7 +749,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         } else {
             if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
                 codeLines.add(
-                        "        .execute()"
+                        "        .execute();"
                 );
             } else {
                 codeLines.add(
@@ -768,7 +784,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         } else {
             if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
                 codeLines.add(
-                        "        .execute()"
+                        "        .execute();"
                 );
             } else {
                 codeLines.add(
@@ -838,6 +854,22 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 );
                 codeLines.add(
                         "                result += row.getLong(0);"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                codeLines.add(
+                        "            return result;"
+                );
+            } else if (genericType.equals("java.lang.Integer")) {
+                codeLines.add(
+                        "            long result = 0;"
+                );
+                codeLines.add(
+                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                result += row.getInteger(0);"
                 );
                 codeLines.add(
                         "            }"
