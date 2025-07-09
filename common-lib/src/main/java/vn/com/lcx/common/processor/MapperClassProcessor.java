@@ -207,8 +207,14 @@ public class MapperClassProcessor extends AbstractProcessor {
         TypeElement inputClassTypeElement = processingEnv.getElementUtils().getTypeElement(firstInputParameterClass);
         TypeElement outputClassTypeElement = processingEnv.getElementUtils().getTypeElement(methodReturnClass);
         String mappingLineCodeTemplate = "\n        instance.set%s(%s.get%s());";
-        List<Element> inputClassFields = new ArrayList<>(TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), inputClassTypeElement));
-        List<Element> outputClassFields = new ArrayList<>(TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), outputClassTypeElement));
+        List<Element> inputClassFields = TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), inputClassTypeElement)
+                .stream()
+                .filter(element -> !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC)))
+                .collect(Collectors.toList());
+        List<Element> outputClassFields = TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), outputClassTypeElement)
+                .stream()
+                .filter(element -> !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC)))
+                .collect(Collectors.toList());
         List<String> listOfMappingLineCodes = new ArrayList<>();
         if (listOfMappingAnnotations.isEmpty()) {
             for (Element outputClassField : outputClassFields) {
