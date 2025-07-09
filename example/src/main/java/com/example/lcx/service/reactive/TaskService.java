@@ -25,6 +25,7 @@ import vn.com.lcx.common.database.pageable.Direction;
 import vn.com.lcx.common.database.pageable.Page;
 import vn.com.lcx.common.database.pageable.PostgreSQLPageable;
 import vn.com.lcx.common.utils.DateTimeUtils;
+import vn.com.lcx.reactive.utils.TransactionUtils;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
 import java.math.BigInteger;
@@ -52,7 +53,7 @@ public class TaskService {
                     newTask.setUpdatedAt(currentDateTime);
                     newTask.setCreatedAt(currentDateTime);
 
-                    return executeInTransaction(context, connection ->
+                    return TransactionUtils.executeInTransaction(pool, connection ->
                             taskRepository.save(context, connection, newTask)
                     ).map(it -> null);
                 });
@@ -151,7 +152,7 @@ public class TaskService {
         return getUserFromContext(context)
                 .compose(userJWTTokenInfo -> validateUserAndGetConnection(context, userJWTTokenInfo.getUsername()))
                 .compose(userEntity ->
-                        executeInTransaction(context, connection ->
+                        TransactionUtils.executeInTransaction(pool, connection ->
                                 findAndValidateTask(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
                                         .compose(task -> {
                                             final var currentDateTime = DateTimeUtils.generateCurrentTimeDefault();
@@ -170,7 +171,7 @@ public class TaskService {
         return getUserFromContext(context)
                 .compose(userJWTTokenInfo -> validateUserAndGetConnection(context, userJWTTokenInfo.getUsername()))
                 .compose(userEntity ->
-                        executeInTransaction(context, connection ->
+                        TransactionUtils.executeInTransaction(pool, connection ->
                                 findAndValidateTask(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
                                         .compose(task -> {
                                             task.setUpdatedBy(userEntity.getUsername());
@@ -185,7 +186,7 @@ public class TaskService {
         return getUserFromContext(context)
                 .compose(userJWTTokenInfo -> validateUserAndGetConnection(context, userJWTTokenInfo.getUsername()))
                 .compose(userEntity ->
-                        executeInTransaction(context, connection ->
+                        TransactionUtils.executeInTransaction(pool, connection ->
                                 findAndValidateTask(context, connection, BigInteger.valueOf(request.getId()), userEntity.getId())
                                         .compose(task -> {
                                             if (task.getFinished()) {
@@ -224,30 +225,6 @@ public class TaskService {
         return pool.getConnection()
                 .compose(connection ->
                         userService.validateUser(context, connection, username)
-                                .eventually(connection::close)
-                );
-    }
-
-    private <T> Future<T> executeInTransaction(final RoutingContext context,
-                                               final Function<SqlConnection, Future<T>> transactionFunction) {
-        return pool.getConnection()
-                .compose(connection ->
-                        connection.begin()
-                                .compose(transaction ->
-                                        transactionFunction.apply(connection)
-                                                .compose(result ->
-                                                        transaction.commit()
-                                                                .map(v -> result)
-                                                )
-                                                .onFailure(err ->
-                                                        transaction.rollback()
-                                                                .onComplete(rollbackResult -> {
-                                                                    if (rollbackResult.failed()) {
-                                                                        err.addSuppressed(rollbackResult.cause());
-                                                                    }
-                                                                })
-                                                )
-                                )
                                 .eventually(connection::close)
                 );
     }
