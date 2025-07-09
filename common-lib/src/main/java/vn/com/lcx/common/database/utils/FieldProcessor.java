@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Field processor for handling individual fields
@@ -55,7 +56,12 @@ public class FieldProcessor {
     private void processIdField(String columnName, String fieldTypeName) {
         if (fieldTypeName.contains("Long") || fieldTypeName.contains("BigDecimal") || fieldTypeName.contains("BigInteger")) {
             String idDefinition = databaseStrategy.generateIdColumnDefinition(columnName, fieldTypeName);
-            context.getColumnDefinitionLines().add(Arrays.asList(columnName, idDefinition.split(" ")[1], "PRIMARY KEY"));
+            final var definitionLineParts = new ArrayList<String>();
+            definitionLineParts.add(columnName);
+            definitionLineParts.addAll(
+                    Arrays.stream(idDefinition.split(" ")).collect(Collectors.toCollection(ArrayList::new))
+            );
+            context.getColumnDefinitionLines().add(definitionLineParts);
 
             String sequenceStatement = databaseStrategy.generateSequenceStatement(context.getFinalTableName());
             if (StringUtils.isNotBlank(sequenceStatement)) {
