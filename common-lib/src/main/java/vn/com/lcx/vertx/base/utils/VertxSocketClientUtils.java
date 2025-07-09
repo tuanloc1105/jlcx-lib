@@ -7,6 +7,7 @@ import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.buffer.Buffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 // Sử dụng SLF4J nếu có, nếu không thì dùng System.err
@@ -25,12 +26,12 @@ import java.util.concurrent.TimeUnit;
  *   Vertx vertx = Vertx.vertx();
  *   VertxSocketClientUtils clientUtils = new VertxSocketClientUtils(vertx);
  *   clientUtils.sendAndReceive("localhost", 1234, "Hello")
- *     .onSuccess(response -> System.out.println("Received: " + response))
  *     .onFailure(Throwable::printStackTrace);
  * </pre>
  */
 public class VertxSocketClientUtils {
 
+    private final Vertx vertx;
     private final NetClient client;
     private final long timeoutMillis;
     private final Charset encoding;
@@ -42,7 +43,7 @@ public class VertxSocketClientUtils {
      * @param vertx the Vertx instance to use for creating the NetClient
      */
     public VertxSocketClientUtils(Vertx vertx) {
-        this(vertx, 5000, Charset.forName("UTF-8"));
+        this(vertx, 5000, StandardCharsets.UTF_8);
     }
 
     /**
@@ -53,6 +54,7 @@ public class VertxSocketClientUtils {
      * @param encoding charset for encoding/decoding messages
      */
     public VertxSocketClientUtils(Vertx vertx, long timeoutMillis, Charset encoding) {
+        this.vertx = vertx;
         this.client = vertx.createNetClient();
         this.timeoutMillis = timeoutMillis;
         this.encoding = encoding;
@@ -72,13 +74,11 @@ public class VertxSocketClientUtils {
         Promise<String> promise = Promise.promise();
         final long startTime = System.currentTimeMillis();
         final var connectFuture = client.connect(socketPort, socketHost);
-        final Vertx vertx = client.vertx();
 
         // Timeout handler
         final long timerId = vertx.setTimer(timeoutMillis, tid -> {
             if (!promise.future().isComplete()) {
                 // logger.error("Socket operation timed out after {} ms", timeoutMillis);
-                System.err.println("Socket operation timed out after " + timeoutMillis + " ms");
                 promise.tryFail(new RuntimeException("Socket operation timed out after " + timeoutMillis + " ms"));
             }
         });
@@ -89,26 +89,22 @@ public class VertxSocketClientUtils {
                 socket.handler(buffer -> handleBuffer(socket, buffer, promise, timerId));
                 socket.exceptionHandler(ex -> {
                     // logger.error("Socket exception: ", ex);
-                    System.err.println("Socket exception: " + ex.getMessage());
                     promise.tryFail(ex);
                     closeSocket(socket);
                 });
                 socket.closeHandler(v -> {
                     if (!promise.future().isComplete()) {
                         // logger.error("Socket closed before response received");
-                        System.err.println("Socket closed before response received");
                         promise.tryFail(new RuntimeException("Socket closed before response received"));
                     }
                 });
             } catch (Exception ex) {
                 // logger.error("Error during socket operation: ", ex);
-                System.err.println("Error during socket operation: " + ex.getMessage());
                 promise.tryFail(ex);
                 closeSocket(socket);
             }
         }).onFailure(ex -> {
             // logger.error("Failed to connect to {}:{}", socketHost, socketPort, ex);
-            System.err.println("Failed to connect to " + socketHost + ":" + socketPort + ", error: " + ex.getMessage());
             promise.tryFail(ex);
         });
 
@@ -126,8 +122,6 @@ public class VertxSocketClientUtils {
     }
 
     private void closeSocket(NetSocket socket) {
-        if (!socket.isClosed()) {
-            socket.close();
-        }
+        socket.close();
     }
 }
