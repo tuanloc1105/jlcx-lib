@@ -189,7 +189,7 @@ public class TaskService {
                         TransactionUtils.executeInTransaction(pool, connection -> {
                                     Future<Void> chain = Future.succeededFuture();
                                     for (Long id : request.getId()) {
-                                        chain.compose(v ->
+                                        chain = chain.compose(v ->
                                                 findAndValidateTask(context, connection, BigInteger.valueOf(id), userEntity.getId())
                                                         .compose(task -> {
                                                             task.setUpdatedBy(userEntity.getUsername());
