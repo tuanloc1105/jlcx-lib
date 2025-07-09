@@ -628,7 +628,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     );
                 } else {
                     codeLines.add(
-                            "            return result.get(0);"
+                            "            return result.isEmpty() ? null : result.get(0);"
                     );
                 }
             }
@@ -920,7 +920,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     );
                 } else {
                     codeLines.add(
-                            "            return result.get(0);"
+                            "            return result.isEmpty() ? null : result.get(0);"
                     );
                 }
             }
