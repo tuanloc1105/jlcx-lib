@@ -918,7 +918,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
                 ).forEach(element -> {
                     final String fieldName = element.getSimpleName().toString();
-                    final String fieldType = element.asType().toString();
+                    // final String fieldType = element.asType().toString();
                     ColumnName columnNameAnnotation = element.getAnnotation(ColumnName.class);
                     String databaseColumnNameToBeGet = Optional
                             .ofNullable(columnNameAnnotation)
@@ -990,6 +990,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
         deleteVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
         deleteVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(idFieldName)));
         deleteVertClientParameterCodeLines.add("}");
+        updateVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
+        updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(idFieldName)));
+        updateVertClientParameterCodeLines.add("}");
         insertJdbcParameterCodeLines.add("return map;");
         updateJdbcParameterCodeLines.add("return map;");
         deleteJdbcParameterCodeLines.add("return map;");
