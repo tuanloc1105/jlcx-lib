@@ -508,7 +508,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             word.replace(
                                     "?",
                                     String.format(
-                                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")\n",
+                                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")",
                                             actualParameters.get(index).getSimpleName()
                                     )
                             )
