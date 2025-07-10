@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static vn.com.lcx.common.constant.CommonConstant.BUILDER_MAP;
 import static vn.com.lcx.common.database.utils.EntityUtils.getTableShortenedName;
@@ -432,50 +433,71 @@ public final class SelectStatementBuilder {
                             case "notin":
                             case "in":
                                 // final var parameterWithListDataType = (List<?>) parameters.stream().filter(o -> o instanceof List<?>).findFirst().orElse(null);
-                                // List<?> parameterWithListDataType = null;
-                                // for (int i = 0; i < parameters.size(); i++) {
-
-                                //     if (handledParameterIndexThatIsAList.contains(i)) {
-                                //         continue;
-                                //     }
-
-                                //     if (parameters.get(i) instanceof List<?>) {
-                                //         parameterWithListDataType = (List<?>) parameters.get(i);
-                                //         handledParameterIndexThatIsAList.add(i);
-                                //         break;
-                                //     }
-                                // }
-                                // if (parameterWithListDataType == null) {
-                                //     throw new RuntimeException("In condition statement must contain at least 1 collection parameter");
-                                // }
-                                // conditionSQLStatement.add(
-                                //         String.format(
-                                //                 "%s %s (%s)",
-                                //                 columnName,
-                                //                 condition.equals("in") ? "IN" : "NOT IN",
-                                //                 parameterWithListDataType.stream()
-                                //                         .map(a -> "?")
-                                //                         .collect(Collectors.joining(", "))
-                                //         )
-                                // );
+                                List<?> parameterWithListDataType = null;
+                                for (int i = 0; i < parameters.size(); i++) {
+                                    if (handledParameterIndexThatIsAList.contains(i)) {
+                                        continue;
+                                    }
+                                    if (parameters.get(i) instanceof List<?>) {
+                                        parameterWithListDataType = (List<?>) parameters.get(i);
+                                        handledParameterIndexThatIsAList.add(i);
+                                        break;
+                                    }
+                                }
+                                if (parameterWithListDataType == null) {
+                                    throw new RuntimeException("In condition statement must contain at least 1 collection parameter");
+                                }
                                 if (placeHolder.equals("?")) {
-                                    conditionSQLStatement.add(
-                                            String.format(
-                                                    "%s %s ?",
-                                                    columnName,
-                                                    condition.equals("in") ? "IN" : "NOT IN"
-                                            )
-                                    );
+                                    if (parameterWithListDataType.isEmpty()) {
+                                        conditionSQLStatement.add(
+                                                String.format(
+                                                        "%s %s (NULL)",
+                                                        columnName,
+                                                        condition.equals("in") ? "IN" : "NOT IN"
+                                                )
+                                        );
+                                    } else {
+                                        conditionSQLStatement.add(
+                                                String.format(
+                                                        "%s %s (%s)",
+                                                        columnName,
+                                                        condition.equals("in") ? "IN" : "NOT IN",
+                                                        parameterWithListDataType.stream()
+                                                                .map(a -> "?")
+                                                                .collect(Collectors.joining(", "))
+                                                )
+                                        );
+                                    }
                                 } else {
-                                    conditionSQLStatement.add(
-                                            String.format(
-                                                    "%s %s %s%s",
-                                                    columnName,
-                                                    condition.equals("in") ? "IN" : "NOT IN",
-                                                    placeHolder,
-                                                    ++count
-                                            )
-                                    );
+                                    final var statement = new StringBuilder(columnName).append(" ")
+                                            .append(condition.equals("in") ? "IN" : "NOT IN").append(" ");
+                                    if (parameterWithListDataType.isEmpty()) {
+                                        statement.append("(")
+                                                .append("NULL")
+                                                .append(")");
+                                    } else {
+                                        statement.append("(");
+                                        for (Object ignored : parameterWithListDataType) {
+                                            statement.append(
+                                                    String.format(
+                                                            "%s%s",
+                                                            placeHolder,
+                                                            ++count
+                                                    )
+                                            );
+                                        }
+                                        statement.append(")");
+                                    }
+                                    conditionSQLStatement.add(statement.toString());
+                                    // conditionSQLStatement.add(
+                                    //         String.format(
+                                    //                 "%s %s %s%s",
+                                    //                 columnName,
+                                    //                 condition.equals("in") ? "IN" : "NOT IN",
+                                    //                 placeHolder,
+                                    //                 ++count
+                                    //         )
+                                    // );
                                 }
                                 break;
                             case "notlike":

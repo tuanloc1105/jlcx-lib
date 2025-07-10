@@ -27,6 +27,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
     public Future<T> execute(Tuple tuple) {
         StringBuilder parametersLog = new StringBuilder("parameters:");
         final int size = tuple.size();
+        final var actualTuple = Tuple.tuple();
         for (int i = 0; i < size; ++i) {
             Object value = tuple.getValue(i);
             parametersLog.append(
@@ -36,9 +37,17 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                             value
                     )
             );
+            if (value instanceof List) {
+                final var listVal = (List) value;
+                for (Object o : listVal) {
+                    actualTuple.addValue(o);
+                }
+            } else {
+                actualTuple.addValue(value);
+            }
         }
         LogUtils.writeLog(context, LogUtils.Level.INFO, parametersLog.toString());
-        return realPreparedQuery.execute(tuple);
+        return realPreparedQuery.execute(actualTuple);
     }
 
     @Override
