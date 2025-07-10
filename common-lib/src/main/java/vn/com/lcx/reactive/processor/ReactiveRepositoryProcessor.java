@@ -505,13 +505,18 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             if (word.startsWith("?")) {
                 if (statementArr[i - 1].equalsIgnoreCase("IN")) {
                     finalStatementArray.add(
-                            String.format(
-                                    "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")\n",
-                                    actualParameters.get(index).getSimpleName()
+                            word.replace(
+                                    "?",
+                                    String.format(
+                                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")\n",
+                                            actualParameters.get(index).getSimpleName()
+                                    )
                             )
                     );
                 } else {
-                    finalStatementArray.add("\" + placeholder + (count.incrementAndGet()) + \"");
+                    finalStatementArray.add(
+                            word.replace("?", "\" + placeholder + (count.incrementAndGet()) + \"")
+                    );
                 }
                 index = index + 1;
             } else {
