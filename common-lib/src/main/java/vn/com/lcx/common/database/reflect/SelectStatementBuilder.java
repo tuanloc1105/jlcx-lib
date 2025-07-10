@@ -227,7 +227,7 @@ public final class SelectStatementBuilder {
     }
 
     public String build(String methodName, Object... parameters) {
-        String statement = CommonConstant.STATEMENT_OF_METHOD.get(methodName);
+        String statement = CommonConstant.STATEMENT_OF_METHOD.get(entityClass.getName() + methodName);
         if (StringUtils.isBlank(statement)) {
             if (methodName.startsWith("count")) {
                 statement = this.generateCountStatement();
@@ -246,7 +246,7 @@ public final class SelectStatementBuilder {
                                 ((Pageable) parameters[0]).toSql() : CommonConstant.EMPTY_STRING
                 );
             }
-            CommonConstant.STATEMENT_OF_METHOD.put(methodName, statement);
+            CommonConstant.STATEMENT_OF_METHOD.put(entityClass.getName() + methodName, statement);
         }
         return statement;
     }
