@@ -355,7 +355,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
+                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
@@ -367,7 +367,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
+                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
@@ -379,7 +379,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
+                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"Oracle\")) {"
@@ -391,7 +391,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
+                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
         );
         codeLines.add(
                 "} else {"
@@ -421,7 +421,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
+                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
@@ -433,7 +433,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
+                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
@@ -445,7 +445,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
+                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
         );
         codeLines.add(
                 "} else if (databaseName.equals(\"Oracle\")) {"
@@ -457,7 +457,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         entityTypeMirror)
         );
         codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::size);", entityTypeMirror)
+                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
         );
         codeLines.add(
                 "} else {"
@@ -597,37 +597,51 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 genericType = futureOutputType;
             }
             if (genericType.equals("java.lang.Long")) {
-                codeLines.add(
-                        "            long result = 0;"
-                );
-                codeLines.add(
-                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                );
-                codeLines.add(
-                        "                result += row.getLong(0);"
-                );
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            return result;"
-                );
+                if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                        finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                    codeLines.add(
+                            "            return (long) rowSet.rowCount();"
+                    );
+                } else {
+                    codeLines.add(
+                            "            long result = 0;"
+                    );
+                    codeLines.add(
+                            "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                    );
+                    codeLines.add(
+                            "                result += row.getLong(0);"
+                    );
+                    codeLines.add(
+                            "            }"
+                    );
+                    codeLines.add(
+                            "            return result;"
+                    );
+                }
             } else if (genericType.equals("java.lang.Integer")) {
-                codeLines.add(
-                        "            int result = 0;"
-                );
-                codeLines.add(
-                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                );
-                codeLines.add(
-                        "                result += row.getInteger(0);"
-                );
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            return result;"
-                );
+                if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                        finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                    codeLines.add(
+                            "            return rowSet.rowCount();"
+                    );
+                } else {
+                    codeLines.add(
+                            "            int result = 0;"
+                    );
+                    codeLines.add(
+                            "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                    );
+                    codeLines.add(
+                            "                result += row.getInteger(0);"
+                    );
+                    codeLines.add(
+                            "            }"
+                    );
+                    codeLines.add(
+                            "            return result;"
+                    );
+                }
             } else {
                 codeLines.add(
                         "            if (rowSet.size() == 0) {"
