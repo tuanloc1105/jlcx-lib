@@ -477,8 +477,9 @@ public final class SelectStatementBuilder {
                                                 .append(")");
                                     } else {
                                         statement.append("(");
+                                        final List<String> placeholderArr = new ArrayList<>();
                                         for (Object ignored : parameterWithListDataType) {
-                                            statement.append(
+                                            placeholderArr.add(
                                                     String.format(
                                                             "%s%s",
                                                             placeHolder,
@@ -486,6 +487,9 @@ public final class SelectStatementBuilder {
                                                     )
                                             );
                                         }
+                                        statement.append(
+                                                String.join(", ", placeholderArr)
+                                        );
                                         statement.append(")");
                                     }
                                     conditionSQLStatement.add(statement.toString());
