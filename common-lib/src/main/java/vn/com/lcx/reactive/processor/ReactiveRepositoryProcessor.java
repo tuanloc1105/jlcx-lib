@@ -515,7 +515,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     );
                 } else {
                     finalStatementArray.add(
-                            word.replace("?", "\" + placeholder + (count.incrementAndGet()) + \"")
+                            word.replace("?", "\" + placeholder + (placeholder.equals(\"?\") ? \"\" : count.incrementAndGet()) + \"")
                     );
                 }
                 index = index + 1;
