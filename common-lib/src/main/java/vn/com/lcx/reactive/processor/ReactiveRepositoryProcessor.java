@@ -2,6 +2,7 @@ package vn.com.lcx.reactive.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
@@ -480,7 +481,44 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                           boolean isReturningList,
                                           String futureOutputType) {
         // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
-        final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n\" +\n                        \"");
+
+        codeLines.add("java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);");
+        codeLines.add("String placeholder;");
+        codeLines.add("if (databaseName.equals(\"PostgreSQL\")) {");
+        codeLines.add("    placeholder = \"$\";");
+        codeLines.add("} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {");
+        codeLines.add("    placeholder = \"?\";");
+        codeLines.add("} else if (databaseName.equals(\"Microsoft SQL Server\")) {");
+        codeLines.add("    placeholder = \"@p\";");
+        codeLines.add("} else if (databaseName.equals(\"Oracle\")) {");
+        codeLines.add("    placeholder = \"?\";");
+        codeLines.add("} else {");
+        codeLines.add("    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");");
+        codeLines.add("}");
+
+        final var statement = executableElement.getAnnotation(Query.class);
+        final var statementArr = statement.value().split(" ");
+        var index = 0;
+        final var finalStatementArray = new ArrayList<String>();
+        for (int i = 0; i < statementArr.length; i++) {
+            final var word = statementArr[i];
+            if (word.startsWith("?")) {
+                if (statementArr[i - 1].equalsIgnoreCase("IN")) {
+                    finalStatementArray.add(
+                            String.format(
+                                    "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")\n",
+                                    actualParameters.get(index).getSimpleName()
+                            )
+                    );
+                } else {
+                    finalStatementArray.add("\" + placeholder + (count.incrementAndGet()) + \"");
+                }
+                index = index + 1;
+            } else {
+                finalStatementArray.add(word);
+            }
+        }
+        final String queryStatement = String.join(" ", finalStatementArray).replace("\n", "\\n\" +\n                        \"");
         if (lastParameterIsPageable(actualParameters)) {
             codeLines.add(
                     String.format("return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\" + %4$s)",
