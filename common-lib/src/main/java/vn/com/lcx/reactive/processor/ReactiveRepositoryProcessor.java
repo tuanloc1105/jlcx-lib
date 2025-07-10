@@ -349,7 +349,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
         codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"$\") + \" returning \" + %3$sUtils.idColumnName())",
+                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"$\"))",
                         sqlConnectionVariable.getSimpleName().toString(),
                         contextVariable.getSimpleName().toString(),
                         entityTypeMirror)
