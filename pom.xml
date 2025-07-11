@@ -16,7 +16,7 @@
         <logback-classic-ch.qos.logback.version>1.5.18</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.13.1</commons-text-org.apache.commons.version>
-        <commons-lang3-org.apache.commons.version>3.17.0</commons-lang3-org.apache.commons.version>
+        <commons-lang3-org.apache.commons.version>3.18.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
         <ojdbc11-com.oracle.database.jdbc.version>23.8.0.25.04</ojdbc11-com.oracle.database.jdbc.version>
@@ -51,7 +51,7 @@
         <HikariCP-com.zaxxer.version>6.3.0</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
         <hibernate-core-org.hibernate.orm.version>6.6.20.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.18.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.19.Final</hibernate-tools-orm-org.hibernate.tool.version>
         <hibernate-jcache-org.hibernate.orm.version>6.6.20.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.10.8</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.1</vertx-core-io.vertx.version>
@@ -62,17 +62,18 @@
         <vertx-unit-io.vertx.version>5.0.1</vertx-unit-io.vertx.version>
         <vertx-auth-jwt-io.vertx.version>5.0.1</vertx-auth-jwt-io.vertx.version>
         <vertx-micrometer-metrics-io.vertx.version>5.0.1</vertx-micrometer-metrics-io.vertx.version>
-        <junit-jupiter-api-org.junit.jupiter.version>5.13.2</junit-jupiter-api-org.junit.jupiter.version>
-        <junit-jupiter-engine-org.junit.jupiter.version>5.13.2</junit-jupiter-engine-org.junit.jupiter.version>
-        <junit-jupiter-params-org.junit.jupiter.version>5.13.2</junit-jupiter-params-org.junit.jupiter.version>
-        <mockito-core-org.mockito.version>5.18.0</mockito-core-org.mockito.version>
-        <mockito-junit-jupiter-org.mockito.version>5.18.0</mockito-junit-jupiter-org.mockito.version>
-        <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
-        <byte-buddy-net.bytebuddy.version>1.17.6</byte-buddy-net.bytebuddy.version>
         <vertx-oracle-client-io.vertx.version>5.0.1</vertx-oracle-client-io.vertx.version>
         <vertx-mysql-client-io.vertx.version>5.0.1</vertx-mysql-client-io.vertx.version>
         <vertx-pg-client-io.vertx.version>5.0.1</vertx-pg-client-io.vertx.version>
         <vertx-mssql-client-io.vertx.version>5.0.1</vertx-mssql-client-io.vertx.version>
+        <vertx-redis-client-io.vertx.version>5.0.1</vertx-redis-client-io.vertx.version>
+        <junit-jupiter-api-org.junit.jupiter.version>5.13.3</junit-jupiter-api-org.junit.jupiter.version>
+        <junit-jupiter-engine-org.junit.jupiter.version>5.13.3</junit-jupiter-engine-org.junit.jupiter.version>
+        <junit-jupiter-params-org.junit.jupiter.version>5.13.3</junit-jupiter-params-org.junit.jupiter.version>
+        <mockito-core-org.mockito.version>5.18.0</mockito-core-org.mockito.version>
+        <mockito-junit-jupiter-org.mockito.version>5.18.0</mockito-junit-jupiter-org.mockito.version>
+        <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
+        <byte-buddy-net.bytebuddy.version>1.17.6</byte-buddy-net.bytebuddy.version>
         <datafaker-net.datafaker.version>2.4.3</datafaker-net.datafaker.version>
 
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
@@ -429,6 +430,41 @@
                 <version>${vertx-micrometer-metrics-io.vertx.version}</version>
             </dependency>
 
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-oracle-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-oracle-client</artifactId>
+                <version>${vertx-oracle-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mysql-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-mysql-client</artifactId>
+                <version>${vertx-mysql-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-pg-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-pg-client</artifactId>
+                <version>${vertx-pg-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mssql-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-mssql-client</artifactId>
+                <version>${vertx-mssql-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-redis-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-redis-client</artifactId>
+                <version>${vertx-redis-client-io.vertx.version}</version>
+            </dependency>
+
             <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -476,34 +512,6 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
                 <version>${byte-buddy-net.bytebuddy.version}</version>
-            </dependency>
-
-            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-oracle-client -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-oracle-client</artifactId>
-                <version>${vertx-oracle-client-io.vertx.version}</version>
-            </dependency>
-
-            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mysql-client -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-mysql-client</artifactId>
-                <version>${vertx-mysql-client-io.vertx.version}</version>
-            </dependency>
-
-            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-pg-client -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-pg-client</artifactId>
-                <version>${vertx-pg-client-io.vertx.version}</version>
-            </dependency>
-
-            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mssql-client -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-mssql-client</artifactId>
-                <version>${vertx-mssql-client-io.vertx.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/net.datafaker/datafaker -->
