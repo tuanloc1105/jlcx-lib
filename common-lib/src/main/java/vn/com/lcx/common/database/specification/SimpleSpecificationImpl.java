@@ -37,7 +37,7 @@ public class SimpleSpecificationImpl implements Specification {
         this.times = times;
     }
 
-    public static SimpleSpecificationImpl of(Class<?> entityClass) {
+    protected static SimpleSpecificationImpl of(Class<?> entityClass) {
         return new SimpleSpecificationImpl(entityClass);
     }
 
@@ -179,7 +179,8 @@ public class SimpleSpecificationImpl implements Specification {
             throw new IllegalArgumentException(String.format("Cannot find the column name of [%s]", fieldName));
         }
         parameters.add(value);
-        finalSQL.append(tableShortenName).append(".").append(columnNameOfField).append(" LIKE '%' || ? || '%'");
+        // finalSQL.append(tableShortenName).append(".").append(columnNameOfField).append(" LIKE '%' || ? || '%'");
+        finalSQL.append(tableShortenName).append(".").append(columnNameOfField).append(" LIKE ?");
         times++;
         return this;
     }
