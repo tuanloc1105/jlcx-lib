@@ -2,34 +2,26 @@ package com.example.lcx.controller;
 
 import com.example.lcx.object.request.CreateNewUserRequest;
 import com.example.lcx.object.request.UserLoginRequest;
-import com.example.lcx.service.UserService;
 import com.google.gson.reflect.TypeToken;
 import io.vertx.ext.web.RoutingContext;
-import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.vertx.base.annotation.process.Auth;
 import vn.com.lcx.vertx.base.annotation.process.Block;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
-import vn.com.lcx.vertx.base.annotation.process.Get;
 import vn.com.lcx.vertx.base.annotation.process.Post;
 import vn.com.lcx.vertx.base.controller.BaseController;
-import vn.com.lcx.vertx.base.http.response.CommonResponse;
+import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
-@RequiredArgsConstructor
 @Component
 @Controller(path = "/api/v1/user")
 @Block
 public class UserController extends BaseController {
-
-    private final UserService userService;
 
     @Post(path = "/create_new")
     public void createNew(RoutingContext ctx) {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    userService.createNew(o);
-                    return new CommonResponse();
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
                 },
                 new TypeToken<CreateNewUserRequest>() {
                 }
@@ -40,16 +32,12 @@ public class UserController extends BaseController {
     public void login(RoutingContext ctx) {
         this.executeThreadBlock(
                 ctx,
-                (routingContext, o) -> userService.login(o),
+                (routingContext, o) -> {
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
+                },
                 new TypeToken<UserLoginRequest>() {
                 }
         );
-    }
-
-    @Get(path = "/test")
-    @Auth
-    public void test(RoutingContext ctx) {
-        ctx.end("hello");
     }
 
 }

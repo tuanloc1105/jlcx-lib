@@ -2,7 +2,7 @@ package com.example.lcx.controller;
 
 import com.example.lcx.object.request.CreateNewUserRequest;
 import com.example.lcx.object.request.UserLoginRequest;
-import com.example.lcx.service.reactive.UserService;
+import com.example.lcx.service.UserService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.vertx.ext.web.RoutingContext;

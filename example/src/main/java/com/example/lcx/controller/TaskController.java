@@ -7,28 +7,20 @@ import com.example.lcx.object.request.GetTaskDetailRequest;
 import com.example.lcx.object.request.MarkTaskAsFinishedRequest;
 import com.example.lcx.object.request.SearchTasksByNameRequest;
 import com.example.lcx.object.request.UpdateTaskRequest;
-import com.example.lcx.object.response.GetAllTaskResponse;
-import com.example.lcx.object.response.GetTaskDetailResponse;
-import com.example.lcx.object.response.SearchTasksByNameResponse;
-import com.example.lcx.service.TaskService;
 import com.google.gson.reflect.TypeToken;
 import io.vertx.ext.web.RoutingContext;
-import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
 import vn.com.lcx.vertx.base.annotation.process.Block;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
 import vn.com.lcx.vertx.base.annotation.process.Post;
 import vn.com.lcx.vertx.base.controller.BaseController;
-import vn.com.lcx.vertx.base.http.response.CommonResponse;
+import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
-@RequiredArgsConstructor
 @Component
 @Controller(path = "/api/v1/task")
 @Block
 public class TaskController extends BaseController {
-
-    private final TaskService taskService;
 
     @Post(path = "/create_task")
     @Auth
@@ -36,8 +28,7 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    taskService.createTask(o);
-                    return new CommonResponse();
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
                 },
                 new TypeToken<CreateTaskRequest>() {
                 }
@@ -50,8 +41,7 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var data = taskService.getTaskDetail(o);
-                    return new GetTaskDetailResponse(data);
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
                 },
                 new TypeToken<GetTaskDetailRequest>() {
                 }
@@ -64,8 +54,7 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var data = taskService.searchTasksByName(o);
-                    return new SearchTasksByNameResponse(data);
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
                 },
                 new TypeToken<SearchTasksByNameRequest>() {
                 }
@@ -78,8 +67,7 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    final var data = taskService.getAllTask(o);
-                    return new GetAllTaskResponse(data);
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
                 },
                 new TypeToken<GetAllTaskRequest>() {
                 }
@@ -92,8 +80,7 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    taskService.updateTask(o);
-                    return new CommonResponse();
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
                 },
                 new TypeToken<UpdateTaskRequest>() {
                 }
@@ -106,8 +93,7 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    taskService.deleteTask(o);
-                    return new CommonResponse();
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
                 },
                 new TypeToken<DeleteTaskRequest>() {
                 }
@@ -120,8 +106,7 @@ public class TaskController extends BaseController {
         this.executeThreadBlock(
                 ctx,
                 (routingContext, o) -> {
-                    taskService.markTaskAsFinished(o);
-                    return new CommonResponse();
+                    throw new InternalServiceException(410, 410, "API is deprecated, please use v2 instead");
                 },
                 new TypeToken<MarkTaskAsFinishedRequest>() {
                 }
