@@ -75,6 +75,7 @@
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
         <byte-buddy-net.bytebuddy.version>1.17.6</byte-buddy-net.bytebuddy.version>
         <datafaker-net.datafaker.version>2.4.3</datafaker-net.datafaker.version>
+        <h2-com.h2database.version>2.3.232</h2-com.h2database.version>
 
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
@@ -519,6 +520,13 @@
                 <groupId>net.datafaker</groupId>
                 <artifactId>datafaker</artifactId>
                 <version>${datafaker-net.datafaker.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2-com.h2database.version}</version>
             </dependency>
 
         </dependencies>
