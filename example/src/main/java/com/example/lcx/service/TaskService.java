@@ -55,7 +55,7 @@ public class TaskService {
 
                     return TransactionUtils.executeInTransaction(pool, connection ->
                             taskRepository.save(context, connection, newTask)
-                    ).map(it -> null);
+                    ).map(it -> CommonConstant.VOID);
                 });
     }
 
@@ -161,7 +161,7 @@ public class TaskService {
                                             task.setRemindAt(request.getRemindAt());
                                             task.setUpdatedBy(userEntity.getUsername());
                                             task.setUpdatedAt(currentDateTime);
-                                            return taskRepository.update(context, connection, task).map(it -> null);
+                                            return taskRepository.update(context, connection, task).map(it -> CommonConstant.VOID);
                                         })
                         )
                 );
@@ -176,7 +176,7 @@ public class TaskService {
                                         .compose(task -> {
                                             task.setUpdatedBy(userEntity.getUsername());
                                             task.setDeletedAt(DateTimeUtils.generateCurrentTimeDefault());
-                                            return taskRepository.update(context, connection, task).map(it -> null);
+                                            return taskRepository.update(context, connection, task).map(it -> CommonConstant.VOID);
                                         })
                         )
                 );
@@ -194,7 +194,7 @@ public class TaskService {
                                                         .compose(task -> {
                                                             task.setUpdatedBy(userEntity.getUsername());
                                                             task.setDeletedAt(DateTimeUtils.generateCurrentTimeDefault());
-                                                            return taskRepository.update(context, connection, task).map(it -> null);
+                                                            return taskRepository.update(context, connection, task).map(it -> CommonConstant.VOID);
                                                         })
                                         );
                                     }
@@ -217,7 +217,7 @@ public class TaskService {
                                             task.setUpdatedBy(userEntity.getUsername());
                                             task.setUpdatedAt(DateTimeUtils.generateCurrentTimeDefault());
                                             task.setFinished(true);
-                                            return taskRepository.update(context, connection, task).map(it -> null);
+                                            return taskRepository.update(context, connection, task).map(it -> CommonConstant.VOID);
                                         })
                         )
                 );
