@@ -9,6 +9,7 @@ import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.Tuple;
 import vn.com.lcx.common.utils.LogUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -25,6 +26,17 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
 
     @Override
     public Future<T> execute(Tuple tuple) {
+        return realPreparedQuery.execute(extractTupleValue(tuple));
+    }
+
+    @Override
+    public Future<T> executeBatch(List<Tuple> batch) {
+        List<Tuple> actualBatch = new ArrayList<>();
+        batch.forEach(tuple -> actualBatch.add(extractTupleValue(tuple)));
+        return realPreparedQuery.executeBatch(actualBatch);
+    }
+
+    private Tuple extractTupleValue(Tuple tuple) {
         StringBuilder parametersLog = new StringBuilder("parameters:");
         final int size = tuple.size();
         final var actualTuple = Tuple.tuple();
@@ -38,7 +50,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                     )
             );
             if (value instanceof List) {
-                final var listVal = (List) value;
+                @SuppressWarnings("rawtypes") final var listVal = (List) value;
                 for (Object o : listVal) {
                     actualTuple.addValue(o);
                 }
@@ -47,12 +59,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
             }
         }
         LogUtils.writeLog(context, LogUtils.Level.INFO, parametersLog.toString());
-        return realPreparedQuery.execute(actualTuple);
-    }
-
-    @Override
-    public Future<T> executeBatch(List<Tuple> batch) {
-        return realPreparedQuery.executeBatch(batch);
+        return actualTuple;
     }
 
     @Override
