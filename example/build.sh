@@ -4,6 +4,14 @@ export JAVA_HOME="$HOME/dev-kit/jdk-11"
 export MAVEN_HOME="$HOME/dev-kit/maven"
 export PATH="$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
 
+rm -R src/main/resources/webroot/* 1> /dev/null 2> /dev/null || printf "\n\n\t No webroot folder\n\n\n"
+
+cd web
+
+pnpm run build
+
+cd ..
+
 printf "\n\n >> Checking java version \n\n\n"
 
 java -version 2>&1
