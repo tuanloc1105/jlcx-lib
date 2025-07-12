@@ -13,14 +13,14 @@ public class MyRouterImpl extends RouterImpl {
 
     @Override
     public void handle(HttpServerRequest request) {
-        LogUtils.writeLog(
-                LogUtils.Level.INFO,
-                "Router: {} accepting request {} {}",
-                System.identityHashCode(this),
-                request.method(),
-                request.absoluteURI()
-
-        );
+        // LogUtils.writeLog(
+        //         LogUtils.Level.INFO,
+        //         "Router: {} accepting request {} {}",
+        //         System.identityHashCode(this),
+        //         request.method(),
+        //         request.absoluteURI()
+        //
+        // );
         super.handle(request);
     }
 
