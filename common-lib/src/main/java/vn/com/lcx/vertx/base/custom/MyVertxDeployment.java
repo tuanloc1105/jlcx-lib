@@ -70,17 +70,17 @@ public class MyVertxDeployment {
             );
             final Vertx vertx;
             if (enableMetric) {
-                PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-                registry.config().meterFilter(
-                        new MeterFilter() {
-                            @Override
-                            public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
-                                return DistributionStatisticConfig.builder()
-                                        .percentilesHistogram(true)
-                                        .build()
-                                        .merge(config);
-                            }
-                        });
+                // PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+                // registry.config().meterFilter(
+                //         new MeterFilter() {
+                //             @Override
+                //             public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+                //                 return DistributionStatisticConfig.builder()
+                //                         .percentilesHistogram(true)
+                //                         .build()
+                //                         .merge(config);
+                //             }
+                //         });
 
                 vertx = Vertx.builder()
                         .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
@@ -88,7 +88,7 @@ public class MyVertxDeployment {
                                 .setPrometheusOptions(new VertxPrometheusOptions()
                                         .setEnabled(true))
                         ))
-                        .withMetrics(new MicrometerMetricsFactory(registry))
+                        // .withMetrics(new MicrometerMetricsFactory(registry))
                         .build();
             } else {
                 vertx = Vertx.vertx();
