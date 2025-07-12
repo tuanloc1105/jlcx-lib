@@ -1,4 +1,4 @@
-[![Quality Gate Status](https://sonar.vtl.name.vn/api/project_badges/measure?project=jlcx-lib&metric=alert_status&token=sqb_c013aa1bd67625327e8e168b4891fc2eaba2dd66)](https://sonar.vtl.name.vn/dashboard?id=jlcx-lib)
+[![Quality gate](https://sonar.vtl.name.vn/api/project_badges/quality_gate?project=jlcx-lib&token=sqb_c013aa1bd67625327e8e168b4891fc2eaba2dd66)](https://sonar.vtl.name.vn/dashboard?id=jlcx-lib)
 
 # jlcx-lib
 
