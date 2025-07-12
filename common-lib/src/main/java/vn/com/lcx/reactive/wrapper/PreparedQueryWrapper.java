@@ -50,7 +50,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                     )
             );
             if (value instanceof List) {
-                @SuppressWarnings("rawtypes") final var listVal = (List) value;
+                final var listVal = (List<?>) value;
                 for (Object o : listVal) {
                     actualTuple.addValue(o);
                 }
