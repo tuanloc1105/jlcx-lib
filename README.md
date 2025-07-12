@@ -84,7 +84,7 @@ Add the parent POM to your project:
 <parent>
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>2.0</version>
+    <version>3.0.0</version>
     <relativePath/>
 </parent>
 ```
