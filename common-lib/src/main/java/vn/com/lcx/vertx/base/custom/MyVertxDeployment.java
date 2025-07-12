@@ -82,14 +82,18 @@ public class MyVertxDeployment {
                 //             }
                 //         });
 
-                vertx = Vertx.builder()
-                        .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
-                                .setEnabled(true)
-                                .setPrometheusOptions(new VertxPrometheusOptions()
-                                        .setEnabled(true))
-                        ))
-                        // .withMetrics(new MicrometerMetricsFactory(registry))
-                        .build();
+                // vertx = Vertx.builder()
+                //         .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
+                //                 .setEnabled(true)
+                //                 .setPrometheusOptions(new VertxPrometheusOptions()
+                //                         .setEnabled(true))
+                //         ))
+                //         // .withMetrics(new MicrometerMetricsFactory(registry))
+                //         .build();
+                vertx = Vertx.vertx(new VertxOptions().setMetricsOptions(
+                        new MicrometerMetricsOptions()
+                                .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))
+                                .setEnabled(true)));
             } else {
                 vertx = Vertx.vertx();
             }
