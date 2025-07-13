@@ -10,8 +10,6 @@ Remove-Item -Recurse src\main\resources\webroot\* *> $null || Write-Host "`n`n`t
 
 Set-Location web
 
-Remove-Item -Recurse node_modules
-
 bun install
 
 bun run build
