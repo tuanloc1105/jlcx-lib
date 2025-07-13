@@ -20,6 +20,7 @@ ${constructor}
                 router.route("/metrics").handler(io.vertx.micrometer.PrometheusScrapingHandler.create());
             }
             router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
+                    // .handler(io.vertx.ext.web.handler.SessionHandler.create(io.vertx.ext.web.sstore.LocalSessionStore.create(vertx)));
 
             router.get("/health").handler(routingContext -> routingContext.response().end("OK"));
             router.get("/starting_probe").handler(routingContext -> {

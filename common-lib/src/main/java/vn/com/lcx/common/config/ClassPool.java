@@ -56,7 +56,10 @@ public class ClassPool {
             listOfClassInPackage.clear();
             listOfClassInPackage.addAll(setOfClassInPackage);
 
-            final var sourceType = CommonConstant.applicationConfig.getPropertyWithEnvironment("server.database.type");
+            var sourceType = CommonConstant.applicationConfig.getPropertyWithEnvironment("server.database.type");
+            if (sourceType.equals(CommonConstant.NULL_STRING)) {
+                sourceType = CommonConstant.applicationConfig.getPropertyWithEnvironment("server.reactive.database.type");
+            }
             final var folderPath = FileUtils.pathJoining(
                     CommonConstant.ROOT_DIRECTORY_PROJECT_PATH,
                     "data",

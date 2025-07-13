@@ -18,7 +18,7 @@ public class VertxBaseVerticle extends VerticleBase {
         if (StringUtils.isBlank(traceFromInput)) {
             final var trace = UUIDv7.randomUUID().toString().replace(CommonConstant.HYPHEN, CommonConstant.EMPTY_STRING);
             context.put(TRACE_ID_MDC_KEY_NAME, trace.replace(CommonConstant.HYPHEN, CommonConstant.EMPTY_STRING));
-            LogUtils.writeLog(LogUtils.Level.INFO, "Create UUID Handler: {}", trace);
+            // LogUtils.writeLog(LogUtils.Level.INFO, "Create UUID Handler: {}", trace);
         }
         context.next();
     }
