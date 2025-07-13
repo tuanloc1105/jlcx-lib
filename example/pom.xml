@@ -25,8 +25,8 @@
         <java.version>${jdk.version}</java.version>
         <main.class>com.example.lcx.App</main.class>
 
-        <processor-vn.com.lcx.version>3.0.0</processor-vn.com.lcx.version>
-        <common-lib-vn.com.lcx.version>3.0.0</common-lib-vn.com.lcx.version>
+        <processor-vn.com.lcx.version>3.0.1</processor-vn.com.lcx.version>
+        <common-lib-vn.com.lcx.version>3.0.1</common-lib-vn.com.lcx.version>
 
     </properties>
 
