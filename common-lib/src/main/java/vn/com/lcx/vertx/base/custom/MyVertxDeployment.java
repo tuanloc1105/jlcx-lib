@@ -90,6 +90,10 @@ public class MyVertxDeployment {
                         ))
                         .withMetrics(new MicrometerMetricsFactory(registry))
                         .build();
+                // vertx = Vertx.vertx(new VertxOptions().setMetricsOptions(
+                //         new MicrometerMetricsOptions()
+                //                 .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))
+                //                 .setEnabled(true)));
             } else {
                 vertx = Vertx.vertx();
             }

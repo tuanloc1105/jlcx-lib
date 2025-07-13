@@ -123,6 +123,9 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 "Request Payload:\n{}",
                 MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), bodyString)
         );
+        if (realContext.get("startTime") == null) {
+            realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
+        }
         return body;
     }
 
@@ -303,10 +306,20 @@ public class RoutingContextLcxWrapper implements RoutingContext {
 
     @Override
     public Future<Void> end(String chunk) {
+
+        var apiProcessDuration = 0D;
+
+        if (realContext.get("startTime") != null) {
+            final var startTime = realContext.<Double>get("startTime");
+            final var endTime = (double) System.currentTimeMillis();
+            apiProcessDuration = (endTime - startTime);
+        }
+
         LogUtils.writeLog(
                 this,
                 LogUtils.Level.INFO,
-                "Response Payload:\n{}",
+                "Response Payload ({}ms):\n{}",
+                apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), MyStringUtils.minifyJsonString(chunk))
         );
         return realContext.end(chunk);

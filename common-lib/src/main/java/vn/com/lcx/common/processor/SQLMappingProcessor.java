@@ -969,7 +969,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
         reactiveInsertStatementCodeLines.add("} else {");
         reactiveInsertStatementCodeLines.add(String.format("    return \"INSERT INTO %s\" +", tableName));
         reactiveInsertStatementCodeLines.add("            cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
-        reactiveInsertStatementCodeLines.add("            \"VALUES\" +");
+        reactiveInsertStatementCodeLines.add("            (placeHolder.equals(\"@p\") ? \"OUTPUT INSERTED." + idDatabaseColumnNameToBeGet + " VALUES\" : \"VALUES\") +");
         reactiveInsertStatementCodeLines.add("            java.util.stream.IntStream.range(0, cols.size()).mapToObj(i -> placeHolder + (i + 1)).collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
         reactiveInsertStatementCodeLines.add("}");
         updateStatementCodeLines.add(String.format("return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));

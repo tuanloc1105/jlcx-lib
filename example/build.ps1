@@ -10,6 +10,8 @@ Remove-Item -Recurse src\main\resources\webroot\* *> $null || Write-Host "`n`n`t
 
 Set-Location web
 
+pnpm install
+
 pnpm run build
 
 Set-Location $currentLocation

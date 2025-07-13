@@ -2,7 +2,6 @@ package vn.com.lcx.reactive.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
@@ -642,6 +641,28 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "            return result;"
                     );
                 }
+            } else if (genericType.equals("java.lang.Object[]")) {
+                codeLines.add(
+                        "            java.util.List<java.lang.Object> objects = new java.util.ArrayList<>();"
+                );
+                codeLines.add(
+                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                for (int i = 0; i < row.size(); i++) {"
+                );
+                codeLines.add(
+                        "                    objects.add(row.getValue(i));"
+                );
+                codeLines.add(
+                        "                }"
+                );
+                codeLines.add(
+                        "            }"
+                );
+                codeLines.add(
+                        "            return objects.toArray(java.lang.Object[]::new);"
+                );
             } else {
                 codeLines.add(
                         "            if (rowSet.size() == 0) {"
