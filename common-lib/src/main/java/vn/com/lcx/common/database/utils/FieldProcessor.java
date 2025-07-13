@@ -8,6 +8,7 @@ import vn.com.lcx.common.constant.CommonConstant;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,7 +62,7 @@ public class FieldProcessor {
             definitionLineParts.addAll(
                     Arrays.stream(idDefinition.split(" ")).collect(Collectors.toCollection(ArrayList::new))
             );
-            context.getColumnDefinitionLines().add(definitionLineParts);
+            context.getColumnDefinitionLines().add(new ArrayList<>(new LinkedHashSet<>(definitionLineParts)));
 
             String sequenceStatement = databaseStrategy.generateSequenceStatement(context.getFinalTableName());
             if (StringUtils.isNotBlank(sequenceStatement)) {
