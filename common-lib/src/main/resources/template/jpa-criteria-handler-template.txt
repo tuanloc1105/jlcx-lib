@@ -181,8 +181,8 @@
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             // for (int i = 0; i < entities.size(); i++) {
-            //     currentSessionInContext.persist(entities.get(i));
-            //     if (i > 0 && i % 20 == 0) {
+            //     currentSessionInContext.save(entities.get(i));
+            //     if (i > 0 && i % 50 == 0) {
             //         currentSessionInContext.flush();
             //         currentSessionInContext.clear();
             //     }
@@ -194,7 +194,7 @@
                     splitEntities -> {
                         for (${entity-class} entity : splitEntities) {
                             try {
-                                finalCurrentSessionInContext.persist(entity);
+                                finalCurrentSessionInContext.save(entity);
                             } catch (java.lang.Throwable t) {
                                 finalCurrentSessionInContext.merge(entity);
                             }
@@ -202,14 +202,14 @@
                         finalCurrentSessionInContext.flush();
                         finalCurrentSessionInContext.clear();
                     },
-                    20
+                    50
             );
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
                 // for (int i = 0; i < entities.size(); i++) {
-                //     currentSessionInContext.persist(entities.get(i));
-                //     if (i > 0 && i % 20 == 0) {
+                //     currentSessionInContext.save(entities.get(i));
+                //     if (i > 0 && i % 50 == 0) {
                 //         currentSessionInContext.flush();
                 //         currentSessionInContext.clear();
                 //     }
@@ -221,7 +221,7 @@
                         splitEntities -> {
                             for (${entity-class} entity : splitEntities) {
                                 try {
-                                    finalCurrentSessionInContext.persist(entity);
+                                    finalCurrentSessionInContext.save(entity);
                                 } catch (java.lang.Throwable t) {
                                     finalCurrentSessionInContext.merge(entity);
                                 }
@@ -229,7 +229,7 @@
                             finalCurrentSessionInContext.flush();
                             finalCurrentSessionInContext.clear();
                         },
-                        20
+                        50
                 );
                 transaction.commit();
             }
@@ -276,7 +276,7 @@
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             // for (int i = 0; i < entities.size(); i++) {
             //     currentSessionInContext.merge(entities.get(i));
-            //     if (i > 0 && i % 20 == 0) {
+            //     if (i > 0 && i % 50 == 0) {
             //         currentSessionInContext.flush();
             //         currentSessionInContext.clear();
             //     }
@@ -292,14 +292,14 @@
                         finalCurrentSessionInContext.flush();
                         finalCurrentSessionInContext.clear();
                     },
-                    20
+                    50
             );
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
                 // for (int i = 0; i < entities.size(); i++) {
                 //     currentSessionInContext.merge(entities.get(i));
-                //     if (i > 0 && i % 20 == 0) {
+                //     if (i > 0 && i % 50 == 0) {
                 //         currentSessionInContext.flush();
                 //         currentSessionInContext.clear();
                 //     }
@@ -315,7 +315,7 @@
                             finalCurrentSessionInContext.flush();
                             finalCurrentSessionInContext.clear();
                         },
-                        20
+                        50
                 );
                 transaction.commit();
             }
@@ -362,7 +362,7 @@
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             // for (int i = 0; i < entities.size(); i++) {
             //     currentSessionInContext.remove(entities.get(i));
-            //     if (i > 0 && i % 20 == 0) {
+            //     if (i > 0 && i % 50 == 0) {
             //         currentSessionInContext.flush();
             //         currentSessionInContext.clear();
             //     }
@@ -378,14 +378,14 @@
                         finalCurrentSessionInContext.flush();
                         finalCurrentSessionInContext.clear();
                     },
-                    20
+                    50
             );
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
                 // for (int i = 0; i < entities.size(); i++) {
                 //     currentSessionInContext.remove(entities.get(i));
-                //     if (i > 0 && i % 20 == 0) {
+                //     if (i > 0 && i % 50 == 0) {
                 //         currentSessionInContext.flush();
                 //         currentSessionInContext.clear();
                 //     }
@@ -401,7 +401,7 @@
                             finalCurrentSessionInContext.flush();
                             finalCurrentSessionInContext.clear();
                         },
-                        20
+                        50
                 );
                 transaction.commit();
             }
