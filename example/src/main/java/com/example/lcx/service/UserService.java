@@ -1,6 +1,6 @@
 package com.example.lcx.service;
 
-import com.example.lcx.entity.reactive.UserEntity;
+import com.example.lcx.entity.UserEntity;
 import com.example.lcx.enums.AppError;
 import com.example.lcx.object.dto.UserJWTTokenInfo;
 import com.example.lcx.object.request.CreateNewUserRequest;
