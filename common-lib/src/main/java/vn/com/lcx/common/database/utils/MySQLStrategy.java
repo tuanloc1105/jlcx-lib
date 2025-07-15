@@ -8,7 +8,7 @@ import java.util.List;
 public class MySQLStrategy implements DatabaseStrategy {
 
     @Override
-    public String generateIdColumnDefinition(String columnName, String dataType) {
+    public String generateIdColumnDefinition(String tableName, String columnName, String dataType) {
         return String.format("%s INT AUTO_INCREMENT PRIMARY KEY", columnName);
     }
 

@@ -14,7 +14,7 @@ public interface DatabaseStrategy {
      * @param dataType   the data type
      * @return the ID column definition
      */
-    String generateIdColumnDefinition(String columnName, String dataType);
+    String generateIdColumnDefinition(String tableName, String columnName, String dataType);
 
     /**
      * Generate CREATE INDEX statement

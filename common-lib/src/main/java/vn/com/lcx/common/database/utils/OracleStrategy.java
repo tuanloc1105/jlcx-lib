@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 public class OracleStrategy implements DatabaseStrategy {
 
     @Override
-    public String generateIdColumnDefinition(String columnName, String dataType) {
-        return String.format("%s NUMBER(18) DEFAULT %s_SEQ.nextval NOT NULL PRIMARY KEY", columnName, columnName);
+    public String generateIdColumnDefinition(String tableName, String columnName, String dataType) {
+        return String.format("%s NUMBER(18) DEFAULT %s_SEQ.nextval NOT NULL PRIMARY KEY", columnName, tableName);
     }
 
     @Override
