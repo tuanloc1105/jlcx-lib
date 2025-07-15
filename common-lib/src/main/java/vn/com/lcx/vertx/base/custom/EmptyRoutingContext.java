@@ -15,6 +15,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.UserContext;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -30,32 +31,32 @@ public class EmptyRoutingContext implements RoutingContext {
 
     @Override
     public HttpServerRequest request() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public HttpServerResponse response() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public void next() {
-
+        throw new NotImplementedException();
     }
 
     @Override
     public void fail(int statusCode) {
-
+        throw new NotImplementedException();
     }
 
     @Override
     public void fail(Throwable throwable) {
-
+        throw new NotImplementedException();
     }
 
     @Override
     public void fail(int statusCode, Throwable throwable) {
-
+        throw new NotImplementedException();
     }
 
     @Override
@@ -81,122 +82,122 @@ public class EmptyRoutingContext implements RoutingContext {
 
     @Override
     public <T> Map<String, T> data() {
-        return Map.of();
+        throw new NotImplementedException();
     }
 
     @Override
     public Vertx vertx() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public @Nullable String mountPoint() {
-        return "";
+        throw new NotImplementedException();
     }
 
     @Override
     public @Nullable Route currentRoute() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public String normalizedPath() {
-        return "";
+        throw new NotImplementedException();
     }
 
     @Override
     public RequestBody body() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public List<FileUpload> fileUploads() {
-        return List.of();
+        throw new NotImplementedException();
     }
 
     @Override
     public void cancelAndCleanupFileUploads() {
-
+        throw new NotImplementedException();
     }
 
     @Override
     public @Nullable Session session() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public boolean isSessionAccessed() {
-        return false;
+        throw new NotImplementedException();
     }
 
     @Override
     public UserContext userContext() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public @Nullable Throwable failure() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public int statusCode() {
-        return 0;
+        throw new NotImplementedException();
     }
 
     @Override
     public @Nullable String getAcceptableContentType() {
-        return "";
+        throw new NotImplementedException();
     }
 
     @Override
     public ParsedHeaderValues parsedHeaders() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public int addHeadersEndHandler(Handler<Void> handler) {
-        return 0;
+        throw new NotImplementedException();
     }
 
     @Override
     public boolean removeHeadersEndHandler(int handlerID) {
-        return false;
+        throw new NotImplementedException();
     }
 
     @Override
     public int addBodyEndHandler(Handler<Void> handler) {
-        return 0;
+        throw new NotImplementedException();
     }
 
     @Override
     public boolean removeBodyEndHandler(int handlerID) {
-        return false;
+        throw new NotImplementedException();
     }
 
     @Override
     public int addEndHandler(Handler<AsyncResult<Void>> handler) {
-        return 0;
+        throw new NotImplementedException();
     }
 
     @Override
     public boolean removeEndHandler(int handlerID) {
-        return false;
+        throw new NotImplementedException();
     }
 
     @Override
     public boolean failed() {
-        return false;
+        throw new NotImplementedException();
     }
 
     @Override
     public void setAcceptableContentType(@Nullable String contentType) {
-
+        throw new NotImplementedException();
     }
 
     @Override
     public void reroute(HttpMethod method, String path) {
-
+        throw new NotImplementedException();
     }
 
     @Override
@@ -206,17 +207,17 @@ public class EmptyRoutingContext implements RoutingContext {
 
     @Override
     public @Nullable String pathParam(String name) {
-        return "";
+        throw new NotImplementedException();
     }
 
     @Override
     public MultiMap queryParams() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public MultiMap queryParams(Charset encoding) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
