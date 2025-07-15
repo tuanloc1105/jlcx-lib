@@ -1,6 +1,6 @@
 Clear-Host
 
-$env:JAVA_HOME = "D:\dev-kit\jdk-11"
+$env:JAVA_HOME = "D:\dev-kit\jdk-17"
 $env:PATH      = "$env:JAVA_HOME\bin;$env:PATH"
 
 java `
