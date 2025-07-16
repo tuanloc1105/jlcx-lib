@@ -1,6 +1,6 @@
 package com.example.lcx.respository;
 
-import com.example.lcx.entity.reactive.UserEntity;
+import com.example.lcx.entity.UserEntity;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.SqlConnection;

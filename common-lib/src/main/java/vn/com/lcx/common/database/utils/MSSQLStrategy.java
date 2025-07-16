@@ -8,7 +8,7 @@ import java.util.List;
 public class MSSQLStrategy implements DatabaseStrategy {
 
     @Override
-    public String generateIdColumnDefinition(String columnName, String dataType) {
+    public String generateIdColumnDefinition(String tableName, String columnName, String dataType) {
         return String.format("%s INT IDENTITY(1,1) PRIMARY KEY", columnName);
     }
 

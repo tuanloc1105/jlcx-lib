@@ -56,7 +56,7 @@ public class FieldProcessor {
 
     private void processIdField(String columnName, String fieldTypeName) {
         if (fieldTypeName.contains("Long") || fieldTypeName.contains("BigDecimal") || fieldTypeName.contains("BigInteger")) {
-            String idDefinition = databaseStrategy.generateIdColumnDefinition(columnName, fieldTypeName);
+            String idDefinition = databaseStrategy.generateIdColumnDefinition(context.getFinalTableName(), columnName, fieldTypeName);
             final var definitionLineParts = new ArrayList<String>();
             definitionLineParts.add(columnName);
             definitionLineParts.addAll(

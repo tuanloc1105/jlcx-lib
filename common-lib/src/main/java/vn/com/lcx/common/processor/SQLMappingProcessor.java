@@ -684,7 +684,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             );
             vertxRowMappingCodeLines.add(
                     String.format(
-                            "    io.vertx.sqlclient.data.Numeric numericValue = row.get(io.vertx.sqlclient.data.Numeric.class, \"%s\");",
+                            "    io.vertx.sqlclient.data.Numeric numericValue = row.getNumeric(\"%s\");",
                             databaseColumnNameToBeGet
                     )
             );
@@ -754,7 +754,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             );
             vertxRowMappingCodeLines.add(
                     String.format(
-                            "    io.vertx.sqlclient.data.Numeric numericValue = row.get(io.vertx.sqlclient.data.Numeric.class, \"%s\");",
+                            "    io.vertx.sqlclient.data.Numeric numericValue = row.getNumeric(\"%s\");",
                             databaseColumnNameToBeGet
                     )
             );

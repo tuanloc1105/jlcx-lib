@@ -126,7 +126,7 @@ public class ClassPool {
 
             // TODO this part is waiting for another method implementation
             var count = 0;
-            final var limit = 10;
+            final var limit = 1;
             while (postHandleComponent.size() != handledPostHandleComponent.size()) {
                 if (limit == count) {
                     break;

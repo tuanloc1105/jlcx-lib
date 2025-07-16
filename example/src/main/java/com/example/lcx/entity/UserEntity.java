@@ -1,4 +1,4 @@
-package com.example.lcx.entity.reactive;
+package com.example.lcx.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

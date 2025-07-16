@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class PostgreSQLStrategy implements DatabaseStrategy {
 
     @Override
-    public String generateIdColumnDefinition(String columnName, String dataType) {
+    public String generateIdColumnDefinition(String tableName, String columnName, String dataType) {
         return String.format("%s SERIAL PRIMARY KEY", columnName);
     }
 
