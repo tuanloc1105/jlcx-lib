@@ -71,7 +71,10 @@ public class ReactiveDbClientConfiguration {
                         result -> LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result)
                 )
                 .onFailure(
-                        err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err)
+                        err -> {
+                            LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err);
+                            System.exit(1);
+                        }
                 );
         return pool;
     }
@@ -112,7 +115,10 @@ public class ReactiveDbClientConfiguration {
                         result -> LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result)
                 )
                 .onFailure(
-                        err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err)
+                        err -> {
+                            LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err);
+                            System.exit(1);
+                        }
                 );
         return pool;
     }
@@ -153,7 +159,10 @@ public class ReactiveDbClientConfiguration {
                         result -> LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result)
                 )
                 .onFailure(
-                        err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err)
+                        err -> {
+                            LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err);
+                            System.exit(1);
+                        }
                 );
         return pool;
     }
@@ -194,7 +203,10 @@ public class ReactiveDbClientConfiguration {
                         result -> LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result)
                 )
                 .onFailure(
-                        err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err)
+                        err -> {
+                            LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err);
+                            System.exit(1);
+                        }
                 );
         return pool;
     }
