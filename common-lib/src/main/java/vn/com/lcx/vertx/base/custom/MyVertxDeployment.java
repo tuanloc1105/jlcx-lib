@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.utils.CommonUtils;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
@@ -102,6 +103,7 @@ public class MyVertxDeployment {
             if (preconfigure != null) {
                 preconfigure.get();
             }
+            CommonUtils.bannerLogging("default-banner.txt");
             List<Class<?>> verticles = new ArrayList<>();
             final var appStartingTime = (double) System.currentTimeMillis();
             ClassPool.init(packagesToScan, verticles);

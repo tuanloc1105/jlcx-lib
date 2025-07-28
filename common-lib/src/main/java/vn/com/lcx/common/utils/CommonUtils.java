@@ -15,6 +15,8 @@ public final class CommonUtils {
     private CommonUtils() {
     }
 
+    private static boolean bannerLogged = false;
+
     public static void gc() {
         System.gc();
     }
@@ -34,6 +36,9 @@ public final class CommonUtils {
     }
 
     public static void bannerLogging(final String bannerResourcePath) {
+        if (bannerLogged) {
+            return;
+        }
         ClassLoader classLoader = CommonUtils.class.getClassLoader();
         try (
                 InputStream input = classLoader.getResourceAsStream(bannerResourcePath)
@@ -47,5 +52,6 @@ public final class CommonUtils {
         } catch (IOException ex) {
             LogUtils.writeLog(ex.getMessage(), ex);
         }
+        bannerLogged = !bannerLogged;
     }
 }
