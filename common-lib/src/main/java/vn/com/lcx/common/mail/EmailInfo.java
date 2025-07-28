@@ -13,6 +13,7 @@ public class EmailInfo {
     private String body;
     private List<String> fileAttachments;
     private Map<String, String> imagesMap;
+    private Map<String, String> resourceImagesMap;
 
     public EmailInfo() {
     }
@@ -24,7 +25,8 @@ public class EmailInfo {
                      String subject,
                      String body,
                      List<String> fileAttachments,
-                     Map<String, String> imagesMap) {
+                     Map<String, String> imagesMap,
+                     Map<String, String> resourceImagesMap) {
         this.id = id;
         this.toUsers = toUsers;
         this.ccUsers = ccUsers;
@@ -33,6 +35,7 @@ public class EmailInfo {
         this.body = body;
         this.fileAttachments = fileAttachments;
         this.imagesMap = imagesMap;
+        this.resourceImagesMap = resourceImagesMap;
     }
 
     public static EmailInfoBuilder builder() {
@@ -103,6 +106,14 @@ public class EmailInfo {
         this.imagesMap = imagesMap;
     }
 
+    public Map<String, String> getResourceImagesMap() {
+        return resourceImagesMap;
+    }
+
+    public void setResourceImagesMap(Map<String, String> resourceImagesMap) {
+        this.resourceImagesMap = resourceImagesMap;
+    }
+
     public static class EmailInfoBuilder {
         private String id;
         private List<String> toUsers;
@@ -112,6 +123,7 @@ public class EmailInfo {
         private String body;
         private List<String> fileAttachments;
         private Map<String, String> imagesMap;
+        private Map<String, String> resourceImagesMap;
 
         public EmailInfoBuilder id(String id) {
             this.id = id;
@@ -148,13 +160,18 @@ public class EmailInfo {
             return this;
         }
 
-        public EmailInfoBuilder setImagesMap(Map<String, String> imagesMap) {
+        public EmailInfoBuilder imagesMap(Map<String, String> imagesMap) {
             this.imagesMap = imagesMap;
             return this;
         }
 
+        public EmailInfoBuilder resourceImagesMap(Map<String, String> resourceImagesMap) {
+            this.resourceImagesMap = resourceImagesMap;
+            return this;
+        }
+
         public EmailInfo build() {
-            return new EmailInfo(id, toUsers, ccUsers, bccUser, subject, body, fileAttachments, imagesMap);
+            return new EmailInfo(id, toUsers, ccUsers, bccUser, subject, body, fileAttachments, imagesMap, resourceImagesMap);
         }
     }
 

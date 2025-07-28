@@ -22,6 +22,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
@@ -173,6 +174,34 @@ public final class MailHelper {
                         });
                     }
 
+                    if (Optional.ofNullable(mailInfo.getResourceImagesMap()).filter(it -> !it.isEmpty()).isPresent()) {
+                        mailInfo.getResourceImagesMap().forEach((imageId, imagePath) -> {
+                            try {
+                                final var imageStream = MailHelper.class.getClassLoader().getResourceAsStream(imagePath);
+                                if (imageStream == null) {
+                                    LogUtils.writeLog(LogUtils.Level.WARN, "File {} not found", imagePath);
+                                    return;
+                                }
+                                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                                byte[] buffer = new byte[4096];
+                                int bytesRead;
+                                while ((bytesRead = imageStream.read(buffer)) != -1) {
+                                    output.write(buffer, 0, bytesRead);
+                                }
+                                byte[] imageBytes = output.toByteArray();
+                                imageStream.close();
+                                output.close();
+                                ByteArrayDataSource bds = new ByteArrayDataSource(imageBytes, getContentTypeFromFileName(imagePath));
+                                final var imageBodyPart = new MimeBodyPart();
+                                imageBodyPart.setDataHandler(new DataHandler(bds));
+                                imageBodyPart.setHeader("Content-ID", "<" + imageId + ">");
+                                multipart.addBodyPart(imageBodyPart);
+                            } catch (Exception e) {
+                                LogUtils.writeLog(e.getMessage(), e);
+                            }
+                        });
+                    }
+
                     if (Optional.ofNullable(mailInfo.getFileAttachments()).filter(CollectionUtils::isNotEmpty).isPresent()) {
                         for (String filePath : mailInfo.getFileAttachments()) {
                             final var fileMimeBodyPart = new MimeBodyPart();
@@ -253,6 +282,25 @@ public final class MailHelper {
         } catch (Exception e) {
             LogUtils.writeLog(e.getMessage(), e);
         }
+    }
+
+    private static String getContentTypeFromFileName(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return "application/octet-stream";
+        }
+        String lowerCaseFileName = fileName.toLowerCase();
+        if (lowerCaseFileName.endsWith(".png")) {
+            return "image/png";
+        } else if (lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (lowerCaseFileName.endsWith(".gif")) {
+            return "image/gif";
+        } else if (lowerCaseFileName.endsWith(".svg")) {
+            return "image/svg+xml";
+        } else if (lowerCaseFileName.endsWith(".webp")) {
+            return "image/webp";
+        }
+        return "application/octet-stream";
     }
 
 }
