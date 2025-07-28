@@ -63,20 +63,7 @@ public class ReactiveDbClientConfiguration {
                     LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                 })
                 .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
-        pool.withConnection(conn ->
-                        showDbVersion(conn, type)
-                                .eventually(conn::close)
-                )
-                .onSuccess(
-                        result -> LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result)
-                )
-                .onFailure(
-                        err -> {
-                            LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err);
-                            System.exit(1);
-                        }
-                );
-        return pool;
+        return getDatabaseVersion(type, pool);
     }
 
     public Pool createMySql(final int port,
@@ -107,20 +94,7 @@ public class ReactiveDbClientConfiguration {
                     LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                 })
                 .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
-        pool.withConnection(conn ->
-                        showDbVersion(conn, type)
-                                .eventually(conn::close)
-                )
-                .onSuccess(
-                        result -> LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result)
-                )
-                .onFailure(
-                        err -> {
-                            LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err);
-                            System.exit(1);
-                        }
-                );
-        return pool;
+        return getDatabaseVersion(type, pool);
     }
 
     public Pool createMssql(final int port,
@@ -151,20 +125,7 @@ public class ReactiveDbClientConfiguration {
                     LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                 })
                 .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
-        pool.withConnection(conn ->
-                        showDbVersion(conn, type)
-                                .eventually(conn::close)
-                )
-                .onSuccess(
-                        result -> LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result)
-                )
-                .onFailure(
-                        err -> {
-                            LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err);
-                            System.exit(1);
-                        }
-                );
-        return pool;
+        return getDatabaseVersion(type, pool);
     }
 
     public Pool createOracle(final int port,
@@ -195,6 +156,10 @@ public class ReactiveDbClientConfiguration {
                     LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                 })
                 .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
+        return getDatabaseVersion(type, pool);
+    }
+
+    private Pool getDatabaseVersion(DBTypeEnum type, Pool pool) {
         pool.withConnection(conn ->
                         showDbVersion(conn, type)
                                 .eventually(conn::close)
