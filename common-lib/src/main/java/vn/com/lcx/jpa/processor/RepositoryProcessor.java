@@ -9,6 +9,7 @@ import vn.com.lcx.jpa.annotation.Modifying;
 import vn.com.lcx.jpa.annotation.Param;
 import vn.com.lcx.jpa.annotation.Query;
 import vn.com.lcx.jpa.annotation.Repository;
+import vn.com.lcx.jpa.annotation.ResultSetMapping;
 import vn.com.lcx.jpa.exception.CodeGenError;
 import vn.com.lcx.jpa.processor.utility.MethodInfo;
 import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
@@ -522,14 +523,27 @@ public class RepositoryProcessor extends AbstractProcessor {
         final String outputClass = getGenericTypeOfListOrPage(methodInfo.getOutputParameter().toString());
         final var queryAnnotation = executableElement.getAnnotation(Query.class);
         final var codeLines = new ArrayList<String>();
+        final var queryStatement = queryAnnotation.value().replace("\n", "\\n\" +\n                        \"");
         if (queryAnnotation.isNative()) {
-            codeLines.add(
-                    String.format(
-                            "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", %2$s.class);",
-                            queryAnnotation.value(),
-                            outputClass
-                    )
-            );
+            if (Optional.ofNullable(executableElement.getAnnotation(ResultSetMapping.class)).isPresent()) {
+                final var resultSetMappingAnnotation = executableElement.getAnnotation(ResultSetMapping.class);
+                codeLines.add(
+                        String.format(
+                                "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", \"%3$s\");",
+                                queryStatement,
+                                outputClass,
+                                resultSetMappingAnnotation.name()
+                        )
+                );
+            } else {
+                codeLines.add(
+                        String.format(
+                                "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", %2$s.class);",
+                                queryStatement,
+                                outputClass
+                        )
+                );
+            }
         } else {
             if (lastParameterIsPageable(methodInfo)) {
                 // processingEnv.getMessager().printMessage(
@@ -537,15 +551,15 @@ public class RepositoryProcessor extends AbstractProcessor {
                 //         vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                 //                 String.format(
                 //                         "StringBuilder hsqlQuery = new StringBuilder(\"%s\");",
-                //                         queryAnnotation.value()
+                //                         queryStatement
                 //                 )
                 // );
-                generateCodeForPageable(methodInfo, codeLines, queryAnnotation.value(), outputClass);
+                generateCodeForPageable(methodInfo, codeLines, queryStatement, outputClass);
             } else {
                 codeLines.add(
                         String.format(
                                 "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createQuery(\"%1$s\", %2$s.class);",
-                                queryAnnotation.value(),
+                                queryStatement,
                                 outputClass
                         )
                 );
