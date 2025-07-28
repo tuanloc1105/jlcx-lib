@@ -1,6 +1,7 @@
 package vn.com.lcx.common.mail;
 
 import jakarta.activation.DataHandler;
+import jakarta.activation.FileDataSource;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.PasswordAuthentication;
@@ -29,6 +30,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class MailHelper {
@@ -148,13 +150,38 @@ public final class MailHelper {
 
                     multipart.addBodyPart(mimeBodyPart);
 
-                    for (String filePath : mailInfo.getFileAttachments()) {
-                        final var fileMimeBodyPart = new MimeBodyPart();
-                        try {
-                            fileMimeBodyPart.attachFile(new File(filePath));
-                            multipart.addBodyPart(fileMimeBodyPart);
-                        } catch (Exception e) {
-                            LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage());
+                    if (Optional.ofNullable(mailInfo.getImagesMap()).filter(it -> !it.isEmpty()).isPresent()) {
+                        mailInfo.getImagesMap().forEach((imageId, imagePath) -> {
+                            final var bodyPart = new MimeBodyPart();
+                            final var file = new File(imagePath);
+                            if (!file.exists()) {
+                                LogUtils.writeLog(LogUtils.Level.WARN, "File {} does not exist", file.getAbsolutePath());
+                                return;
+                            }
+                            if (file.isDirectory()) {
+                                LogUtils.writeLog(LogUtils.Level.WARN, "File {} is a directory", file.getAbsolutePath());
+                                return;
+                            }
+                            final var fds = new FileDataSource(file);
+                            try {
+                                bodyPart.setDataHandler(new DataHandler(fds));
+                                bodyPart.setHeader("Content-ID", "<" + imageId + ">");
+                                multipart.addBodyPart(bodyPart);
+                            } catch (Exception e) {
+                                LogUtils.writeLog(e.getMessage(), e);
+                            }
+                        });
+                    }
+
+                    if (Optional.ofNullable(mailInfo.getFileAttachments()).filter(CollectionUtils::isNotEmpty).isPresent()) {
+                        for (String filePath : mailInfo.getFileAttachments()) {
+                            final var fileMimeBodyPart = new MimeBodyPart();
+                            try {
+                                fileMimeBodyPart.attachFile(new File(filePath));
+                                multipart.addBodyPart(fileMimeBodyPart);
+                            } catch (Exception e) {
+                                LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage());
+                            }
                         }
                     }
 

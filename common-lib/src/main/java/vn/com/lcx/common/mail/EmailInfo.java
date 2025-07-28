@@ -1,6 +1,7 @@
 package vn.com.lcx.common.mail;
 
 import java.util.List;
+import java.util.Map;
 
 public class EmailInfo {
 
@@ -11,6 +12,7 @@ public class EmailInfo {
     private String subject;
     private String body;
     private List<String> fileAttachments;
+    private Map<String, String> imagesMap;
 
     public EmailInfo() {
     }
@@ -21,7 +23,8 @@ public class EmailInfo {
                      List<String> bccUser,
                      String subject,
                      String body,
-                     List<String> fileAttachments) {
+                     List<String> fileAttachments,
+                     Map<String, String> imagesMap) {
         this.id = id;
         this.toUsers = toUsers;
         this.ccUsers = ccUsers;
@@ -29,6 +32,7 @@ public class EmailInfo {
         this.subject = subject;
         this.body = body;
         this.fileAttachments = fileAttachments;
+        this.imagesMap = imagesMap;
     }
 
     public static EmailInfoBuilder builder() {
@@ -91,6 +95,14 @@ public class EmailInfo {
         this.fileAttachments = fileAttachments;
     }
 
+    public Map<String, String> getImagesMap() {
+        return imagesMap;
+    }
+
+    public void setImagesMap(Map<String, String> imagesMap) {
+        this.imagesMap = imagesMap;
+    }
+
     public static class EmailInfoBuilder {
         private String id;
         private List<String> toUsers;
@@ -99,6 +111,7 @@ public class EmailInfo {
         private String subject;
         private String body;
         private List<String> fileAttachments;
+        private Map<String, String> imagesMap;
 
         public EmailInfoBuilder id(String id) {
             this.id = id;
@@ -135,8 +148,13 @@ public class EmailInfo {
             return this;
         }
 
+        public EmailInfoBuilder setImagesMap(Map<String, String> imagesMap) {
+            this.imagesMap = imagesMap;
+            return this;
+        }
+
         public EmailInfo build() {
-            return new EmailInfo(id, toUsers, ccUsers, bccUser, subject, body, fileAttachments);
+            return new EmailInfo(id, toUsers, ccUsers, bccUser, subject, body, fileAttachments, imagesMap);
         }
     }
 
