@@ -160,7 +160,7 @@ public class ReactiveDbClientConfiguration {
     }
 
     private Pool getDatabaseVersion(DBTypeEnum type, Pool pool) {
-        pool.withConnection(conn ->
+        final var future = pool.withConnection(conn ->
                         showDbVersion(conn, type)
                                 .eventually(conn::close)
                 )
@@ -173,6 +173,10 @@ public class ReactiveDbClientConfiguration {
                             System.exit(1);
                         }
                 );
+        //noinspection StatementWithEmptyBody
+        while (future.isComplete()) {
+            // wait
+        }
         return pool;
     }
 

@@ -8,7 +8,6 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.json.JsonArray;
 import io.vertx.micrometer.MicrometerMetricsFactory;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
@@ -104,7 +103,17 @@ public class MyVertxDeployment {
             if (preconfigure != null) {
                 preconfigure.get();
             }
-            CommonUtils.bannerLogging("default-banner.txt");
+            boolean printUserBanner = false;
+            try (InputStream input = MyVertxDeployment.class.getResourceAsStream("banner.txt")) {
+                if (input != null) {
+                    printUserBanner = true;
+                }
+            }
+            if (printUserBanner) {
+                CommonUtils.bannerLogging("banner.txt");
+            } else {
+                CommonUtils.bannerLogging("default-banner.txt");
+            }
             List<Class<?>> verticles = new ArrayList<>();
             ClassPool.init(packagesToScan, verticles);
             if (!verticles.isEmpty()) {
