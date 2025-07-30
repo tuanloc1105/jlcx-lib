@@ -15,11 +15,11 @@
 
         <logback-classic-ch.qos.logback.version>1.5.18</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
-        <commons-text-org.apache.commons.version>1.13.1</commons-text-org.apache.commons.version>
+        <commons-text-org.apache.commons.version>1.14.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.18.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
-        <ojdbc11-com.oracle.database.jdbc.version>23.8.0.25.04</ojdbc11-com.oracle.database.jdbc.version>
+        <ojdbc11-com.oracle.database.jdbc.version>23.9.0.25.07</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.7</postgresql-org.postgresql.version>
         <mysql-connector-j-com.mysql.version>9.3.0</mysql-connector-j-com.mysql.version>
         <mssql-jdbc-com.microsoft.sqlserver.version>12.10.1.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
@@ -48,11 +48,11 @@
         <javassist-org.javassist.version>3.30.2-GA</javassist-org.javassist.version>
         <snakeyaml-org.yaml.version>2.4</snakeyaml-org.yaml.version>
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
-        <HikariCP-com.zaxxer.version>6.3.1</HikariCP-com.zaxxer.version>
+        <HikariCP-com.zaxxer.version>7.0.0</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.22.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.20.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.22.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.23.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.23.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-jcache-org.hibernate.orm.version>6.6.23.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.10.8</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.1</vertx-core-io.vertx.version>
         <vertx-web-io.vertx.version>5.0.1</vertx-web-io.vertx.version>
