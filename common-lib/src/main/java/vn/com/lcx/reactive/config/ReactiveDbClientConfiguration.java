@@ -174,7 +174,7 @@ public class ReactiveDbClientConfiguration {
                         }
                 );
         //noinspection StatementWithEmptyBody
-        while (future.isComplete()) {
+        while (!future.isComplete()) {
             // wait
         }
         return pool;
