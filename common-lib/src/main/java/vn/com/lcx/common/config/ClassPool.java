@@ -42,7 +42,6 @@ public class ClassPool {
 
     public static void init(final List<String> packagesToScan, final List<Class<?>> verticleClass) {
         packagesToScan.add("vn.com.lcx");
-        // loadProperties();
         try {
             final List<Class<?>> listOfClassInPackage = new ArrayList<>();
             packagesToScan.forEach(packageName -> {
@@ -123,7 +122,6 @@ public class ClassPool {
                 }
             }
 
-            // TODO this part is waiting for another method implementation
             var count = 0;
             final var limit = 1;
             while (postHandleComponent.size() != handledPostHandleComponent.size()) {
@@ -143,7 +141,6 @@ public class ClassPool {
                         throw new ExceptionInInitializerError(String.format("Class `%s` should have only 1 constructor", aClass));
                     }
 
-                    // final Class<?>[] fieldArr = fieldsOfComponent.stream().map(Field::getType).toArray(Class[]::new);
                     final Class<?>[] fieldArr = getConstructorParameters(aClass.getDeclaredConstructors()[0]);
 
                     final Object[] args = fieldsOfComponent
