@@ -18,7 +18,6 @@ import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.common.utils.PropertiesUtils;
-import vn.com.lcx.common.utils.TopoSortUtils;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -28,10 +27,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -45,6 +42,7 @@ public class ClassPool {
 
     public static void init(final List<String> packagesToScan, final List<Class<?>> verticleClass) {
         packagesToScan.add("vn.com.lcx");
+        // loadProperties();
         try {
             final List<Class<?>> listOfClassInPackage = new ArrayList<>();
             packagesToScan.forEach(packageName -> {
@@ -69,13 +67,14 @@ public class ClassPool {
             );
             FileUtils.deleteFolder(new File(folderPath));
             createFolderIfNotExists(folderPath);
+            final var postHandleComponent = new ArrayList<Class<?>>();
+            final var handledPostHandleComponent = new ArrayList<Class<?>>();
             ENTITIES.addAll(
                     listOfClassInPackage.stream()
                             .filter(aClass -> aClass.getAnnotation(Entity.class) != null ||
                                     aClass.getAnnotation(Table.class) != null)
                             .collect(Collectors.toCollection(ArrayList::new))
             );
-            Map<String, List<String>> classMetadata = new HashMap<>();
             for (Class<?> aClass : listOfClassInPackage) {
 
                 if (aClass.getAnnotation(TableName.class) != null) {
@@ -110,16 +109,7 @@ public class ClassPool {
                 }
                 final var componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
-                    final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields())
-                            .filter(f -> !Modifier.isStatic(f.getModifiers()))
-                            .collect(Collectors.toCollection(ArrayList::new));
-                    classMetadata.put(
-                            aClass.getName(),
-                            fieldsOfComponent
-                                    .stream()
-                                    .map(it -> it.getType().getName())
-                                    .collect(Collectors.toCollection(ArrayList::new))
-                    );
+                    final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
                     if (fieldsOfComponent.isEmpty()) {
                         LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor().newInstance();
@@ -127,39 +117,81 @@ public class ClassPool {
                             putInstanceToClassPool(aClass, instance);
                         }
                         handlePostConstructMethod(aClass, instance);
+                    } else {
+                        postHandleComponent.add(aClass);
                     }
                 }
             }
 
-            final var classOrder = TopoSortUtils.topologicalSort(classMetadata);
-            for (var className : classOrder) {
-                Class<?> aClass = Class.forName(className);
-                final var fields = new ArrayList<Field>();
-                getFieldsOfClass(fields, aClass);
-                final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
-                if (aClass.getDeclaredConstructors().length > 1) {
-                    throw new ExceptionInInitializerError(String.format("Class `%s` should have only 1 constructor", aClass));
+            // TODO this part is waiting for another method implementation
+            var count = 0;
+            final var limit = 1;
+            while (postHandleComponent.size() != handledPostHandleComponent.size()) {
+                if (limit == count) {
+                    break;
                 }
-                final Class<?>[] constructorParameters = getConstructorParameters(aClass.getDeclaredConstructors()[0]);
-                final Object[] args = fieldsOfComponent
-                        .stream()
-                        .map(ClassPool::getInstanceOfField)
-                        .toArray(Object[]::new);
-                if (Arrays.stream(args).noneMatch(Objects::isNull)) {
-                    LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
-                    final var instance = aClass.getDeclaredConstructor(constructorParameters).newInstance(args);
-                    handlePostConstructMethod(aClass, instance);
-                    if (!checkProxy(instance)) {
-                        putInstanceToClassPool(aClass, instance);
+                boolean aClassHasNotBeenAddedToPool = true;
+                for (Class<?> aClass : postHandleComponent) {
+                    if (handledPostHandleComponent.stream().anyMatch(c -> c.isAssignableFrom(aClass))) {
+                        continue;
                     }
-                } else {
-                    throw new ExceptionInInitializerError(
-                            String.format(
-                                    "Cannot create instance of class `%s`",
-                                    className
-                            )
-                    );
+                    final var fields = new ArrayList<Field>();
+                    getFieldsOfClass(fields, aClass);
+                    final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+
+                    if (aClass.getDeclaredConstructors().length > 1) {
+                        throw new ExceptionInInitializerError(String.format("Class `%s` should have only 1 constructor", aClass));
+                    }
+
+                    // final Class<?>[] fieldArr = fieldsOfComponent.stream().map(Field::getType).toArray(Class[]::new);
+                    final Class<?>[] fieldArr = getConstructorParameters(aClass.getDeclaredConstructors()[0]);
+
+                    final Object[] args = fieldsOfComponent
+                            .stream()
+                            .map(ClassPool::getInstanceOfField)
+                            .toArray(Object[]::new);
+                    if (Arrays.stream(args).noneMatch(Objects::isNull)) {
+                        LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
+                        final var instance = aClass.getDeclaredConstructor(fieldArr).newInstance(args);
+                        handlePostConstructMethod(aClass, instance);
+                        if (!checkProxy(instance)) {
+                            putInstanceToClassPool(aClass, instance);
+                        }
+                        handledPostHandleComponent.add(aClass);
+                        aClassHasNotBeenAddedToPool = false;
+                    }
                 }
+                if (aClassHasNotBeenAddedToPool) {
+                    ++count;
+                } else {
+                    --count;
+                }
+            }
+            if (limit == count && postHandleComponent.size() != handledPostHandleComponent.size()) {
+                final var message = new StringBuilder("[");
+                for (Class<?> aClass : postHandleComponent) {
+                    if (handledPostHandleComponent.stream().noneMatch(handledClass -> handledClass.isAssignableFrom(aClass))) {
+                        final var fields = new ArrayList<Field>();
+                        getFieldsOfClass(fields, aClass);
+                        final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+                        final var fieldNotCreated = fieldsOfComponent.stream()
+                                .filter(
+                                        field ->
+                                                !CLASS_POOL.containsKey(field.getType().getName()) &&
+                                                        !CLASS_POOL.containsKey(field.getName())
+                                ).map(f -> f.getName() + ": " + f.getType().getName())
+                                .collect(Collectors.toCollection(ArrayList::new));
+                        message.append(
+                                String.format(
+                                        "Cannot found instance of fields (%s) of class %s",
+                                        String.join(", ", fieldNotCreated),
+                                        aClass.getName()
+                                )
+                        ).append(", ");
+                    }
+                }
+                message.append("]");
+                throw new ExceptionInInitializerError(message.toString());
             }
         } catch (Throwable e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
