@@ -40,6 +40,7 @@ public final class CommonUtils {
             return;
         }
         ClassLoader classLoader = CommonUtils.class.getClassLoader();
+        final var bannerContent = new StringBuilder();
         try (
                 InputStream input = classLoader.getResourceAsStream(bannerResourcePath)
         ) {
@@ -47,11 +48,24 @@ public final class CommonUtils {
                 final var text = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))
                         .lines()
                         .collect(Collectors.joining(System.lineSeparator()));
-                LoggerFactory.getLogger("BANNER").info("{}{}", System.lineSeparator(), text);
+                bannerContent.append(text);
             }
         } catch (IOException ex) {
             LogUtils.writeLog(ex.getMessage(), ex);
         }
+        try (
+                InputStream input = classLoader.getResourceAsStream("git.log")
+        ) {
+            if (input != null) {
+                final var text = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))
+                        .lines()
+                        .collect(Collectors.joining(System.lineSeparator()));
+                bannerContent.append(text);
+            }
+        } catch (IOException ex) {
+            LogUtils.writeLog(ex.getMessage(), ex);
+        }
+        LoggerFactory.getLogger("BANNER").info("{}{}", System.lineSeparator(), bannerContent);
         bannerLogged = !bannerLogged;
     }
 }
