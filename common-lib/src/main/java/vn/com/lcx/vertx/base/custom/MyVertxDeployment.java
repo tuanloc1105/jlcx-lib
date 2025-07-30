@@ -16,6 +16,7 @@ import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.CommonUtils;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
@@ -104,7 +105,7 @@ public class MyVertxDeployment {
                 preconfigure.get();
             }
             boolean printUserBanner = false;
-            try (InputStream input = MyVertxDeployment.class.getResourceAsStream("banner.txt")) {
+            try (InputStream input = MyVertxDeployment.class.getClassLoader().getResourceAsStream("banner.txt")) {
                 if (input != null) {
                     printUserBanner = true;
                 }
