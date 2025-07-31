@@ -6,8 +6,7 @@ import io.vertx.redis.client.RedisClientType;
 import io.vertx.redis.client.RedisOptions;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.annotation.PostConstruct;
-import vn.com.lcx.common.config.ClassPool;
+import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.util.Objects;
@@ -23,8 +22,8 @@ public class VertxRedisConfiguration {
         this.vertx = vertx;
     }
 
-    @PostConstruct
-    public void post() {
+    @Instance
+    public Redis post() {
         String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.reactive.redis.host");
         int port;
         try {
@@ -44,9 +43,9 @@ public class VertxRedisConfiguration {
                         port == 0 ||
                         maxPoolSize == 0
         ) {
-            return;
+            return null;
         }
-        ClassPool.setInstance(init(host, port, password, maxPoolSize));
+        return init(host, port, password, maxPoolSize);
     }
 
     public Redis init(String host, int port, String password, int maxPoolSize) {

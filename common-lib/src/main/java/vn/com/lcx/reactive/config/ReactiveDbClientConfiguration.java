@@ -15,14 +15,11 @@ import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.SqlConnection;
 import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.annotation.PostConstruct;
-import vn.com.lcx.common.config.ClassPool;
+import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.custom.EmptyRoutingContext;
-
-import java.util.Optional;
 
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 
@@ -173,7 +170,7 @@ public class ReactiveDbClientConfiguration {
                             System.exit(1);
                         }
                 );
-        //noinspection StatementWithEmptyBody
+        // noinspection StatementWithEmptyBody
         while (!future.isComplete()) {
             // wait
         }
@@ -192,8 +189,8 @@ public class ReactiveDbClientConfiguration {
                 });
     }
 
-    @PostConstruct
-    public void init() {
+    @Instance
+    public Pool pool() {
         String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.reactive.database.host");
         int port;
         try {
@@ -225,7 +222,7 @@ public class ReactiveDbClientConfiguration {
                         maxPoolSize == 0 ||
                         type == null
         ) {
-            return;
+            return null;
         }
         Pool pool = null;
         switch (type) {
@@ -242,9 +239,7 @@ public class ReactiveDbClientConfiguration {
                 pool = createOracle(port, host, name, username, password, maxPoolSize, type);
                 break;
         }
-        if (Optional.ofNullable(pool).isPresent()) {
-            ClassPool.setInstance(pool);
-        }
+        return pool;
     }
 
 }

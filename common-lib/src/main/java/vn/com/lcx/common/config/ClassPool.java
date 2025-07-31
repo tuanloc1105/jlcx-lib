@@ -177,12 +177,13 @@ public class ClassPool {
                 aClass.getDeclaredMethods()
         ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
         if (!methodsOfInstance.isEmpty()) {
-            final var instanceClass = aClass.getDeclaredConstructor().newInstance();
             for (Method method : methodsOfInstance) {
-                final var instanceMethodResult = method.invoke(instanceClass);
-                putInstanceToClassPool(instanceMethodResult.getClass(), instanceMethodResult);
-                CLASS_POOL.put(method.getName(), instanceMethodResult);
-                CLASS_POOL.put(method.getReturnType().getName(), instanceMethodResult);
+                final var instanceMethodResult = method.invoke(instance);
+                if (instanceMethodResult != null) {
+                    putInstanceToClassPool(instanceMethodResult.getClass(), instanceMethodResult);
+                    CLASS_POOL.put(method.getName(), instanceMethodResult);
+                    CLASS_POOL.put(method.getReturnType().getName(), instanceMethodResult);
+                }
             }
         }
         final var postConstructMethods = Arrays

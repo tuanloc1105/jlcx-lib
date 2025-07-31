@@ -16,7 +16,7 @@ import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.Action;
 import org.hibernate.tool.schema.TargetType;
 import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.annotation.PostConstruct;
+import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.type.DBTypeEnum;
@@ -32,9 +32,6 @@ import java.util.Map;
 
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 
-/**
- *
- */
 @Component
 public class HibernateConfiguration {
 
@@ -217,8 +214,8 @@ public class HibernateConfiguration {
         return sessionFactory;
     }
 
-    @PostConstruct
-    public void getSessionFactory() {
+    @Instance
+    public SessionFactory sessionFactory() {
         String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.database.host");
         int port;
         try {
@@ -268,7 +265,7 @@ public class HibernateConfiguration {
                         maxTimeout == 0 ||
                         type == null
         ) {
-            return;
+            return null;
         }
         final var useCache = applicationConfig.<Boolean>getPropertyWithEnvironment("server.database.use_cache", s -> {
             try {
@@ -277,7 +274,7 @@ public class HibernateConfiguration {
                 return false;
             }
         });
-        final var sessionFactory = createSessionFactory(
+        return createSessionFactory(
                 host,
                 port,
                 username,
@@ -295,8 +292,6 @@ public class HibernateConfiguration {
                 false,
                 useCache
         );
-        ClassPool.setInstance(sessionFactory);
-        ClassPool.setInstance(SessionFactory.class.getName(), sessionFactory);
     }
 
 }
