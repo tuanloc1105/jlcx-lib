@@ -5,12 +5,9 @@ import jakarta.persistence.Table;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
-import vn.com.lcx.common.annotation.InstanceClass;
 import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.annotation.Verticle;
-import vn.com.lcx.common.annotation.mapper.Mapper;
-import vn.com.lcx.common.annotation.mapper.MapperClass;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.scanner.PackageScanner;
@@ -83,27 +80,6 @@ public class ClassPool {
 
                 if (aClass.getAnnotation(Verticle.class) != null) {
                     verticleClass.add(aClass);
-                    continue;
-                }
-
-                final var mapperClassAnnotation = aClass.getAnnotation(MapperClass.class);
-                if (mapperClassAnnotation != null && aClass.isInterface()) {
-                    CLASS_POOL.put(aClass.getName(), Mapper.getInstance(aClass));
-                }
-                final var instanceClassAnnotation = aClass.getAnnotation(InstanceClass.class);
-                if (instanceClassAnnotation != null) {
-                    final var methodsOfInstance = Arrays.stream(
-                            aClass.getDeclaredMethods()
-                    ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
-                    if (!methodsOfInstance.isEmpty()) {
-                        final var instanceClass = aClass.getDeclaredConstructor().newInstance();
-                        for (Method method : methodsOfInstance) {
-                            final var instanceMethodResult = method.invoke(instanceClass);
-                            putInstanceToClassPool(instanceMethodResult.getClass(), instanceMethodResult);
-                            CLASS_POOL.put(method.getName(), instanceMethodResult);
-                            CLASS_POOL.put(method.getReturnType().getName(), instanceMethodResult);
-                        }
-                    }
                     continue;
                 }
                 final var componentAnnotation = aClass.getAnnotation(Component.class);
@@ -197,8 +173,22 @@ public class ClassPool {
     }
 
     public static void handlePostConstructMethod(Class<?> aClass, Object instance) throws Exception {
-
-        final var postConstructMethods = Arrays.stream(aClass.getDeclaredMethods()).filter(m -> m.getAnnotation(PostConstruct.class) != null).collect(Collectors.toList());
+        final var methodsOfInstance = Arrays.stream(
+                aClass.getDeclaredMethods()
+        ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
+        if (!methodsOfInstance.isEmpty()) {
+            final var instanceClass = aClass.getDeclaredConstructor().newInstance();
+            for (Method method : methodsOfInstance) {
+                final var instanceMethodResult = method.invoke(instanceClass);
+                putInstanceToClassPool(instanceMethodResult.getClass(), instanceMethodResult);
+                CLASS_POOL.put(method.getName(), instanceMethodResult);
+                CLASS_POOL.put(method.getReturnType().getName(), instanceMethodResult);
+            }
+        }
+        final var postConstructMethods = Arrays
+                .stream(aClass.getDeclaredMethods())
+                .filter(m -> m.getAnnotation(PostConstruct.class) != null)
+                .collect(Collectors.toList());
         final var hasMoreThanOnePostConstructMethod = postConstructMethods.size() > 1;
         if (hasMoreThanOnePostConstructMethod) {
             throw new RuntimeException(

@@ -4,14 +4,14 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
-import vn.com.lcx.common.annotation.InstanceClass;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.utils.RSAUtils;
 
 import java.io.IOException;
 
-@InstanceClass
+@Component
 public class JWTAuthConfiguration {
 
     @Instance
