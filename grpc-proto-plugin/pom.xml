@@ -18,10 +18,10 @@
         <java.version>${jdk.version}</java.version>
 
         <common-lib-vn.com.lcx.version>3.0.3</common-lib-vn.com.lcx.version>
-        <maven-plugin-api-org.apache.maven.version>3.9.10</maven-plugin-api-org.apache.maven.version>
+        <maven-plugin-api-org.apache.maven.version>3.9.11</maven-plugin-api-org.apache.maven.version>
         <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.1
         </maven-plugin-annotations-org.apache.maven.plugin-tools.version>
-        <maven-core-org.apache.maven.version>3.9.10</maven-core-org.apache.maven.version>
+        <maven-core-org.apache.maven.version>3.9.11</maven-core-org.apache.maven.version>
         <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.1
         </maven-plugin-plugin-org.apache.maven.plugins.version>
 
