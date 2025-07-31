@@ -102,6 +102,12 @@
 
         <dependency>
             <groupId>io.vertx</groupId>
+            <artifactId>vertx-grpc-client</artifactId>
+            <version>${vertx-core-io.vertx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
             <artifactId>vertx-grpc-server</artifactId>
             <version>${vertx-core-io.vertx.version}</version>
         </dependency>

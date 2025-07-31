@@ -32,4 +32,5 @@ protoc -I=proto `
 .\proto\*.proto
 ```
 
-
+Remove-Item -Recurse -Force grpc-server\src\main\java\examples
+Remove-Item -Recurse -Force grpc-server\src\main\java\examples
