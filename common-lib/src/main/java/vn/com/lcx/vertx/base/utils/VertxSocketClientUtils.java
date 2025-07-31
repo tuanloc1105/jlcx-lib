@@ -92,7 +92,7 @@ public class VertxSocketClientUtils {
         connectFuture.onSuccess(socket -> {
             try {
                 socket.write(inputMessage);
-                socket.handler(buffer -> handleBuffer(socket, buffer, promise, logMessage));
+                socket.handler(buffer -> handleBuffer(context, socket, buffer, promise, logMessage));
                 socket.exceptionHandler(ex -> {
                     LogUtils.writeLog(context, "Socket exception: ", ex);
                     promise.tryFail(ex);
@@ -104,10 +104,6 @@ public class VertxSocketClientUtils {
                         promise.tryFail(new RuntimeException("Socket closed before response received"));
                     }
                 });
-                final var endingTime = (double) System.currentTimeMillis();
-                final var duration = endingTime - startTime;
-                logMessage.append("\n- Duration: ").append(duration).append(" ms");
-                LogUtils.writeLog(context, LogUtils.Level.INFO, logMessage.toString());
             } catch (Exception ex) {
                 LogUtils.writeLog(context, "Error during socket operation: ", ex);
                 promise.tryFail(ex);
@@ -123,11 +119,15 @@ public class VertxSocketClientUtils {
         return promise.future();
     }
 
-    private void handleBuffer(NetSocket socket, Buffer buffer, Promise<String> promise, StringBuilder logMessage) {
+    private void handleBuffer(RoutingContext context, NetSocket socket, Buffer buffer, Promise<String> promise, long startTime, StringBuilder logMessage) {
         if (!promise.future().isComplete()) {
             String response = buffer.toString(encoding);
             logMessage.append("\n- Output message: ")
                     .append(response);
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = endingTime - startTime;
+            logMessage.append("\n- Duration: ").append(duration).append(" ms");
+            LogUtils.writeLog(context, LogUtils.Level.INFO, logMessage.toString());
             promise.tryComplete(response);
             closeSocket(socket);
         }
