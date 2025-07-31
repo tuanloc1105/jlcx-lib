@@ -251,16 +251,25 @@ public class RoutingContextLcxWrapper implements RoutingContext {
 
     @Override
     public MultiMap queryParams() {
+        if (realContext.get("startTime") == null) {
+            realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
+        }
         return realContext.queryParams();
     }
 
     @Override
     public MultiMap queryParams(Charset encoding) {
+        if (realContext.get("startTime") == null) {
+            realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
+        }
         return realContext.queryParams(encoding);
     }
 
     @Override
     public List<String> queryParam(String name) {
+        if (realContext.get("startTime") == null) {
+            realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
+        }
         return realContext.queryParam(name);
     }
 

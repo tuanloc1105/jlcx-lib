@@ -6,6 +6,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetSocket;
+import io.vertx.ext.web.RoutingContext;
+import vn.com.lcx.common.utils.LogUtils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -60,21 +62,29 @@ public class VertxSocketClientUtils {
      * Sends a message to the specified TCP server and asynchronously receives the response.
      * The connection is closed after the first response is received or on timeout/error.
      *
+     * @param context      The routing context for logging purposes. Used to associate logs with the current request
      * @param socketHost   the host of the TCP server
      * @param socketPort   the port of the TCP server
      * @param inputMessage the message to send
      * @return a Future that will be completed with the response from the server,
      * or failed if the connection or communication fails
      */
-    public Future<String> sendAndReceive(String socketHost, int socketPort, String inputMessage) {
+    public Future<String> sendAndReceive(RoutingContext context, String socketHost, int socketPort, String inputMessage) {
         Promise<String> promise = Promise.promise();
         final long startTime = System.currentTimeMillis();
         final var connectFuture = client.connect(socketPort, socketHost);
+        final var logMessage = new StringBuilder()
+                .append("\n- Destination: ")
+                .append(socketHost)
+                .append(":")
+                .append(socketPort)
+                .append("\n- Input message: ")
+                .append(inputMessage);
 
         // Timeout handler
         final long timerId = vertx.setTimer(timeoutMillis, tid -> {
             if (!promise.future().isComplete()) {
-                // logger.error("Socket operation timed out after {} ms", timeoutMillis);
+                LogUtils.writeLog(context, LogUtils.Level.INFO, "Socket operation timed out after {} ms", timeoutMillis);
                 promise.tryFail(new RuntimeException("Socket operation timed out after " + timeoutMillis + " ms"));
             }
         });
@@ -82,25 +92,25 @@ public class VertxSocketClientUtils {
         connectFuture.onSuccess(socket -> {
             try {
                 socket.write(inputMessage);
-                socket.handler(buffer -> handleBuffer(socket, buffer, promise, timerId));
+                socket.handler(buffer -> handleBuffer(context, socket, buffer, promise, startTime, logMessage));
                 socket.exceptionHandler(ex -> {
-                    // logger.error("Socket exception: ", ex);
+                    LogUtils.writeLog(context, "Socket exception: ", ex);
                     promise.tryFail(ex);
                     closeSocket(socket);
                 });
                 socket.closeHandler(v -> {
                     if (!promise.future().isComplete()) {
-                        // logger.error("Socket closed before response received");
+                        LogUtils.writeLog(context, LogUtils.Level.ERROR, "Socket closed before response received");
                         promise.tryFail(new RuntimeException("Socket closed before response received"));
                     }
                 });
             } catch (Exception ex) {
-                // logger.error("Error during socket operation: ", ex);
+                LogUtils.writeLog(context, "Error during socket operation: ", ex);
                 promise.tryFail(ex);
                 closeSocket(socket);
             }
         }).onFailure(ex -> {
-            // logger.error("Failed to connect to {}:{}", socketHost, socketPort, ex);
+            LogUtils.writeLog(context, "Failed to connect: ", ex);
             promise.tryFail(ex);
         });
 
@@ -109,9 +119,15 @@ public class VertxSocketClientUtils {
         return promise.future();
     }
 
-    private void handleBuffer(NetSocket socket, Buffer buffer, Promise<String> promise, long timerId) {
+    private void handleBuffer(RoutingContext context, NetSocket socket, Buffer buffer, Promise<String> promise, long startTime, StringBuilder logMessage) {
         if (!promise.future().isComplete()) {
             String response = buffer.toString(encoding);
+            logMessage.append("\n- Output message: ")
+                    .append(response);
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = endingTime - startTime;
+            logMessage.append("\n- Duration: ").append(duration).append(" ms");
+            LogUtils.writeLog(context, LogUtils.Level.INFO, logMessage.toString());
             promise.tryComplete(response);
             closeSocket(socket);
         }

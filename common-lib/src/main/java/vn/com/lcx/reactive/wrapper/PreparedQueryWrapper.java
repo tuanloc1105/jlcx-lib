@@ -40,21 +40,29 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
         StringBuilder parametersLog = new StringBuilder("parameters:");
         final int size = tuple.size();
         final var actualTuple = Tuple.tuple();
+        int count = 1;
         for (int i = 0; i < size; ++i) {
             Object value = tuple.getValue(i);
-            parametersLog.append(
-                    String.format(
-                            "\n\t- parameter %s: %s",
-                            String.format("%-3d %-20s)", i, "(" + value.getClass().getSimpleName()),
-                            value
-                    )
-            );
             if (value instanceof List) {
                 final var listVal = (List<?>) value;
                 for (Object o : listVal) {
+                    parametersLog.append(
+                            String.format(
+                                    "\n\t- parameter %s: %s",
+                                    String.format("%-3d %-20s)", count++, "(" + o.getClass().getSimpleName()),
+                                    o
+                            )
+                    );
                     actualTuple.addValue(o);
                 }
             } else {
+                parametersLog.append(
+                        String.format(
+                                "\n\t- parameter %s: %s",
+                                String.format("%-3d %-20s)", count++, "(" + value.getClass().getSimpleName()),
+                                value
+                        )
+                );
                 actualTuple.addValue(value);
             }
         }

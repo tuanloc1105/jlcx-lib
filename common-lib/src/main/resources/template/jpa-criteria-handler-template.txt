@@ -194,7 +194,7 @@
                     splitEntities -> {
                         for (${entity-class} entity : splitEntities) {
                             try {
-                                finalCurrentSessionInContext.save(entity);
+                                finalCurrentSessionInContext.persist(entity);
                             } catch (java.lang.Throwable t) {
                                 finalCurrentSessionInContext.merge(entity);
                             }
@@ -221,7 +221,7 @@
                         splitEntities -> {
                             for (${entity-class} entity : splitEntities) {
                                 try {
-                                    finalCurrentSessionInContext.save(entity);
+                                    finalCurrentSessionInContext.persist(entity);
                                 } catch (java.lang.Throwable t) {
                                     finalCurrentSessionInContext.merge(entity);
                                 }

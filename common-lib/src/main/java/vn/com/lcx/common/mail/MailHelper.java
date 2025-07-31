@@ -1,6 +1,7 @@
 package vn.com.lcx.common.mail;
 
 import jakarta.activation.DataHandler;
+import jakarta.activation.FileDataSource;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.PasswordAuthentication;
@@ -21,6 +22,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
@@ -29,6 +31,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class MailHelper {
@@ -148,13 +151,66 @@ public final class MailHelper {
 
                     multipart.addBodyPart(mimeBodyPart);
 
-                    for (String filePath : mailInfo.getFileAttachments()) {
-                        final var fileMimeBodyPart = new MimeBodyPart();
-                        try {
-                            fileMimeBodyPart.attachFile(new File(filePath));
-                            multipart.addBodyPart(fileMimeBodyPart);
-                        } catch (Exception e) {
-                            LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage());
+                    if (Optional.ofNullable(mailInfo.getImagesMap()).filter(it -> !it.isEmpty()).isPresent()) {
+                        mailInfo.getImagesMap().forEach((imageId, imagePath) -> {
+                            final var bodyPart = new MimeBodyPart();
+                            final var file = new File(imagePath);
+                            if (!file.exists()) {
+                                LogUtils.writeLog(LogUtils.Level.WARN, "File {} does not exist", file.getAbsolutePath());
+                                return;
+                            }
+                            if (file.isDirectory()) {
+                                LogUtils.writeLog(LogUtils.Level.WARN, "File {} is a directory", file.getAbsolutePath());
+                                return;
+                            }
+                            final var fds = new FileDataSource(file);
+                            try {
+                                bodyPart.setDataHandler(new DataHandler(fds));
+                                bodyPart.setHeader("Content-ID", "<" + imageId + ">");
+                                multipart.addBodyPart(bodyPart);
+                            } catch (Exception e) {
+                                LogUtils.writeLog(e.getMessage(), e);
+                            }
+                        });
+                    }
+
+                    if (Optional.ofNullable(mailInfo.getResourceImagesMap()).filter(it -> !it.isEmpty()).isPresent()) {
+                        mailInfo.getResourceImagesMap().forEach((imageId, imagePath) -> {
+                            try {
+                                final var imageStream = MailHelper.class.getClassLoader().getResourceAsStream(imagePath);
+                                if (imageStream == null) {
+                                    LogUtils.writeLog(LogUtils.Level.WARN, "File {} not found", imagePath);
+                                    return;
+                                }
+                                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                                byte[] buffer = new byte[4096];
+                                int bytesRead;
+                                while ((bytesRead = imageStream.read(buffer)) != -1) {
+                                    output.write(buffer, 0, bytesRead);
+                                }
+                                byte[] imageBytes = output.toByteArray();
+                                imageStream.close();
+                                output.close();
+                                ByteArrayDataSource bds = new ByteArrayDataSource(imageBytes, getContentTypeFromFileName(imagePath));
+                                final var imageBodyPart = new MimeBodyPart();
+                                imageBodyPart.setDataHandler(new DataHandler(bds));
+                                imageBodyPart.setHeader("Content-ID", "<" + imageId + ">");
+                                multipart.addBodyPart(imageBodyPart);
+                            } catch (Exception e) {
+                                LogUtils.writeLog(e.getMessage(), e);
+                            }
+                        });
+                    }
+
+                    if (Optional.ofNullable(mailInfo.getFileAttachments()).filter(CollectionUtils::isNotEmpty).isPresent()) {
+                        for (String filePath : mailInfo.getFileAttachments()) {
+                            final var fileMimeBodyPart = new MimeBodyPart();
+                            try {
+                                fileMimeBodyPart.attachFile(new File(filePath));
+                                multipart.addBodyPart(fileMimeBodyPart);
+                            } catch (Exception e) {
+                                LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage());
+                            }
                         }
                     }
 
@@ -226,6 +282,25 @@ public final class MailHelper {
         } catch (Exception e) {
             LogUtils.writeLog(e.getMessage(), e);
         }
+    }
+
+    private static String getContentTypeFromFileName(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return "application/octet-stream";
+        }
+        String lowerCaseFileName = fileName.toLowerCase();
+        if (lowerCaseFileName.endsWith(".png")) {
+            return "image/png";
+        } else if (lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (lowerCaseFileName.endsWith(".gif")) {
+            return "image/gif";
+        } else if (lowerCaseFileName.endsWith(".svg")) {
+            return "image/svg+xml";
+        } else if (lowerCaseFileName.endsWith(".webp")) {
+            return "image/webp";
+        }
+        return "application/octet-stream";
     }
 
 }

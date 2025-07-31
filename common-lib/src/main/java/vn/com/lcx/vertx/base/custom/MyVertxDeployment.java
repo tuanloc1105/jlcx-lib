@@ -8,7 +8,6 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.json.JsonArray;
 import io.vertx.micrometer.MicrometerMetricsFactory;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
@@ -16,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.utils.CommonUtils;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
@@ -63,6 +64,7 @@ public class MyVertxDeployment {
     private void deployVerticle(final List<String> packagesToScan, Supplier<Void> preconfigure) {
         final var oldThreadName = Thread.currentThread().getName();
         Thread.currentThread().setName("vertx-deployment");
+        final var appStartingTime = (double) System.currentTimeMillis();
         try {
             ClassPool.loadProperties();
             boolean enableMetric = Boolean.parseBoolean(
@@ -102,54 +104,63 @@ public class MyVertxDeployment {
             if (preconfigure != null) {
                 preconfigure.get();
             }
+            boolean printUserBanner = false;
+            try (InputStream input = MyVertxDeployment.class.getClassLoader().getResourceAsStream("banner.txt")) {
+                if (input != null) {
+                    printUserBanner = true;
+                }
+            }
+            if (printUserBanner) {
+                CommonUtils.bannerLogging("banner.txt");
+            } else {
+                CommonUtils.bannerLogging("default-banner.txt");
+            }
             List<Class<?>> verticles = new ArrayList<>();
-            final var appStartingTime = (double) System.currentTimeMillis();
             ClassPool.init(packagesToScan, verticles);
-            if (verticles.isEmpty()) {
-                return;
-            }
-            List<Future<String>> listOfVerticleFuture = new ArrayList<>();
-            for (Class<?> aClass : verticles) {
-                if (aClass.getAnnotation(Verticle.class) != null) {
-                    final var fields = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
-                    final Class<?>[] fieldArr = fields.stream().map(Field::getType).toArray(Class[]::new);
-                    final Object[] args = fields.stream().map(
-                            f -> {
-                                Object o1 = ClassPool.getInstance(f.getName());
-                                if (o1 != null) {
-                                    return o1;
+            if (!verticles.isEmpty()) {
+                List<Future<String>> listOfVerticleFuture = new ArrayList<>();
+                for (Class<?> aClass : verticles) {
+                    if (aClass.getAnnotation(Verticle.class) != null) {
+                        final var fields = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+                        final Class<?>[] fieldArr = fields.stream().map(Field::getType).toArray(Class[]::new);
+                        final Object[] args = fields.stream().map(
+                                f -> {
+                                    Object o1 = ClassPool.getInstance(f.getName());
+                                    if (o1 != null) {
+                                        return o1;
+                                    }
+                                    return ClassPool.getInstance(f.getType().getName());
                                 }
-                                return ClassPool.getInstance(f.getType().getName());
-                            }
-                    ).toArray(Object[]::new);
-                    final VertxBaseVerticle verticle = (VertxBaseVerticle) aClass.getDeclaredConstructor(fieldArr).newInstance(args);
-                    final Future<String> applicationVerticleFuture = vertx.deployVerticle(verticle);
-                    applicationVerticleFuture.onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle {}", aClass, throwable));
-                    applicationVerticleFuture.onSuccess(s -> {
-                        LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s);
-                    });
-                    listOfVerticleFuture.add(applicationVerticleFuture);
+                        ).toArray(Object[]::new);
+                        final VertxBaseVerticle verticle = (VertxBaseVerticle) aClass.getDeclaredConstructor(fieldArr).newInstance(args);
+                        final Future<String> applicationVerticleFuture = vertx.deployVerticle(verticle);
+                        applicationVerticleFuture.onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle {}", aClass, throwable));
+                        applicationVerticleFuture.onSuccess(s -> {
+                            LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s);
+                        });
+                        listOfVerticleFuture.add(applicationVerticleFuture);
+                    }
+                }
+                if (!listOfVerticleFuture.isEmpty()) {
+                    // JsonArray results = new JsonArray();
+                    // noinspection StatementWithEmptyBody
+                    while (listOfVerticleFuture.stream().noneMatch(Future::isComplete)) {
+                        // do nothing here and wait until all verticles finish the deployment process
+                    }
                 }
             }
-            if (!listOfVerticleFuture.isEmpty()) {
-                JsonArray results = new JsonArray();
-                // noinspection StatementWithEmptyBody
-                while (listOfVerticleFuture.stream().noneMatch(Future::isComplete)) {
-                    // do nothing here
-                }
-                final var appFinishingStartingTime = (double) System.currentTimeMillis();
-                final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
-                LoggerFactory.getLogger("APP").info("Application started in {} second(s)", appStartingDuration);
-                // noinspection SystemGetProperty
-                LoggerFactory.getLogger("ENCODING").info(
-                        "Using Java {} - {}\nEncoding information:\n    - Default Charset: {}\n    - Default Charset encoding by java.nio.charset: {}\n    - Default Charset by InputStreamReader: {}",
-                        System.getProperty("java.version"),
-                        System.getProperty("java.vendor"),
-                        System.getProperty("file.encoding"),
-                        Charset.defaultCharset().name(),
-                        getCharacterEncoding()
-                );
-            }
+            final var appFinishingStartingTime = (double) System.currentTimeMillis();
+            final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
+            LoggerFactory.getLogger("APP").info("Application started in {} second(s)", appStartingDuration);
+            // noinspection SystemGetProperty
+            LoggerFactory.getLogger("ENCODING").info(
+                    "Using Java {} - {}\nEncoding information:\n    - Default Charset: {}\n    - Default Charset encoding by java.nio.charset: {}\n    - Default Charset by InputStreamReader: {}",
+                    System.getProperty("java.version"),
+                    System.getProperty("java.vendor"),
+                    System.getProperty("file.encoding"),
+                    Charset.defaultCharset().name(),
+                    getCharacterEncoding()
+            );
         } catch (Exception e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             System.exit(1);

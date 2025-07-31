@@ -8,6 +8,8 @@ rm -R src/main/resources/webroot/* 1> /dev/null 2> /dev/null || printf "\n\n\t N
 
 cd web
 
+pnpm install
+
 pnpm run build
 
 cd ..

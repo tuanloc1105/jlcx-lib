@@ -13,7 +13,7 @@ public class MyRouterImpl extends RouterImpl {
 
     @Override
     public void handle(HttpServerRequest request) {
-        // LogUtils.writeLog(
+        // LogUtils.writeLog(EmptyRoutingContext.init(),
         //         LogUtils.Level.INFO,
         //         "Router: {} accepting request {} {}",
         //         System.identityHashCode(this),
@@ -26,31 +26,31 @@ public class MyRouterImpl extends RouterImpl {
 
     @Override
     public synchronized Route route(String path) {
-        LogUtils.writeLog(LogUtils.Level.INFO, "Configuring route for path [{}]", path);
+        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring route for path [{}]", path);
         return super.route(path);
     }
 
     @Override
     public Route get(String path) {
-        LogUtils.writeLog(LogUtils.Level.INFO, "Configuring get path [{}]", path);
+        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring get path [{}]", path);
         return super.get(path);
     }
 
     @Override
     public Route post(String path) {
-        LogUtils.writeLog(LogUtils.Level.INFO, "Configuring post path [{}]", path);
+        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring post path [{}]", path);
         return super.post(path);
     }
 
     @Override
     public Route put(String path) {
-        LogUtils.writeLog(LogUtils.Level.INFO, "Configuring put path [{}]", path);
+        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring put path [{}]", path);
         return super.put(path);
     }
 
     @Override
     public Route delete(String path) {
-        LogUtils.writeLog(LogUtils.Level.INFO, "Configuring delete path [{}]", path);
+        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring delete path [{}]", path);
         return super.delete(path);
     }
 }

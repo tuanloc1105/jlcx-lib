@@ -3,12 +3,12 @@ package vn.com.lcx.common.config;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.gson.Gson;
+import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
-import vn.com.lcx.common.annotation.InstanceClass;
 import vn.com.lcx.common.utils.HttpUtils;
 import vn.com.lcx.common.utils.SocketUtils;
 
-@InstanceClass
+@Component
 public class DefaultConfiguration {
 
     @Instance

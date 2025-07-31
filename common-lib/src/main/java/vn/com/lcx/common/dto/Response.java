@@ -66,6 +66,18 @@ public class Response<T> {
         this.errorResponse = errorResponse;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Response{");
+        sb.append("code=").append(code);
+        sb.append(", msg='").append(msg).append('\'');
+        sb.append(", response=").append(response);
+        sb.append(", responseHeaders=").append(responseHeaders);
+        sb.append(", errorResponse='").append(errorResponse).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
+
     public static class Builder<T> {
         private int code;
         private String msg;

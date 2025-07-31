@@ -2,6 +2,7 @@ package com.example.lcx.controller;
 
 import com.example.lcx.object.request.CreateTaskRequest;
 import com.example.lcx.object.request.DeleteTaskRequest;
+import com.example.lcx.object.request.DeleteTasksRequest;
 import com.example.lcx.object.request.GetAllTaskRequest;
 import com.example.lcx.object.request.GetTaskDetailRequest;
 import com.example.lcx.object.request.MarkTaskAsFinishedRequest;
@@ -121,6 +122,22 @@ public class ReactiveTaskController extends ReactiveController {
             DeleteTaskRequest req = handleRequest(ctx, gson, new TypeToken<>() {
             });
             taskService.deleteTask(ctx, req).onSuccess(v -> {
+                handleResponse(ctx, gson, new CommonResponse());
+            }).onFailure(err -> {
+                handleError(ctx, gson, err);
+            });
+        } catch (Throwable t) {
+            handleError(ctx, gson, t);
+        }
+    }
+
+    @Post(path = "/delete_tasks")
+    @Auth
+    public void deleteTasks(RoutingContext ctx) {
+        try {
+            DeleteTasksRequest req = handleRequest(ctx, gson, new TypeToken<>() {
+            });
+            taskService.deleteTasks(ctx, req).onSuccess(v -> {
                 handleResponse(ctx, gson, new CommonResponse());
             }).onFailure(err -> {
                 handleError(ctx, gson, err);

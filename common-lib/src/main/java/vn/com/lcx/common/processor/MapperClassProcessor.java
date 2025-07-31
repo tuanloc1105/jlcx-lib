@@ -126,7 +126,7 @@ public class MapperClassProcessor extends AbstractProcessor {
         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(fullClassName);
         try (Writer writer = builderFile.openWriter()) {
             String codeToWrite = String.format(
-                    "package %s;\n\nimport java.util.*;\n\npublic class %s implements %s {\n\n    public %s() {\n    }\n    %s\n\n}",
+                    "package %s;\n\nimport java.util.*;\n\n@vn.com.lcx.common.annotation.Component\npublic class %s implements %s {\n\n    public %s() {\n    }\n    %s\n\n}",
                     packageName,
                     className,
                     typeElement.getSimpleName() + CommonConstant.EMPTY_STRING,
