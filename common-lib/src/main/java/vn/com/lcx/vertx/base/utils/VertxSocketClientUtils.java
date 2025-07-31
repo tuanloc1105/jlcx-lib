@@ -92,7 +92,7 @@ public class VertxSocketClientUtils {
         connectFuture.onSuccess(socket -> {
             try {
                 socket.write(inputMessage);
-                socket.handler(buffer -> handleBuffer(context, socket, buffer, promise, logMessage));
+                socket.handler(buffer -> handleBuffer(context, socket, buffer, promise, startTime, logMessage));
                 socket.exceptionHandler(ex -> {
                     LogUtils.writeLog(context, "Socket exception: ", ex);
                     promise.tryFail(ex);
