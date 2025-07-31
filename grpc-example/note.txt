@@ -1,0 +1,33 @@
+Generate source command for Windows
+
+```powershell
+protoc -I=proto `
+--plugin=protoc-gen-grpc-java=$env:DEV_KIT_LOCATION\tool\protoc-gen-grpc-java.exe `
+--plugin=protoc-gen-vertx=$env:DEV_KIT_LOCATION\tool\protoc-gen-vertx.exe `
+--grpc-java_out=lite:.\grpc-server\src\main\java `
+--vertx_out=.\grpc-server\src\main\java `
+.\proto\*.proto
+
+protoc -I=proto `
+--plugin=protoc-gen-grpc-java=$env:DEV_KIT_LOCATION\tool\protoc-gen-grpc-java.exe `
+--plugin=protoc-gen-vertx=$env:DEV_KIT_LOCATION\tool\protoc-gen-vertx.exe `
+--grpc-java_out=.\grpc-server\src\main\java `
+--vertx_out=.\grpc-server\src\main\java `
+.\proto\*.proto
+
+protoc -I=proto `
+--plugin=protoc-gen-grpc-java=$env:DEV_KIT_LOCATION\tool\protoc-gen-grpc-java.exe `
+--plugin=protoc-gen-vertx=$env:DEV_KIT_LOCATION\tool\protoc-gen-vertx.exe `
+--grpc-java_out=lite:.\grpc-client\src\main\java `
+--vertx_out=.\grpc-client\src\main\java `
+.\proto\*.proto
+
+protoc -I=proto `
+--plugin=protoc-gen-grpc-java=$env:DEV_KIT_LOCATION\tool\protoc-gen-grpc-java.exe `
+--plugin=protoc-gen-vertx=$env:DEV_KIT_LOCATION\tool\protoc-gen-vertx.exe `
+--grpc-java_out=.\grpc-client\src\main\java `
+--vertx_out=.\grpc-client\src\main\java `
+.\proto\*.proto
+```
+
+
