@@ -1,7 +1,7 @@
 package vn.com.lcx.vertx.base.validate;
 
 import com.google.gson.annotations.SerializedName;
-import vn.com.lcx.common.utils.LogUtils;
+import vn.com.lcx.common.exception.ValidationException;
 import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.vertx.base.annotation.GreaterThan;
 import vn.com.lcx.vertx.base.annotation.LessThan;
@@ -130,7 +130,7 @@ public final class AutoValidation {
             } catch (InternalServiceException e) {
                 throw e;
             } catch (Exception e) {
-                LogUtils.writeLog(e.getMessage(), e);
+                throw new ValidationException(e);
             }
         }
         return errorFields;
