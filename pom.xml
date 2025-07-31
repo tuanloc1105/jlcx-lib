@@ -11,6 +11,7 @@
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
         <java.version>${jdk.version}</java.version>
+        <!--suppress CheckTagEmptyBody -->
         <main.class></main.class>
 
         <logback-classic-ch.qos.logback.version>1.5.18</logback-classic-ch.qos.logback.version>
