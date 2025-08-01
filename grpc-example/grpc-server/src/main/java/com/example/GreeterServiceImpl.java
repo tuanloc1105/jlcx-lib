@@ -1,8 +1,8 @@
 package com.example;
 
-import examples.GreeterService;
-import examples.HelloReply;
-import examples.HelloRequest;
+import com.example.grpc.GreeterService;
+import com.example.grpc.HelloReply;
+import com.example.grpc.HelloRequest;
 import io.vertx.core.Future;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.utils.LogUtils;

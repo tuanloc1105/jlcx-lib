@@ -1,7 +1,7 @@
 package com.example;
 
-import examples.GreeterGrpcService;
-import examples.GreeterService;
+import com.example.grpc.GreeterGrpcService;
+import com.example.grpc.GreeterService;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.server.GrpcServer;
