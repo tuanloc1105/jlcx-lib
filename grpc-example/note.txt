@@ -34,7 +34,7 @@ protoc -I=proto `
 
 ```powershell
 Remove-Item -Recurse -Force grpc-server\src\main\java\examples
-Remove-Item -Recurse -Force grpc-server\src\main\java\examples
+Remove-Item -Recurse -Force grpc-client\src\main\java\examples
 ```
 
 Generate source command for Linux
