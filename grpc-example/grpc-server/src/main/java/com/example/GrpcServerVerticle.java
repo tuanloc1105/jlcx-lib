@@ -2,6 +2,7 @@ package com.example;
 
 import examples.GreeterGrpcService;
 import examples.GreeterService;
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.server.GrpcServer;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ public class GrpcServerVerticle extends VertxBaseVerticle {
     private final GreeterService greeterService;
 
     @Override
-    public io.vertx.core.Future<io.vertx.core.http.HttpServer> start() {
+    public Future<HttpServer> start() {
         GrpcServer grpcServer = GrpcServer.server(vertx);
         final var service = GreeterGrpcService.of(greeterService);
         grpcServer.addService(service);
