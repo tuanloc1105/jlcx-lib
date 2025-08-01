@@ -263,6 +263,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                               VariableElement sqlConnectionVariable,
                                               TypeMirror entityTypeMirror) {
         codeLines.add(
+                "final double startingTime = (double) java.lang.System.currentTimeMillis();"
+        );
+        codeLines.add(
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
         codeLines.add(
@@ -278,6 +281,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("                for (io.vertx.sqlclient.Row row : rowSet) {");
         codeLines.add("                    " + entityTypeMirror + "Utils.idRowExtract(row, model);");
         codeLines.add("                }");
+        codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
@@ -294,6 +299,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add("            .map(rowSet -> {");
         codeLines.add("                " + entityTypeMirror + "Utils.mySqlIdRowExtract(rowSet, model);");
+        codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
@@ -310,6 +317,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
         codeLines.add("            .map(rowSet -> {");
         codeLines.add("                " + entityTypeMirror + "Utils.idRowExtract(rowSet.iterator().next(), model);");
+        codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
@@ -327,6 +336,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("            .map(rowSet -> {");
         codeLines.add("                io.vertx.sqlclient.Row row = rowSet.property(io.vertx.oracleclient.OracleClient.GENERATED_KEYS);");
         codeLines.add("                " + entityTypeMirror + "Utils.idRowExtract(row, model);");
+        codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
@@ -344,6 +355,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 VariableElement contextVariable,
                                                 VariableElement sqlConnectionVariable,
                                                 TypeMirror entityTypeMirror) {
+        codeLines.add(
+                "final double startingTime = (double) java.lang.System.currentTimeMillis();"
+        );
         codeLines.add(
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
@@ -402,7 +416,19 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "}"
         );
         codeLines.add(
-                "return future;"
+                "return future.map(it -> {"
+        );
+        codeLines.add(
+                "    final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+        );
+        codeLines.add(
+                "    vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+        );
+        codeLines.add(
+                "    return it;"
+        );
+        codeLines.add(
+                "});"
         );
     }
 
@@ -410,6 +436,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 VariableElement contextVariable,
                                                 VariableElement sqlConnectionVariable,
                                                 TypeMirror entityTypeMirror) {
+        codeLines.add(
+                "final double startingTime = (double) java.lang.System.currentTimeMillis();"
+        );
         codeLines.add(
                 "if (databaseName.equals(\"PostgreSQL\")) {"
         );
@@ -468,7 +497,19 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "}"
         );
         codeLines.add(
-                "return future;"
+                "return future.map(it -> {"
+        );
+        codeLines.add(
+                "    final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+        );
+        codeLines.add(
+                "    vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+        );
+        codeLines.add(
+                "    return it;"
+        );
+        codeLines.add(
+                "});"
         );
     }
 
@@ -480,7 +521,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                           boolean isReturningList,
                                           String futureOutputType) {
         // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
-
+        codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
         codeLines.add("java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);");
         codeLines.add("String placeholder;");
         codeLines.add("if (databaseName.equals(\"PostgreSQL\")) {");
@@ -581,6 +622,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     "            }"
             );
             codeLines.add(
+                    "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+            );
+            codeLines.add(
+                    "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+            );
+            codeLines.add(
                     "            return result;"
             );
         } else {
@@ -615,6 +662,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "            }"
                     );
                     codeLines.add(
+                            "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                    );
+                    codeLines.add(
+                            "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                    );
+                    codeLines.add(
                             "            return result;"
                     );
                 }
@@ -638,6 +691,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "            }"
                     );
                     codeLines.add(
+                            "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                    );
+                    codeLines.add(
+                            "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                    );
+                    codeLines.add(
                             "            return result;"
                     );
                 }
@@ -659,6 +718,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 );
                 codeLines.add(
                         "            }"
+                );
+                codeLines.add(
+                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                );
+                codeLines.add(
+                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
                 );
                 codeLines.add(
                         "            return objects.toArray(java.lang.Object[]::new);"
@@ -700,6 +765,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 codeLines.add(
                         "            }"
                 );
+                codeLines.add(
+                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                );
+                codeLines.add(
+                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                );
                 if (isOptional) {
                     codeLines.add(
                             "            return java.util.Optional.of(result.get(0));"
@@ -726,6 +797,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 boolean isReturningList,
                                                 String futureOutputType) {
         codeLines.clear();
+        codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
         codeLines.add(
                 String.format(
                         "String databaseName = %s.databaseMetadata().productName();",
@@ -909,6 +981,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     "            }"
             );
             codeLines.add(
+                    "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+            );
+            codeLines.add(
+                    "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+            );
+            codeLines.add(
                     "            return result;"
             );
         } else {
@@ -937,6 +1015,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         "            }"
                 );
                 codeLines.add(
+                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                );
+                codeLines.add(
+                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                );
+                codeLines.add(
                         "            return result;"
                 );
             } else if (genericType.equals("java.lang.Integer")) {
@@ -951,6 +1035,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 );
                 codeLines.add(
                         "            }"
+                );
+                codeLines.add(
+                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                );
+                codeLines.add(
+                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
                 );
                 codeLines.add(
                         "            return result;"
@@ -991,6 +1081,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 );
                 codeLines.add(
                         "            }"
+                );
+                codeLines.add(
+                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                );
+                codeLines.add(
+                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
                 );
                 if (isOptional) {
                     codeLines.add(
