@@ -249,15 +249,18 @@ public class ClassPool {
                     )
             );
         }
-        CLASS_POOL.put(name, instance);
+        set(name, instance);
         set(instance.getClass().getName(), instance);
+        set(instance.getClass().getSimpleName(), instance);
     }
 
     public static void setInstance(Object instance) {
         set(instance.getClass().getName(), instance);
+        set(instance.getClass().getSimpleName(), instance);
         final var iFaces = instance.getClass().getInterfaces();
         for (Class<?> iFaceClass : iFaces) {
             set(iFaceClass.getName(), instance);
+            set(iFaceClass.getSimpleName(), instance);
         }
     }
 
