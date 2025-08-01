@@ -20,18 +20,6 @@ protoc -I=proto `
 --vertx_out=.\grpc-client\src\main\java `
 .\proto\*.proto
 
-$currentLocation = $(Get-Location)
-
-Remove-Item -Recurse src\main\resources\webroot\* *> $null || Write-Host "`n`n`t No webroot folder`n`n`n"
-
-Set-Location web
-
-pnpm install
-
-pnpm run build
-
-Set-Location $currentLocation
-
 Write-Host "`n`n`t Checking java version`n`n`n"
 
 java -version
