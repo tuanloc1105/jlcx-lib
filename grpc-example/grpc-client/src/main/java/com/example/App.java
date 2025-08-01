@@ -1,8 +1,8 @@
 package com.example;
 
-import examples.GreeterGrpcClient;
-import examples.HelloReply;
-import examples.HelloRequest;
+import com.example.grpc.GreeterGrpcClient;
+import com.example.grpc.HelloReply;
+import com.example.grpc.HelloRequest;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.SocketAddress;
