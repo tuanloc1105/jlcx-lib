@@ -100,7 +100,7 @@ public class MyVertxDeployment {
                 vertx = Vertx.vertx();
             }
             ClassPool.setInstance("vertx", vertx);
-            ClassPool.setInstance(VertxBaseVerticle.class.getName(), vertx);
+            ClassPool.setInstance(Vertx.class.getName(), vertx);
             if (preconfigure != null) {
                 preconfigure.get();
             }
