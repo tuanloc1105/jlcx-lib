@@ -3,7 +3,7 @@ package vn.com.lcx.vertx.verticle;
 @vn.com.lcx.common.annotation.Verticle
 public class ApplicationVerticle extends vn.com.lcx.vertx.base.verticle.VertxBaseVerticle {
 
-    private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger("ApplicationVerticle");
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger("ApplicationVerticle");
 
 ${dependencies}
 
