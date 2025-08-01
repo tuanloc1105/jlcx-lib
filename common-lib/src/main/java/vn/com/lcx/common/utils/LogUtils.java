@@ -78,11 +78,11 @@ public final class LogUtils {
 
     public static void writeLog2(Level level, String message, Object... messageParameter) {
         final var fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
-        final var logToWrite = String.format(
+        final var logToWrite = /*String.format(
                 buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) + (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
+        ) +*/ (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
 
         switch (level) {
             case INFO:

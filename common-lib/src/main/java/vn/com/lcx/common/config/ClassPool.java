@@ -10,6 +10,7 @@ import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.utils.EntityUtils;
+import vn.com.lcx.common.exception.DuplicateInstancesException;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
@@ -238,20 +239,38 @@ public class ClassPool {
     }
 
     public static void setInstance(String name, Object instance) {
+        final var existingInstance = CLASS_POOL.get(name);
+        if (existingInstance != null) {
+            throw new DuplicateInstancesException(
+                    String.format(
+                            "An instance with name %s already existed with type %s",
+                            name,
+                            existingInstance.getClass().getName()
+                    )
+            );
+        }
         CLASS_POOL.put(name, instance);
-        CLASS_POOL.put(instance.getClass().getName(), instance);
-        // final var iFaces = instance.getClass().getInterfaces();
-        // for (Class<?> iFaceClass : iFaces) {
-        //     CLASS_POOL.put(iFaceClass.getName(), instance);
-        // }
+        set(instance.getClass().getName(), instance);
     }
 
     public static void setInstance(Object instance) {
-        CLASS_POOL.put(instance.getClass().getName(), instance);
+        set(instance.getClass().getName(), instance);
         final var iFaces = instance.getClass().getInterfaces();
         for (Class<?> iFaceClass : iFaces) {
-            CLASS_POOL.put(iFaceClass.getName(), instance);
+            set(iFaceClass.getName(), instance);
         }
+    }
+
+    private static void set(String name, Object instance) {
+        if (CLASS_POOL.get(name) == null) {
+            CLASS_POOL.put(name, instance);
+            return;
+        }
+        int count = 1;
+        while (CLASS_POOL.get(name + count) != null) {
+            count++;
+        }
+        CLASS_POOL.put(name + count, instance);
     }
 
     public static void loadProperties() {
