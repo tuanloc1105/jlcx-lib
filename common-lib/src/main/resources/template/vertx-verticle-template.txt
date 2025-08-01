@@ -3,6 +3,8 @@ package vn.com.lcx.vertx.verticle;
 @vn.com.lcx.common.annotation.Verticle
 public class ApplicationVerticle extends vn.com.lcx.vertx.base.verticle.VertxBaseVerticle {
 
+    private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger("ApplicationVerticle");
+
 ${dependencies}
 
 ${constructor}
@@ -44,19 +46,19 @@ ${constructor}
                         .requestHandler(router)
                         .listen()
                         .onSuccess(server -> {
-                            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "HTTP2 server started on port " + port);
+                            logger.info("HTTP2 server started on port " + port);
                         });
             } else {
                 future = vertx.createHttpServer()
                         .requestHandler(router)
                         .listen(port)
                         .onSuccess(server -> {
-                            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "HTTP server started on port " + port);
+                            logger.info("HTTP server started on port " + port);
                         });
             }
             return future;
         } catch (Throwable e) {
-            vn.com.lcx.common.utils.LogUtils.writeLog(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
             throw e;
         }
     }
