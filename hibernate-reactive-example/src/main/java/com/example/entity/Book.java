@@ -20,15 +20,21 @@ import static jakarta.persistence.FetchType.LAZY;
 @Getter
 @Setter
 public class Book {
+
     @Basic(fetch = LAZY)
-    public byte[] coverImage;
+    private byte[] coverImage;
+
     @Id
     @GeneratedValue
     private Integer id;
+
     private String isbn;
+
     private String title;
+
     @Basic(fetch = LAZY)
     private LocalDate published;
+
     @ManyToOne(fetch = LAZY)
     private Author author;
 
