@@ -3,11 +3,9 @@ package com.example;
 import com.example.entity.Author;
 import com.example.entity.Book;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.reactive.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.custom.MyVertxDeployment;
 
@@ -18,10 +16,14 @@ import static org.hibernate.reactive.stage.Stage.fetch;
 @VertxApplication
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class App {
 
-    private Logger log = LoggerFactory.getLogger("hreact");
     private final Stage.SessionFactory sessionFactory;
+
+    public static void main(String[] args) {
+        MyVertxDeployment.getInstance().deployVerticle(App.class);
+    }
 
     // @PostConstruct
     public void post() {
@@ -120,9 +122,5 @@ public class App {
         } catch (Exception e) {
             log.error("error", e);
         }
-    }
-
-    public static void main(String[] args) {
-        MyVertxDeployment.getInstance().deployVerticle(App.class);
     }
 }
