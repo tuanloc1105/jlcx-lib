@@ -25,7 +25,7 @@ public class APIController extends ReactiveController {
         try {
             CreateBookRequest req = handleRequest(ctx, gson, new TypeToken<>() {
             });
-            bookService.createBook(req).onSuccess(user -> {
+            bookService.createBook(ctx, req).onSuccess(user -> {
                 handleResponse(ctx, gson, new CommonResponse());
             }).onFailure(err -> {
                 handleError(ctx, gson, err);
