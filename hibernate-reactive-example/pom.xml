@@ -30,7 +30,6 @@
         <hibernate-reactive-core-org.hibernate.reactive.version>4.0.0.Beta1</hibernate-reactive-core-org.hibernate.reactive.version>
         <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
         <hibernate-core-org.hibernate.orm.version>7.0.6.Final</hibernate-core-org.hibernate.orm.version>
-        <scram-client-com.ongres.scram.version>3.1</scram-client-com.ongres.scram.version>
         <reactiverse-contextual-logging-logback-io.reactiverse.version>2.0.0</reactiverse-contextual-logging-logback-io.reactiverse.version>
 
     </properties>
@@ -74,13 +73,6 @@
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate-core-org.hibernate.orm.version}</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.ongres.scram/scram-client -->
-        <dependency>
-            <groupId>com.ongres.scram</groupId>
-            <artifactId>scram-client</artifactId>
-            <version>${scram-client-com.ongres.scram.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/io.reactiverse/reactiverse-contextual-logging-logback -->
