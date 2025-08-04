@@ -58,13 +58,6 @@ public class ReactiveHibernateConfiguration {
         ) {
             return null;
         }
-        final var useCache = applicationConfig.<Boolean>getPropertyWithEnvironment("server.database.use_cache", s -> {
-            try {
-                return Boolean.parseBoolean(s);
-            } catch (Exception e) {
-                return false;
-            }
-        });
         final String connectionString = String.format(type.getTemplateUrlConnectionString(), host, port, name);
         Map<String, Object> settings = new HashMap<>();
         settings.put(AvailableSettings.JAKARTA_PERSISTENCE_PROVIDER, "org.hibernate.reactive.provider.ReactivePersistenceProvider");
