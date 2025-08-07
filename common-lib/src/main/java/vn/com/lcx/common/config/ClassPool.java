@@ -2,6 +2,7 @@ package vn.com.lcx.common.config;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
@@ -10,6 +11,7 @@ import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.utils.EntityUtils;
+import vn.com.lcx.common.exception.DuplicateInstancesException;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
@@ -27,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -89,9 +92,9 @@ public class ClassPool {
                         LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor().newInstance();
                         if (!checkProxy(instance)) {
-                            putInstanceToClassPool(aClass, instance);
+                            setInstance(instance);
                         }
-                        handlePostConstructMethod(aClass, instance);
+                        createInstancesAndHandlePostConstructMethod(aClass, instance);
                     } else {
                         postHandleComponent.add(aClass);
                     }
@@ -126,9 +129,9 @@ public class ClassPool {
                     if (Arrays.stream(args).noneMatch(Objects::isNull)) {
                         LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor(fieldArr).newInstance(args);
-                        handlePostConstructMethod(aClass, instance);
+                        createInstancesAndHandlePostConstructMethod(aClass, instance);
                         if (!checkProxy(instance)) {
-                            putInstanceToClassPool(aClass, instance);
+                            setInstance(instance);
                         }
                         handledPostHandleComponent.add(aClass);
                         aClassHasNotBeenAddedToPool = false;
@@ -172,7 +175,7 @@ public class ClassPool {
         }
     }
 
-    public static void handlePostConstructMethod(Class<?> aClass, Object instance) throws Exception {
+    public static void createInstancesAndHandlePostConstructMethod(Class<?> aClass, Object instance) throws Exception {
         final var methodsOfInstance = Arrays.stream(
                 aClass.getDeclaredMethods()
         ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
@@ -180,9 +183,17 @@ public class ClassPool {
             for (Method method : methodsOfInstance) {
                 final var instanceMethodResult = method.invoke(instance);
                 if (instanceMethodResult != null) {
-                    putInstanceToClassPool(instanceMethodResult.getClass(), instanceMethodResult);
-                    CLASS_POOL.put(method.getName(), instanceMethodResult);
-                    CLASS_POOL.put(method.getReturnType().getName(), instanceMethodResult);
+                    setInstance(instanceMethodResult);
+                    final var instanceName = Optional.ofNullable(method.getAnnotation(Instance.class))
+                            .filter(it ->
+                                    StringUtils.isNotBlank(it.value())
+                            ).map(Instance::value)
+                            .orElse(CommonConstant.EMPTY_STRING);
+                    if (StringUtils.isNotBlank(instanceName)) {
+                        setInstance(instanceName, instanceMethodResult);
+                    } else {
+                        setInstance(method.getName(), instanceMethodResult);
+                    }
                 }
             }
         }
@@ -238,20 +249,50 @@ public class ClassPool {
     }
 
     public static void setInstance(String name, Object instance) {
-        CLASS_POOL.put(name, instance);
-        CLASS_POOL.put(instance.getClass().getName(), instance);
-        // final var iFaces = instance.getClass().getInterfaces();
-        // for (Class<?> iFaceClass : iFaces) {
-        //     CLASS_POOL.put(iFaceClass.getName(), instance);
-        // }
+        final var existingInstance = CLASS_POOL.get(name);
+        if (existingInstance != null) {
+            throw new DuplicateInstancesException(
+                    String.format(
+                            "An instance with name %s already existed with type %s",
+                            name,
+                            existingInstance.getClass().getName()
+                    )
+            );
+        }
+        set(name, instance);
+        setInstance(instance);
     }
 
     public static void setInstance(Object instance) {
-        CLASS_POOL.put(instance.getClass().getName(), instance);
+        set(instance.getClass().getName(), instance);
+        set(instance.getClass().getSimpleName(), instance);
+        final var superClasses = ObjectUtils.getExtendAndInterfaceClasses(instance.getClass());
+        for (Class<?> superClass : superClasses) {
+            set(superClass.getName(), instance);
+            set(superClass.getSimpleName(), instance);
+        }
+        final var superClass = instance.getClass().getSuperclass();
+        if (superClass != null && superClass != Object.class) {
+            set(superClass.getName(), instance);
+            set(superClass.getSimpleName(), instance);
+        }
         final var iFaces = instance.getClass().getInterfaces();
         for (Class<?> iFaceClass : iFaces) {
-            CLASS_POOL.put(iFaceClass.getName(), instance);
+            set(iFaceClass.getName(), instance);
+            set(iFaceClass.getSimpleName(), instance);
         }
+    }
+
+    private static void set(String name, Object instance) {
+        if (CLASS_POOL.get(name) == null) {
+            CLASS_POOL.put(name, instance);
+            return;
+        }
+        int count = 1;
+        while (CLASS_POOL.get(name + count) != null) {
+            count++;
+        }
+        CLASS_POOL.put(name + count, instance);
     }
 
     public static void loadProperties() {
@@ -264,33 +305,13 @@ public class ClassPool {
         }
     }
 
-    private static void putInstanceToClassPool(Class<?> aClass, Object instance) {
-        CLASS_POOL.put(aClass.getName(), instance);
-
-        final var superClass = aClass.getSuperclass();
-
-        if (superClass != null && superClass != Object.class) {
-            ClassPool.CLASS_POOL.put(superClass.getName(), instance);
-        }
-
-        final var iFace = aClass.getInterfaces();
-
-        for (Class<?> iFaceClass : iFace) {
-            ClassPool.CLASS_POOL.put(iFaceClass.getName(), instance);
-        }
-    }
-
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean checkProxy(Object instance) {
         final var proxyClassName = instance.getClass().getName() + "Proxy";
         try {
             Class<?> proxyClass = Class.forName(proxyClassName);
             Object proxyInstance = proxyClass.getDeclaredConstructor(instance.getClass()).newInstance(instance);
-            var superClasses = ObjectUtils.getExtendAndInterfaceClasses(proxyClass);
             setInstance(proxyInstance);
-            for (Class<?> superClass : superClasses) {
-                setInstance(superClass.getName(), proxyInstance);
-            }
             return true;
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException |
                  NoSuchMethodException ignore) {

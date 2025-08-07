@@ -1,0 +1,13 @@
+server:
+  port: 6060
+  enable-http-2: true
+  enable-metrics: true
+  hreactive:
+    database:
+      host: ${REACTIVE_DATABASE_HOST:192.168.1.196}
+      port: ${REACTIVE_DATABASE_PORT:5432}
+      username: ${REACTIVE_DATABASE_USERNAME:postgres}
+      password: ${REACTIVE_DATABASE_PASSWORD:yfM478rEK207BBA355stk059joK399CX}
+      name: ${REACTIVE_DATABASE_NAME:hreact}
+      max_pool_size: ${REACTIVE_DATABASE_MAX_POOL_SIZE:10}
+      type: ${REACTIVE_DATABASE_TYPE:POSTGRESQL}

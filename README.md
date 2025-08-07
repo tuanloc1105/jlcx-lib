@@ -108,6 +108,21 @@ Add required dependencies:
         <scope>provided</scope>
     </dependency>
 </dependencies>
+
+<repositories>
+
+    <repository>
+        <id>nexus-releases</id>
+        <url>https://nexus.vtl.name.vn/repository/maven-releases/</url>
+    </repository>
+
+    <repository>
+        <id>nexus-snapshots</id>
+        <url>https://nexus.vtl.name.vn/repository/maven-snapshots/</url>
+    </repository>
+
+</repositories>
+
 ```
 
 ### 2. **Define Your Entity**

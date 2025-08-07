@@ -11,6 +11,7 @@
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
         <java.version>${jdk.version}</java.version>
+        <!--suppress CheckTagEmptyBody -->
         <main.class></main.class>
 
         <logback-classic-ch.qos.logback.version>1.5.18</logback-classic-ch.qos.logback.version>
@@ -21,7 +22,7 @@
         <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
         <ojdbc11-com.oracle.database.jdbc.version>23.9.0.25.07</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.7</postgresql-org.postgresql.version>
-        <mysql-connector-j-com.mysql.version>9.3.0</mysql-connector-j-com.mysql.version>
+        <mysql-connector-j-com.mysql.version>9.4.0</mysql-connector-j-com.mysql.version>
         <mssql-jdbc-com.microsoft.sqlserver.version>12.10.1.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
         <gson-com.google.code.gson.version>2.13.1</gson-com.google.code.gson.version>
         <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.2</jakarta.xml.bind-api-jakarta.xml.bind.version>
@@ -37,8 +38,8 @@
         <jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>2.19.2
         </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
         <jakarta.mail-api-jakarta.mail.version>2.1.3</jakarta.mail-api-jakarta.mail.version>
-        <jakarta.mail-org.eclipse.angus.version>2.0.3</jakarta.mail-org.eclipse.angus.version>
-        <jedis-redis.clients.version>6.0.0</jedis-redis.clients.version>
+        <jakarta.mail-org.eclipse.angus.version>2.0.4</jakarta.mail-org.eclipse.angus.version>
+        <jedis-redis.clients.version>6.1.0</jedis-redis.clients.version>
         <micrometer-core-io.micrometer.version>1.15.2</micrometer-core-io.micrometer.version>
         <micrometer-registry-prometheus-io.micrometer.version>1.15.2
         </micrometer-registry-prometheus-io.micrometer.version>
@@ -50,23 +51,33 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>7.0.0</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.23.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.23.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.23.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.24.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.24.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-jcache-org.hibernate.orm.version>6.6.24.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.10.8</ehcache-org.ehcache.version>
-        <vertx-core-io.vertx.version>5.0.1</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>5.0.1</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>5.0.1</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>5.0.1</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>5.0.1</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>5.0.1</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>5.0.1</vertx-auth-jwt-io.vertx.version>
-        <vertx-micrometer-metrics-io.vertx.version>5.0.1</vertx-micrometer-metrics-io.vertx.version>
-        <vertx-oracle-client-io.vertx.version>5.0.1</vertx-oracle-client-io.vertx.version>
-        <vertx-mysql-client-io.vertx.version>5.0.1</vertx-mysql-client-io.vertx.version>
-        <vertx-pg-client-io.vertx.version>5.0.1</vertx-pg-client-io.vertx.version>
-        <vertx-mssql-client-io.vertx.version>5.0.1</vertx-mssql-client-io.vertx.version>
-        <vertx-redis-client-io.vertx.version>5.0.1</vertx-redis-client-io.vertx.version>
+        <vertx-core-io.vertx.version>5.0.2</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>5.0.2</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>5.0.2</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>5.0.2</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>5.0.2</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>5.0.2</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>5.0.2</vertx-auth-jwt-io.vertx.version>
+        <vertx-micrometer-metrics-io.vertx.version>5.0.2</vertx-micrometer-metrics-io.vertx.version>
+        <vertx-oracle-client-io.vertx.version>5.0.2</vertx-oracle-client-io.vertx.version>
+        <vertx-mysql-client-io.vertx.version>5.0.2</vertx-mysql-client-io.vertx.version>
+        <vertx-pg-client-io.vertx.version>5.0.2</vertx-pg-client-io.vertx.version>
+        <vertx-mssql-client-io.vertx.version>5.0.2</vertx-mssql-client-io.vertx.version>
+        <vertx-redis-client-io.vertx.version>5.0.2</vertx-redis-client-io.vertx.version>
+        <vertx-grpc-client-io.vertx.version>5.0.2</vertx-grpc-client-io.vertx.version>
+        <vertx-grpc-server-io.vertx.version>5.0.2</vertx-grpc-server-io.vertx.version>
+        <vertx-grpc-io.vertx.version>5.0.2</vertx-grpc-io.vertx.version>
+        <jakarta.annotation-api-jakarta.annotation.version>3.0.0</jakarta.annotation-api-jakarta.annotation.version>
+        <javax.annotation-api-javax.annotation.version>1.3.2</javax.annotation-api-javax.annotation.version>
+        <grpc-netty-shaded-io.grpc.version>1.74.0</grpc-netty-shaded-io.grpc.version>
+        <grpc-protobuf-io.grpc.version>1.74.0</grpc-protobuf-io.grpc.version>
+        <grpc-stub-io.grpc.version>1.74.0</grpc-stub-io.grpc.version>
+        <protobuf-java-com.google.protobuf.version>4.31.1</protobuf-java-com.google.protobuf.version>
+        <protobuf-java-util-com.google.protobuf.version>4.31.1</protobuf-java-util-com.google.protobuf.version>
         <junit-jupiter-api-org.junit.jupiter.version>5.13.4</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>5.13.4</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>5.13.4</junit-jupiter-params-org.junit.jupiter.version>
@@ -99,14 +110,12 @@
 
     <modules>
         <module>common-lib</module>
-        <module>grpc-proto-plugin</module>
         <module>processor</module>
-        <!-- <module>example</module> -->
     </modules>
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.4.lcx</version>
 
     <dependencyManagement>
 
@@ -466,6 +475,76 @@
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-redis-client</artifactId>
                 <version>${vertx-redis-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-grpc-client</artifactId>
+                <version>${vertx-grpc-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc-server -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-grpc-server</artifactId>
+                <version>${vertx-grpc-server-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-grpc</artifactId>
+                <version>${vertx-grpc-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
+            <dependency>
+                <groupId>jakarta.annotation</groupId>
+                <artifactId>jakarta.annotation-api</artifactId>
+                <version>${jakarta.annotation-api-jakarta.annotation.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>${javax.annotation-api-javax.annotation.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded -->
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-netty-shaded</artifactId>
+                <version>${grpc-netty-shaded-io.grpc.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.grpc/grpc-protobuf -->
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-protobuf</artifactId>
+                <version>${grpc-protobuf-io.grpc.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.grpc/grpc-stub -->
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-stub</artifactId>
+                <version>${grpc-stub-io.grpc.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-java-com.google.protobuf.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java-util</artifactId>
+                <version>${protobuf-java-util-com.google.protobuf.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->

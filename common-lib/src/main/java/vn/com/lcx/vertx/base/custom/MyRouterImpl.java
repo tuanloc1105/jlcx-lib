@@ -4,9 +4,13 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.impl.RouterImpl;
-import vn.com.lcx.common.utils.LogUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MyRouterImpl extends RouterImpl {
+
+    private final Logger logger = LoggerFactory.getLogger("Router register");
+
     public MyRouterImpl(Vertx vertx) {
         super(vertx);
     }
@@ -26,31 +30,31 @@ public class MyRouterImpl extends RouterImpl {
 
     @Override
     public synchronized Route route(String path) {
-        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring route for path [{}]", path);
+        logger.info("Configuring route for path [{}]", path);
         return super.route(path);
     }
 
     @Override
     public Route get(String path) {
-        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring get path [{}]", path);
+        logger.info("Configuring get path [{}]", path);
         return super.get(path);
     }
 
     @Override
     public Route post(String path) {
-        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring post path [{}]", path);
+        logger.info("Configuring post path [{}]", path);
         return super.post(path);
     }
 
     @Override
     public Route put(String path) {
-        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring put path [{}]", path);
+        logger.info("Configuring put path [{}]", path);
         return super.put(path);
     }
 
     @Override
     public Route delete(String path) {
-        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Configuring delete path [{}]", path);
+        logger.info("Configuring delete path [{}]", path);
         return super.delete(path);
     }
 }

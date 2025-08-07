@@ -1,0 +1,106 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>vn.com.lcx</groupId>
+        <artifactId>lcx-lib</artifactId>
+        <version>3.0.4.lcx</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.example</groupId>
+    <artifactId>grpc-server</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.0</version>
+    <name>grpc-server</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+
+        <jdk.version>11</jdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>${jdk.version}</maven.compiler.source>
+        <maven.compiler.target>${jdk.version}</maven.compiler.target>
+        <java.version>${jdk.version}</java.version>
+
+        <processor-vn.com.lcx.version>3.0.4.lcx</processor-vn.com.lcx.version>
+        <common-lib-vn.com.lcx.version>3.0.4.lcx</common-lib-vn.com.lcx.version>
+
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>vn.com.lcx</groupId>
+            <artifactId>processor</artifactId>
+            <version>${processor-vn.com.lcx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>vn.com.lcx</groupId>
+            <artifactId>common-lib</artifactId>
+            <version>${common-lib-vn.com.lcx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+        </dependency>
+
+        <!-- gRPC and Protocol Buffers -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+
+        <!-- Protocol Buffers Java Runtime -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-grpc-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-grpc-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-grpc</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

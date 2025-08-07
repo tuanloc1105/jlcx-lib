@@ -1,0 +1,116 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>vn.com.lcx</groupId>
+        <artifactId>lcx-lib</artifactId>
+        <version>3.0.4.lcx</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.example</groupId>
+    <artifactId>hibernate-reactive-example</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.0</version>
+    <name>hibernate-reactive-example</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+
+        <jdk.version>17</jdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>${jdk.version}</maven.compiler.source>
+        <maven.compiler.target>${jdk.version}</maven.compiler.target>
+        <java.version>${jdk.version}</java.version>
+        <main.class>com.example.App</main.class>
+
+        <processor-vn.com.lcx.version>3.0.4.lcx</processor-vn.com.lcx.version>
+        <common-lib-vn.com.lcx.version>3.0.4.lcx</common-lib-vn.com.lcx.version>
+        <hibernate-reactive-core-org.hibernate.reactive.version>4.0.0.Beta1
+        </hibernate-reactive-core-org.hibernate.reactive.version>
+        <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
+        <hibernate-core-org.hibernate.orm.version>7.0.6.Final</hibernate-core-org.hibernate.orm.version>
+        <reactiverse-contextual-logging-logback-io.reactiverse.version>2.0.0
+        </reactiverse-contextual-logging-logback-io.reactiverse.version>
+
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>vn.com.lcx</groupId>
+            <artifactId>processor</artifactId>
+            <version>${processor-vn.com.lcx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>vn.com.lcx</groupId>
+            <artifactId>common-lib</artifactId>
+            <version>${common-lib-vn.com.lcx.version}</version>
+            <exclusions>
+
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>org.hibernate.tool</groupId>
+                    <artifactId>hibernate-tools-orm</artifactId>
+                </exclusion>
+
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.hibernate.reactive/hibernate-reactive-core -->
+        <dependency>
+            <groupId>org.hibernate.reactive</groupId>
+            <artifactId>hibernate-reactive-core</artifactId>
+            <version>${hibernate-reactive-core-org.hibernate.reactive.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>${jakarta.persistence-api-jakarta.persistence.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate-core-org.hibernate.orm.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.reactiverse/reactiverse-contextual-logging-logback -->
+        <dependency>
+            <groupId>io.reactiverse</groupId>
+            <artifactId>reactiverse-contextual-logging-logback</artifactId>
+            <version>${reactiverse-contextual-logging-logback-io.reactiverse.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <repositories>
+
+        <repository>
+            <id>nexus-releases</id>
+            <url>https://nexus.vtl.name.vn/repository/maven-releases/</url>
+        </repository>
+
+        <repository>
+            <id>nexus-snapshots</id>
+            <url>https://nexus.vtl.name.vn/repository/maven-snapshots/</url>
+        </repository>
+
+    </repositories>
+
+</project>

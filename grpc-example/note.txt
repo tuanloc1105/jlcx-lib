@@ -1,0 +1,62 @@
+Generate source command for Windows
+
+```powershell
+protoc -I=proto `
+--plugin=protoc-gen-grpc-java=$env:DEV_KIT_LOCATION\tool\protoc-gen-grpc-java.exe `
+--plugin=protoc-gen-vertx=$env:DEV_KIT_LOCATION\tool\protoc-gen-vertx.exe `
+--grpc-java_out=lite:.\grpc-server\src\main\java `
+--vertx_out=.\grpc-server\src\main\java `
+.\proto\*.proto
+
+protoc -I=proto `
+--plugin=protoc-gen-grpc-java=$env:DEV_KIT_LOCATION\tool\protoc-gen-grpc-java.exe `
+--plugin=protoc-gen-vertx=$env:DEV_KIT_LOCATION\tool\protoc-gen-vertx.exe `
+--java_out=.\grpc-server\src\main\java `
+--grpc-java_out=.\grpc-server\src\main\java `
+--vertx_out=.\grpc-server\src\main\java `
+.\proto\*.proto
+
+protoc -I=proto `
+--plugin=protoc-gen-grpc-java=$env:DEV_KIT_LOCATION\tool\protoc-gen-grpc-java.exe `
+--plugin=protoc-gen-vertx=$env:DEV_KIT_LOCATION\tool\protoc-gen-vertx.exe `
+--grpc-java_out=lite:.\grpc-client\src\main\java `
+--vertx_out=.\grpc-client\src\main\java `
+.\proto\*.proto
+
+protoc -I=proto `
+--plugin=protoc-gen-grpc-java=$env:DEV_KIT_LOCATION\tool\protoc-gen-grpc-java.exe `
+--plugin=protoc-gen-vertx=$env:DEV_KIT_LOCATION\tool\protoc-gen-vertx.exe `
+--java_out=.\grpc-client\src\main\java `
+--grpc-java_out=.\grpc-client\src\main\java `
+--vertx_out=.\grpc-client\src\main\java `
+.\proto\*.proto
+```
+
+```powershell
+Remove-Item -Recurse -Force grpc-server\src\main\java\examples
+Remove-Item -Recurse -Force grpc-client\src\main\java\examples
+```
+
+Generate source command for Linux
+
+```bash
+protoc -I=proto \
+--plugin=protoc-gen-grpc-java=$DEV_KIT_LOCATION/tool/protoc-gen-grpc-java \
+--plugin=protoc-gen-vertx=$DEV_KIT_LOCATION/tool/protoc-gen-vertx \
+--java_out=./grpc-server/src/main/java \
+--grpc-java_out=./grpc-server/src/main/java \
+--vertx_out=./grpc-server/src/main/java \
+./proto/*.proto
+
+protoc -I=proto \
+--plugin=protoc-gen-grpc-java=$DEV_KIT_LOCATION/tool/protoc-gen-grpc-java \
+--plugin=protoc-gen-vertx=$DEV_KIT_LOCATION/tool/protoc-gen-vertx \
+--java_out=./grpc-client/src/main/java \
+--grpc-java_out=./grpc-client/src/main/java \
+--vertx_out=./grpc-client/src/main/java \
+./proto/*.proto
+```
+
+```bash
+rm -Rf grpc-server/src/main/java/examples grpc-server/src/main/java/examples
+```
