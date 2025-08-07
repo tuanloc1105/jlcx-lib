@@ -454,18 +454,19 @@ public class RepositoryProcessor extends AbstractProcessor {
             final var codeLines = new ArrayList<String>();
             final var codeLines2 = new ArrayList<String>();
             codeLines2.add("org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();");
+            final var finalStatement = queryAnnotation.value().replace("\n", "\\n\" +\n                        \"");
             if (queryAnnotation.isNative()) {
                 codeLines.add(
                         String.format(
                                 "org.hibernate.query.MutationQuery query = currentSessionInContext.createNativeMutationQuery(\"%s\");",
-                                queryAnnotation.value()
+                                finalStatement
                         )
                 );
             } else {
                 codeLines.add(
                         String.format(
                                 "org.hibernate.query.MutationQuery query = currentSessionInContext.createMutationQuery(\"%s\");",
-                                queryAnnotation.value()
+                                finalStatement
                         )
                 );
             }
