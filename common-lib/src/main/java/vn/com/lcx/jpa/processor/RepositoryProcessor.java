@@ -452,6 +452,8 @@ public class RepositoryProcessor extends AbstractProcessor {
         } else {
             final var queryAnnotation = executableElement.getAnnotation(Query.class);
             final var codeLines = new ArrayList<String>();
+            final var codeLines2 = new ArrayList<String>();
+            codeLines2.add("org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();");
             if (queryAnnotation.isNative()) {
                 codeLines.add(
                         String.format(
@@ -468,14 +470,17 @@ public class RepositoryProcessor extends AbstractProcessor {
                 );
             }
             setParameters(methodInfo, codeLines);
+            codeLines2.addAll(codeLines);
             if (methodInfo.getOutputParameter().getKind().equals(TypeKind.VOID)) {
-                codeLines.add(
-                        "query.executeUpdate();"
-                );
+                codeLines.add("query.executeUpdate();");
+                codeLines2.add("query.executeUpdate();");
+                codeLines2.add("transaction.commit();");
             } else {
-                codeLines.add(
-                        "return query.executeUpdate();"
-                );
+                codeLines.add("final int rowAffected = query.executeUpdate();");
+                codeLines.add("return rowAffected;");
+                codeLines2.add("final int rowAffected = query.executeUpdate();");
+                codeLines2.add("transaction.commit();");
+                codeLines2.add("return rowAffected;");
             }
             var code = buildBaseCode(
                     jpaMethodTemplate,
@@ -491,7 +496,7 @@ public class RepositoryProcessor extends AbstractProcessor {
                     )
                     .replace(
                             "${method-body-2}",
-                            String.join("\n                ", codeLines)
+                            String.join("\n                ", codeLines2)
                     );
             methodCodeBody.append(code).append("\n");
         }
