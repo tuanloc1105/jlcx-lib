@@ -110,14 +110,12 @@
 
     <modules>
         <module>common-lib</module>
-        <module>grpc-proto-plugin</module>
         <module>processor</module>
-        <!-- <module>example</module> -->
     </modules>
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.4.lcx</version>
 
     <dependencyManagement>
 

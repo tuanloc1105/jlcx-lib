@@ -5,7 +5,7 @@
     <parent>
         <groupId>vn.com.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
-        <version>3.0.3</version>
+        <version>3.0.4.lcx</version>
         <relativePath/>
     </parent>
 
@@ -24,8 +24,8 @@
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
         <java.version>${jdk.version}</java.version>
 
-        <processor-vn.com.lcx.version>3.0.3</processor-vn.com.lcx.version>
-        <common-lib-vn.com.lcx.version>3.0.3</common-lib-vn.com.lcx.version>
+        <processor-vn.com.lcx.version>3.0.4.lcx</processor-vn.com.lcx.version>
+        <common-lib-vn.com.lcx.version>3.0.4.lcx</common-lib-vn.com.lcx.version>
 
     </properties>
 

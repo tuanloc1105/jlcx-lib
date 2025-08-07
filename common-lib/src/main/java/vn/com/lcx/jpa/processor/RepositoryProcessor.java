@@ -454,18 +454,19 @@ public class RepositoryProcessor extends AbstractProcessor {
             final var codeLines = new ArrayList<String>();
             final var codeLines2 = new ArrayList<String>();
             codeLines2.add("org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();");
+            final var finalStatement = queryAnnotation.value().replace("\n", "\\n\" +\n                        \"");
             if (queryAnnotation.isNative()) {
                 codeLines.add(
                         String.format(
                                 "org.hibernate.query.MutationQuery query = currentSessionInContext.createNativeMutationQuery(\"%s\");",
-                                queryAnnotation.value()
+                                finalStatement
                         )
                 );
             } else {
                 codeLines.add(
                         String.format(
                                 "org.hibernate.query.MutationQuery query = currentSessionInContext.createMutationQuery(\"%s\");",
-                                queryAnnotation.value()
+                                finalStatement
                         )
                 );
             }
@@ -534,7 +535,7 @@ public class RepositoryProcessor extends AbstractProcessor {
                 final var resultSetMappingAnnotation = executableElement.getAnnotation(ResultSetMapping.class);
                 codeLines.add(
                         String.format(
-                                "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", \"%3$s\");",
+                                "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", \"%3$s\", %2$s.class);",
                                 queryStatement,
                                 outputClass,
                                 resultSetMappingAnnotation.name()
@@ -577,10 +578,11 @@ public class RepositoryProcessor extends AbstractProcessor {
             );
         } else if (methodInfo.getOutputParameter().toString().contains("vn.com.lcx.common.database.pageable.Page")) {
             final var countHql = replaceSelectToCount(queryAnnotation.value());
+            final var finalCountHql = countHql.replace("\n", "\\n\" +\n                        \"");
             codeLines.add(
                     String.format(
                             "org.hibernate.query.Query<Long> countQuery = currentSessionInContext.createQuery(\"%1$s\", Long.class);",
-                            countHql
+                            finalCountHql
                     )
             );
             setParametersForCount(methodInfo, codeLines);
