@@ -453,6 +453,7 @@ public class RepositoryProcessor extends AbstractProcessor {
             final var queryAnnotation = executableElement.getAnnotation(Query.class);
             final var codeLines = new ArrayList<String>();
             final var codeLines2 = new ArrayList<String>();
+            codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
             codeLines2.add("org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();");
             final var finalStatement = queryAnnotation.value().replace("\n", "\\n\" +\n                        \"");
             if (queryAnnotation.isNative()) {
@@ -474,12 +475,20 @@ public class RepositoryProcessor extends AbstractProcessor {
             codeLines2.addAll(codeLines);
             if (methodInfo.getOutputParameter().getKind().equals(TypeKind.VOID)) {
                 codeLines.add("query.executeUpdate();");
+                codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+                codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
                 codeLines2.add("query.executeUpdate();");
+                codeLines2.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+                codeLines2.add("vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
                 codeLines2.add("transaction.commit();");
             } else {
                 codeLines.add("final int rowAffected = query.executeUpdate();");
+                codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+                codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
                 codeLines.add("return rowAffected;");
                 codeLines2.add("final int rowAffected = query.executeUpdate();");
+                codeLines2.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+                codeLines2.add("vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
                 codeLines2.add("transaction.commit();");
                 codeLines2.add("return rowAffected;");
             }
@@ -530,6 +539,7 @@ public class RepositoryProcessor extends AbstractProcessor {
         final var queryAnnotation = executableElement.getAnnotation(Query.class);
         final var codeLines = new ArrayList<String>();
         final var queryStatement = queryAnnotation.value().replace("\n", "\\n\" +\n                        \"");
+        codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
         if (queryAnnotation.isNative()) {
             if (Optional.ofNullable(executableElement.getAnnotation(ResultSetMapping.class)).isPresent()) {
                 final var resultSetMappingAnnotation = executableElement.getAnnotation(ResultSetMapping.class);
@@ -573,9 +583,10 @@ public class RepositoryProcessor extends AbstractProcessor {
         }
         setParameters(methodInfo, codeLines);
         if (methodInfo.getOutputParameter().toString().contains("java.util.List")) {
-            codeLines.add(
-                    "return query.getResultList();"
-            );
+            codeLines.add("final java.util.List<" + outputClass + "> result = query.getResultList();");
+            codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+            codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
+            codeLines.add("return result;");
         } else if (methodInfo.getOutputParameter().toString().contains("vn.com.lcx.common.database.pageable.Page")) {
             final var countHql = replaceSelectToCount(queryAnnotation.value());
             final var finalCountHql = countHql.replace("\n", "\\n\" +\n                        \"");
@@ -595,6 +606,8 @@ public class RepositoryProcessor extends AbstractProcessor {
                             outputClass
                     )
             );
+            codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+            codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
             codeLines.add(
                     String.format(
                             "return vn.com.lcx.common.database.pageable.Page.<%s>create(",
@@ -607,13 +620,15 @@ public class RepositoryProcessor extends AbstractProcessor {
             codeLines.add("        pageimpl.getPageSize()");
             codeLines.add(");");
         } else if (methodInfo.getOutputParameter().toString().contains("java.util.Optional")) {
-            codeLines.add(
-                    "return java.util.Optional.ofNullable(query.uniqueResult());"
-            );
+            codeLines.add("final java.util.Optional<" + outputClass + "> optional = java.util.Optional.ofNullable(query.uniqueResult());");
+            codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+            codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
+            codeLines.add("return optional;");
         } else {
-            codeLines.add(
-                    "return query.uniqueResult();"
-            );
+            codeLines.add("final " + outputClass + " result = query.uniqueResult();");
+            codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
+            codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);");
+            codeLines.add("return result;");
         }
         var code = buildBaseCode(
                 jpaMethodTemplate,
