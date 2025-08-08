@@ -25,7 +25,6 @@
 ### 🏗️ **Code Generation & Annotations**
 - **Annotation Processors**: Compile-time code generation for repositories, services, and controllers
 - **SQL Mapping**: Automatic generation of SQL utilities and mapping classes
-- **gRPC Integration**: Maven plugin for automatic gRPC code generation from `.proto` files
 - **Custom Annotations**: Rich set of annotations for dependency injection and configuration
 
 ### 🔧 **Dependency Injection & Configuration**
@@ -66,7 +65,6 @@ jlcx-lib/
 │   ├── reactive/      # Reactive programming support
 │   └── jpa/           # JPA/Hibernate integration
 ├── processor/         # Annotation processors for code generation
-├── grpc-proto-plugin/ # Maven plugin for gRPC code generation
 └── example/           # Complete example application
     ├── src/main/java/ # Backend example code
     └── web/           # Frontend React application
@@ -84,7 +82,7 @@ Add the parent POM to your project:
 <parent>
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.5.lcx</version>
     <relativePath/>
 </parent>
 ```
@@ -97,14 +95,14 @@ Add required dependencies:
     <dependency>
         <groupId>vn.com.lcx</groupId>
         <artifactId>common-lib</artifactId>
-        <version>3.0.3</version>
+        <version>3.0.5.lcx</version>
     </dependency>
-    
+
     <!-- Annotation processor for code generation -->
     <dependency>
         <groupId>vn.com.lcx</groupId>
         <artifactId>processor</artifactId>
-        <version>3.0.3</version>
+        <version>3.0.5.lcx</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -333,24 +331,6 @@ EntityAnalyzer analyzer = new EntityAnalyzer(
     new EntityAnalysisContext(User.class, "POSTGRESQL", "sql/")
 );
 analyzer.analyze(); // Generates create-table.sql
-```
-
-### **gRPC Integration**
-
-```xml
-<!-- Add to pom.xml -->
-<plugin>
-    <groupId>vn.com.lcx</groupId>
-    <artifactId>grpc-proto-plugin</artifactId>
-    <version>2.0.0</version>
-    <executions>
-        <execution>
-            <goals>
-                <goal>generate-code</goal>
-            </goals>
-        </execution>
-    </executions>
-</plugin>
 ```
 
 ---
