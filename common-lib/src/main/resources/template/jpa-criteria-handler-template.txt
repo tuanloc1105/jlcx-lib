@@ -36,11 +36,17 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             currentSessionInContext.persist(entity);
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 currentSessionInContext.persist(entity);
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -84,11 +90,17 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             currentSessionInContext.merge(entity);
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 currentSessionInContext.merge(entity);
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -132,11 +144,17 @@
             }
             vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
             vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             currentSessionInContext.remove(entity);
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 currentSessionInContext.remove(entity);
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -189,6 +207,7 @@
             // }
             vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
             final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             batchHandler.processListInBatches(
                     entities,
                     splitEntities -> {
@@ -204,6 +223,8 @@
                     },
                     50
             );
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -216,6 +237,7 @@
                 // }
                 vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
                 final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 batchHandler.processListInBatches(
                         entities,
                         splitEntities -> {
@@ -231,6 +253,8 @@
                         },
                         50
                 );
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -283,6 +307,7 @@
             // }
             vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
             final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             batchHandler.processListInBatches(
                     entities,
                     splitEntities -> {
@@ -294,6 +319,8 @@
                     },
                     50
             );
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -306,6 +333,7 @@
                 // }
                 vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
                 final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 batchHandler.processListInBatches(
                         entities,
                         splitEntities -> {
@@ -317,6 +345,8 @@
                         },
                         50
                 );
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -369,6 +399,7 @@
             // }
             vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
             final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             batchHandler.processListInBatches(
                     entities,
                     splitEntities -> {
@@ -380,6 +411,8 @@
                     },
                     50
             );
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -392,6 +425,7 @@
                 // }
                 vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
                 final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 batchHandler.processListInBatches(
                         entities,
                         splitEntities -> {
@@ -403,6 +437,8 @@
                         },
                         50
                 );
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -456,8 +492,11 @@
                 predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
                 criteriaQuery.where(predicate);
             }
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             result.addAll(query.getResultList());
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
@@ -469,8 +508,11 @@
                     predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
                     criteriaQuery.where(predicate);
                 }
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
                 result.addAll(query.getResultList());
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             }
         }
         return result;
@@ -524,8 +566,11 @@
                 predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
                 criteriaQuery.where(predicate);
             }
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             result = java.util.Optional.ofNullable(query.uniqueResult());
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
@@ -537,8 +582,11 @@
                     predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
                     criteriaQuery.where(predicate);
                 }
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
                 result = java.util.Optional.ofNullable(query.uniqueResult());
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             }
         }
         return result;
@@ -601,6 +649,7 @@
                 predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
                 criteriaQuery.where(predicate);
             }
+            final double startingTime = (double) java.lang.System.currentTimeMillis();
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             query.setFirstResult(pageimpl.getOffset());
             query.setMaxResults(pageimpl.getPageSize());
@@ -614,7 +663,8 @@
                         .where(countPredicate);
             }
             Long totalItems = currentSessionInContext.createQuery(countQuery).getSingleResult();
-
+            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             result.set(
                     vn.com.lcx.common.database.pageable.Page.<${entity-class}>create(
                             queryResult,
@@ -643,6 +693,7 @@
                     predicate = handler.toPredicate(criteriaBuilder, criteriaQuery, root);
                     criteriaQuery.where(predicate);
                 }
+                final double startingTime = (double) java.lang.System.currentTimeMillis();
                 org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
                 query.setFirstResult(pageimpl.getOffset());
                 query.setMaxResults(pageimpl.getPageSize());
@@ -656,7 +707,8 @@
                             .where(countPredicate);
                 }
                 Long totalItems = currentSessionInContext.createQuery(countQuery).getSingleResult();
-
+                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
+                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 result.set(
                         vn.com.lcx.common.database.pageable.Page.<${entity-class}>create(
                                 queryResult,
