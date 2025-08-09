@@ -64,7 +64,7 @@ public class MyVertxDeployment {
 
     private void deployVerticle(final List<String> packagesToScan, Supplier<Void> preconfigure) {
         try (InputStream input = MyVertxDeployment.class.getClassLoader().getResourceAsStream("logback.xml")) {
-            if (input == null) {
+            if (input == null && System.getProperty("logback.configurationFile") == null) {
                 LogbackConfig.configure();
             }
         } catch (Exception ignore) {
