@@ -30,7 +30,7 @@
         <hibernate-reactive-core-org.hibernate.reactive.version>4.0.0.Beta1
         </hibernate-reactive-core-org.hibernate.reactive.version>
         <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
-        <hibernate-core-org.hibernate.orm.version>7.0.6.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>7.1.0.Final</hibernate-core-org.hibernate.orm.version>
         <reactiverse-contextual-logging-logback-io.reactiverse.version>2.0.0
         </reactiverse-contextual-logging-logback-io.reactiverse.version>
 
