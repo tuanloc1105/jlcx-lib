@@ -14,6 +14,7 @@ import io.vertx.micrometer.VertxPrometheusOptions;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.config.ClassPool;
+import vn.com.lcx.common.config.LogbackConfig;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.CommonUtils;
 import vn.com.lcx.common.utils.LogUtils;
@@ -62,6 +63,12 @@ public class MyVertxDeployment {
     }
 
     private void deployVerticle(final List<String> packagesToScan, Supplier<Void> preconfigure) {
+        try (InputStream input = MyVertxDeployment.class.getClassLoader().getResourceAsStream("logback.xml")) {
+            if (input == null && System.getProperty("logback.configurationFile") == null) {
+                LogbackConfig.configure();
+            }
+        } catch (Exception ignore) {
+        }
         final var oldThreadName = Thread.currentThread().getName();
         Thread.currentThread().setName("vertx-deployment");
         final var appStartingTime = (double) System.currentTimeMillis();
