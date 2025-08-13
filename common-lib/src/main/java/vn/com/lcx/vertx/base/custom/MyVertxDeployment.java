@@ -17,7 +17,6 @@ import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.config.LogbackConfig;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.CommonUtils;
-import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
@@ -125,7 +124,7 @@ public class MyVertxDeployment {
             List<Class<?>> verticles = new ArrayList<>();
             ClassPool.init(packagesToScan, verticles);
             if (!verticles.isEmpty()) {
-                List<Future<String>> listOfVerticleFuture = new ArrayList<>();
+                Future<String> deploymentChain = null;
                 for (Class<?> aClass : verticles) {
                     if (aClass.getAnnotation(Verticle.class) != null) {
                         final var fields = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
@@ -140,18 +139,27 @@ public class MyVertxDeployment {
                                 }
                         ).toArray(Object[]::new);
                         final VertxBaseVerticle verticle = (VertxBaseVerticle) aClass.getDeclaredConstructor(fieldArr).newInstance(args);
-                        final Future<String> applicationVerticleFuture = vertx.deployVerticle(verticle);
-                        applicationVerticleFuture.onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle {}", aClass, throwable));
-                        applicationVerticleFuture.onSuccess(s -> {
-                            LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s);
-                        });
-                        listOfVerticleFuture.add(applicationVerticleFuture);
+                        if (deploymentChain == null) {
+                            deploymentChain = vertx.deployVerticle(verticle)
+                                    .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle {}", aClass, throwable))
+                                    .onSuccess(s -> {
+                                        LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s);
+                                    });
+                        } else {
+                            deploymentChain = deploymentChain.compose(
+                                    s -> vertx.deployVerticle(verticle)
+                                            .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle {}", aClass, throwable))
+                                            .onSuccess(s2 -> {
+                                                LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s2);
+                                            })
+                            );
+                        }
                     }
                 }
-                if (!listOfVerticleFuture.isEmpty()) {
+                if (deploymentChain != null) {
                     // JsonArray results = new JsonArray();
                     // noinspection StatementWithEmptyBody
-                    while (listOfVerticleFuture.stream().noneMatch(Future::isComplete)) {
+                    while (!deploymentChain.isComplete()) {
                         // do nothing here and wait until all verticles finish the deployment process
                     }
                 }
