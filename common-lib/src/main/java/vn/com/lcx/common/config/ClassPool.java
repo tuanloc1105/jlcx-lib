@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.annotation.PostConstruct;
+import vn.com.lcx.common.annotation.Qualifier;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.annotation.Verticle;
 import vn.com.lcx.common.constant.CommonConstant;
@@ -320,11 +321,15 @@ public class ClassPool {
     }
 
     private static Object getInstanceOfField(Field field) {
-        Object o1 = CLASS_POOL.get(field.getName());
-        if (o1 != null) {
-            return o1;
+        if (field.getAnnotation(Qualifier.class) != null) {
+            return getInstance(field.getAnnotation(Qualifier.class).value());
+        } else {
+            Object o1 = getInstance(field.getName());
+            if (o1 != null) {
+                return o1;
+            }
+            return getInstance(field.getType().getName());
         }
-        return CLASS_POOL.get(field.getType().getName());
     }
 
     private static void getFieldsOfClass(final ArrayList<Field> fields, Class<?> aClass) {
