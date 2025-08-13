@@ -976,13 +976,13 @@ public class SQLMappingProcessor extends AbstractProcessor {
         reactiveUpdateStatementCodeLines.add("if (placeHolder.equals(\"?\")) {");
         reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveUpdateStatementCodeLines.add("} else {");
-        reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = $\" + (++count);", tableName, idDatabaseColumnNameToBeGet));
+        reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = \" + placeHolder + (++count);", tableName, idDatabaseColumnNameToBeGet));
         reactiveUpdateStatementCodeLines.add("}");
         deleteStatementCodeLines.add(String.format("return \"DELETE FROM %s WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveDeleteStatementCodeLines.add("if (placeHolder.equals(\"?\")) {");
         reactiveDeleteStatementCodeLines.add(String.format("    return \"DELETE FROM %s WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveDeleteStatementCodeLines.add("} else {");
-        reactiveDeleteStatementCodeLines.add(String.format("    return \"DELETE FROM %s WHERE %s = $1\";", tableName, idDatabaseColumnNameToBeGet));
+        reactiveDeleteStatementCodeLines.add(String.format("    return \"DELETE FROM %s WHERE %s = \" + placeHolder + \"1\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveDeleteStatementCodeLines.add("}");
         deleteJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
         deleteJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(idFieldName)));

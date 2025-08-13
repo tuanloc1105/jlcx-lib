@@ -5,7 +5,7 @@
     <parent>
         <groupId>vn.com.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
-        <version>3.0.7.lcx</version>
+        <version>3.0.8.lcx</version>
         <relativePath/>
     </parent>
 
@@ -25,8 +25,8 @@
         <java.version>${jdk.version}</java.version>
         <main.class>com.example.lcx.App</main.class>
 
-        <processor-vn.com.lcx.version>3.0.7.lcx</processor-vn.com.lcx.version>
-        <common-lib-vn.com.lcx.version>3.0.7.lcx</common-lib-vn.com.lcx.version>
+        <processor-vn.com.lcx.version>3.0.8.lcx</processor-vn.com.lcx.version>
+        <common-lib-vn.com.lcx.version>3.0.8.lcx</common-lib-vn.com.lcx.version>
 
     </properties>
 

@@ -163,7 +163,7 @@ public class ClassPool {
                                         String.join(", ", fieldNotCreated),
                                         aClass.getName()
                                 )
-                        ).append(", ");
+                        ).append(",\n");
                     }
                 }
                 message.append("]");
