@@ -541,10 +541,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     )
             );
             resultSetMappingCodeLines.add(
-                    "} catch (java.sql.SQLException ignored) {"
+                    "} catch (java.sql.SQLException e) {"
             );
             resultSetMappingCodeLines.add(
-                    "    // Error should be logged here, but I think it will complicate the logging"
+                    "    log.debug(e.getMessage(), e);"
             );
             resultSetMappingCodeLines.add(
                     "}"
@@ -623,10 +623,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 );
             }
             resultSetMappingCodeLines.add(
-                    "} catch (java.sql.SQLException ignored) {"
+                    "} catch (java.sql.SQLException e) {"
             );
             resultSetMappingCodeLines.add(
-                    "    // Error should be logged here, but I think it will complicate the logging"
+                    "    log.debug(e.getMessage(), e);"
             );
             resultSetMappingCodeLines.add(
                     "}"
@@ -660,10 +660,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     )
             );
             vertxRowMappingCodeLines.add(
-                    "} catch (java.lang.Throwable ignored) {"
+                    "} catch (java.lang.Throwable e) {"
             );
             vertxRowMappingCodeLines.add(
-                    "    // Error should be logged here, but I think it will complicate the logging"
+                    "    log.debug(e.getMessage(), e);"
             );
             vertxRowMappingCodeLines.add(
                     "}"
@@ -693,10 +693,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
             vertxRowMappingCodeLines.add(String.format("        instance.%s(bigIntValue);", setFieldMethodName));
             vertxRowMappingCodeLines.add("    }");
             vertxRowMappingCodeLines.add(
-                    "} catch (java.lang.Throwable ignored) {"
+                    "} catch (java.lang.Throwable e) {"
             );
             vertxRowMappingCodeLines.add(
-                    "    // Error should be logged here, but I think it will complicate the logging"
+                    "    log.debug(e.getMessage(), e);"
             );
             vertxRowMappingCodeLines.add(
                     "}"
