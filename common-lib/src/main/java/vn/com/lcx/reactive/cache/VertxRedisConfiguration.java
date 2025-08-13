@@ -23,7 +23,7 @@ public class VertxRedisConfiguration {
     }
 
     @Instance
-    public Redis post() {
+    public Redis redis() {
         String host = CommonConstant.EMPTY_STRING + applicationConfig.getPropertyWithEnvironment("server.reactive.redis.host");
         int port;
         try {
