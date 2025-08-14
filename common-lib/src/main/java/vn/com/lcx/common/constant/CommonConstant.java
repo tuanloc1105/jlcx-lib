@@ -37,6 +37,7 @@ public final class CommonConstant {
     public static final String LOCAL_DATE_TIME_STRING_PATTERN_2 = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     public static final String LOCAL_DATE_TIME_STRING_PATTERN_3 = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSX";
     public static final String LOCAL_DATE_TIME_STRING_PATTERN_4 = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
+    public static final String LOCAL_DATE_TIME_STRING_PATTERN_6 = "yyyy-MM-dd'T'HH:mm:ssXXX";
     public static final String DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
     public static final String DEFAULT_LOCAL_DATE_STRING_PATTERN = "yyyy-MM-dd";
     public static final String UTF_8_STANDARD_CHARSET = "UTF-8";
