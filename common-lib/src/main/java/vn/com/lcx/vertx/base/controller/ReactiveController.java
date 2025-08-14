@@ -223,7 +223,7 @@ public abstract class ReactiveController {
         if (VOID.equals(reqType)) {
             return null;
         }
-        final var requestBody = MyStringUtils.minifyJsonString(ctx.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
+        final var requestBody = ctx.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET);
         JsonReader jsonReader = new JsonReader(new StringReader(requestBody));
         jsonReader.setStrictness(Strictness.LENIENT);
         T requestObject = gson.fromJson(jsonReader, reqType);
@@ -318,7 +318,7 @@ public abstract class ReactiveController {
         if (_VOID.equals(reqType)) {
             return null;
         }
-        final var requestBody = MyStringUtils.minifyJsonString(ctx.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
+        final var requestBody = ctx.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET);
         T requestObject;
         try {
             requestObject = jsonMapper.readValue(requestBody, reqType);
