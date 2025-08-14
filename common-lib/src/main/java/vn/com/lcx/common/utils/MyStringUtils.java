@@ -2,6 +2,8 @@ package vn.com.lcx.common.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
+import com.google.gson.Strictness;
+import com.google.gson.stream.JsonReader;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import org.apache.commons.lang3.StringUtils;
@@ -648,7 +650,9 @@ public final class MyStringUtils {
 
         try {
             // Parse JSON to LinkedHashMap to preserve order
-            final LinkedHashMap<String, Object> jsonMap = gson.fromJson(inputJsonString, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
+            JsonReader jsonReader = new JsonReader(new StringReader(inputJsonString));
+            jsonReader.setStrictness(Strictness.LENIENT);
+            final LinkedHashMap<String, Object> jsonMap = gson.fromJson(jsonReader, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
 
             // Mask fields recursively
             maskJsonFieldsRecursively(jsonMap, Arrays.asList(fieldNames));
