@@ -181,15 +181,17 @@ public abstract class ReactiveController {
         ctx.end(responseBody);
     }
 
-    public <T extends CommonResponse> void handleResponse(RoutingContext ctx, Gson gson, T resp) {
+    public void handleResponse(RoutingContext ctx, Gson gson, Object resp) {
         handleResponse(ctx, gson, resp, 200);
     }
 
-    public <T extends CommonResponse> void handleResponse(RoutingContext ctx, Gson gson, T resp, int code) {
-        resp.setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
-        resp.setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
-        resp.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
-        resp.setHttpCode(code);
+    public void handleResponse(RoutingContext ctx, Gson gson, Object resp, int code) {
+        if (resp instanceof CommonResponse) {
+            ((CommonResponse) resp).setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+            ((CommonResponse) resp).setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
+            ((CommonResponse) resp).setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
+            ((CommonResponse) resp).setHttpCode(code);
+        }
         ctx.response().setStatusCode(code)
                 .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
                 .putHeader(
@@ -270,15 +272,17 @@ public abstract class ReactiveController {
         }
     }
 
-    public <T extends CommonResponse> void handleResponse(RoutingContext ctx, JsonMapper jsonMapper, T resp) {
+    public void handleResponse(RoutingContext ctx, JsonMapper jsonMapper, Object resp) {
         handleResponse(ctx, jsonMapper, resp, 200);
     }
 
-    public <T extends CommonResponse> void handleResponse(RoutingContext ctx, JsonMapper jsonMapper, T resp, int code) {
-        resp.setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
-        resp.setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
-        resp.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
-        resp.setHttpCode(code);
+    public void handleResponse(RoutingContext ctx, JsonMapper jsonMapper, Object resp, int code) {
+        if (resp instanceof CommonResponse) {
+            ((CommonResponse) resp).setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+            ((CommonResponse) resp).setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
+            ((CommonResponse) resp).setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
+            ((CommonResponse) resp).setHttpCode(code);
+        }
         ctx.response().setStatusCode(code)
                 .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
                 .putHeader(
