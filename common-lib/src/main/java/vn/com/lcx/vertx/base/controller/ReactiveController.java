@@ -1,13 +1,19 @@
 package vn.com.lcx.vertx.base.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.gson.Gson;
+import com.google.gson.Strictness;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.DateTimeUtils;
+import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
@@ -16,6 +22,7 @@ import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
+import java.io.StringReader;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +34,9 @@ import java.util.stream.Collectors;
 public abstract class ReactiveController {
 
     public final static TypeToken<Void> VOID = new TypeToken<Void>() {
+    };
+
+    public final static TypeReference<Void> _VOID = new TypeReference<Void>() {
     };
 
     public String getRequestQueryParam(RoutingContext context, String paramName) {
@@ -172,11 +182,15 @@ public abstract class ReactiveController {
     }
 
     public <T extends CommonResponse> void handleResponse(RoutingContext ctx, Gson gson, T resp) {
+        handleResponse(ctx, gson, resp, 200);
+    }
+
+    public <T extends CommonResponse> void handleResponse(RoutingContext ctx, Gson gson, T resp, int code) {
         resp.setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
         resp.setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
         resp.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
-        resp.setHttpCode(200);
-        ctx.response().setStatusCode(200)
+        resp.setHttpCode(code);
+        ctx.response().setStatusCode(code)
                 .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
                 .putHeader(
                         VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
@@ -208,7 +222,105 @@ public abstract class ReactiveController {
             return null;
         }
         final var requestBody = MyStringUtils.minifyJsonString(ctx.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
-        T requestObject = gson.fromJson(requestBody, reqType);
+        JsonReader jsonReader = new JsonReader(new StringReader(requestBody));
+        jsonReader.setStrictness(Strictness.LENIENT);
+        T requestObject = gson.fromJson(jsonReader, reqType);
+        final var errorFields = AutoValidation.validate(requestObject);
+        if (!errorFields.isEmpty()) {
+            throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());
+        }
+        return requestObject;
+    }
+
+    public void handleError(RoutingContext ctx, JsonMapper jsonMapper, Throwable e) {
+        LogUtils.writeLog(ctx, e.getMessage(), e);
+        CommonResponse response;
+        int httpCode = 500;
+        if (e instanceof InternalServiceException) {
+            InternalServiceException internalServiceException = (InternalServiceException) e;
+            httpCode = internalServiceException.getHttpCode();
+            response = CommonResponse.builder()
+                    .trace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
+                    .errorCode(internalServiceException.getCode())
+                    .errorDescription(internalServiceException.getMessage())
+                    .httpCode(httpCode)
+                    .build();
+        } else {
+            response = CommonResponse.builder()
+                    .trace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
+                    .errorCode(-1)
+                    .errorDescription(e.getMessage())
+                    .httpCode(httpCode)
+                    .build();
+        }
+        ctx.response().setStatusCode(httpCode)
+                .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
+                .putHeader(
+                        VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
+                        DateTimeUtils.generateCurrentTimeDefault().format(
+                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
+                        )
+                )
+                .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+        try {
+            String responseBody = jsonMapper.writeValueAsString(response);
+            ctx.end(responseBody);
+        } catch (JsonProcessingException jsonProcessingException) {
+            ctx.end(ExceptionUtils.getStackTrace(jsonProcessingException));
+        }
+    }
+
+    public <T extends CommonResponse> void handleResponse(RoutingContext ctx, JsonMapper jsonMapper, T resp) {
+        handleResponse(ctx, jsonMapper, resp, 200);
+    }
+
+    public <T extends CommonResponse> void handleResponse(RoutingContext ctx, JsonMapper jsonMapper, T resp, int code) {
+        resp.setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+        resp.setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
+        resp.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
+        resp.setHttpCode(code);
+        ctx.response().setStatusCode(code)
+                .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
+                .putHeader(
+                        VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
+                        DateTimeUtils.generateCurrentTimeDefault().format(
+                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
+                        )
+                )
+                .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+        try {
+            String responseBody = jsonMapper.writeValueAsString(resp);
+            ctx.end(responseBody);
+        } catch (JsonProcessingException e) {
+            ctx.end(ExceptionUtils.getStackTrace(e));
+        }
+    }
+
+    public <T> T handleRequest(RoutingContext ctx, JsonMapper jsonMapper, TypeReference<T> reqType) {
+        final var headerLogMsg = new ArrayList<String>();
+        final MultiMap requestHeader = ctx.request().headers();
+
+        for (Map.Entry<String, String> requestQueryParam : requestHeader) {
+            headerLogMsg.add(
+                    String.format(
+                            "        - Name: %s\n          Value: %s",
+                            requestQueryParam.getKey(),
+                            requestQueryParam.getValue()
+                    )
+            );
+        }
+        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Header:\n{}", String.join("\n", headerLogMsg));
+        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Url: {}", ctx.request().uri());
+        if (_VOID.equals(reqType)) {
+            return null;
+        }
+        final var requestBody = MyStringUtils.minifyJsonString(ctx.body().asString(CommonConstant.UTF_8_STANDARD_CHARSET));
+        T requestObject;
+        try {
+            requestObject = jsonMapper.readValue(requestBody, reqType);
+        } catch (JsonProcessingException e) {
+            throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, e.getMessage());
+        }
         final var errorFields = AutoValidation.validate(requestObject);
         if (!errorFields.isEmpty()) {
             throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());
