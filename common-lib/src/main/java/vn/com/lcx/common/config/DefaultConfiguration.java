@@ -18,7 +18,7 @@ public class DefaultConfiguration {
 
     @Instance
     public JsonMapper defaultJsonMapper() {
-        return BuildObjectMapper.getJsonMapper();
+        return BuildObjectMapper.getJsonMapper2();
     }
 
     @Instance
