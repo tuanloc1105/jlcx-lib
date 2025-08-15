@@ -40,8 +40,8 @@
         <jakarta.mail-api-jakarta.mail.version>2.1.3</jakarta.mail-api-jakarta.mail.version>
         <jakarta.mail-org.eclipse.angus.version>2.0.4</jakarta.mail-org.eclipse.angus.version>
         <jedis-redis.clients.version>6.1.0</jedis-redis.clients.version>
-        <micrometer-core-io.micrometer.version>1.15.2</micrometer-core-io.micrometer.version>
-        <micrometer-registry-prometheus-io.micrometer.version>1.15.2
+        <micrometer-core-io.micrometer.version>1.15.3</micrometer-core-io.micrometer.version>
+        <micrometer-registry-prometheus-io.micrometer.version>1.15.3
         </micrometer-registry-prometheus-io.micrometer.version>
         <metrics-core-io.dropwizard.metrics.version>4.2.33</metrics-core-io.dropwizard.metrics.version>
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.33</metrics-healthchecks-io.dropwizard.metrics.version>
@@ -49,35 +49,35 @@
         <javassist-org.javassist.version>3.30.2-GA</javassist-org.javassist.version>
         <snakeyaml-org.yaml.version>2.4</snakeyaml-org.yaml.version>
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
-        <HikariCP-com.zaxxer.version>7.0.0</HikariCP-com.zaxxer.version>
+        <HikariCP-com.zaxxer.version>7.0.1</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.0.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.24.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.25.Final</hibernate-core-org.hibernate.orm.version>
         <hibernate-tools-orm-org.hibernate.tool.version>6.6.24.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.24.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-jcache-org.hibernate.orm.version>6.6.25.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.10.8</ehcache-org.ehcache.version>
-        <vertx-core-io.vertx.version>5.0.2</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>5.0.2</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>5.0.2</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>5.0.2</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>5.0.2</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>5.0.2</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>5.0.2</vertx-auth-jwt-io.vertx.version>
-        <vertx-micrometer-metrics-io.vertx.version>5.0.2</vertx-micrometer-metrics-io.vertx.version>
-        <vertx-oracle-client-io.vertx.version>5.0.2</vertx-oracle-client-io.vertx.version>
-        <vertx-mysql-client-io.vertx.version>5.0.2</vertx-mysql-client-io.vertx.version>
-        <vertx-pg-client-io.vertx.version>5.0.2</vertx-pg-client-io.vertx.version>
-        <vertx-mssql-client-io.vertx.version>5.0.2</vertx-mssql-client-io.vertx.version>
-        <vertx-redis-client-io.vertx.version>5.0.2</vertx-redis-client-io.vertx.version>
-        <vertx-grpc-client-io.vertx.version>5.0.2</vertx-grpc-client-io.vertx.version>
-        <vertx-grpc-server-io.vertx.version>5.0.2</vertx-grpc-server-io.vertx.version>
-        <vertx-grpc-io.vertx.version>5.0.2</vertx-grpc-io.vertx.version>
+        <vertx-core-io.vertx.version>5.0.3</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>5.0.3</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>5.0.3</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>5.0.3</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>5.0.3</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>5.0.3</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>5.0.3</vertx-auth-jwt-io.vertx.version>
+        <vertx-micrometer-metrics-io.vertx.version>5.0.3</vertx-micrometer-metrics-io.vertx.version>
+        <vertx-oracle-client-io.vertx.version>5.0.3</vertx-oracle-client-io.vertx.version>
+        <vertx-mysql-client-io.vertx.version>5.0.3</vertx-mysql-client-io.vertx.version>
+        <vertx-pg-client-io.vertx.version>5.0.3</vertx-pg-client-io.vertx.version>
+        <vertx-mssql-client-io.vertx.version>5.0.3</vertx-mssql-client-io.vertx.version>
+        <vertx-redis-client-io.vertx.version>5.0.3</vertx-redis-client-io.vertx.version>
+        <vertx-grpc-client-io.vertx.version>5.0.3</vertx-grpc-client-io.vertx.version>
+        <vertx-grpc-server-io.vertx.version>5.0.3</vertx-grpc-server-io.vertx.version>
+        <vertx-grpc-io.vertx.version>5.0.3</vertx-grpc-io.vertx.version>
         <jakarta.annotation-api-jakarta.annotation.version>3.0.0</jakarta.annotation-api-jakarta.annotation.version>
         <javax.annotation-api-javax.annotation.version>1.3.2</javax.annotation-api-javax.annotation.version>
         <grpc-netty-shaded-io.grpc.version>1.74.0</grpc-netty-shaded-io.grpc.version>
         <grpc-protobuf-io.grpc.version>1.74.0</grpc-protobuf-io.grpc.version>
         <grpc-stub-io.grpc.version>1.74.0</grpc-stub-io.grpc.version>
-        <protobuf-java-com.google.protobuf.version>4.31.1</protobuf-java-com.google.protobuf.version>
-        <protobuf-java-util-com.google.protobuf.version>4.31.1</protobuf-java-util-com.google.protobuf.version>
+        <protobuf-java-com.google.protobuf.version>4.32.0</protobuf-java-com.google.protobuf.version>
+        <protobuf-java-util-com.google.protobuf.version>4.32.0</protobuf-java-util-com.google.protobuf.version>
         <junit-jupiter-api-org.junit.jupiter.version>5.13.4</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>5.13.4</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>5.13.4</junit-jupiter-params-org.junit.jupiter.version>
@@ -115,7 +115,7 @@
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.1.1.lcx</version>
+    <version>3.1.3.lcx</version>
 
     <dependencyManagement>
 
