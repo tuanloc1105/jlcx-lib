@@ -5,12 +5,12 @@
     <parent>
         <groupId>vn.com.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
-        <version>3.1.3.lcx-beta</version>
+        <version>3.1.3.lcx</version>
     </parent>
 
     <!-- <groupId>vn.com.lcx</groupId> -->
     <artifactId>common-lib</artifactId>
-    <version>3.1.3.lcx-beta</version>
+    <version>3.1.3.lcx</version>
     <packaging>jar</packaging>
 
     <name>common-lib</name>
