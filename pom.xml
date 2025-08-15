@@ -115,7 +115,7 @@
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.1.2.lcx</version>
+    <version>3.1.3.lcx</version>
 
     <dependencyManagement>
 
