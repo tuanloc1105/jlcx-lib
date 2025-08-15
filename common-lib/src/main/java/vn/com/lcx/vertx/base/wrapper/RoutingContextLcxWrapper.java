@@ -318,7 +318,10 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 LogUtils.Level.INFO,
                 "Response Payload ({}ms):\n{}",
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
-                MyStringUtils.minifyJsonString(MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk))
+                MyStringUtils.stringIsJsonFormat(chunk) ?
+                MyStringUtils.minifyJsonString(MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk)) :
+                        (chunk.length() > 10000 ? chunk.substring(0, 50) +
+                                "..." + chunk.substring(chunk.length() - 50) : chunk)
         );
         return realContext.end(chunk);
     }

@@ -234,7 +234,7 @@ public final class MyStringUtils {
             JsonParser.parseString(input);
             return true;
         } catch (Exception e) {
-            LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage());
+            // LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage());
             return false;
         }
     }
