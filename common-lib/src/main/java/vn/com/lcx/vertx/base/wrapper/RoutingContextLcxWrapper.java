@@ -36,6 +36,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
 
     public RoutingContextLcxWrapper(RoutingContext realContext) {
         this.realContext = realContext;
+        realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
     }
 
     @Override
@@ -116,16 +117,13 @@ public class RoutingContextLcxWrapper implements RoutingContext {
     @Override
     public RequestBody body() {
         final RequestBody body = realContext.body();
-        final String bodyString = MyStringUtils.minifyJsonString(body.asString(CommonConstant.UTF_8_STANDARD_CHARSET));
+        final String bodyString = body.asJsonObject().encode();
         LogUtils.writeLog(
                 this,
                 LogUtils.Level.INFO,
                 "Request Payload:\n{}",
                 MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), bodyString)
         );
-        if (realContext.get("startTime") == null) {
-            realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
-        }
         return body;
     }
 
@@ -251,25 +249,16 @@ public class RoutingContextLcxWrapper implements RoutingContext {
 
     @Override
     public MultiMap queryParams() {
-        if (realContext.get("startTime") == null) {
-            realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
-        }
         return realContext.queryParams();
     }
 
     @Override
     public MultiMap queryParams(Charset encoding) {
-        if (realContext.get("startTime") == null) {
-            realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
-        }
         return realContext.queryParams(encoding);
     }
 
     @Override
     public List<String> queryParam(String name) {
-        if (realContext.get("startTime") == null) {
-            realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
-        }
         return realContext.queryParam(name);
     }
 
@@ -329,7 +318,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 LogUtils.Level.INFO,
                 "Response Payload ({}ms):\n{}",
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
-                MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), MyStringUtils.minifyJsonString(chunk))
+                MyStringUtils.minifyJsonString(MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk))
         );
         return realContext.end(chunk);
     }

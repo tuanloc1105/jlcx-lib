@@ -109,6 +109,9 @@ public final class MyStringUtils {
         if (StringUtils.isBlank(input)) {
             return CommonConstant.EMPTY_STRING;
         }
+        if (!stringIsJsonFormat(input)) {
+            return input;
+        }
         if (!stringIsJsonFormat(input.trim())) {
             throw new IllegalArgumentException(input.trim() + " is not a valid JSON string");
         }
@@ -719,6 +722,14 @@ public final class MyStringUtils {
                     // Recursively process nested objects
                     if (value instanceof Map || value instanceof List) {
                         maskJsonFieldsRecursively(value, fieldNames);
+                    }
+                    if (value instanceof String) {
+                        String strValue = (String) value;
+                        if (StringUtils.isNotBlank(strValue) && strValue.length() > 10000) {
+                            map.put(key,
+                                    strValue.substring(0, 50) +
+                                            "..." + strValue.substring(strValue.length() - 50));
+                        }
                     }
                 }
             }
