@@ -9,7 +9,6 @@
         <version>3.1.4.lcx-SNAPSHOT</version>
     </parent>
 
-    <!-- <groupId>vn.com.lcx</groupId> -->
     <artifactId>processor</artifactId>
     <version>3.1.4.lcx-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -57,6 +56,14 @@
                         <phase>none</phase>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
 
         </plugins>

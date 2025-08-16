@@ -30,31 +30,31 @@ public class MyRouterImpl extends RouterImpl {
 
     @Override
     public synchronized Route route(String path) {
-        logger.info("Configuring route for path [{}]", path);
+        logger.info("Configuring [ROUTE]  path [{}]", path);
         return super.route(path);
     }
 
     @Override
     public Route get(String path) {
-        logger.info("Configuring get path [{}]", path);
+        logger.info("Configuring [GET]    path [{}]", path);
         return super.get(path);
     }
 
     @Override
     public Route post(String path) {
-        logger.info("Configuring post path [{}]", path);
+        logger.info("Configuring [POST]   path [{}]", path);
         return super.post(path);
     }
 
     @Override
     public Route put(String path) {
-        logger.info("Configuring put path [{}]", path);
+        logger.info("Configuring [PUT]    path [{}]", path);
         return super.put(path);
     }
 
     @Override
     public Route delete(String path) {
-        logger.info("Configuring delete path [{}]", path);
+        logger.info("Configuring [DELETE] path [{}]", path);
         return super.delete(path);
     }
 }

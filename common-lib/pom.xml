@@ -8,7 +8,6 @@
         <version>3.1.4.lcx-SNAPSHOT</version>
     </parent>
 
-    <!-- <groupId>vn.com.lcx</groupId> -->
     <artifactId>common-lib</artifactId>
     <version>3.1.4.lcx-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -51,14 +50,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
         </dependency>
-
-        <!--
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        -->
 
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
@@ -130,11 +121,6 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
             <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.mail</groupId>
-            <artifactId>jakarta.mail-api</artifactId>
         </dependency>
 
         <dependency>
@@ -340,6 +326,14 @@
                         <phase>none</phase>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
 
         </plugins>

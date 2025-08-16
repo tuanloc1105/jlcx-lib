@@ -7,6 +7,7 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.Tuple;
+import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.util.ArrayList;
@@ -43,6 +44,9 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
         int count = 1;
         for (int i = 0; i < size; ++i) {
             Object value = tuple.getValue(i);
+            if (value == null) {
+                continue;
+            }
             if (value instanceof List) {
                 final var listVal = (List<?>) value;
                 for (Object o : listVal) {
@@ -50,7 +54,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                             String.format(
                                     "\n\t- parameter %s: %s",
                                     String.format("%-3d %-20s)", count++, "(" + o.getClass().getSimpleName()),
-                                    o
+                                    strValue(o)
                             )
                     );
                     actualTuple.addValue(o);
@@ -60,7 +64,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                         String.format(
                                 "\n\t- parameter %s: %s",
                                 String.format("%-3d %-20s)", count++, "(" + value.getClass().getSimpleName()),
-                                value
+                                strValue(value)
                         )
                 );
                 actualTuple.addValue(value);
@@ -68,6 +72,12 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
         }
         LogUtils.writeLog(context, LogUtils.Level.INFO, parametersLog.toString());
         return actualTuple;
+    }
+
+    private String strValue(Object obj) {
+        final var strVal = obj + CommonConstant.EMPTY_STRING;
+        return (strVal.length() > 1000 ? strVal.substring(0, 10) +
+                "..." + strVal.substring(strVal.length() - 10) : strVal);
     }
 
     @Override
