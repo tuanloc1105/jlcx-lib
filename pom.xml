@@ -784,7 +784,7 @@
                                 <!-- Keep 1 MANIFEST and (optionally) set Main-Class -->
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.yourcompany.MainApp</mainClass>
+                                    <mainClass>${main.class}</mainClass>
                                     <!-- You can also add attributes if needed -->
                                     <!-- <manifestEntries> <Built-By>${user.name}</Built-By> </manifestEntries> -->
                                 </transformer>
