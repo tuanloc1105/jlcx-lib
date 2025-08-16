@@ -61,8 +61,6 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 .filter(StringUtils::isNotBlank)
                 .map(it -> MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), it))
                 .orElse(CommonConstant.EMPTY_STRING);
-        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Header:\n{}", String.join("\n", headerLogMsg));
-        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Url: {}", ctx.request().uri());
         LogUtils.writeLog(ctx,
                 LogUtils.Level.INFO,
                 "=> Url: {}\n" +
