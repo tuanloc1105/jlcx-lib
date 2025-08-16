@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
  * @deprecated Use {@link vn.com.lcx.vertx.base.controller.ReactiveController} for all new and migrated code.
  */
 @Deprecated(forRemoval = true)
+@SuppressWarnings("ALL")
 public class BaseController {
 
     public final static TypeToken<Void> VOID = new TypeToken<Void>() {
