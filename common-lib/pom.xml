@@ -8,7 +8,6 @@
         <version>3.1.4.lcx-SNAPSHOT</version>
     </parent>
 
-    <!-- <groupId>vn.com.lcx</groupId> -->
     <artifactId>common-lib</artifactId>
     <version>3.1.4.lcx-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -51,14 +50,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
         </dependency>
-
-        <!--
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        -->
 
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>

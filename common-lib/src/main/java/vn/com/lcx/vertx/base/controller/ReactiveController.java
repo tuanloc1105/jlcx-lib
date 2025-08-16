@@ -168,33 +168,7 @@ public abstract class ReactiveController {
                     .httpCode(httpCode)
                     .build();
         }
-        ctx.response().setStatusCode(httpCode)
-                .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
-                .putHeader(
-                        VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
-                        DateTimeUtils.generateCurrentTimeDefault().format(
-                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
-                        )
-                )
-                .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
-        String responseBody;
-        if (jsonHandler instanceof Gson) {
-            responseBody = ((Gson) jsonHandler).toJson(response);
-        } else if (jsonHandler instanceof ObjectMapper) {
-            try {
-                responseBody = ((ObjectMapper) jsonHandler).writeValueAsString(response);
-            } catch (JsonProcessingException jsonProcessingException) {
-                responseBody = String.format(
-                        "{\n" +
-                                "    \"error\": \"%s\"\n" +
-                                "}",
-                        ExceptionUtils.getStackTrace(jsonProcessingException)
-                );
-            }
-        } else {
-            responseBody = "{\n    \"error\": \"Unknown json handler. Only support Gson and Jackson\"\n}";
-        }
-        ctx.end(responseBody);
+        returnResponse(ctx, jsonHandler, response, httpCode);
     }
 
     public void handleResponse(RoutingContext ctx, Object jsonHandler, Object resp) {
@@ -208,6 +182,10 @@ public abstract class ReactiveController {
             ((CommonResponse) resp).setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
             ((CommonResponse) resp).setHttpCode(code);
         }
+        returnResponse(ctx, jsonHandler, resp, code);
+    }
+
+    private void returnResponse(RoutingContext ctx, Object jsonHandler, Object resp, int code) {
         ctx.response().setStatusCode(code)
                 .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
                 .putHeader(
