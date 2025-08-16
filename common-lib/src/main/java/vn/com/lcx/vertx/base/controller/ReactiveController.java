@@ -1,15 +1,12 @@
 package vn.com.lcx.vertx.base.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.gson.Gson;
 import com.google.gson.Strictness;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import io.vertx.core.MultiMap;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +14,6 @@ import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.LogUtils;
-import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
@@ -25,12 +21,10 @@ import vn.com.lcx.vertx.base.http.response.CommonResponse;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
 import java.io.StringReader;
-import java.lang.reflect.Type;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -244,20 +238,6 @@ public abstract class ReactiveController {
     }
 
     public <T> T handleRequest(RoutingContext ctx, Object jsonHandler, TypeToken<T> reqType) {
-        final var headerLogMsg = new ArrayList<String>();
-        final MultiMap requestHeader = ctx.request().headers();
-
-        for (Map.Entry<String, String> requestQueryParam : requestHeader) {
-            headerLogMsg.add(
-                    String.format(
-                            "        - Name: %s\n          Value: %s",
-                            requestQueryParam.getKey(),
-                            requestQueryParam.getValue()
-                    )
-            );
-        }
-        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Header:\n{}", String.join("\n", headerLogMsg));
-        LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Url: {}", ctx.request().uri());
         if (VOID.equals(reqType)) {
             return null;
         }
