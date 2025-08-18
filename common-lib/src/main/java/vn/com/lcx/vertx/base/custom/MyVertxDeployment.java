@@ -69,7 +69,7 @@ public class MyVertxDeployment {
         } catch (Exception ignore) {
         }
         final var oldThreadName = Thread.currentThread().getName();
-        Thread.currentThread().setName("vertx-deployment");
+        Thread.currentThread().setName("vert.x-deployment");
         final var appStartingTime = (double) System.currentTimeMillis();
         try {
             ClassPool.loadProperties();
@@ -81,6 +81,7 @@ public class MyVertxDeployment {
                 PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
                 registry.config().meterFilter(
                         new MeterFilter() {
+                            @SuppressWarnings("NullableProblems")
                             @Override
                             public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
                                 return DistributionStatisticConfig.builder()
@@ -150,13 +151,6 @@ public class MyVertxDeployment {
                                             })
                             );
                         }
-                    }
-                }
-                if (deploymentChain != null) {
-                    // JsonArray results = new JsonArray();
-                    // noinspection StatementWithEmptyBody
-                    while (!deploymentChain.isComplete()) {
-                        // do nothing here and wait until all verticles finish the deployment process
                     }
                 }
             }
