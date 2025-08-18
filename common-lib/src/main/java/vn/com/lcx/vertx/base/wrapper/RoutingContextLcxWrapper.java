@@ -56,11 +56,12 @@ public class RoutingContextLcxWrapper implements RoutingContext {
             );
         }
         var payload = Optional.ofNullable(ctx.body())
+                .filter(rq -> MyStringUtils.stringIsJsonFormat(rq.asString("UTF-8")))
                 .map(RequestBody::asJsonObject)
                 .map(JsonObject::encode)
                 .filter(StringUtils::isNotBlank)
                 .map(it -> MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), it))
-                .orElse(CommonConstant.EMPTY_STRING);
+                .orElse(rq.asString("UTF-8"));
         LogUtils.writeLog(ctx,
                 LogUtils.Level.INFO,
                 "=> Url: {}\n" +
