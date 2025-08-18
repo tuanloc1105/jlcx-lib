@@ -82,7 +82,7 @@ Add the parent POM to your project:
 <parent>
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.1.4.lcx</version>
+    <version>3.1.5.lcx-SNAPSHOT</version>
     <relativePath/>
 </parent>
 ```
@@ -95,14 +95,14 @@ Add required dependencies:
     <dependency>
         <groupId>vn.com.lcx</groupId>
         <artifactId>common-lib</artifactId>
-        <version>3.1.4.lcx</version>
+        <version>3.1.5.lcx-SNAPSHOT</version>
     </dependency>
 
     <!-- Annotation processor for code generation -->
     <dependency>
         <groupId>vn.com.lcx</groupId>
         <artifactId>processor</artifactId>
-        <version>3.1.4.lcx</version>
+        <version>3.1.5.lcx-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
