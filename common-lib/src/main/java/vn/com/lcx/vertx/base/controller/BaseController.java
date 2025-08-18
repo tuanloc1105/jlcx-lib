@@ -32,6 +32,33 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * [DEPRECATED] BaseController
+ *
+ * <p>This class is deprecated and will no longer receive new features or non-critical improvements.
+ * New implementations should use {@link vn.com.lcx.vertx.base.controller.ReactiveController} instead.</p>
+ *
+ * <h2>What you should do</h2>
+ * <ul>
+ *   <li>Migrate existing controllers to {@link vn.com.lcx.vertx.base.controller.ReactiveController}.</li>
+ *   <li>Use only for backward compatibility while migration is in progress.</li>
+ * </ul>
+ *
+ * <h2>Why it is deprecated</h2>
+ * <p>ReactiveController provides a more consistent, non-blocking programming model aligned with Vert.x best practices,
+ * offering improved scalability and clearer async flow control.</p>
+ *
+ * <h2>Support & lifecycle</h2>
+ * <ul>
+ *   <li>Bug fixes: critical only.</li>
+ *   <li>New features: none.</li>
+ *   <li>Removal: may be removed in a future major release.</li>
+ * </ul>
+ *
+ * @deprecated Use {@link vn.com.lcx.vertx.base.controller.ReactiveController} for all new and migrated code.
+ */
+@Deprecated(forRemoval = true)
+@SuppressWarnings("ALL")
 public class BaseController {
 
     public final static TypeToken<Void> VOID = new TypeToken<Void>() {

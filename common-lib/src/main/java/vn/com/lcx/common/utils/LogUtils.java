@@ -5,6 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.vertx.base.custom.EmptyRoutingContext;
+
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("DuplicatedCode")
 public final class LogUtils {
@@ -131,6 +134,59 @@ public final class LogUtils {
         }
     }
 
+    private static void writeLog3(String fullClassName, Level level, String message, Object... messageParameter) {
+        final var logToWrite = /*String.format(
+                buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
+                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
+                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
+        ) +*/ (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
+
+        switch (level) {
+            case INFO:
+                LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
+                break;
+            case WARN:
+                LoggerFactory.getLogger(fullClassName).warn(logToWrite, messageParameter);
+                break;
+            case ERROR:
+                LoggerFactory.getLogger(fullClassName).error(logToWrite, messageParameter);
+                break;
+            case DEBUG:
+                LoggerFactory.getLogger(fullClassName).debug(logToWrite, messageParameter);
+                break;
+            case TRACE:
+                LoggerFactory.getLogger(fullClassName).trace(logToWrite, messageParameter);
+                break;
+        }
+    }
+
+    private static void writeLog3(String fullClassName, String message, Throwable throwable, Level... level) {
+        final var logToWrite = String.format(
+                buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
+                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
+                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
+        ) + (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
+        if (level.length == 0) {
+            LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
+        } else {
+            switch (level[0]) {
+                case INFO:
+                    throw new IllegalArgumentException("Exception logging do not accept level INFO");
+                case WARN:
+                    LoggerFactory.getLogger(fullClassName).warn(logToWrite, throwable);
+                    break;
+                case ERROR:
+                    LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
+                    break;
+                case DEBUG:
+                    throw new IllegalArgumentException("Exception logging do not accept level DEBUG");
+                case TRACE:
+                    throw new IllegalArgumentException("Exception logging do not accept level TRACE");
+            }
+
+        }
+    }
+
     private static String buildLogTemplate(final String methodName,
                                            final String stepName) {
         final var methodNamePart = StringUtils.isNotBlank(methodName) ? "[%-" + 40 + "s]" : "[%s]";
@@ -141,12 +197,41 @@ public final class LogUtils {
     }
 
     public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
+        final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
         try {
+            final var currentThreadName = Thread.currentThread().getName();
             final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-            writeLog2(level, message, messageParameter);
+            if (context instanceof EmptyRoutingContext) {
+                CompletableFuture.runAsync(
+                        () -> {
+                            final var oldSubThreadName = Thread.currentThread().getName();
+                            Thread.currentThread().setName(currentThreadName);
+                            try {
+                                MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+                                MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+                                writeLog3(fullClassName, level, message, messageParameter);
+                            } finally {
+                                Thread.currentThread().setName(oldSubThreadName);
+                            }
+                        }
+                );
+            } else {
+                context.vertx().executeBlocking(
+                        () -> {
+                            final var oldSubThreadName = Thread.currentThread().getName();
+                            Thread.currentThread().setName(currentThreadName);
+                            try {
+                                MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+                                MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+                                writeLog3(fullClassName, level, message, messageParameter);
+                            } finally {
+                                Thread.currentThread().setName(oldSubThreadName);
+                            }
+                            return CommonConstant.VOID;
+                        }
+                );
+            }
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
@@ -154,12 +239,41 @@ public final class LogUtils {
     }
 
     public static void writeLog(RoutingContext context, String message, Throwable throwable, Level... level) {
+        final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
         try {
+            final var currentThreadName = Thread.currentThread().getName();
             final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-            writeLog2(message, throwable, level);
+            if (context instanceof EmptyRoutingContext) {
+                CompletableFuture.runAsync(
+                        () -> {
+                            final var oldSubThreadName = Thread.currentThread().getName();
+                            Thread.currentThread().setName(currentThreadName);
+                            try {
+                                MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+                                MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+                                writeLog3(fullClassName, message, throwable, level);
+                            } finally {
+                                Thread.currentThread().setName(oldSubThreadName);
+                            }
+                        }
+                );
+            } else {
+                context.vertx().executeBlocking(
+                        () -> {
+                            final var oldSubThreadName = Thread.currentThread().getName();
+                            Thread.currentThread().setName(currentThreadName);
+                            try {
+                                MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+                                MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+                                writeLog3(fullClassName, message, throwable, level);
+                            } finally {
+                                Thread.currentThread().setName(oldSubThreadName);
+                            }
+                            return CommonConstant.VOID;
+                        }
+                );
+            }
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);

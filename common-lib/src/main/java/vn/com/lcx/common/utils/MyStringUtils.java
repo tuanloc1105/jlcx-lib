@@ -647,7 +647,10 @@ public final class MyStringUtils {
      * @return The JSON string with specified fields' values masked
      */
     public static String maskJsonFields(final Gson gson, final String inputJsonString, final String... fieldNames) {
-        if (StringUtils.isBlank(inputJsonString) || fieldNames == null || fieldNames.length == 0) {
+        if (StringUtils.isBlank(inputJsonString) ||
+                fieldNames == null ||
+                fieldNames.length == 0 ||
+                !MyStringUtils.stringIsJsonFormat(inputJsonString)) {
             return inputJsonString;
         }
 

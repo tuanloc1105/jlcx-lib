@@ -11,6 +11,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.LanguageHeader;
@@ -20,6 +21,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.UserContext;
+import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.LogUtils;
@@ -27,16 +29,55 @@ import vn.com.lcx.common.utils.MyStringUtils;
 
 import java.nio.charset.Charset;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class RoutingContextLcxWrapper implements RoutingContext {
 
     private final RoutingContext realContext;
 
-    public RoutingContextLcxWrapper(RoutingContext realContext) {
+    private RoutingContextLcxWrapper(RoutingContext realContext) {
         this.realContext = realContext;
-        realContext.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
+    }
+
+    public static RoutingContextLcxWrapper init(RoutingContext ctx) {
+        ctx.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
+        final var headerLogMsg = new ArrayList<String>();
+        final MultiMap requestHeader = ctx.request().headers();
+        for (Map.Entry<String, String> requestQueryParam : requestHeader) {
+            headerLogMsg.add(
+                    String.format(
+                            "        - Name: %s\n          Value: %s",
+                            requestQueryParam.getKey(),
+                            requestQueryParam.getValue()
+                    )
+            );
+        }
+        var payload = Optional.ofNullable(ctx.body())
+                .filter(rq -> MyStringUtils.stringIsJsonFormat(rq.asString("UTF-8")))
+                .map(RequestBody::asJsonObject)
+                .map(JsonObject::encode)
+                .filter(StringUtils::isNotBlank)
+                .map(it -> MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), it))
+                .orElse(
+                    Optional.ofNullable(ctx.body())
+                    .map(rq -> rq.asString("UTF-8")).orElse(CommonConstant.EMPTY_STRING)
+                );
+        LogUtils.writeLog(ctx,
+                LogUtils.Level.INFO,
+                "=> Url: {}\n" +
+                        "=> Header:\n" +
+                        "{}\n" +
+                        "=> Method: {}\n" +
+                        "=> Request Payload:\n{}",
+                ctx.request().uri(),
+                String.join("\n", headerLogMsg),
+                ctx.request().method().name(),
+                payload
+        );
+        return new RoutingContextLcxWrapper(ctx);
     }
 
     @Override
@@ -116,15 +157,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
 
     @Override
     public RequestBody body() {
-        final RequestBody body = realContext.body();
-        final String bodyString = body.asJsonObject().encode();
-        LogUtils.writeLog(
-                this,
-                LogUtils.Level.INFO,
-                "Request Payload:\n{}",
-                MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), bodyString)
-        );
-        return body;
+        return realContext.body();
     }
 
     @Override
@@ -319,7 +352,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 "Response Payload ({}ms):\n{}",
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 MyStringUtils.stringIsJsonFormat(chunk) ?
-                MyStringUtils.minifyJsonString(MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk)) :
+                        MyStringUtils.minifyJsonString(MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk)) :
                         (chunk.length() > 10000 ? chunk.substring(0, 50) +
                                 "..." + chunk.substring(chunk.length() - 50) : chunk)
         );

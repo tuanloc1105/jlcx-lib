@@ -69,7 +69,7 @@ public class MyVertxDeployment {
         } catch (Exception ignore) {
         }
         final var oldThreadName = Thread.currentThread().getName();
-        Thread.currentThread().setName("vertx-deployment");
+        Thread.currentThread().setName("vert.x-deployment");
         final var appStartingTime = (double) System.currentTimeMillis();
         try {
             ClassPool.loadProperties();
@@ -81,6 +81,7 @@ public class MyVertxDeployment {
                 PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
                 registry.config().meterFilter(
                         new MeterFilter() {
+                            @SuppressWarnings("NullableProblems")
                             @Override
                             public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
                                 return DistributionStatisticConfig.builder()
@@ -98,10 +99,6 @@ public class MyVertxDeployment {
                         ))
                         .withMetrics(new MicrometerMetricsFactory(registry))
                         .build();
-                // vertx = Vertx.vertx(new VertxOptions().setMetricsOptions(
-                //         new MicrometerMetricsOptions()
-                //                 .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))
-                //                 .setEnabled(true)));
             } else {
                 vertx = Vertx.vertx();
             }
@@ -123,8 +120,8 @@ public class MyVertxDeployment {
             }
             List<Class<?>> verticles = new ArrayList<>();
             ClassPool.init(packagesToScan, verticles);
+            Future<String> deploymentChain = null;
             if (!verticles.isEmpty()) {
-                Future<String> deploymentChain = null;
                 for (Class<?> aClass : verticles) {
                     if (aClass.getAnnotation(Verticle.class) != null) {
                         final var fields = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
@@ -156,32 +153,43 @@ public class MyVertxDeployment {
                         }
                     }
                 }
-                if (deploymentChain != null) {
-                    // JsonArray results = new JsonArray();
-                    // noinspection StatementWithEmptyBody
-                    while (!deploymentChain.isComplete()) {
-                        // do nothing here and wait until all verticles finish the deployment process
-                    }
-                }
             }
-            final var appFinishingStartingTime = (double) System.currentTimeMillis();
-            final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
-            LoggerFactory.getLogger("APP").info("Application started in {} second(s)", appStartingDuration);
-            // noinspection SystemGetProperty
-            LoggerFactory.getLogger("ENCODING").info(
-                    "Using Java {} - {}\nEncoding information:\n    - Default Charset: {}\n    - Default Charset encoding by java.nio.charset: {}\n    - Default Charset by InputStreamReader: {}",
-                    System.getProperty("java.version"),
-                    System.getProperty("java.vendor"),
-                    System.getProperty("file.encoding"),
-                    Charset.defaultCharset().name(),
-                    getCharacterEncoding()
-            );
+            if (deploymentChain == null) {
+                logAppStartingStatus(appStartingTime);
+            } else {
+                deploymentChain.onComplete(ar -> {
+                    if (ar.succeeded()) {
+                        logAppStartingStatus(appStartingTime);
+                    } else {
+                        LoggerFactory.getLogger("APP").error(
+                                ar.cause().getMessage(),
+                                ar.cause()
+                        );
+                        System.exit(1);
+                    }
+                });
+            }
         } catch (Exception e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             System.exit(1);
         } finally {
             Thread.currentThread().setName(oldThreadName);
         }
+    }
+
+    private static void logAppStartingStatus(double appStartingTime) {
+        final var appFinishingStartingTime = (double) System.currentTimeMillis();
+        final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
+        LoggerFactory.getLogger("APP").info("Application started in {} second(s)", appStartingDuration);
+        // noinspection SystemGetProperty
+        LoggerFactory.getLogger("ENCODING").info(
+                "Using Java {} - {}\nEncoding information:\n    - Default Charset: {}\n    - Default Charset encoding by java.nio.charset: {}\n    - Default Charset by InputStreamReader: {}",
+                System.getProperty("java.version"),
+                System.getProperty("java.vendor"),
+                System.getProperty("file.encoding"),
+                Charset.defaultCharset().name(),
+                getCharacterEncoding()
+        );
     }
 
     private void deployVerticle(String packageToScan, Supplier<Void> preconfigure) {

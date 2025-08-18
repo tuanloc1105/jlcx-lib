@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- this line is use for disable the logback startup messages -->
+    <!-- disable logback startup messages -->
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
 
     <property name="APPLICATION_NAME" value="${APPLICATION_NAME}" scope="context"/>
@@ -9,27 +9,21 @@
     <property name="fileName" value="app"/>
 
     <property name="LOG_PATTERN"
-              value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%25t] [%-40.40logger{1}] [%X{trace_id}] [%X{operation_name}] %m%n\n"/>
+              value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%25t] [%-40.40logger{1}] [%X{trace_id}] [%X{operation_name}] %m%n"/>
 
+    <!-- Console appender -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>
-                ${LOG_PATTERN}
-            </Pattern>
-        </layout>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
     </appender>
 
+    <!-- File appender -->
     <appender name="FILE-AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${basePath}/${fileName}.log</file>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>
-                ${LOG_PATTERN}
-            </Pattern>
-        </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- rollover daily -->
             <fileNamePattern>
-                <!-- ${basePath}/rolling_archived/${fileName}/%d{yyyy/MM/dd}/${fileName}.%d{yyyy-MM-dd}.%i.log.zip -->
                 ${basePath}/rolling_archived/${fileName}/%d{yyyy_MM_dd}/${fileName}.%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <!-- each file should be at most 10MB, keep 60 days worth of history, but at most 20GB -->
@@ -42,20 +36,31 @@
         </encoder>
     </appender>
 
-
-    <root level="info">
+    <!-- Async wrappers -->
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
         <appender-ref ref="STDOUT"/>
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
         <appender-ref ref="FILE-AUDIT"/>
+    </appender>
+
+    <!-- Root logger -->
+    <root level="info">
+        <appender-ref ref="ASYNC_STDOUT"/>
+        <appender-ref ref="ASYNC_FILE"/>
     </root>
 
+    <!-- Hibernate log levels -->
     <logger name="org.hibernate.SQL" level="debug"/>
-
     <logger name="org.hibernate.orm.jdbc.bind" level="trace"/>
-    <!-- <logger name="org.hibernate.orm.jdbc.extract" level="trace"/> -->
-
     <logger name="org.hibernate" level="info"/>
-
     <logger name="com.p6spy" level="debug"/>
-
 
 </configuration>
