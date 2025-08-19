@@ -872,6 +872,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 boolean isReturningList,
                                                 String futureOutputType) {
         codeLines.clear();
+        codeLines.add("// ┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┬");
+        codeLines.add("// │    NOTE: The generator of this type of method will be remove soon, please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement    │");
+        codeLines.add("// ├───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼");
         codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
         codeLines.add(
                 String.format(
