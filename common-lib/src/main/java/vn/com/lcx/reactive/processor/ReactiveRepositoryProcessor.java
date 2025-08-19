@@ -26,10 +26,12 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SupportedAnnotationTypes("vn.com.lcx.reactive.annotation.RRepository")
 public class ReactiveRepositoryProcessor extends AbstractProcessor {
@@ -603,12 +605,21 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add(
                 "        .map(rowSet -> {"
         );
-        if (isReturningList) {
-            final var genericTypeOfList = MyStringUtils
-                    .removeSuffixOfString(
-                            MyStringUtils.removePrefixOfString(futureOutputType, "java.util.List<"),
-                            ">"
-                    );
+        if (isReturningList || lastParameterIsPageable(actualParameters)) {
+            String genericTypeOfList;
+            if (isReturningList) {
+                genericTypeOfList = MyStringUtils
+                        .removeSuffixOfString(
+                                MyStringUtils.removePrefixOfString(futureOutputType, "java.util.List<"),
+                                ">"
+                        );
+            } else {
+                genericTypeOfList = MyStringUtils
+                        .removeSuffixOfString(
+                                MyStringUtils.removePrefixOfString(futureOutputType, "vn.com.lcx.common.database.pageable.Page<"),
+                                ">"
+                        );
+            }
             codeLines.add(
                     "            final java.util.List<" + genericTypeOfList + "> result = new java.util.ArrayList<>();"
             );
@@ -630,6 +641,64 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             codeLines.add(
                     "            return result;"
             );
+            if (lastParameterIsPageable(actualParameters) && !isReturningList) {
+                final var countStatementArray = new ArrayList<String>();
+                countStatementArray.add("SELECT COUNT(1)");
+                countStatementArray.addAll(subListFromKeyword(
+                        finalStatementArray,
+                        "from"
+                ));
+                final String countStatement = String.join(" ", countStatementArray).replace("\n", "\\n\" +\n                        \"");
+                codeLines.add(
+                        "        }).compose(rs -> {"
+                );
+                codeLines.add(
+                        String.format("            return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\")",
+                                sqlConnectionVariable.getSimpleName().toString(),
+                                contextVariable.getSimpleName().toString(),
+                                countStatement)
+                );
+                if (actualParameters.isEmpty() || (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1)) {
+                    codeLines.add(
+                            "                    .execute()"
+                    );
+                } else {
+                    codeLines.add(
+                            String.format(
+                                    "                    .execute(io.vertx.sqlclient.Tuple.of(%s))",
+                                    actualParameters.stream().filter(it -> !isPageable(it)).map(
+                                            VariableElement::getSimpleName
+                                    ).collect(Collectors.joining(", "))
+                            )
+                    );
+                }
+                codeLines.add(
+                        "                    .map(rowSet -> {"
+                );
+                codeLines.add(
+                        "                        long countRs = 0L;"
+                );
+                codeLines.add(
+                        "                        for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                            countRs = countRs + row.getLong(0);"
+                );
+                codeLines.add(
+                        "                            break;"
+                );
+                codeLines.add(
+                        "                        }"
+                );
+                codeLines.add(
+                        "                        return vn.com.lcx.common.database.pageable.Page.create(rs, countRs, "  +
+                                actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getPageNumber(), " +
+                                actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getPageSize());"
+                );
+                codeLines.add(
+                        "                    });"
+                );
+            }
         } else {
             final boolean isOptional = futureOutputType.startsWith("java.util.Optional");
             final String genericType;
@@ -728,6 +797,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 codeLines.add(
                         "            return objects.toArray(java.lang.Object[]::new);"
                 );
+            } else if (genericType.startsWith("vn.com.lcx.common.database.pageable.Page")) {
+                final var genericTypeOfPage = MyStringUtils
+                        .removeSuffixOfString(
+                                MyStringUtils.removePrefixOfString(futureOutputType, "vn.com.lcx.common.database.pageable.Page<"),
+                                ">"
+                        );
             } else {
                 codeLines.add(
                         "            if (rowSet.size() == 0) {"
@@ -1116,6 +1191,30 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         "vn.com.lcx.common.database.pageable.Pageable"
                 ).asType()
         );
+    }
+
+    /**
+     * Returns a sublist starting from the first element
+     * that contains the keyword (case-insensitive) until the end of the list.
+     *
+     * @param keywords the list of keywords to search in
+     * @param keyword  the keyword to search for (case-insensitive)
+     * @return a sublist of keywords from the found index to the end,
+     * or an empty list if no match is found
+     */
+    public static List<String> subListFromKeyword(List<String> keywords, String keyword) {
+        if (keywords == null || keyword == null) {
+            return Collections.emptyList();
+        }
+
+        int index = IntStream.range(0, keywords.size())
+                .filter(i -> keywords.get(i).toLowerCase().contains(keyword.toLowerCase()))
+                .findFirst()
+                .orElse(-1);
+
+        return index != -1
+                ? keywords.subList(index, keywords.size())
+                : Collections.emptyList();
     }
 
 }
