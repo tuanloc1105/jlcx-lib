@@ -196,7 +196,7 @@ public final class LogUtils {
                 ">>>>>>>> ";
     }
 
-    public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
+    /*public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
         final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
         try {
             final var currentThreadName = Thread.currentThread().getName();
@@ -274,6 +274,32 @@ public final class LogUtils {
                         }
                 );
             }
+        } finally {
+            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        }
+    }*/
+
+    public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
+        try {
+            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+            writeLog2(level, message, messageParameter);
+        } finally {
+            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        }
+    }
+
+    public static void writeLog(RoutingContext context, String message, Throwable throwable, Level... level) {
+        try {
+            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+            writeLog2(message, throwable, level);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);

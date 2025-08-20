@@ -17,6 +17,7 @@ import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.config.LogbackConfig;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.CommonUtils;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
@@ -65,6 +66,7 @@ public class MyVertxDeployment {
         try (InputStream input = MyVertxDeployment.class.getClassLoader().getResourceAsStream("logback.xml")) {
             if (input == null && System.getProperty("logback.configurationFile") == null) {
                 LogbackConfig.configure();
+                LogUtils.writeLog(LogUtils.Level.INFO, "Using default logback configuration");
             }
         } catch (Exception ignore) {
         }
