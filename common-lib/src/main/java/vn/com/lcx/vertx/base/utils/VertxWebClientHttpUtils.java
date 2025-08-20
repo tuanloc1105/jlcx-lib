@@ -140,7 +140,10 @@ public class VertxWebClientHttpUtils {
                 httpLogMessage.append("\n    - ").append(name).append(": ").append(value);
             });
         }
-        final String jsonString = Optional.ofNullable(payload).map(gson::toJson).orElse(CommonConstant.EMPTY_STRING);
+        final String jsonString = Optional.ofNullable(payload)
+                .map(gson::toJson)
+                .map(jsonStr -> MyStringUtils.maskJsonFields(gson, jsonStr))
+                .orElse(CommonConstant.EMPTY_STRING);
         httpLogMessage.append("\n- Request body: ").append(MyStringUtils.maskJsonFields(gson, jsonString));
         Future<HttpResponse<Buffer>> sendFuture;
         if (payload instanceof Map) {
