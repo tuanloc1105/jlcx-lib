@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class FieldProcessor {
     private final EntityAnalysisContext context;
     private final DatabaseStrategy databaseStrategy;
-    private boolean generatedTableIndex = false;
 
     public FieldProcessor(EntityAnalysisContext context, DatabaseStrategy databaseStrategy) {
         this.context = context;
@@ -37,25 +36,6 @@ public class FieldProcessor {
             processIdField(columnName, field.getType().getName());
         } else {
             processRegularField(field, columnName, dataType);
-        }
-        if (!generatedTableIndex) {
-            context.getIndexMap().forEach(
-                    (indexName, columnList) -> {
-                        final var columnListJoin = String.join(", ", columnList);
-                        String createIndexTable = databaseStrategy.generateCreateIndex(columnListJoin, context.getFinalTableName(), false);
-                        String dropIndexTable = databaseStrategy.generateDropIndex(indexName, context.getFinalTableName());
-                        if (StringUtils.isNotBlank(createIndexTable)) {
-                            context.getCreateIndexList().add(
-                                    createIndexTable
-                                            .replace(columnListJoin + "_INDEX", indexName)
-                            );
-                        }
-                        if (StringUtils.isNotBlank(dropIndexTable)) {
-                            context.getDropIndexList().add(dropIndexTable);
-                        }
-                    }
-            );
-            generatedTableIndex = true;
         }
     }
 
