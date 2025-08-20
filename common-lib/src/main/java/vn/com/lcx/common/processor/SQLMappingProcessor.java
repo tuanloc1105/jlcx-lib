@@ -925,19 +925,29 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             .filter(a -> StringUtils.isNotBlank(a.name()))
                             .map(ColumnName::name)
                             .orElse(convertCamelToConstant(fieldName));
-                    insertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                    insertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
-                    insertStatementCodeLines.add("}");
-                    reactiveInsertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                    reactiveInsertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
-                    reactiveInsertStatementCodeLines.add("}");
-                    insertJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                    insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
-                    insertJdbcParameterCodeLines.add("}");
-                    insertVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                    insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(fieldName)));
-                    insertVertClientParameterCodeLines.add("}");
-                    if (!fieldName.equals(idFieldName)) {
+                    final boolean insertable = Optional
+                            .ofNullable(columnNameAnnotation)
+                            .map(ColumnName::insertable)
+                            .orElse(true);
+                    final boolean updatable = Optional
+                            .ofNullable(columnNameAnnotation)
+                            .map(ColumnName::updatable)
+                            .orElse(true);
+                    if (insertable) {
+                        insertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                        insertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
+                        insertStatementCodeLines.add("}");
+                        reactiveInsertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                        reactiveInsertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
+                        reactiveInsertStatementCodeLines.add("}");
+                        insertJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                        insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
+                        insertJdbcParameterCodeLines.add("}");
+                        insertVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
+                        insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(fieldName)));
+                        insertVertClientParameterCodeLines.add("}");
+                    }
+                    if (!fieldName.equals(idFieldName) && updatable) {
                         updateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         updateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
                         updateStatementCodeLines.add("}");
