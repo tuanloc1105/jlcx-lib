@@ -3,6 +3,7 @@ package vn.com.lcx.vertx.base.utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -141,9 +142,17 @@ public class VertxWebClientHttpUtils {
         }
         final String jsonString = Optional.ofNullable(payload).map(gson::toJson).orElse(CommonConstant.EMPTY_STRING);
         httpLogMessage.append("\n- Request body: ").append(MyStringUtils.maskJsonFields(gson, jsonString));
-        Future<HttpResponse<Buffer>> sendFuture = (method == HttpMethod.GET || method == HttpMethod.DELETE) ?
-                request.send() :
-                (!jsonString.isEmpty() ? request.sendJson(new JsonObject(jsonString)) : request.send());
+        Future<HttpResponse<Buffer>> sendFuture;
+        if (payload instanceof Map) {
+            @SuppressWarnings("unchecked") Map<String, String> map = (Map<String, String>) payload;
+            MultiMap form = MultiMap.caseInsensitiveMultiMap();
+            form.addAll(map);
+            sendFuture = request.sendForm(form, CommonConstant.UTF_8_STANDARD_CHARSET);
+        } else {
+            sendFuture = (method == HttpMethod.GET || method == HttpMethod.DELETE) ?
+                    request.send() :
+                    (!jsonString.isEmpty() ? request.sendJson(new JsonObject(jsonString)) : request.send());
+        }
         return sendFuture.compose(response -> {
             final var responseStatusCode = response.statusCode();
             final var responseBodyAsString = response.bodyAsString();
