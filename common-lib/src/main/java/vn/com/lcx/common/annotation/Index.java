@@ -7,10 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface TableName {
-    String value();
-
-    String schema() default "";
-
-    Index[] indexes() default {};
+public @interface Index {
+    String name();
+    String[] columns();
 }

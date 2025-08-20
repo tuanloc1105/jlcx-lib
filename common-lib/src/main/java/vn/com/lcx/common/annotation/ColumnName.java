@@ -14,9 +14,10 @@ import java.lang.annotation.Target;
  *
  * <h3>Usage example:</h3>
  * <pre>
+ * {@code
  * public class User {
  *
- *     /@ColumnName(
+ *     @ColumnName(
  *         name = "USER_ID",
  *         nullable = false,
  *         unique = true,
@@ -27,8 +28,9 @@ import java.lang.annotation.Target;
  *     )
  *     private Long id;
  *
- *     /@ColumnName(name = "USERNAME", nullable = false, unique = true)
+ *     @ColumnName(name = "USERNAME", nullable = false, unique = true)
  *     private String username;
+ * }
  * }
  * </pre>
  *

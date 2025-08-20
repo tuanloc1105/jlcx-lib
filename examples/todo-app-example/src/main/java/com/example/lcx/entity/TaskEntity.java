@@ -8,6 +8,7 @@ import lombok.ToString;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.ForeignKey;
 import vn.com.lcx.common.annotation.IdColumn;
+import vn.com.lcx.common.annotation.Index;
 import vn.com.lcx.common.annotation.SQLMapping;
 import vn.com.lcx.common.annotation.TableName;
 
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @SQLMapping
-@TableName(value = "task", schema = "r_lcx")
+@TableName(value = "task", schema = "r_lcx", indexes = {@Index(name = "task_index", columns = {"task_name", "finished"})})
 public class TaskEntity {
 
     @IdColumn

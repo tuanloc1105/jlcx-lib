@@ -78,7 +78,7 @@ public class ClassPool {
             for (Class<?> aClass : listOfClassInPackage) {
 
                 if (aClass.getAnnotation(TableName.class) != null) {
-                    EntityUtils.analyzeEntityClassV2(aClass, sourceType.toLowerCase(), folderPath);
+                    EntityUtils.analyzeEntityClass(aClass, sourceType.toLowerCase(), folderPath);
                     continue;
                 }
 

@@ -2,6 +2,7 @@ package vn.com.lcx.common.database.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.IdColumn;
+import vn.com.lcx.common.annotation.Index;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.constant.JavaSqlResultSetConstant;
 
@@ -9,6 +10,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +31,7 @@ public class EntityAnalysisContext {
     private final List<Field> entityFields;
     private final Field idField;
     private final Map<String, String> databaseDatatypeMap;
+    private final Map<String, List<String>> indexMap;
     private final List<List<String>> columnDefinitionLines;
     private final List<String> createIndexList;
     private final List<String> dropIndexList;
@@ -52,6 +55,11 @@ public class EntityAnalysisContext {
         this.tableNameAnnotation = entityClass.getAnnotation(TableName.class);
         if (tableNameAnnotation == null) {
             throw new IllegalArgumentException("Entity class must have @TableName annotation: " + entityClass.getName());
+        }
+        this.indexMap = new HashMap<>();
+        final var indexes = this.tableNameAnnotation.indexes();
+        for (Index index : indexes) {
+            indexMap.put(index.name(), List.of(index.columns()));
         }
 
         this.finalTableName = buildFinalTableName();
@@ -143,6 +151,10 @@ public class EntityAnalysisContext {
 
     public Map<String, String> getDatabaseDatatypeMap() {
         return databaseDatatypeMap;
+    }
+
+    public Map<String, List<String>> getIndexMap() {
+        return indexMap;
     }
 
     public List<List<String>> getColumnDefinitionLines() {
