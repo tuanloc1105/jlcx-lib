@@ -43,7 +43,7 @@ public class EntityAnalyzer {
                         if (StringUtils.isNotBlank(createIndexTable)) {
                             context.getCreateIndexList().add(
                                     createIndexTable
-                                            .replace(columnListJoin + "_INDEX", indexName)
+                                            .replace(columnListJoin + "_INDEX", indexName + "_INDEX")
                             );
                         }
                         if (StringUtils.isNotBlank(dropIndexTable)) {
