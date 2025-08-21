@@ -59,12 +59,18 @@ public class ReactiveDbClientConfiguration {
                 .connectingTo(connectOptions)
                 .using(vertx)
                 .build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> pool.close()
-                .onSuccess(it -> {
-                    Thread.currentThread().setName("vertx-pg-sql-client-shutdown-hook");
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
-                })
-                .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName("vertx-pg-sql-client-shutdown-hook");
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            try {
+                f.wait();
+            } catch (InterruptedException ignore) {
+            }
+        }));
         refreshConnection(
                 () ->
                         pool.withConnection(connection ->
@@ -100,12 +106,18 @@ public class ReactiveDbClientConfiguration {
                 .connectingTo(connectOptions)
                 .using(vertx)
                 .build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> pool.close()
-                .onSuccess(it -> {
-                    Thread.currentThread().setName("vertx-mysql-sql-client-shutdown-hook");
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
-                })
-                .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName("vertx-mysql-sql-client-shutdown-hook");
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            try {
+                f.wait();
+            } catch (InterruptedException ignore) {
+            }
+        }));
         refreshConnection(
                 () ->
                         pool.withConnection(connection ->
@@ -141,20 +153,18 @@ public class ReactiveDbClientConfiguration {
                 .connectingTo(connectOptions)
                 .using(vertx)
                 .build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> pool.close()
-                .onSuccess(it -> {
-                    Thread.currentThread().setName("vertx-mssql-sql-client-shutdown-hook");
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
-                })
-                .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
-        refreshConnection(
-                () ->
-                        pool.withConnection(connection ->
-                                connection.query("SELECT 1")
-                                        .execute()
-                                        .map(rows -> CommonConstant.VOID)
-                        )
-        );
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName("vertx-mssql-sql-client-shutdown-hook");
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            try {
+                f.wait();
+            } catch (InterruptedException ignore) {
+            }
+        }));
         return getDatabaseVersion(type, pool);
     }
 
@@ -182,12 +192,18 @@ public class ReactiveDbClientConfiguration {
                 .connectingTo(connectOptions)
                 .using(vertx)
                 .build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> pool.close()
-                .onSuccess(it -> {
-                    Thread.currentThread().setName("vertx-oracle-sql-client-shutdown-hook");
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
-                })
-                .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName("vertx-oracle-sql-client-shutdown-hook");
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            try {
+                f.wait();
+            } catch (InterruptedException ignore) {
+            }
+        }));
         refreshConnection(
                 () ->
                         pool.withConnection(connection ->
