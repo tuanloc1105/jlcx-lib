@@ -26,7 +26,7 @@ public final class LogUtils {
                 buildLogTemplate(methodName, stepName),
                 MyStringUtils.getLastChars(methodName, 40),
                 MyStringUtils.getLastChars(stepName, 50)
-        ) + (StringUtils.isBlank(message) || message.startsWith("\n") || message.startsWith(System.lineSeparator()) ? message : System.lineSeparator() + message);
+        ) + message;
         switch (level) {
             case INFO:
                 LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
@@ -57,7 +57,7 @@ public final class LogUtils {
                 buildLogTemplate(methodName, stepName),
                 MyStringUtils.getLastChars(methodName, 40),
                 MyStringUtils.getLastChars(stepName, 50)
-        ) + (StringUtils.isBlank(message) || message.startsWith("\n") || message.startsWith(System.lineSeparator()) ? message : System.lineSeparator() + message);
+        ) + message;
         if (level.length == 0) {
             LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
         } else {
@@ -81,11 +81,11 @@ public final class LogUtils {
 
     public static void writeLog2(Level level, String message, Object... messageParameter) {
         final var fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
-        final var logToWrite = /*String.format(
+        final var logToWrite = String.format(
                 buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) +*/ (StringUtils.isBlank(message) || message.startsWith("\n") || message.startsWith(System.lineSeparator()) ? message : System.lineSeparator() + message);
+        ) + message;
 
         switch (level) {
             case INFO:
@@ -112,7 +112,7 @@ public final class LogUtils {
                 buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) + (StringUtils.isBlank(message) || message.startsWith("\n") || message.startsWith(System.lineSeparator()) ? message : System.lineSeparator() + message);
+        ) + message;
         if (level.length == 0) {
             LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
         } else {
