@@ -537,7 +537,13 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("} else {");
         codeLines.add("    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");");
         codeLines.add("}");
-
+        for (VariableElement actualParameter : actualParameters) {
+            if (actualParameter.asType().toString().contains("java.util.List")) {
+                codeLines.add("if (" + actualParameter.getSimpleName() + " == null || " + actualParameter.getSimpleName() + ".isEmpty()) {");
+                codeLines.add("    throw new java.lang.NullPointerException(\"" + actualParameter.getSimpleName() + "\");");
+                codeLines.add("}");
+            }
+        }
         final var statement = executableElement.getAnnotation(Query.class);
         final var statementArr = statement.value().split(" ");
         var index = 0;
@@ -550,7 +556,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             word.replace(
                                     "?",
                                     String.format(
-                                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")",
+                                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + " +
+                                                    "count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")",
                                             actualParameters.get(index).getSimpleName()
                                     )
                             )
@@ -691,7 +698,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         "                        }"
                 );
                 codeLines.add(
-                        "                        return vn.com.lcx.common.database.pageable.Page.create(rs, countRs, "  +
+                        "                        return vn.com.lcx.common.database.pageable.Page.create(rs, countRs, " +
                                 actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getPageNumber(), " +
                                 actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getPageSize());"
                 );
@@ -862,6 +869,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
     }
 
+    // TODO: removing in 3.2.0.lcx
     private void buildCustomQueryMethodCodeBody(MethodInfo methodInfo,
                                                 ExecutableElement executableElement,
                                                 ArrayList<String> codeLines,
@@ -872,9 +880,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 boolean isReturningList,
                                                 String futureOutputType) {
         codeLines.clear();
-        codeLines.add("// ┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┬");
-        codeLines.add("// │    NOTE: The generator of this type of method will be remove soon, please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement    │");
-        codeLines.add("// ├───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼");
+        codeLines.add("// ┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┬");
+        codeLines.add("// │    NOTE: The generator of this type of method is no longer maintained and would be removed soon, please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement    │");
+        codeLines.add("// ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼");
         codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
         codeLines.add(
                 String.format(
