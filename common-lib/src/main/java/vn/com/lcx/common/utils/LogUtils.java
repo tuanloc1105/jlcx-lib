@@ -26,7 +26,7 @@ public final class LogUtils {
                 buildLogTemplate(methodName, stepName),
                 MyStringUtils.getLastChars(methodName, 40),
                 MyStringUtils.getLastChars(stepName, 50)
-        ) + System.lineSeparator() + message;
+        ) + (StringUtils.isBlank(message) || message.startsWith("\n") || message.startsWith(System.lineSeparator()) ? message : System.lineSeparator() + message);
         switch (level) {
             case INFO:
                 LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
@@ -57,7 +57,7 @@ public final class LogUtils {
                 buildLogTemplate(methodName, stepName),
                 MyStringUtils.getLastChars(methodName, 40),
                 MyStringUtils.getLastChars(stepName, 50)
-        ) + System.lineSeparator() + message;
+        ) + (StringUtils.isBlank(message) || message.startsWith("\n") || message.startsWith(System.lineSeparator()) ? message : System.lineSeparator() + message);
         if (level.length == 0) {
             LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
         } else {
@@ -85,7 +85,7 @@ public final class LogUtils {
                 buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) +*/ (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
+        ) +*/ (StringUtils.isBlank(message) || message.startsWith("\n") || message.startsWith(System.lineSeparator()) ? message : System.lineSeparator() + message);
 
         switch (level) {
             case INFO:
@@ -112,60 +112,7 @@ public final class LogUtils {
                 buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
                 MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) + (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
-        if (level.length == 0) {
-            LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
-        } else {
-            switch (level[0]) {
-                case INFO:
-                    throw new IllegalArgumentException("Exception logging do not accept level INFO");
-                case WARN:
-                    LoggerFactory.getLogger(fullClassName).warn(logToWrite, throwable);
-                    break;
-                case ERROR:
-                    LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
-                    break;
-                case DEBUG:
-                    throw new IllegalArgumentException("Exception logging do not accept level DEBUG");
-                case TRACE:
-                    throw new IllegalArgumentException("Exception logging do not accept level TRACE");
-            }
-
-        }
-    }
-
-    private static void writeLog3(String fullClassName, Level level, String message, Object... messageParameter) {
-        final var logToWrite = /*String.format(
-                buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) +*/ (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
-
-        switch (level) {
-            case INFO:
-                LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
-                break;
-            case WARN:
-                LoggerFactory.getLogger(fullClassName).warn(logToWrite, messageParameter);
-                break;
-            case ERROR:
-                LoggerFactory.getLogger(fullClassName).error(logToWrite, messageParameter);
-                break;
-            case DEBUG:
-                LoggerFactory.getLogger(fullClassName).debug(logToWrite, messageParameter);
-                break;
-            case TRACE:
-                LoggerFactory.getLogger(fullClassName).trace(logToWrite, messageParameter);
-                break;
-        }
-    }
-
-    private static void writeLog3(String fullClassName, String message, Throwable throwable, Level... level) {
-        final var logToWrite = String.format(
-                buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) + (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
+        ) + (StringUtils.isBlank(message) || message.startsWith("\n") || message.startsWith(System.lineSeparator()) ? message : System.lineSeparator() + message);
         if (level.length == 0) {
             LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
         } else {
