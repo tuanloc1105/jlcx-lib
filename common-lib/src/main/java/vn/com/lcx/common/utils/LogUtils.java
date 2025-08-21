@@ -26,7 +26,7 @@ public final class LogUtils {
                 buildLogTemplate(methodName, stepName),
                 MyStringUtils.getLastChars(methodName, 40),
                 MyStringUtils.getLastChars(stepName, 50)
-        ) + message;
+        ) + System.lineSeparator() + message;
         switch (level) {
             case INFO:
                 LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
@@ -57,7 +57,7 @@ public final class LogUtils {
                 buildLogTemplate(methodName, stepName),
                 MyStringUtils.getLastChars(methodName, 40),
                 MyStringUtils.getLastChars(stepName, 50)
-        ) + message;
+        ) + System.lineSeparator() + message;
         if (level.length == 0) {
             LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
         } else {
@@ -71,9 +71,9 @@ public final class LogUtils {
                     LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
                     break;
                 case DEBUG:
-                    throw new IllegalArgumentException("Exception logging do not accept level DEBUG");
+                    LoggerFactory.getLogger(fullClassName).debug(logToWrite, throwable);
                 case TRACE:
-                    throw new IllegalArgumentException("Exception logging do not accept level TRACE");
+                    LoggerFactory.getLogger(fullClassName).trace(logToWrite, throwable);
             }
 
         }
