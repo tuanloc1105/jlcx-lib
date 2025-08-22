@@ -217,8 +217,8 @@ public final class AutoValidation {
                     }
 
                     // 4. Handle custom objects
-                    if (!(fieldType.getName().startsWith("java."))
-                            && !(fieldType.getName().startsWith("org."))) {
+                    if (!(fieldValue.getClass().getName().startsWith("java."))
+                            && !(fieldValue.getClass().getName().startsWith("org."))) {
                         errorFields.addAll(validateV2(fieldValue));
                         continue;
                     }
