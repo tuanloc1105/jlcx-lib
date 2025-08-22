@@ -18,6 +18,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
@@ -512,6 +513,34 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                              final String databaseColumnNameToBeGet,
                                              final String setFieldMethodName,
                                              final String fieldTypeSimpleName) {
+        if (element.getKind() == ElementKind.ENUM) {
+            resultSetMappingCodeLines.add(
+                    "try {"
+            );
+            resultSetMappingCodeLines.add(
+                    String.format(
+                            "    String value = resultSet.getString(\"%s\");",
+                            databaseColumnNameToBeGet
+                    )
+            );
+            resultSetMappingCodeLines.add(
+                    String.format(
+                            "    instance.%s(%s.valueOf(value));",
+                            setFieldMethodName,
+                            ((TypeElement) element).getQualifiedName()
+                    )
+            );
+            resultSetMappingCodeLines.add(
+                    "} catch (java.sql.SQLException e) {"
+            );
+            resultSetMappingCodeLines.add(
+                    "    log.debug(e.getMessage(), e);"
+            );
+            resultSetMappingCodeLines.add(
+                    "}"
+            );
+            return;
+        }
         if (resultSetFunctionWillBeUse != null && !resultSetFunctionWillBeUse.isEmpty()) {
             resultSetMappingCodeLines.add(
                     "try {"
@@ -641,6 +670,34 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                             final String databaseColumnNameToBeGet,
                                             final String setFieldMethodName,
                                             final String fieldTypeSimpleName) {
+        if (element.getKind() == ElementKind.ENUM) {
+            vertxRowMappingCodeLines.add(
+                    "try {"
+            );
+            vertxRowMappingCodeLines.add(
+                    String.format(
+                            "    String value = row.getString(\"%s\");",
+                            resultSetFunctionWillBeUse
+                    )
+            );
+            vertxRowMappingCodeLines.add(
+                    String.format(
+                            "    instance.%s(%s.valueOf(value));",
+                            setFieldMethodName,
+                            ((TypeElement) element).getQualifiedName()
+                    )
+            );
+            vertxRowMappingCodeLines.add(
+                    "} catch (java.lang.Throwable e) {"
+            );
+            vertxRowMappingCodeLines.add(
+                    "    log.debug(e.getMessage(), e);"
+            );
+            vertxRowMappingCodeLines.add(
+                    "}"
+            );
+            return;
+        }
         if (resultSetFunctionWillBeUse != null && !resultSetFunctionWillBeUse.isEmpty()) {
             vertxRowMappingCodeLines.add(
                     "try {"
@@ -933,6 +990,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             .ofNullable(columnNameAnnotation)
                             .map(ColumnName::updatable)
                             .orElse(true);
+                    final boolean nullable = Optional
+                            .ofNullable(columnNameAnnotation)
+                            .map(ColumnName::nullable)
+                            .orElse(true);
                     if (insertable) {
                         insertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         insertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
@@ -946,6 +1007,14 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         insertVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(fieldName)));
                         insertVertClientParameterCodeLines.add("}");
+                        if (!nullable) {
+                            insertJdbcParameterCodeLines.add("else {");
+                            insertJdbcParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                            insertJdbcParameterCodeLines.add("}");
+                            insertVertClientParameterCodeLines.add("else {");
+                            insertVertClientParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                            insertVertClientParameterCodeLines.add("}");
+                        }
                     }
                     if (!fieldName.equals(idFieldName) && updatable) {
                         updateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
