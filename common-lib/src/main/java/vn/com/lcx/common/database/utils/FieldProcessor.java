@@ -48,6 +48,10 @@ public class FieldProcessor {
             return columnNameAnnotation.columnDataTypeDefinition();
         }
 
+        if (field.getType().isEnum()) {
+            return context.getDatabaseDatatypeMap().get("String");
+        }
+
         String fieldTypeName = field.getType().getName();
         return context.getDatabaseDatatypeMap().entrySet().stream()
                 .filter(entry -> fieldTypeName.contains(entry.getKey()))

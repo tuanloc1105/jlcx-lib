@@ -12,6 +12,7 @@ import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
+import vn.com.lcx.jpa.processor.utility.TypeHierarchyAnalyzer;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -513,7 +514,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                              final String databaseColumnNameToBeGet,
                                              final String setFieldMethodName,
                                              final String fieldTypeSimpleName) {
-        if (element.getKind() == ElementKind.ENUM) {
+        if (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils())) {
             resultSetMappingCodeLines.add(
                     "try {"
             );
@@ -527,7 +528,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     String.format(
                             "    instance.%s(%s.valueOf(value));",
                             setFieldMethodName,
-                            ((TypeElement) element).getQualifiedName()
+                            element.asType() + CommonConstant.EMPTY_STRING
                     )
             );
             resultSetMappingCodeLines.add(
@@ -670,7 +671,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                             final String databaseColumnNameToBeGet,
                                             final String setFieldMethodName,
                                             final String fieldTypeSimpleName) {
-        if (element.getKind() == ElementKind.ENUM) {
+        if (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils())) {
             vertxRowMappingCodeLines.add(
                     "try {"
             );
@@ -684,7 +685,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     String.format(
                             "    instance.%s(%s.valueOf(value));",
                             setFieldMethodName,
-                            ((TypeElement) element).getQualifiedName()
+                            element.asType() + CommonConstant.EMPTY_STRING
                     )
             );
             vertxRowMappingCodeLines.add(
@@ -1002,10 +1003,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         reactiveInsertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
                         reactiveInsertStatementCodeLines.add("}");
                         insertJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (element.getKind() == ElementKind.ENUM ? ".name()" : CommonConstant.EMPTY_STRING)));
+                        insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
                         insertJdbcParameterCodeLines.add("}");
                         insertVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (element.getKind() == ElementKind.ENUM ? ".name()" : CommonConstant.EMPTY_STRING)));
+                        insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
                         insertVertClientParameterCodeLines.add("}");
                         if (!nullable) {
                             insertJdbcParameterCodeLines.add("else {");
@@ -1028,10 +1029,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         reactiveUpdateStatementCodeLines.add("    }");
                         reactiveUpdateStatementCodeLines.add("}");
                         updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (element.getKind() == ElementKind.ENUM ? ".name()" : CommonConstant.EMPTY_STRING)));
+                        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
                         updateJdbcParameterCodeLines.add("}");
                         updateVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (element.getKind() == ElementKind.ENUM ? ".name()" : CommonConstant.EMPTY_STRING)));
+                        updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
                         updateVertClientParameterCodeLines.add("}");
                         // updateStatementCodeLines.addAll(codes);
                     }
