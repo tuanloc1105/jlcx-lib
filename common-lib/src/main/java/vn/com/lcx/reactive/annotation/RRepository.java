@@ -21,8 +21,10 @@ import java.lang.annotation.Target;
  * {@code
  * @RRepository
  * public interface UserRepository extends vn.com.lcx.reactive.repository.ReactiveRepository<User> {
- *     Future<User> findById(String id);
- *     Future<List<User>> findAll();
+ *     @Query("SQL statement here")
+ *     Future<User> findById(RoutingContext context, SqlConnection connection, String id);
+ *     @Query("SQL statement here")
+ *     Future<List<User>> findAll(RoutingContext context, SqlConnection connection);
  * }
  * }
  * </pre>

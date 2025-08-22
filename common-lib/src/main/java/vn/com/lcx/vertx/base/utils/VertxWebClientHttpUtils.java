@@ -27,6 +27,7 @@ import java.util.Optional;
 public class VertxWebClientHttpUtils {
 
     private final WebClient client;
+    // TODO: support Jackson
     private final Gson gson;
 
     public VertxWebClientHttpUtils(Vertx vertx, Gson gson) {
@@ -35,33 +36,6 @@ public class VertxWebClientHttpUtils {
                 .setConnectTimeout(5000) // Timeout 5s
         );
         this.gson = gson;
-    }
-
-    @Deprecated
-    public <T> Future<T> callApi(
-            HttpMethod method,
-            String url,
-            Map<String, String> headers,
-            JsonObject payload,
-            Class<T> responseType
-    ) {
-        HttpRequest<Buffer> request = client.requestAbs(method, url);
-
-        if (headers != null) {
-            headers.forEach(request::putHeader);
-        }
-
-        Future<JsonObject> futureResponse;
-        if (method == HttpMethod.GET || method == HttpMethod.DELETE) {
-            futureResponse = request.send().map(HttpResponse::bodyAsJsonObject);
-        } else {
-            futureResponse = (payload != null ? request.sendJson(payload) : request.send())
-                    .map(HttpResponse::bodyAsJsonObject);
-        }
-
-        return futureResponse.map(responseBody -> {
-            return responseBody.mapTo(responseType);
-        });
     }
 
     /**

@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  *
  * <p>This annotation is used to specify native SQL queries that will be executed
  * by the underlying database. The query must be written in the native SQL dialect
- * of the target database (e.g., MySQL, PostgreSQL, Oracle, etc.).</p>
+ * of the target database (e.g., MySQL, PostgreSQL, Oracle, MSSQL).</p>
  *
  * <p><strong>Important:</strong> The {@code value} parameter must contain a valid
  * native SQL query string. This means:</p>
@@ -26,11 +26,11 @@ import java.lang.annotation.Target;
  * <pre>{@code
  * // Simple SELECT query
  * @Query("SELECT * FROM users WHERE status = 'ACTIVE'")
- * List<User> findActiveUsers();
+ * Future<List<User>> findActiveUsers(RoutingContext context, SqlConnection connection);
  *
  * // Query with parameters
  * @Query("SELECT * FROM orders WHERE customer_id = ?1 AND total_amount > ?2")
- * List<Order> findOrdersByCustomerAndAmount(Long customerId, BigDecimal minAmount);
+ * Future<List<Order>> findOrdersByCustomerAndAmount(RoutingContext context, SqlConnection connection, Long customerId, BigDecimal minAmount);
  *
  * // Complex query with JOINs
  * @Query("SELECT u.name, o.order_date, o.total_amount " +
@@ -38,17 +38,15 @@ import java.lang.annotation.Target;
  *        "JOIN orders o ON u.id = o.user_id " +
  *        "WHERE u.status = 'ACTIVE' " +
  *        "ORDER BY o.order_date DESC")
- * List<Object[]> findUserOrderDetails();
+ * Future<List<UserOrder>> findUserOrderDetails(RoutingContext context, SqlConnection connection);
  *
  * // UPDATE query
  * @Query("UPDATE products SET stock_quantity = stock_quantity - ?1 WHERE id = ?2")
- * @Modifying
- * int updateProductStock(int quantity, Long productId);
+ * Future<Integer> updateProductStock(RoutingContext context, SqlConnection connection, int quantity, Long productId);
  *
  * // DELETE query
  * @Query("DELETE FROM expired_sessions WHERE created_at < ?1")
- * @Modifying
- * int deleteExpiredSessions(LocalDateTime cutoffDate);
+ * Future<Integer> deleteExpiredSessions(RoutingContext context, SqlConnection connection, LocalDateTime cutoffDate);
  * }</pre>
  *
  * <h3>Security Considerations:</h3>
