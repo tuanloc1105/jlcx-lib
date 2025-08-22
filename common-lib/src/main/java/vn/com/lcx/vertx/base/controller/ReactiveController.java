@@ -236,7 +236,7 @@ public abstract class ReactiveController {
         } else {
             throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, "Unknown json handler. Only support Gson and Jackson");
         }
-        final var errorFields = AutoValidation.validateV2(requestObject);
+        final var errorFields = AutoValidation.validate(requestObject);
         if (!errorFields.isEmpty()) {
             throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());
         }

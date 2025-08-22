@@ -28,126 +28,7 @@ public final class AutoValidation {
     }
 
     public static List<String> validate(Object validateObject) {
-        if (!(validateObject.getClass().getName().contains("vn.")) && !(validateObject.getClass().getName().contains("com."))) {
-            return new ArrayList<>();
-        }
-        final var errorFields = new ArrayList<String>();
-        var fields = new ArrayList<>(Arrays.asList(validateObject.getClass().getDeclaredFields()));
-        for (Field field : fields) {
-            try {
-                field.setAccessible(true);
-                Object fieldValue = field.get(validateObject);
-
-                String fieldName = field.getName();
-                SerializedName annotation = field.getAnnotation(SerializedName.class);
-                if (Optional.ofNullable(annotation).isPresent()) {
-                    fieldName = annotation.value();
-                }
-
-                NotNull notNull = field.getAnnotation(NotNull.class);
-                GreaterThan greaterThan = field.getAnnotation(GreaterThan.class);
-                LessThan lessThan = field.getAnnotation(LessThan.class);
-                Values valuesPattern = field.getAnnotation(Values.class);
-
-                if (Optional.ofNullable(notNull).isPresent()) {
-                    if (ObjectUtils.isNullOrEmpty(fieldValue)) {
-                        errorFields.add(fieldName);
-                    }
-                }
-                if (
-                        !(field.getType().getName().contains("java.")) &&
-                                !(field.getType().getName().contains("org.")) &&
-                                !(validateObject.getClass().isAssignableFrom(field.getType()))
-                ) {
-                    if (Optional.ofNullable(fieldValue).isPresent()) {
-                        errorFields.addAll(validate(fieldValue));
-                    }
-                    continue;
-                }
-
-                if (field.getType().isAssignableFrom(String.class) && Optional.ofNullable(valuesPattern).isPresent()) {
-                    if (!Optional.ofNullable(fieldValue).isPresent()) {
-                        throw new InternalServiceException(
-                                ErrorCodeEnums.INVALID_REQUEST,
-                                String.format(
-                                        "%s's value must not null",
-                                        fieldName
-                                )
-                        );
-                    }
-                    List<String> patterns = Arrays.asList(valuesPattern.value());
-                    if (!patterns.contains(fieldValue.toString())) {
-                        throw new InternalServiceException(
-                                ErrorCodeEnums.INVALID_REQUEST,
-                                String.format(
-                                        "%s's value must be like one of these: %s",
-                                        fieldName,
-                                        patterns.stream().collect(
-                                                Collectors.joining(", ", "[", "]")
-                                        )
-                                )
-                        );
-                    }
-                }
-
-                if (
-                        Optional.ofNullable(fieldValue).isPresent()
-                                && (
-                                Optional.ofNullable(lessThan).isPresent() || Optional.ofNullable(greaterThan).isPresent()
-                        )
-                ) {
-                    double conditionNumber;
-                    double fieldNumber;
-                    if (field.getType().isAssignableFrom(BigDecimal.class)) {
-                        fieldNumber = ((BigDecimal) fieldValue).doubleValue();
-                    } else {
-                        fieldNumber = Double.parseDouble(String.valueOf(fieldValue));
-                    }
-                    if (Optional.ofNullable(lessThan).isPresent()) {
-                        conditionNumber = lessThan.value();
-                        if (fieldNumber >= conditionNumber) {
-                            throw new InternalServiceException(
-                                    ErrorCodeEnums.INVALID_REQUEST,
-                                    String.format(
-                                            "%s's value must be less than [%.2f]",
-                                            fieldName,
-                                            conditionNumber
-                                    )
-                            );
-                        }
-                    }
-                    if (Optional.ofNullable(greaterThan).isPresent()) {
-                        conditionNumber = greaterThan.value();
-                        if (fieldNumber <= conditionNumber) {
-                            throw new InternalServiceException(
-                                    ErrorCodeEnums.INVALID_REQUEST,
-                                    String.format(
-                                            "%s's value must be greater than [%.2f]",
-                                            fieldName,
-                                            conditionNumber
-                                    )
-                            );
-                        }
-                    }
-                }
-
-            } catch (InternalServiceException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new ValidationException(e);
-            }
-        }
-        return errorFields;
-    }
-
-    public static List<String> validateV2(Object validateObject) {
         if (validateObject == null) {
-            return new ArrayList<>();
-        }
-
-        // only validate classes in your packages
-        if (!(validateObject.getClass().getName().contains("vn."))
-                && !(validateObject.getClass().getName().contains("com."))) {
             return new ArrayList<>();
         }
 
@@ -186,7 +67,7 @@ public final class AutoValidation {
                         Collection<?> collection = (Collection<?>) fieldValue;
                         for (Object item : collection) {
                             if (item != null) {
-                                errorFields.addAll(validateV2(item));
+                                errorFields.addAll(validate(item));
                             }
                         }
                         continue;
@@ -197,7 +78,7 @@ public final class AutoValidation {
                         Map<?, ?> map = (Map<?, ?>) fieldValue;
                         for (Object entryValue : map.values()) {
                             if (entryValue != null) {
-                                errorFields.addAll(validateV2(entryValue));
+                                errorFields.addAll(validate(entryValue));
                             }
                         }
                         continue;
@@ -210,7 +91,7 @@ public final class AutoValidation {
                             if (actualType instanceof Class<?>) {
                                 // recursive validate on generic type value
                                 if (fieldValue instanceof Optional) {
-                                    ((Optional<?>) fieldValue).ifPresent(val -> errorFields.addAll(validateV2(val)));
+                                    ((Optional<?>) fieldValue).ifPresent(val -> errorFields.addAll(validate(val)));
                                 }
                             }
                         }
@@ -218,8 +99,12 @@ public final class AutoValidation {
 
                     // 4. Handle custom objects
                     if (!(fieldValue.getClass().getName().startsWith("java."))
-                            && !(fieldValue.getClass().getName().startsWith("org."))) {
-                        errorFields.addAll(validateV2(fieldValue));
+                            && !(fieldValue.getClass().getName().startsWith("org."))
+                            && !(fieldValue.getClass().getName().startsWith("io."))
+                            && !(fieldValue.getClass().getName().startsWith("jakarta."))
+                            && !(fieldValue.getClass().getName().startsWith("net."))
+                            && !(fieldValue.getClass().getName().startsWith("redis."))) {
+                        errorFields.addAll(validate(fieldValue));
                         continue;
                     }
                 }
