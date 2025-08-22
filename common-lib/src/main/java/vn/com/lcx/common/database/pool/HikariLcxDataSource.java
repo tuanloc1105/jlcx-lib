@@ -17,6 +17,7 @@ import java.sql.SQLException;
 
 /**
  * A wrapper class of HikariCP
+ * No longer maintained
  */
 public class HikariLcxDataSource extends LCXDataSource {
 

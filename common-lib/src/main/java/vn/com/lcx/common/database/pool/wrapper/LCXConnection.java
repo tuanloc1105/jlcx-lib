@@ -30,6 +30,8 @@ import java.util.concurrent.Executor;
  * <p>This class implements the standard JDBC {@link Connection} interface and adds
  * connection pool-specific functionality.</p>
  *
+ * <strong>NOTE: No longer maintained</strong>
+ *
  * @see Connection
  * @see ConnectionEntry
  */
