@@ -1002,10 +1002,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         reactiveInsertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
                         reactiveInsertStatementCodeLines.add("}");
                         insertJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
+                        insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (element.getKind() == ElementKind.ENUM ? ".name()" : CommonConstant.EMPTY_STRING)));
                         insertJdbcParameterCodeLines.add("}");
                         insertVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(fieldName)));
+                        insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (element.getKind() == ElementKind.ENUM ? ".name()" : CommonConstant.EMPTY_STRING)));
                         insertVertClientParameterCodeLines.add("}");
                         if (!nullable) {
                             insertJdbcParameterCodeLines.add("else {");
@@ -1028,10 +1028,10 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         reactiveUpdateStatementCodeLines.add("    }");
                         reactiveUpdateStatementCodeLines.add("}");
                         updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(fieldName)));
+                        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (element.getKind() == ElementKind.ENUM ? ".name()" : CommonConstant.EMPTY_STRING)));
                         updateJdbcParameterCodeLines.add("}");
                         updateVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(fieldName)));
+                        updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (element.getKind() == ElementKind.ENUM ? ".name()" : CommonConstant.EMPTY_STRING)));
                         updateVertClientParameterCodeLines.add("}");
                         // updateStatementCodeLines.addAll(codes);
                     }

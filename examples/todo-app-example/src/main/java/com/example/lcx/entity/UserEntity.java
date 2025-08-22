@@ -1,5 +1,6 @@
 package com.example.lcx.entity;
 
+import com.example.lcx.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,5 +50,8 @@ public class UserEntity {
 
     @ColumnName(name = "updated_by")
     private String updatedBy;
+
+    @ColumnName(name = "status")
+    private UserStatus status;
 
 }
