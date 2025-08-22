@@ -678,7 +678,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             vertxRowMappingCodeLines.add(
                     String.format(
                             "    String value = row.getString(\"%s\");",
-                            resultSetFunctionWillBeUse
+                            databaseColumnNameToBeGet
                     )
             );
             vertxRowMappingCodeLines.add(
