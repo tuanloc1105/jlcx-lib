@@ -19,7 +19,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
@@ -971,9 +970,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
         updateVertClientParameterCodeLines.add("java.util.ArrayList<Object> params = new java.util.ArrayList<>();");
         deleteVertClientParameterCodeLines.add("java.util.ArrayList<Object> params = new java.util.ArrayList<>();");
         processorClassInfo.getFields().stream()
-                .filter(
-                        element ->
-                                !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
+                .filter(element ->
+                        !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
                 ).forEach(element -> {
                     final String fieldName = element.getSimpleName().toString();
                     // final String fieldType = element.asType().toString();
@@ -1004,16 +1002,17 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         reactiveInsertStatementCodeLines.add("}");
                         insertJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
-                        insertJdbcParameterCodeLines.add("}");
                         insertVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
-                        insertVertClientParameterCodeLines.add("}");
                         if (!nullable) {
-                            insertJdbcParameterCodeLines.add("else {");
+                            insertJdbcParameterCodeLines.add("} else {");
                             insertJdbcParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
                             insertJdbcParameterCodeLines.add("}");
-                            insertVertClientParameterCodeLines.add("else {");
+                            insertVertClientParameterCodeLines.add("} else {");
                             insertVertClientParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                            insertVertClientParameterCodeLines.add("}");
+                        } else {
+                            insertJdbcParameterCodeLines.add("}");
                             insertVertClientParameterCodeLines.add("}");
                         }
                     }
