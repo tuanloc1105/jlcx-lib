@@ -1,5 +1,3 @@
-[![Quality gate](https://sonar.vtl.name.vn/api/project_badges/quality_gate?project=jlcx-lib&token=sqb_c013aa1bd67625327e8e168b4891fc2eaba2dd66)](https://sonar.vtl.name.vn/dashboard?id=jlcx-lib)
-
 # jlcx-lib
 
 **jlcx-lib** is a comprehensive Java development framework designed to accelerate backend application development by providing powerful, lightweight, and easy-to-use building blocks. It combines the best practices of modern Java development with innovative code generation techniques to reduce boilerplate code and improve developer productivity.
