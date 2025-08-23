@@ -336,6 +336,17 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-java-to-classes</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
 
     </build>
