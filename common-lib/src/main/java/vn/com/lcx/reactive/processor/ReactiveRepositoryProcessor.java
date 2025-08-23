@@ -718,21 +718,82 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             } else {
                 genericType = futureOutputType;
             }
-            if (genericType.equals("java.lang.Long")) {
-                if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
-                        finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+            switch (genericType) {
+                case "java.lang.Long":
+                    if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                            finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                        codeLines.add(
+                                "            return (long) rowSet.rowCount();"
+                        );
+                    } else {
+                        codeLines.add(
+                                "            long result = 0;"
+                        );
+                        codeLines.add(
+                                "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                        );
+                        codeLines.add(
+                                "                result += row.getLong(0);"
+                        );
+                        codeLines.add(
+                                "            }"
+                        );
+                        codeLines.add(
+                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                        );
+                        codeLines.add(
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                        );
+                        codeLines.add(
+                                "            return result;"
+                        );
+                    }
+                    break;
+                case "java.lang.Integer":
+                    if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                            finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                        codeLines.add(
+                                "            return rowSet.rowCount();"
+                        );
+                    } else {
+                        codeLines.add(
+                                "            int result = 0;"
+                        );
+                        codeLines.add(
+                                "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                        );
+                        codeLines.add(
+                                "                result += row.getInteger(0);"
+                        );
+                        codeLines.add(
+                                "            }"
+                        );
+                        codeLines.add(
+                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                        );
+                        codeLines.add(
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                        );
+                        codeLines.add(
+                                "            return result;"
+                        );
+                    }
+                    break;
+                case "java.lang.Object[]":
                     codeLines.add(
-                            "            return (long) rowSet.rowCount();"
-                    );
-                } else {
-                    codeLines.add(
-                            "            long result = 0;"
+                            "            java.util.List<java.lang.Object> objects = new java.util.ArrayList<>();"
                     );
                     codeLines.add(
                             "            for (io.vertx.sqlclient.Row row : rowSet) {"
                     );
                     codeLines.add(
-                            "                result += row.getLong(0);"
+                            "                for (int i = 0; i < row.size(); i++) {"
+                    );
+                    codeLines.add(
+                            "                    objects.add(row.getValue(i));"
+                    );
+                    codeLines.add(
+                            "                }"
                     );
                     codeLines.add(
                             "            }"
@@ -744,24 +805,42 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
                     );
                     codeLines.add(
-                            "            return result;"
+                            "            return objects.toArray(java.lang.Object[]::new);"
                     );
-                }
-            } else if (genericType.equals("java.lang.Integer")) {
-                if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
-                        finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                    break;
+                default:
                     codeLines.add(
-                            "            return rowSet.rowCount();"
+                            "            if (rowSet.size() == 0) {"
                     );
-                } else {
+                    if (isOptional) {
+                        codeLines.add(
+                                "                return java.util.Optional.empty();"
+                        );
+                    } else {
+                        codeLines.add(
+                                "                return null;"
+                        );
+                    }
                     codeLines.add(
-                            "            int result = 0;"
+                            "            }"
+                    );
+                    codeLines.add(
+                            "            if (rowSet.size() > 1) {"
+                    );
+                    codeLines.add(
+                            "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
+                    );
+                    codeLines.add(
+                            "            }"
+                    );
+                    codeLines.add(
+                            "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
                     );
                     codeLines.add(
                             "            for (io.vertx.sqlclient.Row row : rowSet) {"
                     );
                     codeLines.add(
-                            "                result += row.getInteger(0);"
+                            "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
                     );
                     codeLines.add(
                             "            }"
@@ -772,90 +851,16 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     codeLines.add(
                             "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
                     );
-                    codeLines.add(
-                            "            return result;"
-                    );
-                }
-            } else if (genericType.equals("java.lang.Object[]")) {
-                codeLines.add(
-                        "            java.util.List<java.lang.Object> objects = new java.util.ArrayList<>();"
-                );
-                codeLines.add(
-                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                );
-                codeLines.add(
-                        "                for (int i = 0; i < row.size(); i++) {"
-                );
-                codeLines.add(
-                        "                    objects.add(row.getValue(i));"
-                );
-                codeLines.add(
-                        "                }"
-                );
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                );
-                codeLines.add(
-                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
-                );
-                codeLines.add(
-                        "            return objects.toArray(java.lang.Object[]::new);"
-                );
-            } else {
-                codeLines.add(
-                        "            if (rowSet.size() == 0) {"
-                );
-                if (isOptional) {
-                    codeLines.add(
-                            "                return java.util.Optional.empty();"
-                    );
-                } else {
-                    codeLines.add(
-                            "                return null;"
-                    );
-                }
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            if (rowSet.size() > 1) {"
-                );
-                codeLines.add(
-                        "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
-                );
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
-                );
-                codeLines.add(
-                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                );
-                codeLines.add(
-                        "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
-                );
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                );
-                codeLines.add(
-                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
-                );
-                if (isOptional) {
-                    codeLines.add(
-                            "            return java.util.Optional.of(result.get(0));"
-                    );
-                } else {
-                    codeLines.add(
-                            "            return result.isEmpty() ? null : result.get(0);"
-                    );
-                }
+                    if (isOptional) {
+                        codeLines.add(
+                                "            return java.util.Optional.of(result.get(0));"
+                        );
+                    } else {
+                        codeLines.add(
+                                "            return result.isEmpty() ? null : result.get(0);"
+                        );
+                    }
+                    break;
             }
         }
         codeLines.add(
