@@ -804,12 +804,6 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 codeLines.add(
                         "            return objects.toArray(java.lang.Object[]::new);"
                 );
-            } else if (genericType.startsWith("vn.com.lcx.common.database.pageable.Page")) {
-                final var genericTypeOfPage = MyStringUtils
-                        .removeSuffixOfString(
-                                MyStringUtils.removePrefixOfString(futureOutputType, "vn.com.lcx.common.database.pageable.Page<"),
-                                ">"
-                        );
             } else {
                 codeLines.add(
                         "            if (rowSet.size() == 0) {"
