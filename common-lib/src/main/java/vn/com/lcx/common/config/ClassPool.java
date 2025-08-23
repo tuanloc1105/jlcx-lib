@@ -125,7 +125,7 @@ public class ClassPool {
                     getFieldsOfClass(fields, aClass);
                     // final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
                     final var fieldsOfComponent = fields.stream()
-                            .filter(f -> constructorParamsList.contains(f.getName()))
+                            .filter(f -> constructorParamsList.contains(f.getType().getName()))
                             .collect(Collectors.toList());
                     final Object[] args = fieldsOfComponent
                             .stream()
