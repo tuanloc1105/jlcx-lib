@@ -630,10 +630,6 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <!-- <appendAssemblyId>false</appendAssemblyId> -->
-                    <!-- <descriptors> -->
-                    <!-- <descriptor>custom-jar.xml</descriptor> -->
-                    <!-- </descriptors> -->
                 </configuration>
                 <executions>
                     <execution>
