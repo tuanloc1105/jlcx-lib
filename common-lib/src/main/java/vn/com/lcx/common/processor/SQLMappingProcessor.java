@@ -1029,10 +1029,19 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         reactiveUpdateStatementCodeLines.add("}");
                         updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
-                        updateJdbcParameterCodeLines.add("}");
                         updateVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
-                        updateVertClientParameterCodeLines.add("}");
+                        if (!nullable) {
+                            updateJdbcParameterCodeLines.add("} else {");
+                            updateJdbcParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                            updateJdbcParameterCodeLines.add("}");
+                            updateVertClientParameterCodeLines.add("} else {");
+                            updateVertClientParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                            updateVertClientParameterCodeLines.add("}");
+                        } else {
+                            updateJdbcParameterCodeLines.add("}");
+                            updateVertClientParameterCodeLines.add("}");
+                        }
                         // updateStatementCodeLines.addAll(codes);
                     }
                 });
