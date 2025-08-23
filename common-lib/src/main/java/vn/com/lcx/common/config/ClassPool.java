@@ -131,7 +131,7 @@ public class ClassPool {
                             .stream()
                             .map(ClassPool::getInstanceOfField)
                             .toArray(Object[]::new);
-                    if (args.length == 0 || Arrays.stream(args).noneMatch(Objects::isNull)) {
+                    if (Arrays.stream(args).noneMatch(Objects::isNull)) {
                         LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor(constructorParams).newInstance(args);
                         createInstancesAndHandlePostConstructMethod(aClass, instance);
