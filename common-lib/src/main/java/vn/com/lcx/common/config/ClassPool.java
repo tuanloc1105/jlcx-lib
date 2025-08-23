@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 
@@ -84,7 +85,7 @@ public class ClassPool {
 
                 if (aClass.getAnnotation(Verticle.class) != null) {
                     verticleClass.add(aClass);
-                    continue;
+                    // continue;
                 }
                 final var componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
@@ -113,23 +114,26 @@ public class ClassPool {
                     if (handledPostHandleComponent.stream().anyMatch(c -> c.isAssignableFrom(aClass))) {
                         continue;
                     }
-                    final var fields = new ArrayList<Field>();
-                    getFieldsOfClass(fields, aClass);
-                    final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
-
                     if (aClass.getDeclaredConstructors().length > 1) {
-                        throw new ExceptionInInitializerError(String.format("Class `%s` should have only 1 constructor", aClass));
+                        throw new ExceptionInInitializerError(String.format("Class `%s` must have only 1 constructor", aClass));
                     }
 
-                    final Class<?>[] fieldArr = getConstructorParameters(aClass.getDeclaredConstructors()[0]);
-
+                    final Class<?>[] constructorParams = getConstructorParameters(aClass.getDeclaredConstructors()[0]);
+                    final var constructorParamsList = Stream.of(constructorParams).map(Class::getName)
+                            .collect(Collectors.toCollection(ArrayList::new));
+                    final var fields = new ArrayList<Field>();
+                    getFieldsOfClass(fields, aClass);
+                    // final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+                    final var fieldsOfComponent = fields.stream()
+                            .filter(f -> constructorParamsList.contains(f.getName()))
+                            .collect(Collectors.toList());
                     final Object[] args = fieldsOfComponent
                             .stream()
                             .map(ClassPool::getInstanceOfField)
                             .toArray(Object[]::new);
                     if (Arrays.stream(args).noneMatch(Objects::isNull)) {
                         LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
-                        final var instance = aClass.getDeclaredConstructor(fieldArr).newInstance(args);
+                        final var instance = aClass.getDeclaredConstructor(constructorParams).newInstance(args);
                         createInstancesAndHandlePostConstructMethod(aClass, instance);
                         if (!checkProxy(instance)) {
                             setInstance(instance);
