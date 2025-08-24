@@ -1,4 +1,4 @@
-package vn.com.lcx.common.dto;
+package vn.com.lcx.processor.info;
 
 public class FieldInfo {
 
@@ -8,9 +8,9 @@ public class FieldInfo {
     public FieldInfo() {
     }
 
-    public FieldInfo(String fieldDataType, String fieldName) {
-        this.fieldDataType = fieldDataType;
+    public FieldInfo(String fieldName, String fieldDataType) {
         this.fieldName = fieldName;
+        this.fieldDataType = fieldDataType;
     }
 
     public String getFieldName() {
