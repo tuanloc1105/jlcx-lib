@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>index-merge-plugin</artifactId>
-    <version>1.0.0.lcx</version>
+    <version>1.0.0.lcx-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>index-merge-plugin</name>
 
