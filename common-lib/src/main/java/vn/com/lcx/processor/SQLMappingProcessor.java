@@ -1,4 +1,4 @@
-package vn.com.lcx.common.processor;
+package vn.com.lcx.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.Clob;
@@ -11,8 +11,8 @@ import vn.com.lcx.common.constant.JavaSqlResultSetConstant;
 import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
-import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
-import vn.com.lcx.jpa.processor.utility.TypeHierarchyAnalyzer;
+import vn.com.lcx.processor.utility.ProcessorClassInfo;
+import vn.com.lcx.processor.utility.TypeHierarchyAnalyzer;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;

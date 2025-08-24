@@ -1,5 +1,7 @@
 package vn.com.lcx.jpa.annotation;
 
+import vn.com.lcx.processor.RepositoryProcessor;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -34,7 +36,7 @@ import java.lang.annotation.Target;
  * sub-interfaces to inherit common database operations.
  *
  * @see vn.com.lcx.jpa.respository.JpaRepository
- * @see vn.com.lcx.jpa.processor.RepositoryProcessor
+ * @see RepositoryProcessor
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)

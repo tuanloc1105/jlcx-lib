@@ -1,13 +1,13 @@
-package vn.com.lcx.reactive.processor;
+package vn.com.lcx.processor;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
-import vn.com.lcx.jpa.processor.utility.MethodInfo;
-import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
-import vn.com.lcx.jpa.processor.utility.TypeHierarchyAnalyzer;
+import vn.com.lcx.processor.utility.MethodInfo;
+import vn.com.lcx.processor.utility.ProcessorClassInfo;
+import vn.com.lcx.processor.utility.TypeHierarchyAnalyzer;
 import vn.com.lcx.reactive.annotation.Query;
 import vn.com.lcx.reactive.annotation.RRepository;
 import vn.com.lcx.reactive.repository.ReactiveRepository;

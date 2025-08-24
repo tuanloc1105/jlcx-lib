@@ -1,4 +1,4 @@
-package vn.com.lcx.jpa.processor.utility;
+package vn.com.lcx.processor.utility;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
