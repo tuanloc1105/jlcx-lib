@@ -28,6 +28,9 @@ import java.util.concurrent.TimeUnit;
 
 import static vn.com.lcx.common.utils.RandomUtils.generateRandomString;
 
+/**
+ * No longer maintained
+ */
 public class LCXDataSource {
 
     private final String poolName;

@@ -45,6 +45,13 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
         for (int i = 0; i < size; ++i) {
             Object value = tuple.getValue(i);
             if (value == null) {
+                parametersLog.append(
+                        String.format(
+                                "\n\t- parameter %s: %s",
+                                String.format("%-3d %-20s)", count++, "(NULL"),
+                                "NULL"
+                        )
+                );
                 continue;
             }
             if (value instanceof List) {

@@ -1,6 +1,7 @@
 package vn.com.lcx.jpa.processor.utility;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -93,6 +94,20 @@ public final class TypeHierarchyAnalyzer {
 
     public static TypeElement getTypeElementFromClassName(final Elements elementUtils, final String className) {
         return elementUtils.getTypeElement(className);
+    }
+
+    public static boolean isEnumField(Element field, Types typeUtils) {
+        if (field.getKind() != ElementKind.FIELD) {
+            return false;
+        }
+
+        TypeMirror typeMirror = field.asType();
+
+        Element typeElement = typeUtils.asElement(typeMirror);
+        if (typeElement instanceof TypeElement) {
+            return typeElement.getKind() == ElementKind.ENUM;
+        }
+        return false;
     }
 
 }

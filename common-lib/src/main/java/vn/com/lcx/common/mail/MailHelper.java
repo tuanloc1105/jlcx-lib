@@ -59,41 +59,6 @@ public final class MailHelper {
         properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         properties.setProperty("mail.smtp.port", mailProperties.getPort());
         properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
-        /*switch (mailProperties.getMailSendingMethod()) {
-            case LIVE:
-                properties.setProperty("mail.smtp.host", mailProperties.getHost());
-                properties.setProperty("mail.smtp.auth", "true");
-                properties.setProperty("mail.smtp.starttls.enable", "true");
-                properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-                properties.setProperty("mail.smtp.port", mailProperties.getPort());
-                properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
-
-                // properties.setProperty("mail.smtp.host", mailProperties.getHost());
-                // properties.setProperty("mail.smtp.auth", "true");
-                // properties.setProperty("mail.smtp.starttls.enable", "true");
-                // properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-                // properties.setProperty("mail.smtp.port", mailProperties.getPort());
-                // properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
-                break;
-            case UAT:
-            case LIVE_NO_TRUST:
-            default:
-                properties.setProperty("mail.smtp.host", mailProperties.getHost());
-                properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
-                properties.setProperty("mail.smtp.auth", "true");
-                properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-                properties.setProperty("mail.smtp.port", mailProperties.getPort());
-
-                // properties.setProperty("mail.smtp.auth", "true");
-                // properties.setProperty("mail.smtp.starttls.enable", "true");
-                // properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
-                // properties.setProperty("mail.smtp.host", mailProperties.getHost());
-                // properties.setProperty("mail.smtp.port", mailProperties.getPort());
-                // properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-                // properties.setProperty("mail.smtp.ssl.trust", "*"); // Trust any SSL certificate
-                disableSslVerification();
-                break;
-        }*/
         final var session = Session.getInstance(
                 properties,
                 new Authenticator() {

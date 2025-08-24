@@ -71,9 +71,9 @@ public final class LogUtils {
                     LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
                     break;
                 case DEBUG:
-                    throw new IllegalArgumentException("Exception logging do not accept level DEBUG");
+                    LoggerFactory.getLogger(fullClassName).debug(logToWrite, throwable);
                 case TRACE:
-                    throw new IllegalArgumentException("Exception logging do not accept level TRACE");
+                    LoggerFactory.getLogger(fullClassName).trace(logToWrite, throwable);
             }
 
         }
@@ -81,107 +81,44 @@ public final class LogUtils {
 
     public static void writeLog2(Level level, String message, Object... messageParameter) {
         final var fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
-        final var logToWrite = /*String.format(
-                buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) +*/ (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
 
         switch (level) {
             case INFO:
-                LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
+                LoggerFactory.getLogger(fullClassName).info(message, messageParameter);
                 break;
             case WARN:
-                LoggerFactory.getLogger(fullClassName).warn(logToWrite, messageParameter);
+                LoggerFactory.getLogger(fullClassName).warn(message, messageParameter);
                 break;
             case ERROR:
-                LoggerFactory.getLogger(fullClassName).error(logToWrite, messageParameter);
+                LoggerFactory.getLogger(fullClassName).error(message, messageParameter);
                 break;
             case DEBUG:
-                LoggerFactory.getLogger(fullClassName).debug(logToWrite, messageParameter);
+                LoggerFactory.getLogger(fullClassName).debug(message, messageParameter);
                 break;
             case TRACE:
-                LoggerFactory.getLogger(fullClassName).trace(logToWrite, messageParameter);
+                LoggerFactory.getLogger(fullClassName).trace(message, messageParameter);
                 break;
         }
     }
 
     public static void writeLog2(String message, Throwable throwable, Level... level) {
         final var fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
-        final var logToWrite = String.format(
-                buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) + (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
         if (level.length == 0) {
-            LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
+            LoggerFactory.getLogger(fullClassName).error(message, throwable);
         } else {
             switch (level[0]) {
                 case INFO:
                     throw new IllegalArgumentException("Exception logging do not accept level INFO");
                 case WARN:
-                    LoggerFactory.getLogger(fullClassName).warn(logToWrite, throwable);
+                    LoggerFactory.getLogger(fullClassName).warn(message, throwable);
                     break;
                 case ERROR:
-                    LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
+                    LoggerFactory.getLogger(fullClassName).error(message, throwable);
                     break;
                 case DEBUG:
-                    throw new IllegalArgumentException("Exception logging do not accept level DEBUG");
+                    LoggerFactory.getLogger(fullClassName).debug(message, throwable);
                 case TRACE:
-                    throw new IllegalArgumentException("Exception logging do not accept level TRACE");
-            }
-
-        }
-    }
-
-    private static void writeLog3(String fullClassName, Level level, String message, Object... messageParameter) {
-        final var logToWrite = /*String.format(
-                buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) +*/ (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
-
-        switch (level) {
-            case INFO:
-                LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
-                break;
-            case WARN:
-                LoggerFactory.getLogger(fullClassName).warn(logToWrite, messageParameter);
-                break;
-            case ERROR:
-                LoggerFactory.getLogger(fullClassName).error(logToWrite, messageParameter);
-                break;
-            case DEBUG:
-                LoggerFactory.getLogger(fullClassName).debug(logToWrite, messageParameter);
-                break;
-            case TRACE:
-                LoggerFactory.getLogger(fullClassName).trace(logToWrite, messageParameter);
-                break;
-        }
-    }
-
-    private static void writeLog3(String fullClassName, String message, Throwable throwable, Level... level) {
-        final var logToWrite = String.format(
-                buildLogTemplate(CommonConstant.EMPTY_STRING, CommonConstant.EMPTY_STRING),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 40),
-                MyStringUtils.getLastChars(CommonConstant.EMPTY_STRING, 50)
-        ) + (StringUtils.isBlank(message) || message.startsWith("\n") ? message : System.lineSeparator() + message);
-        if (level.length == 0) {
-            LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
-        } else {
-            switch (level[0]) {
-                case INFO:
-                    throw new IllegalArgumentException("Exception logging do not accept level INFO");
-                case WARN:
-                    LoggerFactory.getLogger(fullClassName).warn(logToWrite, throwable);
-                    break;
-                case ERROR:
-                    LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
-                    break;
-                case DEBUG:
-                    throw new IllegalArgumentException("Exception logging do not accept level DEBUG");
-                case TRACE:
-                    throw new IllegalArgumentException("Exception logging do not accept level TRACE");
+                    LoggerFactory.getLogger(fullClassName).trace(message, throwable);
             }
 
         }
@@ -196,7 +133,7 @@ public final class LogUtils {
                 ">>>>>>>> ";
     }
 
-    public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
+    /*public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
         final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
         try {
             final var currentThreadName = Thread.currentThread().getName();
@@ -274,6 +211,32 @@ public final class LogUtils {
                         }
                 );
             }
+        } finally {
+            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        }
+    }*/
+
+    public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
+        try {
+            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+            writeLog2(level, message, messageParameter);
+        } finally {
+            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        }
+    }
+
+    public static void writeLog(RoutingContext context, String message, Throwable throwable, Level... level) {
+        try {
+            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
+            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+            writeLog2(message, throwable, level);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);

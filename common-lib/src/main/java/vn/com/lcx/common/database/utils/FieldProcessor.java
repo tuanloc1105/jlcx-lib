@@ -8,9 +8,11 @@ import vn.com.lcx.common.constant.CommonConstant;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +46,10 @@ public class FieldProcessor {
     private String getSqlDataType(Field field, ColumnName columnNameAnnotation) {
         if (StringUtils.isNotBlank(columnNameAnnotation.columnDataTypeDefinition())) {
             return columnNameAnnotation.columnDataTypeDefinition();
+        }
+
+        if (field.getType().isEnum()) {
+            return context.getDatabaseDatatypeMap().get("String");
         }
 
         String fieldTypeName = field.getType().getName();

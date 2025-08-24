@@ -15,6 +15,7 @@ import static vn.com.lcx.common.utils.FileUtils.writeContentToFile;
 public class EntityAnalyzer {
     private final EntityAnalysisContext context;
     private final DatabaseStrategy databaseStrategy;
+    private boolean generatedTableIndex = false;
 
     public EntityAnalyzer(EntityAnalysisContext context) {
         this.context = context;
@@ -32,6 +33,25 @@ public class EntityAnalyzer {
                 FieldProcessor processor = new FieldProcessor(context, databaseStrategy);
                 processor.processField(field);
             }
+        }
+        if (!generatedTableIndex) {
+            context.getIndexMap().forEach(
+                    (indexName, columnList) -> {
+                        final var columnListJoin = String.join(", ", columnList);
+                        String createIndexTable = databaseStrategy.generateCreateIndex(columnListJoin, context.getFinalTableName(), false);
+                        String dropIndexTable = databaseStrategy.generateDropIndex(indexName, context.getFinalTableName());
+                        if (StringUtils.isNotBlank(createIndexTable)) {
+                            context.getCreateIndexList().add(
+                                    createIndexTable
+                                            .replace(columnListJoin + "_INDEX", indexName + "_INDEX")
+                            );
+                        }
+                        if (StringUtils.isNotBlank(dropIndexTable)) {
+                            context.getDropIndexList().add(dropIndexTable);
+                        }
+                    }
+            );
+            generatedTableIndex = true;
         }
     }
 

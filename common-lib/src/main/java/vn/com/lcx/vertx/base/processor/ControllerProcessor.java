@@ -8,7 +8,6 @@ import vn.com.lcx.vertx.base.annotation.app.ContextHandler;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.annotation.process.APIKey;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
-import vn.com.lcx.vertx.base.annotation.process.Block;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
 import vn.com.lcx.vertx.base.annotation.process.Delete;
 import vn.com.lcx.vertx.base.annotation.process.Get;
@@ -34,7 +33,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -329,19 +327,14 @@ public class ControllerProcessor extends AbstractProcessor {
                         if (!contextHandlerOrderAndClassListMap.isEmpty()) {
                             routerConfigureCode += routerHandleCodeForFilter.toString();
                         }
-                        if (Optional.ofNullable(currentClass.getKey().getAnnotation(Block.class)).isPresent()) {
-                            routerConfigureCode += String.format(
-                                    "\n                    .handler(this::createUUIDHandler)\n                    .handler(this.controller%d::%s);",
-                                    count,
-                                    e.getSimpleName() + CommonConstant.EMPTY_STRING
-                            );
-                        } else {
-                            routerConfigureCode += String.format(
-                                    "\n                    .handler(this::createUUIDHandler)\n                    .handler(ctx -> this.controller%d.%s(vn.com.lcx.vertx.base.wrapper.RoutingContextLcxWrapper.init(ctx)));",
-                                    count,
-                                    e.getSimpleName() + CommonConstant.EMPTY_STRING
-                            );
-                        }
+                        routerConfigureCode += String.format(
+                                "\n" +
+                                        "                    .handler(this::createUUIDHandler)\n" +
+                                        "                    .handler(ctx -> this.controller%d.%s(vn.com.lcx.vertx.base.wrapper.RoutingContextLcxWrapper\n" +
+                                        "                                    .init(ctx)));",
+                                count,
+                                e.getSimpleName() + CommonConstant.EMPTY_STRING
+                        );
                         routerConfigures.add(routerConfigureCode);
                     }
                 }

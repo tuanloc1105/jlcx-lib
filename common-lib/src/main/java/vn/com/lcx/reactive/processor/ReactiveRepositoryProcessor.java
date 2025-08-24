@@ -26,10 +26,12 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SupportedAnnotationTypes("vn.com.lcx.reactive.annotation.RRepository")
 public class ReactiveRepositoryProcessor extends AbstractProcessor {
@@ -535,7 +537,13 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("} else {");
         codeLines.add("    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");");
         codeLines.add("}");
-
+        for (VariableElement actualParameter : actualParameters) {
+            if (actualParameter.asType().toString().contains("java.util.List")) {
+                codeLines.add("if (" + actualParameter.getSimpleName() + " == null || " + actualParameter.getSimpleName() + ".isEmpty()) {");
+                codeLines.add("    throw new java.lang.NullPointerException(\"" + actualParameter.getSimpleName() + "\");");
+                codeLines.add("}");
+            }
+        }
         final var statement = executableElement.getAnnotation(Query.class);
         final var statementArr = statement.value().split(" ");
         var index = 0;
@@ -548,7 +556,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             word.replace(
                                     "?",
                                     String.format(
-                                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")",
+                                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + " +
+                                                    "count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")",
                                             actualParameters.get(index).getSimpleName()
                                     )
                             )
@@ -603,12 +612,21 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add(
                 "        .map(rowSet -> {"
         );
-        if (isReturningList) {
-            final var genericTypeOfList = MyStringUtils
-                    .removeSuffixOfString(
-                            MyStringUtils.removePrefixOfString(futureOutputType, "java.util.List<"),
-                            ">"
-                    );
+        if (isReturningList || lastParameterIsPageable(actualParameters)) {
+            String genericTypeOfList;
+            if (isReturningList) {
+                genericTypeOfList = MyStringUtils
+                        .removeSuffixOfString(
+                                MyStringUtils.removePrefixOfString(futureOutputType, "java.util.List<"),
+                                ">"
+                        );
+            } else {
+                genericTypeOfList = MyStringUtils
+                        .removeSuffixOfString(
+                                MyStringUtils.removePrefixOfString(futureOutputType, "vn.com.lcx.common.database.pageable.Page<"),
+                                ">"
+                        );
+            }
             codeLines.add(
                     "            final java.util.List<" + genericTypeOfList + "> result = new java.util.ArrayList<>();"
             );
@@ -630,6 +648,64 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             codeLines.add(
                     "            return result;"
             );
+            if (lastParameterIsPageable(actualParameters) && !isReturningList) {
+                final var countStatementArray = new ArrayList<String>();
+                countStatementArray.add("SELECT COUNT(1)");
+                countStatementArray.addAll(subListFromKeyword(
+                        finalStatementArray,
+                        "from"
+                ));
+                final String countStatement = String.join(" ", countStatementArray).replace("\n", "\\n\" +\n                        \"");
+                codeLines.add(
+                        "        }).compose(rs -> {"
+                );
+                codeLines.add(
+                        String.format("            return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\")",
+                                sqlConnectionVariable.getSimpleName().toString(),
+                                contextVariable.getSimpleName().toString(),
+                                countStatement)
+                );
+                if (actualParameters.isEmpty() || (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1)) {
+                    codeLines.add(
+                            "                    .execute()"
+                    );
+                } else {
+                    codeLines.add(
+                            String.format(
+                                    "                    .execute(io.vertx.sqlclient.Tuple.of(%s))",
+                                    actualParameters.stream().filter(it -> !isPageable(it)).map(
+                                            VariableElement::getSimpleName
+                                    ).collect(Collectors.joining(", "))
+                            )
+                    );
+                }
+                codeLines.add(
+                        "                    .map(rowSet -> {"
+                );
+                codeLines.add(
+                        "                        long countRs = 0L;"
+                );
+                codeLines.add(
+                        "                        for (io.vertx.sqlclient.Row row : rowSet) {"
+                );
+                codeLines.add(
+                        "                            countRs = countRs + row.getLong(0);"
+                );
+                codeLines.add(
+                        "                            break;"
+                );
+                codeLines.add(
+                        "                        }"
+                );
+                codeLines.add(
+                        "                        return vn.com.lcx.common.database.pageable.Page.create(rs, countRs, " +
+                                actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getPageNumber(), " +
+                                actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getPageSize());"
+                );
+                codeLines.add(
+                        "                    });"
+                );
+            }
         } else {
             final boolean isOptional = futureOutputType.startsWith("java.util.Optional");
             final String genericType;
@@ -642,21 +718,82 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             } else {
                 genericType = futureOutputType;
             }
-            if (genericType.equals("java.lang.Long")) {
-                if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
-                        finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+            switch (genericType) {
+                case "java.lang.Long":
+                    if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                            finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                        codeLines.add(
+                                "            return (long) rowSet.rowCount();"
+                        );
+                    } else {
+                        codeLines.add(
+                                "            long result = 0;"
+                        );
+                        codeLines.add(
+                                "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                        );
+                        codeLines.add(
+                                "                result += row.getLong(0);"
+                        );
+                        codeLines.add(
+                                "            }"
+                        );
+                        codeLines.add(
+                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                        );
+                        codeLines.add(
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                        );
+                        codeLines.add(
+                                "            return result;"
+                        );
+                    }
+                    break;
+                case "java.lang.Integer":
+                    if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                            finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                        codeLines.add(
+                                "            return rowSet.rowCount();"
+                        );
+                    } else {
+                        codeLines.add(
+                                "            int result = 0;"
+                        );
+                        codeLines.add(
+                                "            for (io.vertx.sqlclient.Row row : rowSet) {"
+                        );
+                        codeLines.add(
+                                "                result += row.getInteger(0);"
+                        );
+                        codeLines.add(
+                                "            }"
+                        );
+                        codeLines.add(
+                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                        );
+                        codeLines.add(
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                        );
+                        codeLines.add(
+                                "            return result;"
+                        );
+                    }
+                    break;
+                case "java.lang.Object[]":
                     codeLines.add(
-                            "            return (long) rowSet.rowCount();"
-                    );
-                } else {
-                    codeLines.add(
-                            "            long result = 0;"
+                            "            java.util.List<java.lang.Object> objects = new java.util.ArrayList<>();"
                     );
                     codeLines.add(
                             "            for (io.vertx.sqlclient.Row row : rowSet) {"
                     );
                     codeLines.add(
-                            "                result += row.getLong(0);"
+                            "                for (int i = 0; i < row.size(); i++) {"
+                    );
+                    codeLines.add(
+                            "                    objects.add(row.getValue(i));"
+                    );
+                    codeLines.add(
+                            "                }"
                     );
                     codeLines.add(
                             "            }"
@@ -668,24 +805,42 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
                     );
                     codeLines.add(
-                            "            return result;"
+                            "            return objects.toArray(java.lang.Object[]::new);"
                     );
-                }
-            } else if (genericType.equals("java.lang.Integer")) {
-                if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
-                        finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                    break;
+                default:
                     codeLines.add(
-                            "            return rowSet.rowCount();"
+                            "            if (rowSet.size() == 0) {"
                     );
-                } else {
+                    if (isOptional) {
+                        codeLines.add(
+                                "                return java.util.Optional.empty();"
+                        );
+                    } else {
+                        codeLines.add(
+                                "                return null;"
+                        );
+                    }
                     codeLines.add(
-                            "            int result = 0;"
+                            "            }"
+                    );
+                    codeLines.add(
+                            "            if (rowSet.size() > 1) {"
+                    );
+                    codeLines.add(
+                            "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
+                    );
+                    codeLines.add(
+                            "            }"
+                    );
+                    codeLines.add(
+                            "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
                     );
                     codeLines.add(
                             "            for (io.vertx.sqlclient.Row row : rowSet) {"
                     );
                     codeLines.add(
-                            "                result += row.getInteger(0);"
+                            "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
                     );
                     codeLines.add(
                             "            }"
@@ -696,90 +851,16 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     codeLines.add(
                             "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
                     );
-                    codeLines.add(
-                            "            return result;"
-                    );
-                }
-            } else if (genericType.equals("java.lang.Object[]")) {
-                codeLines.add(
-                        "            java.util.List<java.lang.Object> objects = new java.util.ArrayList<>();"
-                );
-                codeLines.add(
-                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                );
-                codeLines.add(
-                        "                for (int i = 0; i < row.size(); i++) {"
-                );
-                codeLines.add(
-                        "                    objects.add(row.getValue(i));"
-                );
-                codeLines.add(
-                        "                }"
-                );
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                );
-                codeLines.add(
-                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
-                );
-                codeLines.add(
-                        "            return objects.toArray(java.lang.Object[]::new);"
-                );
-            } else {
-                codeLines.add(
-                        "            if (rowSet.size() == 0) {"
-                );
-                if (isOptional) {
-                    codeLines.add(
-                            "                return java.util.Optional.empty();"
-                    );
-                } else {
-                    codeLines.add(
-                            "                return null;"
-                    );
-                }
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            if (rowSet.size() > 1) {"
-                );
-                codeLines.add(
-                        "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
-                );
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
-                );
-                codeLines.add(
-                        "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                );
-                codeLines.add(
-                        "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
-                );
-                codeLines.add(
-                        "            }"
-                );
-                codeLines.add(
-                        "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                );
-                codeLines.add(
-                        "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
-                );
-                if (isOptional) {
-                    codeLines.add(
-                            "            return java.util.Optional.of(result.get(0));"
-                    );
-                } else {
-                    codeLines.add(
-                            "            return result.isEmpty() ? null : result.get(0);"
-                    );
-                }
+                    if (isOptional) {
+                        codeLines.add(
+                                "            return java.util.Optional.of(result.get(0));"
+                        );
+                    } else {
+                        codeLines.add(
+                                "            return result.isEmpty() ? null : result.get(0);"
+                        );
+                    }
+                    break;
             }
         }
         codeLines.add(
@@ -787,6 +868,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         );
     }
 
+    // TODO: removing in 3.2.0.lcx
     private void buildCustomQueryMethodCodeBody(MethodInfo methodInfo,
                                                 ExecutableElement executableElement,
                                                 ArrayList<String> codeLines,
@@ -797,6 +879,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 boolean isReturningList,
                                                 String futureOutputType) {
         codeLines.clear();
+        codeLines.add("// ┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┬");
+        codeLines.add("// │    NOTE: The generator of this type of method is no longer maintained and would be removed soon, please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement    │");
+        codeLines.add("// ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼");
         codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
         codeLines.add(
                 String.format(
@@ -1116,6 +1201,30 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         "vn.com.lcx.common.database.pageable.Pageable"
                 ).asType()
         );
+    }
+
+    /**
+     * Returns a sublist starting from the first element
+     * that contains the keyword (case-insensitive) until the end of the list.
+     *
+     * @param keywords the list of keywords to search in
+     * @param keyword  the keyword to search for (case-insensitive)
+     * @return a sublist of keywords from the found index to the end,
+     * or an empty list if no match is found
+     */
+    public static List<String> subListFromKeyword(List<String> keywords, String keyword) {
+        if (keywords == null || keyword == null) {
+            return Collections.emptyList();
+        }
+
+        int index = IntStream.range(0, keywords.size())
+                .filter(i -> keywords.get(i).toLowerCase().contains(keyword.toLowerCase()))
+                .findFirst()
+                .orElse(-1);
+
+        return index != -1
+                ? keywords.subList(index, keywords.size())
+                : Collections.emptyList();
     }
 
 }

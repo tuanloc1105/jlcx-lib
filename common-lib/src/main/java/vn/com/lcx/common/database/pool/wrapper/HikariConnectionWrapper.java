@@ -38,6 +38,8 @@ import java.util.concurrent.Executor;
  *   <li>Logs errors during connection close operations</li>
  * </ul>
  *
+ * <strong>NOTE: No longer maintained</strong>
+ *
  * @see java.sql.Connection
  * @see LCXConnection
  */

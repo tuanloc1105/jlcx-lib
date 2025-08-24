@@ -21,6 +21,9 @@ import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.custom.EmptyRoutingContext;
 
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 
 @Component
@@ -47,6 +50,8 @@ public class ReactiveDbClientConfiguration {
                 .setPassword(password);
 
         PoolOptions poolOptions = new PoolOptions()
+                .setIdleTimeout(30)
+                .setIdleTimeoutUnit(TimeUnit.SECONDS)
                 .setMaxSize(maxPoolSize);
 
         Pool pool = PgBuilder.pool()
@@ -54,12 +59,29 @@ public class ReactiveDbClientConfiguration {
                 .connectingTo(connectOptions)
                 .using(vertx)
                 .build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> pool.close()
-                .onSuccess(it -> {
-                    Thread.currentThread().setName("vertx-pg-sql-client-shutdown-hook");
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
-                })
-                .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var threadName = "vertx-pg-sql-client-shutdown-hook";
+            Thread.currentThread().setName(threadName);
+            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName(threadName);
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            // noinspection StatementWithEmptyBody
+            while (!f.isComplete()) {
+                // wait
+            }
+        }));
+        refreshConnection(
+                () ->
+                        pool.withConnection(connection ->
+                                connection.query("SELECT 1")
+                                        .execute()
+                                        .map(rows -> CommonConstant.VOID)
+                        )
+        );
         return getDatabaseVersion(type, pool);
     }
 
@@ -78,6 +100,8 @@ public class ReactiveDbClientConfiguration {
                 .setPassword(password);
 
         PoolOptions poolOptions = new PoolOptions()
+                .setIdleTimeout(30)
+                .setIdleTimeoutUnit(TimeUnit.SECONDS)
                 .setMaxSize(maxPoolSize);
 
         Pool pool = MySQLBuilder.pool()
@@ -85,12 +109,29 @@ public class ReactiveDbClientConfiguration {
                 .connectingTo(connectOptions)
                 .using(vertx)
                 .build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> pool.close()
-                .onSuccess(it -> {
-                    Thread.currentThread().setName("vertx-mysql-sql-client-shutdown-hook");
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
-                })
-                .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var threadName = "vertx-mysql-sql-client-shutdown-hook";
+            Thread.currentThread().setName(threadName);
+            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName(threadName);
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            // noinspection StatementWithEmptyBody
+            while (!f.isComplete()) {
+                // wait
+            }
+        }));
+        refreshConnection(
+                () ->
+                        pool.withConnection(connection ->
+                                connection.query("SELECT 1")
+                                        .execute()
+                                        .map(rows -> CommonConstant.VOID)
+                        )
+        );
         return getDatabaseVersion(type, pool);
     }
 
@@ -109,6 +150,8 @@ public class ReactiveDbClientConfiguration {
                 .setPassword(password);
 
         PoolOptions poolOptions = new PoolOptions()
+                .setIdleTimeout(30)
+                .setIdleTimeoutUnit(TimeUnit.SECONDS)
                 .setMaxSize(maxPoolSize);
 
         Pool pool = MSSQLBuilder.pool()
@@ -116,12 +159,21 @@ public class ReactiveDbClientConfiguration {
                 .connectingTo(connectOptions)
                 .using(vertx)
                 .build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> pool.close()
-                .onSuccess(it -> {
-                    Thread.currentThread().setName("vertx-mssql-sql-client-shutdown-hook");
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
-                })
-                .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var threadName = "vertx-mssql-sql-client-shutdown-hook";
+            Thread.currentThread().setName(threadName);
+            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName(threadName);
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            // noinspection StatementWithEmptyBody
+            while (!f.isComplete()) {
+                // wait
+            }
+        }));
         return getDatabaseVersion(type, pool);
     }
 
@@ -140,6 +192,8 @@ public class ReactiveDbClientConfiguration {
                 .setPassword(password);
 
         PoolOptions poolOptions = new PoolOptions()
+                .setIdleTimeout(30)
+                .setIdleTimeoutUnit(TimeUnit.SECONDS)
                 .setMaxSize(maxPoolSize);
 
         Pool pool = OracleBuilder.pool()
@@ -147,12 +201,30 @@ public class ReactiveDbClientConfiguration {
                 .connectingTo(connectOptions)
                 .using(vertx)
                 .build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> pool.close()
-                .onSuccess(it -> {
-                    Thread.currentThread().setName("vertx-oracle-sql-client-shutdown-hook");
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
-                })
-                .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err))));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var threadName = "vertx-oracle-sql-client-shutdown-hook";
+            Thread.currentThread().setName(threadName);
+            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName(threadName);
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            // noinspection StatementWithEmptyBody
+            while (!f.isComplete()) {
+                // wait
+            }
+        }));
+        //noinspection SqlResolve
+        refreshConnection(
+                () ->
+                        pool.withConnection(connection ->
+                                connection.query("SELECT 1 FROM dual")
+                                        .execute()
+                                        .map(rows -> CommonConstant.VOID)
+                        )
+        );
         return getDatabaseVersion(type, pool);
     }
 
@@ -240,6 +312,39 @@ public class ReactiveDbClientConfiguration {
                 break;
         }
         return pool;
+    }
+
+    public void refreshConnection(Supplier<Future<Void>> handler) {
+        long period = 30_000; // 30 seconds
+        long now = System.currentTimeMillis();
+        long next = ((now / period) + 1) * period; // next 30 seconds
+        long initialDelay = next - now;
+        vertx.setTimer(initialDelay, id -> {
+            handler.get()
+                    /*.onSuccess(v ->
+                            LogUtils.writeLog(EmptyRoutingContext.init(),
+                                    LogUtils.Level.INFO,
+                                    "Connection valid")
+                    )*/
+                    .onFailure(e ->
+                            LogUtils.writeLog(EmptyRoutingContext.init(),
+                                    "Connection invalid",
+                                    e)
+                    );
+            vertx.setPeriodic(period, pid -> {
+                handler.get()
+                        /*.onSuccess(v ->
+                                LogUtils.writeLog(EmptyRoutingContext.init(),
+                                        LogUtils.Level.INFO,
+                                        "Connection valid")
+                        )*/
+                        .onFailure(e ->
+                                LogUtils.writeLog(EmptyRoutingContext.init(),
+                                        "Connection invalid",
+                                        e)
+                        );
+            });
+        });
     }
 
 }

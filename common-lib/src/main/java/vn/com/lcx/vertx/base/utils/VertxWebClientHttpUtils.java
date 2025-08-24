@@ -3,6 +3,7 @@ package vn.com.lcx.vertx.base.utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -26,6 +27,7 @@ import java.util.Optional;
 public class VertxWebClientHttpUtils {
 
     private final WebClient client;
+    // TODO: support Jackson
     private final Gson gson;
 
     public VertxWebClientHttpUtils(Vertx vertx, Gson gson) {
@@ -34,33 +36,6 @@ public class VertxWebClientHttpUtils {
                 .setConnectTimeout(5000) // Timeout 5s
         );
         this.gson = gson;
-    }
-
-    @Deprecated
-    public <T> Future<T> callApi(
-            HttpMethod method,
-            String url,
-            Map<String, String> headers,
-            JsonObject payload,
-            Class<T> responseType
-    ) {
-        HttpRequest<Buffer> request = client.requestAbs(method, url);
-
-        if (headers != null) {
-            headers.forEach(request::putHeader);
-        }
-
-        Future<JsonObject> futureResponse;
-        if (method == HttpMethod.GET || method == HttpMethod.DELETE) {
-            futureResponse = request.send().map(HttpResponse::bodyAsJsonObject);
-        } else {
-            futureResponse = (payload != null ? request.sendJson(payload) : request.send())
-                    .map(HttpResponse::bodyAsJsonObject);
-        }
-
-        return futureResponse.map(responseBody -> {
-            return responseBody.mapTo(responseType);
-        });
     }
 
     /**
@@ -139,11 +114,22 @@ public class VertxWebClientHttpUtils {
                 httpLogMessage.append("\n    - ").append(name).append(": ").append(value);
             });
         }
-        final String jsonString = Optional.ofNullable(payload).map(gson::toJson).orElse(CommonConstant.EMPTY_STRING);
+        final String jsonString = Optional.ofNullable(payload)
+                .map(gson::toJson)
+                .map(jsonStr -> MyStringUtils.maskJsonFields(gson, jsonStr))
+                .orElse(CommonConstant.EMPTY_STRING);
         httpLogMessage.append("\n- Request body: ").append(MyStringUtils.maskJsonFields(gson, jsonString));
-        Future<HttpResponse<Buffer>> sendFuture = (method == HttpMethod.GET || method == HttpMethod.DELETE) ?
-                request.send() :
-                (!jsonString.isEmpty() ? request.sendJson(new JsonObject(jsonString)) : request.send());
+        Future<HttpResponse<Buffer>> sendFuture;
+        if (payload instanceof Map) {
+            @SuppressWarnings("unchecked") Map<String, String> map = (Map<String, String>) payload;
+            MultiMap form = MultiMap.caseInsensitiveMultiMap();
+            form.addAll(map);
+            sendFuture = request.sendForm(form, CommonConstant.UTF_8_STANDARD_CHARSET);
+        } else {
+            sendFuture = (method == HttpMethod.GET || method == HttpMethod.DELETE) ?
+                    request.send() :
+                    (!jsonString.isEmpty() ? request.sendJson(new JsonObject(jsonString)) : request.send());
+        }
         return sendFuture.compose(response -> {
             final var responseStatusCode = response.statusCode();
             final var responseBodyAsString = response.bodyAsString();

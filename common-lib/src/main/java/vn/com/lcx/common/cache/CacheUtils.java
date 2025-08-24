@@ -1,6 +1,7 @@
 package vn.com.lcx.common.cache;
 
 import vn.com.lcx.common.exception.CacheException;
+import vn.com.lcx.common.utils.LogUtils;
 
 import java.lang.ref.SoftReference;
 import java.time.Duration;
@@ -168,6 +169,7 @@ public class CacheUtils<K, V> {
 
         final ScheduledFuture<SoftReference<V>> schedule = scheduler.schedule(
                 () -> {
+                    LogUtils.writeLog(LogUtils.Level.DEBUG, "Removing key {} from cache", key);
                     removeExpiredKeyTasks.remove(key);
                     SoftReference<V> removed = cache.remove(key);
                     if (removed != null) {

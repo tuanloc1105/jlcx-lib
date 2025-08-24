@@ -17,6 +17,7 @@ import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.config.LogbackConfig;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.CommonUtils;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
@@ -24,15 +25,12 @@ import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class MyVertxDeployment {
 
@@ -61,10 +59,30 @@ public class MyVertxDeployment {
         return inputStreamReader.getEncoding();
     }
 
+    private static void logAppStartingStatus(double appStartingTime) {
+        final var appFinishingStartingTime = (double) System.currentTimeMillis();
+        final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
+        LoggerFactory.getLogger("APP").info("Application started in {} second(s)", appStartingDuration);
+        // noinspection SystemGetProperty
+        LoggerFactory.getLogger("ENCODING").info(
+                "Using Java {} - {}\n" +
+                        "Encoding information:\n" +
+                        "    - Default Charset: {}\n" +
+                        "    - Default Charset encoding by java.nio.charset: {}\n" +
+                        "    - Default Charset by InputStreamReader: {}",
+                System.getProperty("java.version"),
+                System.getProperty("java.vendor"),
+                System.getProperty("file.encoding"),
+                Charset.defaultCharset().name(),
+                getCharacterEncoding()
+        );
+    }
+
     private void deployVerticle(final List<String> packagesToScan, Supplier<Void> preconfigure) {
         try (InputStream input = MyVertxDeployment.class.getClassLoader().getResourceAsStream("logback.xml")) {
             if (input == null && System.getProperty("logback.configurationFile") == null) {
                 LogbackConfig.configure();
+                LogUtils.writeLog(LogUtils.Level.INFO, "Using default logback configuration");
             }
         } catch (Exception ignore) {
         }
@@ -124,31 +142,16 @@ public class MyVertxDeployment {
             if (!verticles.isEmpty()) {
                 for (Class<?> aClass : verticles) {
                     if (aClass.getAnnotation(Verticle.class) != null) {
-                        final var fields = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
-                        final Class<?>[] fieldArr = fields.stream().map(Field::getType).toArray(Class[]::new);
-                        final Object[] args = fields.stream().map(
-                                f -> {
-                                    Object o1 = ClassPool.getInstance(f.getName());
-                                    if (o1 != null) {
-                                        return o1;
-                                    }
-                                    return ClassPool.getInstance(f.getType().getName());
-                                }
-                        ).toArray(Object[]::new);
-                        final VertxBaseVerticle verticle = (VertxBaseVerticle) aClass.getDeclaredConstructor(fieldArr).newInstance(args);
+                        final VertxBaseVerticle verticle = (VertxBaseVerticle) ClassPool.getInstance(aClass);
                         if (deploymentChain == null) {
                             deploymentChain = vertx.deployVerticle(verticle)
-                                    .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle {}", aClass, throwable))
-                                    .onSuccess(s -> {
-                                        LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s);
-                                    });
+                                    .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle " + aClass, throwable))
+                                    .onSuccess(s -> logVerticleDeploymentId(aClass, s));
                         } else {
                             deploymentChain = deploymentChain.compose(
                                     s -> vertx.deployVerticle(verticle)
-                                            .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle {}", aClass, throwable))
-                                            .onSuccess(s2 -> {
-                                                LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", aClass, s2);
-                                            })
+                                            .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle " + aClass, throwable))
+                                            .onSuccess(s2 -> logVerticleDeploymentId(aClass, s2))
                             );
                         }
                     }
@@ -177,23 +180,8 @@ public class MyVertxDeployment {
         }
     }
 
-    private static void logAppStartingStatus(double appStartingTime) {
-        final var appFinishingStartingTime = (double) System.currentTimeMillis();
-        final var appStartingDuration = (appFinishingStartingTime - appStartingTime) / 1000D;
-        LoggerFactory.getLogger("APP").info("Application started in {} second(s)", appStartingDuration);
-        // noinspection SystemGetProperty
-        LoggerFactory.getLogger("ENCODING").info(
-                "Using Java {} - {}\nEncoding information:\n    - Default Charset: {}\n    - Default Charset encoding by java.nio.charset: {}\n    - Default Charset by InputStreamReader: {}",
-                System.getProperty("java.version"),
-                System.getProperty("java.vendor"),
-                System.getProperty("file.encoding"),
-                Charset.defaultCharset().name(),
-                getCharacterEncoding()
-        );
-    }
-
-    private void deployVerticle(String packageToScan, Supplier<Void> preconfigure) {
-        this.deployVerticle(new ArrayList<>(Collections.singleton(packageToScan)), preconfigure);
+    private void logVerticleDeploymentId(Class<?> verticleClass, String verticleDeploymentId) {
+        LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", verticleClass, verticleDeploymentId);
     }
 
     public void deployVerticle(Class<?> mainClass, Supplier<Void> preconfigure) {

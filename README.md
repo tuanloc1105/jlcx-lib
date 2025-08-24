@@ -1,5 +1,3 @@
-[![Quality gate](https://sonar.vtl.name.vn/api/project_badges/quality_gate?project=jlcx-lib&token=sqb_c013aa1bd67625327e8e168b4891fc2eaba2dd66)](https://sonar.vtl.name.vn/dashboard?id=jlcx-lib)
-
 # jlcx-lib
 
 **jlcx-lib** is a comprehensive Java development framework designed to accelerate backend application development by providing powerful, lightweight, and easy-to-use building blocks. It combines the best practices of modern Java development with innovative code generation techniques to reduce boilerplate code and improve developer productivity.
@@ -82,7 +80,7 @@ Add the parent POM to your project:
 <parent>
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.1.4.lcx</version>
+    <version>3.1.5.lcx</version>
     <relativePath/>
 </parent>
 ```
@@ -95,14 +93,14 @@ Add required dependencies:
     <dependency>
         <groupId>vn.com.lcx</groupId>
         <artifactId>common-lib</artifactId>
-        <version>3.1.4.lcx</version>
+        <version>3.1.5.lcx</version>
     </dependency>
 
     <!-- Annotation processor for code generation -->
     <dependency>
         <groupId>vn.com.lcx</groupId>
         <artifactId>processor</artifactId>
-        <version>3.1.4.lcx</version>
+        <version>3.1.5.lcx</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
