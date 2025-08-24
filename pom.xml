@@ -86,6 +86,9 @@
         <byte-buddy-net.bytebuddy.version>1.17.7</byte-buddy-net.bytebuddy.version>
         <datafaker-net.datafaker.version>2.4.4</datafaker-net.datafaker.version>
         <h2-com.h2database.version>2.3.232</h2-com.h2database.version>
+        <maven-plugin-api-org.apache.maven.version>3.9.11</maven-plugin-api-org.apache.maven.version>
+        <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.1
+        </maven-plugin-annotations-org.apache.maven.plugin-tools.version>
 
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
@@ -109,12 +112,15 @@
         <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
         <maven-install-plugin-org.apache.maven.plugins.version>3.1.4
         </maven-install-plugin-org.apache.maven.plugins.version>
+        <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.1
+        </maven-plugin-plugin-org.apache.maven.plugins.version>
 
     </properties>
 
     <modules>
         <module>common-lib</module>
         <module>processor</module>
+        <module>index-merge-plugin</module>
     </modules>
 
     <groupId>vn.com.lcx</groupId>
@@ -607,6 +613,20 @@
                 <version>${h2-com.h2database.version}</version>
             </dependency>
 
+            <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-plugin-api -->
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>${maven-plugin-api-org.apache.maven.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugin-tools/maven-plugin-annotations -->
+            <dependency>
+                <groupId>org.apache.maven.plugin-tools</groupId>
+                <artifactId>maven-plugin-annotations</artifactId>
+                <version>${maven-plugin-annotations-org.apache.maven.plugin-tools.version}</version>
+            </dependency>
+
         </dependencies>
 
     </dependencyManagement>
@@ -864,6 +884,13 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
                     <version>${maven-install-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+                <plugin>
+                    <!--  https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-plugin-plugin  -->
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>${maven-plugin-plugin-org.apache.maven.plugins.version}</version>
                 </plugin>
 
             </plugins>
