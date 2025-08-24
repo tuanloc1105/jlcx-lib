@@ -101,7 +101,6 @@
         </maven-resources-plugin-org.apache.maven.plugins.version>
         <sonar-maven-plugin-org.sonarsource.scanner.maven.version>5.1.0.4751
         </sonar-maven-plugin-org.sonarsource.scanner.maven.version>
-        <maven-shade-plugin-org.apache.maven.plugins.version>3.6.0</maven-shade-plugin-org.apache.maven.plugins.version>
         <maven-javadoc-plugin-org.apache.maven.plugins.version>3.11.3
         </maven-javadoc-plugin-org.apache.maven.plugins.version>
         <maven-source-plugin-org.apache.maven.plugins.version>3.3.1
@@ -761,64 +760,6 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>${sonar-maven-plugin-org.sonarsource.scanner.maven.version}</version>
-            </plugin>
-
-            <plugin>
-                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin-org.apache.maven.plugins.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Keep shaded jar as main artifact: produces xxx.jar -->
-                            <shadedArtifactAttached>false</shadedArtifactAttached>
-                            <!-- Optional but useful for consumers -->
-                            <createDependencyReducedPom>true</createDependencyReducedPom>
-
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>module-info.class</exclude>
-                                        <exclude>META-INF/versions/*/module-info.class</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <!-- Merge service providers from all jars -->
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-
-                                <!-- Keep 1 MANIFEST and (optionally) set Main-Class -->
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>${main.class}</mainClass>
-                                    <!-- You can also add attributes if needed -->
-                                    <!-- <manifestEntries> <Built-By>${user.name}</Built-By> </manifestEntries> -->
-                                </transformer>
-
-                                <!-- Merge or drop LICENSE/NOTICE to avoid noisy warnings -->
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
-                                    <addHeader>false</addHeader>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <!-- <plugin>
