@@ -2,6 +2,7 @@ package vn.com.lcx.processor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.annotation.PostConstruct;
@@ -11,6 +12,7 @@ import vn.com.lcx.processor.info.ConstructorInfo;
 import vn.com.lcx.processor.info.FieldInfo;
 import vn.com.lcx.processor.info.MethodInfo;
 import vn.com.lcx.processor.utility.TypeHierarchyAnalyzer;
+import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -24,8 +26,14 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.Type;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -43,13 +51,17 @@ public class DIScanner extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        var isMain = false;
         List<ClassInfo> classInfos = new ArrayList<>();
         for (Element element : roundEnv.getRootElements()) {
             if (element instanceof TypeElement) {
                 TypeElement typeElement = (TypeElement) element;
+                if (typeElement.getAnnotation(VertxApplication.class) != null) {
+                    System.out.println("Found main class");
+                    isMain = true;
+                }
                 if (typeElement.getAnnotation(Component.class) != null) {
                     ClassInfo info = new ClassInfo();
-                    // System.out.println("Found component: " + typeElement.getQualifiedName());
                     info.setFullQualifiedClassName(typeElement.getQualifiedName().toString());
                     final var superSet = TypeHierarchyAnalyzer.getAllSuperTypes(processingEnv.getTypeUtils(), typeElement);
                     info.setSuperClassesFullName(new ArrayList<>(superSet));
@@ -96,14 +108,51 @@ public class DIScanner extends AbstractProcessor {
             }
         }
         if (!classInfos.isEmpty()) {
-            try {
-                FileObject file = processingEnv.getFiler()
-                        .createResource(StandardLocation.CLASS_OUTPUT, "", "META-INF/class-index-" + UUID.randomUUID() + ".json");
-                try (Writer writer = file.openWriter()) {
-                    gson.toJson(classInfos, writer);
+            if (isMain /*&& roundEnv.processingOver()*/) {
+                try {
+                    System.out.println("Merging index");
+                    // Truy cập thư mục META-INF qua classloader
+                    Enumeration<URL> resources =
+                            getClass().getClassLoader().getResources("META-INF/");
+                    while (resources.hasMoreElements()) {
+                        URL url = resources.nextElement();
+                        File dir = new File(url.toURI());
+                        if (dir.isDirectory()) {
+                            File[] files = dir.listFiles((d, name) -> name.startsWith("class-index-") && name.endsWith(".json"));
+                            if (files != null) {
+                                for (File f : files) {
+                                    try (Reader r = new FileReader(f)) {
+                                        Type listType = new TypeToken<List<ClassInfo>>() {
+                                        }.getType();
+                                        List<ClassInfo> list = gson.fromJson(r, listType);
+                                        if (list != null) classInfos.addAll(list);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+                try {
+                    FileObject mergedFile = processingEnv.getFiler()
+                            .createResource(StandardLocation.CLASS_OUTPUT, "", "META-INF/class-index-merged.json");
+                    try (Writer writer = mergedFile.openWriter()) {
+                        gson.toJson(classInfos, writer);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    FileObject file = processingEnv.getFiler()
+                            .createResource(StandardLocation.CLASS_OUTPUT, "", "META-INF/class-index-" + UUID.randomUUID() + ".json");
+                    try (Writer writer = file.openWriter()) {
+                        gson.toJson(classInfos, writer);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         return false;
