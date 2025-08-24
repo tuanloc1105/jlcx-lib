@@ -62,23 +62,4 @@
 
     </dependencies>
 
-    <build>
-
-        <plugins>
-            <plugin>
-                <groupId>vn.com.lcx</groupId>
-                <artifactId>index-merge-plugin</artifactId>
-                <version>1.0.0.lcx</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>merge-class-index</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-
-    </build>
-
 </project>
