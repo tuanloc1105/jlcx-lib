@@ -1,5 +1,7 @@
 package vn.com.lcx.common.scanner;
 
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -12,18 +14,30 @@ import java.util.jar.JarFile;
 
 public class PackageScanner {
 
-    public static List<Class<?>> findClasses(String packageName) throws IOException, ClassNotFoundException {
+    public static List<Class<?>> findClasses(String packageName) {
         List<Class<?>> classes = new ArrayList<>();
         String path = packageName.replace('.', '/');
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Enumeration<URL> resources = classLoader.getResources(path);
+        Enumeration<URL> resources;
+        try {
+            resources = classLoader.getResources(path);
+        } catch (IOException e) {
+            LoggerFactory.getLogger("APP").warn(e.getMessage(), e);
+            return classes;
+        }
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
             if (resource.getProtocol().equals("file")) {
-                classes.addAll(findClassesInDirectory(resource.getPath(), packageName));
+                try {
+                    classes.addAll(findClassesInDirectory(resource.getPath(), packageName));
+                } catch (ClassNotFoundException ignore) {
+                }
             } else if (resource.getProtocol().equals("jar")) {
-                JarURLConnection jarConnection = (JarURLConnection) resource.openConnection();
-                classes.addAll(findClassesInJar(jarConnection.getJarFile(), path));
+                try {
+                    JarURLConnection jarConnection = (JarURLConnection) resource.openConnection();
+                    classes.addAll(findClassesInJar(jarConnection.getJarFile(), path));
+                } catch (IOException | ClassNotFoundException ignore) {
+                }
             }
         }
         return classes;

@@ -36,12 +36,36 @@
             <groupId>vn.com.lcx</groupId>
             <artifactId>processor</artifactId>
             <version>${processor-vn.com.lcx.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>vn.com.lcx</groupId>
             <artifactId>common-lib</artifactId>
             <version>${common-lib-vn.com.lcx.version}</version>
+            <exclusions>
+
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>org.hibernate.tool</groupId>
+                    <artifactId>hibernate-tools-orm</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-jcache</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>org.ehcache</groupId>
+                    <artifactId>ehcache</artifactId>
+                </exclusion>
+
+            </exclusions>
         </dependency>
 
         <dependency>
