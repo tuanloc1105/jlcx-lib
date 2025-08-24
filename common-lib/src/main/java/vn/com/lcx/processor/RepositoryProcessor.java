@@ -432,8 +432,6 @@ public class RepositoryProcessor extends AbstractProcessor {
         }
     }
 
-    // TODO: implement a generate code technique for generating query from method name, base on `vn.com.lcx.common.database.reflect.SelectStatementBuilder`
-
     public void handleModifyingMethod(final TypeMirror genericEntityClass,
                                       final StringBuilder methodCodeBody,
                                       final String jpaMethodTemplate,

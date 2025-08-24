@@ -190,43 +190,43 @@ public final class SelectStatementBuilder {
         return result;
     }
 
-    public static SelectStatementBuilder of(Class<?> entityClass) {
+    private static SelectStatementBuilder of(Class<?> entityClass) {
         return of(entityClass, "?");
     }
 
-    public static SelectStatementBuilder of(Class<?> entityClass, String placeHolder) {
+    private static SelectStatementBuilder of(Class<?> entityClass, String placeHolder) {
         return BUILDER_MAP.computeIfAbsent(entityClass.getName(), key -> new SelectStatementBuilder(entityClass, false, placeHolder));
     }
 
-    public Class<?> getEntityClass() {
+    private Class<?> getEntityClass() {
         return entityClass;
     }
 
-    public ArrayList<String> getListOfColumnName() {
+    private ArrayList<String> getListOfColumnName() {
         return listOfColumnName;
     }
 
-    public ArrayList<Field> getListOfField() {
+    private ArrayList<Field> getListOfField() {
         return listOfField;
     }
 
-    public String getTableName() {
+    private String getTableName() {
         return tableName;
     }
 
-    public String getTableNameShortenedName() {
+    private String getTableNameShortenedName() {
         return tableNameShortenedName;
     }
 
-    public ArrayList<SubTableEntry> getSubTableStatementBuilders() {
+    private ArrayList<SubTableEntry> getSubTableStatementBuilders() {
         return subTableStatementBuilders;
     }
 
-    public String getPlaceHolder() {
+    private String getPlaceHolder() {
         return placeHolder;
     }
 
-    public String build(String methodName, Object... parameters) {
+    private String build(String methodName, Object... parameters) {
         String statement = CommonConstant.STATEMENT_OF_METHOD.get(entityClass.getName() + methodName);
         if (StringUtils.isBlank(statement)) {
             if (methodName.startsWith("count")) {
