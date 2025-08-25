@@ -24,6 +24,7 @@ import io.vertx.ext.web.UserContext;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.constant.CommonConstant;
+import vn.com.lcx.common.utils.JsonMaskingUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 
@@ -60,10 +61,10 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 .map(RequestBody::asJsonObject)
                 .map(JsonObject::encode)
                 .filter(StringUtils::isNotBlank)
-                .map(it -> MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), it))
+                .map(it -> JsonMaskingUtils.maskJsonFields(ClassPool.getInstance(Gson.class), it))
                 .orElse(
-                    Optional.ofNullable(ctx.body())
-                    .map(rq -> rq.asString("UTF-8")).orElse(CommonConstant.EMPTY_STRING)
+                        Optional.ofNullable(ctx.body())
+                                .map(rq -> rq.asString("UTF-8")).orElse(CommonConstant.EMPTY_STRING)
                 );
         LogUtils.writeLog(ctx,
                 LogUtils.Level.INFO,
@@ -352,7 +353,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 "Response Payload ({}ms):\n{}",
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 MyStringUtils.stringIsJsonFormat(chunk) ?
-                        MyStringUtils.minifyJsonString(MyStringUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk)) :
+                        MyStringUtils.minifyJsonString(JsonMaskingUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk)) :
                         (chunk.length() > 10000 ? chunk.substring(0, 50) +
                                 "..." + chunk.substring(chunk.length() - 50) : chunk)
         );

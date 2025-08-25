@@ -211,7 +211,7 @@ public abstract class ReactiveController {
                 );
             }
         } else {
-            responseBody = "{\n    \"error\": \"Unknown json handler. Only support Gson and Jackson\"\n}";
+            responseBody = "{\n    \"error\": \"Unknown json handler. Only support `Gson` and `Jackson`\"\n}";
         }
         ctx.end(responseBody);
     }
@@ -235,7 +235,7 @@ public abstract class ReactiveController {
                 throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, e.getMessage());
             }
         } else {
-            throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, "Unknown json handler. Only support Gson and Jackson");
+            throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, "Unknown json handler. Only support `Gson` and `Jackson`");
         }
         if (requestObject instanceof CommonRequest) {
             try {
