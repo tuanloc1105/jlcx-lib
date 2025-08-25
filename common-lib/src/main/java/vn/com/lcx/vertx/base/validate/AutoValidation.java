@@ -11,6 +11,7 @@ import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -36,6 +37,10 @@ public final class AutoValidation {
         var fields = new ArrayList<>(Arrays.asList(validateObject.getClass().getDeclaredFields()));
 
         for (Field field : fields) {
+            if ((field.getModifiers() == Modifier.FINAL + Modifier.STATIC + Modifier.PRIVATE) ||
+                    (field.getModifiers() == Modifier.FINAL + Modifier.STATIC + Modifier.PUBLIC)) {
+                continue;
+            }
             try {
                 field.setAccessible(true);
                 Object fieldValue = field.get(validateObject);
@@ -66,7 +71,7 @@ public final class AutoValidation {
                     if (Collection.class.isAssignableFrom(fieldType)) {
                         Collection<?> collection = (Collection<?>) fieldValue;
                         for (Object item : collection) {
-                            if (item != null) {
+                            if (item != null && ableToValidate(item)) {
                                 errorFields.addAll(validate(item));
                             }
                         }
@@ -77,7 +82,7 @@ public final class AutoValidation {
                     if (Map.class.isAssignableFrom(fieldType)) {
                         Map<?, ?> map = (Map<?, ?>) fieldValue;
                         for (Object entryValue : map.values()) {
-                            if (entryValue != null) {
+                            if (entryValue != null && ableToValidate(entryValue)) {
                                 errorFields.addAll(validate(entryValue));
                             }
                         }
@@ -98,12 +103,7 @@ public final class AutoValidation {
                     }
 
                     // 4. Handle custom objects
-                    if (!(fieldValue.getClass().getName().startsWith("java."))
-                            && !(fieldValue.getClass().getName().startsWith("org."))
-                            && !(fieldValue.getClass().getName().startsWith("io."))
-                            && !(fieldValue.getClass().getName().startsWith("jakarta."))
-                            && !(fieldValue.getClass().getName().startsWith("net."))
-                            && !(fieldValue.getClass().getName().startsWith("redis."))) {
+                    if (ableToValidate(fieldValue)) {
                         errorFields.addAll(validate(fieldValue));
                         continue;
                     }
@@ -166,8 +166,16 @@ public final class AutoValidation {
                 throw new ValidationException(e);
             }
         }
-
         return errorFields;
+    }
+
+    public static boolean ableToValidate(Object fieldValue) {
+        return !(fieldValue.getClass().getName().startsWith("java."))
+                && !(fieldValue.getClass().getName().startsWith("org."))
+                && !(fieldValue.getClass().getName().startsWith("io."))
+                && !(fieldValue.getClass().getName().startsWith("jakarta."))
+                && !(fieldValue.getClass().getName().startsWith("net."))
+                && !(fieldValue.getClass().getName().startsWith("redis."));
     }
 
 }
