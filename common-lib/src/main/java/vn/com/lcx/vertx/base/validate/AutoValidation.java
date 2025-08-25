@@ -134,7 +134,7 @@ public final class AutoValidation {
                 if (fieldValue != null && (lessThan != null || greaterThan != null)) {
                     double fieldNumber;
                     if (field.getType().isAssignableFrom(BigDecimal.class)) {
-                        //noinspection DataFlowIssue
+                        // noinspection DataFlowIssue
                         fieldNumber = ((BigDecimal) fieldValue).doubleValue();
                     } else {
                         fieldNumber = Double.parseDouble(String.valueOf(fieldValue));
@@ -175,7 +175,8 @@ public final class AutoValidation {
                 && !(fieldValue.getClass().getName().startsWith("io."))
                 && !(fieldValue.getClass().getName().startsWith("jakarta."))
                 && !(fieldValue.getClass().getName().startsWith("net."))
-                && !(fieldValue.getClass().getName().startsWith("redis."));
+                && !(fieldValue.getClass().getName().startsWith("redis."))
+                && !(fieldValue.getClass().isEnum());
     }
 
 }
