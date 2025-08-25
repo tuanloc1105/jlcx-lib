@@ -17,6 +17,7 @@ import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.constant.VertxBaseConstant;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
+import vn.com.lcx.vertx.base.http.request.CommonRequest;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
@@ -236,9 +237,17 @@ public abstract class ReactiveController {
         } else {
             throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, "Unknown json handler. Only support Gson and Jackson");
         }
-        final var errorFields = AutoValidation.validate(requestObject);
-        if (!errorFields.isEmpty()) {
-            throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());
+        if (requestObject instanceof CommonRequest) {
+            try {
+                ((CommonRequest) requestObject).validate();
+            } catch (Throwable e) {
+                throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, e.getMessage());
+            }
+        } else {
+            final var errorFields = AutoValidation.validate(requestObject);
+            if (!errorFields.isEmpty()) {
+                throw new InternalServiceException(ErrorCodeEnums.INVALID_REQUEST, errorFields.toString());
+            }
         }
         return requestObject;
     }
