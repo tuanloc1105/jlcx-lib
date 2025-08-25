@@ -759,6 +759,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
                             finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
                         codeLines.add(
+                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                        );
+                        codeLines.add(
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                        );
+                        codeLines.add(
                                 "            return rowSet.rowCount();"
                         );
                     } else {
