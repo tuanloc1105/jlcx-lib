@@ -48,7 +48,7 @@ public final class BuildObjectMapper {
                 disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
                 setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
                 setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                setDateFormat(new SimpleDateFormat(CommonConstant.LOCAL_DATE_TIME_STRING_PATTERN_6));
+                setDateFormat(new SimpleDateFormat(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN));
                 JavaTimeModule javaTimeModule = new JavaTimeModule();
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_STRING_PATTERN);
                 javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(dateFormatter));

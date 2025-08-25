@@ -1,11 +1,11 @@
-package vn.com.lcx.common.processor;
+package vn.com.lcx.processor;
 
 import vn.com.lcx.common.annotation.mapper.MapperClass;
 import vn.com.lcx.common.annotation.mapper.Mapping;
 import vn.com.lcx.common.annotation.mapper.Merging;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.WordCaseUtils;
-import vn.com.lcx.jpa.processor.utility.TypeHierarchyAnalyzer;
+import vn.com.lcx.processor.utility.TypeHierarchyAnalyzer;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;

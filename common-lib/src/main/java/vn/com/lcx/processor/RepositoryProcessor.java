@@ -1,4 +1,4 @@
-package vn.com.lcx.jpa.processor;
+package vn.com.lcx.processor;
 
 import jakarta.persistence.Id;
 import org.apache.commons.lang3.StringUtils;
@@ -11,9 +11,9 @@ import vn.com.lcx.jpa.annotation.Query;
 import vn.com.lcx.jpa.annotation.Repository;
 import vn.com.lcx.jpa.annotation.ResultSetMapping;
 import vn.com.lcx.jpa.exception.CodeGenError;
-import vn.com.lcx.jpa.processor.utility.MethodInfo;
-import vn.com.lcx.jpa.processor.utility.ProcessorClassInfo;
-import vn.com.lcx.jpa.processor.utility.TypeHierarchyAnalyzer;
+import vn.com.lcx.processor.utility.MethodInfo;
+import vn.com.lcx.processor.utility.ProcessorClassInfo;
+import vn.com.lcx.processor.utility.TypeHierarchyAnalyzer;
 import vn.com.lcx.jpa.respository.JpaRepository;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -431,8 +431,6 @@ public class RepositoryProcessor extends AbstractProcessor {
             return;
         }
     }
-
-    // TODO: implement a generate code technique for generating query from method name, base on `vn.com.lcx.common.database.reflect.SelectStatementBuilder`
 
     public void handleModifyingMethod(final TypeMirror genericEntityClass,
                                       final StringBuilder methodCodeBody,

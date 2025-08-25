@@ -52,7 +52,7 @@ public final class Mapper {
                 }
                 MAPPER_CLASS_POOL.put(mapperInterfaceClass.getSimpleName(), implementClass);
                 return implementClass;
-            } catch (IOException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException |
+            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException |
                      InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }

@@ -1,7 +1,12 @@
 package vn.com.lcx.vertx.base.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.Strictness;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -15,9 +20,13 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.dto.Response;
+import vn.com.lcx.common.utils.JsonMaskingUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
+import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
+import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,15 +36,17 @@ import java.util.Optional;
 public class VertxWebClientHttpUtils {
 
     private final WebClient client;
-    // TODO: support Jackson
-    private final Gson gson;
+    private final Object jsonHandler;
 
-    public VertxWebClientHttpUtils(Vertx vertx, Gson gson) {
+    public VertxWebClientHttpUtils(Vertx vertx, Object jsonHandler) {
+        if (!(jsonHandler instanceof Gson) && !(jsonHandler instanceof ObjectMapper)) {
+            throw new UnsupportedOperationException("Unknown json handler. Only support `Gson` and `Jackson`");
+        }
         this.client = WebClient.create(vertx, new WebClientOptions()
                 .setKeepAlive(true)
                 .setConnectTimeout(5000) // Timeout 5s
         );
-        this.gson = gson;
+        this.jsonHandler = jsonHandler;
     }
 
     /**
@@ -115,10 +126,19 @@ public class VertxWebClientHttpUtils {
             });
         }
         final String jsonString = Optional.ofNullable(payload)
-                .map(gson::toJson)
-                .map(jsonStr -> MyStringUtils.maskJsonFields(gson, jsonStr))
+                .map(it -> {
+                    if (jsonHandler instanceof Gson) {
+                        return ((Gson) jsonHandler).toJson(it);
+                    } else {
+                        try {
+                            return ((ObjectMapper) jsonHandler).writeValueAsString(it);
+                        } catch (Throwable e) {
+                            return CommonConstant.EMPTY_STRING;
+                        }
+                    }
+                })
                 .orElse(CommonConstant.EMPTY_STRING);
-        httpLogMessage.append("\n- Request body: ").append(MyStringUtils.maskJsonFields(gson, jsonString));
+        httpLogMessage.append("\n- Request body: ").append(JsonMaskingUtils.maskJsonFields(jsonHandler, jsonString));
         Future<HttpResponse<Buffer>> sendFuture;
         if (payload instanceof Map) {
             @SuppressWarnings("unchecked") Map<String, String> map = (Map<String, String>) payload;
@@ -140,17 +160,35 @@ public class VertxWebClientHttpUtils {
                 httpLogMessage.append("\n    - ").append(header.getKey()).append(": ").append(header.getValue());
                 headerMap.put(header.getKey(), Collections.singletonList(header.getValue()));
             }
-            httpLogMessage.append("\n- Response body: ").append(MyStringUtils.maskJsonFields(gson, responseBodyAsString));
+            httpLogMessage.append("\n- Response body: ").append(JsonMaskingUtils.maskJsonFields(jsonHandler, responseBodyAsString));
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = endingTime - startingTime;
             httpLogMessage.append("\n- Duration: ").append(duration).append(" ms");
             responseBuilder.code(responseStatusCode)
                     .responseHeaders(headerMap)
                     .errorResponse(responseStatusCode == 200 ? null : responseBodyAsString)
-                    .response(responseBodyAsString == null ? null : gson.fromJson(responseBodyAsString, responseType));
+                    .response(responseBodyAsString == null ? null : readJson(responseBodyAsString, responseType));
             LogUtils.writeLog(context, LogUtils.Level.INFO, httpLogMessage.toString());
             return Future.succeededFuture(responseBuilder.build());
         });
+    }
+
+    private <T> T readJson(String responseBodyAsString, TypeToken<T> responseType) {
+        T requestObject;
+        if (jsonHandler instanceof Gson) {
+            JsonReader jsonReader = new JsonReader(new StringReader(responseBodyAsString));
+            jsonReader.setStrictness(Strictness.LENIENT);
+            requestObject = ((Gson) jsonHandler).fromJson(jsonReader, responseType);
+        } else {
+            try {
+                final var objectMapper = ((ObjectMapper) jsonHandler);
+                JavaType jt = objectMapper.getTypeFactory().constructType(responseType.getType());
+                requestObject = ((ObjectMapper) jsonHandler).readValue(responseBodyAsString, jt);
+            } catch (JsonProcessingException e) {
+                throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, e.getMessage());
+            }
+        }
+        return requestObject;
     }
 
 }
