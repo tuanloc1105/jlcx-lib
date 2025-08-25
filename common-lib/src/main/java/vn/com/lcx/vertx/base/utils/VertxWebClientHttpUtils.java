@@ -137,7 +137,6 @@ public class VertxWebClientHttpUtils {
                         }
                     }
                 })
-                .map(jsonStr -> JsonMaskingUtils.maskJsonFields(jsonHandler, jsonStr))
                 .orElse(CommonConstant.EMPTY_STRING);
         httpLogMessage.append("\n- Request body: ").append(JsonMaskingUtils.maskJsonFields(jsonHandler, jsonString));
         Future<HttpResponse<Buffer>> sendFuture;
