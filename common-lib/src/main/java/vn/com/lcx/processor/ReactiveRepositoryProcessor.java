@@ -650,11 +650,13 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             );
             if (lastParameterIsPageable(actualParameters) && !isReturningList) {
                 final var countStatementArray = new ArrayList<String>();
-                countStatementArray.add("SELECT COUNT(1)");
-                countStatementArray.addAll(subListFromKeyword(
+                final var subListFromKeyword = subListFromKeyword(
                         finalStatementArray,
                         "from"
-                ));
+                );
+                subListFromKeyword.set(0, "FROM");
+                countStatementArray.add("SELECT COUNT(1)");
+                countStatementArray.addAll(subListFromKeyword);
                 final String countStatement = String.join(" ", countStatementArray).replace("\n", "\\n\" +\n                        \"");
                 codeLines.add(
                         "        }).compose(rs -> {"

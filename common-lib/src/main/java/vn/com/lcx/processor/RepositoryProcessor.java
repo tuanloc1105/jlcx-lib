@@ -55,36 +55,9 @@ public class RepositoryProcessor extends AbstractProcessor {
             )
     );
 
-    private static final List<String> WHERE_STATEMENT_DELIMITER_KEYWORDS = Arrays.asList(
-            "NotEqual",
-            "NotIn",
-            "NotLike",
-            "NotBetween",
-            "NotNull",
-            "Not",
-            "Equal",
-            "In",
-            "Like",
-            "Between",
-            "Null",
-            "LessThan",
-            "GreaterThan",
-            "LessEqual",
-            "GreaterEqual"
-    );
-
     private final static String NOT_IMPLEMENT_CODE_TEMPLATE = "    public ${return-type} ${method-name}(${list-of-parameters}) {\n" +
             "        throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException(\"${error-message}\");\n" +
             "    }\n";
-
-    private static final Pattern WHERE_STATEMENT_SPLIT_PATTERN;
-
-    static {
-        // Sort by keyword's length to avoid mismatching
-        WHERE_STATEMENT_DELIMITER_KEYWORDS.sort(Comparator.comparingInt(String::length).reversed());
-        String joinedKeywords = String.join("|", WHERE_STATEMENT_DELIMITER_KEYWORDS);
-        WHERE_STATEMENT_SPLIT_PATTERN = Pattern.compile(joinedKeywords);
-    }
 
     private static void generateCodeForPageable(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
         VariableElement pageableParameter = methodInfo.getInputParameters().get(methodInfo.getInputParameters().size() - 1);
