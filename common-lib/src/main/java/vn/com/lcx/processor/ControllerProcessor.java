@@ -317,6 +317,7 @@ public class ControllerProcessor extends AbstractProcessor {
                                 basePath + apiPath
                         );
                     }
+                    routerConfigureCode += "\n                    .handler(this::createUUIDHandler)";
                     if (StringUtils.isNotBlank(routerConfigureCode)) {
                         if (isAuthMethod) {
                             routerConfigureCode += "\n                    .handler(authHandler)";
@@ -329,7 +330,6 @@ public class ControllerProcessor extends AbstractProcessor {
                         }
                         routerConfigureCode += String.format(
                                 "\n" +
-                                        "                    .handler(this::createUUIDHandler)\n" +
                                         "                    .handler(ctx -> this.controller%d.%s(vn.com.lcx.vertx.base.wrapper.RoutingContextLcxWrapper\n" +
                                         "                                    .init(ctx)));",
                                 count,
@@ -392,34 +392,5 @@ public class ControllerProcessor extends AbstractProcessor {
 
         return true;
     }
-
-    // public void generateProxyController(ProcessorClassInfo processorClassInfo) {
-    //     processingEnv.getMessager().printMessage(
-    //             Diagnostic.Kind.NOTE,
-    //             vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
-    //                     String.format(
-    //                             "Generating code for controller : %s",
-    //                             processorClassInfo.getClazz().getQualifiedName()
-    //                     )
-    //     );
-    //     String controllerTemplate = FileUtils.readResourceFileAsText(
-    //             this.getClass().getClassLoader(),
-    //             "template/controller-template.txt"
-    //     );
-    //     String methodTemplate = FileUtils.readResourceFileAsText(
-    //             this.getClass().getClassLoader(),
-    //             "template/method-template.txt"
-    //     );
-    //     assert StringUtils.isNotBlank(controllerTemplate);
-    //     assert StringUtils.isNotBlank(methodTemplate);
-    //     StringBuilder methodCodeBody = new StringBuilder();
-    //     methodCodeBody.append("\n");
-    //     processorClassInfo.getMethods()
-    //             .forEach((method, executableElement) -> {
-    //                 final var codeLines = new ArrayList<String>();
-    //                 codeLines.add("String responseBody = CommonConstant.EMPTY_STRING;");
-    //                 codeLines.add("int httpStatusCode = 200;");
-    //             });
-    // }
 
 }
