@@ -64,7 +64,11 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                                     strValue(o)
                             )
                     );
-                    actualTuple.addValue(o);
+                    if (o.getClass().isEnum()) {
+                        actualTuple.addValue(((Enum<?>) o).name());
+                    } else {
+                        actualTuple.addValue(o);
+                    }
                 }
             } else {
                 parametersLog.append(
@@ -74,7 +78,11 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                                 strValue(value)
                         )
                 );
-                actualTuple.addValue(value);
+                if (value.getClass().isEnum()) {
+                    actualTuple.addValue(((Enum<?>) value).name());
+                } else {
+                    actualTuple.addValue(value);
+                }
             }
         }
         LogUtils.writeLog(context, LogUtils.Level.INFO, parametersLog.toString());
