@@ -216,6 +216,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
         final var reactiveDeleteStatementCodeLines = new ArrayList<String>();
         final var deleteJdbcParameterCodeLines = new ArrayList<String>();
         final var deleteVertClientParameterCodeLines = new ArrayList<String>();
+        final var getColumnNameFromFieldNameCodeLine = new ArrayList<String>();
         final var idColumnNameCodeLines = new ArrayList<String>();
         buildStatement(
                 insertStatementCodeLines,
@@ -231,6 +232,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 deleteJdbcParameterCodeLines,
                 deleteVertClientParameterCodeLines,
                 idColumnNameCodeLines,
+                getColumnNameFromFieldNameCodeLine,
                 processorClassInfo
         );
         methodCodeBody.append(
@@ -479,6 +481,21 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         .replace("${method-name}", "mySqlIdRowExtract")
                         .replace("${list-of-parameters}", "io.vertx.sqlclient.RowSet<io.vertx.sqlclient.Row> rowSet, " + processorClassInfo.getClazz().getQualifiedName() + " model")
                         .replace("${method-body}", mySqlIdRowExtractCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "getColumnNameFromFieldName")
+                        .replace("${list-of-parameters}", "String fieldName")
+                        .replace("${method-body}", getColumnNameFromFieldNameCodeLine
                                 .stream()
                                 .collect(
                                         Collectors.joining(
@@ -871,6 +888,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 final ArrayList<String> deleteJdbcParameterCodeLines,
                                 final ArrayList<String> deleteVertClientParameterCodeLines,
                                 final ArrayList<String> idColumnNameCodeLines,
+                                final ArrayList<String> getColumnNameFromFieldNameCodeLine,
                                 final ProcessorClassInfo processorClassInfo) {
         final String tableName = getTableName(processorClassInfo);
         if (StringUtils.isBlank(tableName)) {
@@ -943,6 +961,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         idDatabaseColumnNameToBeGet
                 )
         );
+        getColumnNameFromFieldNameCodeLine.add("switch (fieldName) {");
         insertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         reactiveInsertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         updateStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
@@ -981,6 +1000,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             .filter(a -> StringUtils.isNotBlank(a.name()))
                             .map(ColumnName::name)
                             .orElse(convertCamelToConstant(fieldName));
+                    getColumnNameFromFieldNameCodeLine.add("    case \"" + fieldName + "\":");
+                    getColumnNameFromFieldNameCodeLine.add("        return \"" + databaseColumnNameToBeGet + "\";");
                     final boolean insertable = Optional
                             .ofNullable(columnNameAnnotation)
                             .map(ColumnName::insertable)
@@ -1045,6 +1066,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         // updateStatementCodeLines.addAll(codes);
                     }
                 });
+        getColumnNameFromFieldNameCodeLine.add("    default:");
+        getColumnNameFromFieldNameCodeLine.add("        throw new java.lang.IllegalArgumentException();");
+        getColumnNameFromFieldNameCodeLine.add("}");
         insertStatementCodeLines.add(String.format("return \"INSERT INTO %s\" +", tableName));
         insertStatementCodeLines.add("        cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
         insertStatementCodeLines.add("        \"VALUES\" +");

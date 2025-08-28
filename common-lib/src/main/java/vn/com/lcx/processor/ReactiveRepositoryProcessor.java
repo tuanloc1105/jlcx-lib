@@ -545,7 +545,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             }
         }
         final var statement = executableElement.getAnnotation(Query.class);
-        final var statementArr = statement.value().split(" ");
+        final var statementArr = statement.value()
+                .replace(";", CommonConstant.EMPTY_STRING)
+                .split(" ");
         var index = 0;
         final var finalStatementArray = new ArrayList<String>();
         for (int i = 0; i < statementArr.length; i++) {
