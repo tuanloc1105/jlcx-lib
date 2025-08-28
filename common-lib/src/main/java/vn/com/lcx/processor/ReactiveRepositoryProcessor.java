@@ -723,6 +723,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             switch (genericType) {
                 case "java.lang.Long":
                     if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                            finalStatementArray.get(0).toLowerCase().startsWith("insert") ||
                             finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
                         codeLines.add(
                                 "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
@@ -759,6 +760,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     break;
                 case "java.lang.Integer":
                     if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                            finalStatementArray.get(0).toLowerCase().startsWith("insert") ||
                             finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
                         codeLines.add(
                                 "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
@@ -892,7 +894,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 List<VariableElement> actualParameters,
                                                 boolean isReturningList,
                                                 String futureOutputType) {
-        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported method\");");
+        codeLines.clear();
+        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported method. " +
+                "The generator of this type of method is no longer maintained and would be removed soon, " +
+                "please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement\");");
     }
 
     public boolean lastParameterIsPageable(List<VariableElement> actualParameters) {
