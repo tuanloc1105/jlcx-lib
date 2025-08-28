@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
@@ -80,6 +81,21 @@ public final class DateTimeUtils {
      */
     public static LocalDateTime generateCurrentTimeDefault() {
         return ZonedDateTime.now(ZoneId.of(ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()))).toLocalDateTime();
+    }
+
+    /**
+     * Create an OffsetDateTime for the current moment in a given timezone.
+     *
+     * @param timezone the time zone ID
+     * @return OffsetDateTime representing the current moment in that timezone
+     */
+    public static OffsetDateTime generateCurrentTimeDefaultWithTimezone(TimezoneEnum timezone) {
+        if (timezone == null) {
+            timezone = TimezoneEnum.VST;
+        }
+        final ZoneId zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(timezone.name()));
+        final ZonedDateTime zonedDateTime = ZonedDateTime.now(zoneId);
+        return zonedDateTime.toOffsetDateTime();
     }
 
     /**
