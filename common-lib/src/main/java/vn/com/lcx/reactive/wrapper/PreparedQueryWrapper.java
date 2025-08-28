@@ -52,6 +52,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                                 "NULL"
                         )
                 );
+                actualTuple.addValue(null);
                 continue;
             }
             if (value instanceof List) {
