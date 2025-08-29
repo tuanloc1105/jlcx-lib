@@ -929,6 +929,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             idColumnNameCodeLines.add("return null;");
+            getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
         }
         if (idElements.size() > 1) {
@@ -945,6 +946,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             idColumnNameCodeLines.add("return null;");
+            getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
         }
         final var idElement = idElements.get(0);
