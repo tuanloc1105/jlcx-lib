@@ -905,6 +905,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             idColumnNameCodeLines.add("return null;");
+            getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
         }
         var idElements = processorClassInfo.getFields().stream()
