@@ -145,24 +145,6 @@ public interface EntityMapping<T> {
     Tuple deleteTupleParam(T model);
 
     /**
-     * Extract the entity identifier from a reactive {@link Row}.
-     *
-     * @param row   the reactive row
-     * @param model the entity instance to set the id into
-     * @return the identifier value
-     */
-    java.math.BigInteger idRowExtract(Row row, T model);
-
-    /**
-     * Extract the entity identifier from a MySQL {@link io.vertx.sqlclient.RowSet}.
-     * <p>Typically used to retrieve auto-generated keys such as {@code LAST_INSERT_ID()}.</p>
-     *
-     * @param rowSet the reactive row set
-     * @param model  the entity instance to set the id into
-     */
-    void mySqlIdRowExtract(io.vertx.sqlclient.RowSet<Row> rowSet, T model);
-
-    /**
      * Map a Java field name to its corresponding database column name.
      *
      * @param fieldName the Java field name
