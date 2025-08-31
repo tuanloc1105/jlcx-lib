@@ -85,7 +85,7 @@ public class ClassPool {
                     continue;
                 }
 
-                if (aClass.isAssignableFrom(EntityMapping.class)) {
+                if (EntityMapping.class.isAssignableFrom(aClass) && !aClass.isInterface()) {
                     EntityMappingContainer.addMapping(aClass);
                     continue;
                 }
