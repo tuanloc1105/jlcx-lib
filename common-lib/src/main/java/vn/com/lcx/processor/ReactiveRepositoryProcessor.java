@@ -537,6 +537,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("} else {");
         codeLines.add("    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");");
         codeLines.add("}");
+        if (lastParameterIsPageable(actualParameters)) {
+            codeLines.add(actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".setEntityClass(${{class}}.class);");
+        }
         for (VariableElement actualParameter : actualParameters) {
             if (actualParameter.asType().toString().contains("java.util.List")) {
                 codeLines.add("if (" + actualParameter.getSimpleName() + " == null || " + actualParameter.getSimpleName() + ".isEmpty()) {");
@@ -629,6 +632,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 ">"
                         );
             }
+            codeLines.replaceAll(s -> s.replace("${{class}}", genericTypeOfList));
             codeLines.add(
                     "            final java.util.List<" + genericTypeOfList + "> result = new java.util.ArrayList<>();"
             );
@@ -827,6 +831,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     );
                     break;
                 default:
+                    codeLines.replaceAll(s -> s.replace("${{class}}", genericType));
                     codeLines.add(
                             "            if (rowSet.size() == 0) {"
                     );
