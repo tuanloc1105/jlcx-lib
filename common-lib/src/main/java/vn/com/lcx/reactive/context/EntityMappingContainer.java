@@ -33,7 +33,7 @@ public class EntityMappingContainer {
     }
 
     public static void addMapping(Class<?> clazz) {
-        if (clazz.isAssignableFrom(EntityMapping.class)) {
+        if (EntityMapping.class.isAssignableFrom(clazz)) {
             for (Type type : clazz.getGenericInterfaces()) {
                 if (type instanceof ParameterizedType) {
                     ParameterizedType pType = (ParameterizedType) type;
