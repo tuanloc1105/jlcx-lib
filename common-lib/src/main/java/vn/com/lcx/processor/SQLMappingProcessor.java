@@ -91,16 +91,20 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 processorClassInfo.getClazz().getQualifiedName()
                         )
         );
-        var sqlMappingAnnotation = processorClassInfo.getClazz().getAnnotation(SQLMapping.class);
         final String sqlMappingTemplate = FileUtils.readResourceFileAsText(
                 this.getClass().getClassLoader(),
                 "template/sql-mapping-template.txt"
+        );
+        final String entityMappingImplTemplate = FileUtils.readResourceFileAsText(
+                this.getClass().getClassLoader(),
+                "template/entity-mapping-impl-template.txt"
         );
         final String methodTemplate = FileUtils.readResourceFileAsText(
                 this.getClass().getClassLoader(),
                 "template/method-template.txt"
         );
         assert sqlMappingTemplate != null;
+        assert entityMappingImplTemplate != null;
         assert methodTemplate != null;
         final var resultSetMappingCodeLines = new ArrayList<String>();
         final var vertxRowMappingCodeLines = new ArrayList<String>();
@@ -520,6 +524,17 @@ public class SQLMappingProcessor extends AbstractProcessor {
         JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
         try (Writer writer = builderFile.openWriter()) {
             writer.write(code);
+        }
+        final var className2 = processorClassInfo.getClazz().getSimpleName() + "MappingImpl";
+        final var code2 = entityMappingImplTemplate
+                .replace("${package-name}", packageName)
+                .replace("${class-name}", className2)
+                .replace("${entity-name}", processorClassInfo.getClazz().getSimpleName())
+                .replace("${methods}", MyStringUtils.removeSuffixOfString(methodCodeBody.toString(), "\n").replace("public static", "public"));
+        String fullClassName2 = packageName + "." + className2;
+        JavaFileObject builderFile2 = this.processingEnv.getFiler().createSourceFile(fullClassName2);
+        try (Writer writer = builderFile2.openWriter()) {
+            writer.write(code2);
         }
     }
 
