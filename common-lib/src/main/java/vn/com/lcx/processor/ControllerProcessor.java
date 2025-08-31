@@ -317,7 +317,6 @@ public class ControllerProcessor extends AbstractProcessor {
                                 basePath + apiPath
                         );
                     }
-                    routerConfigureCode += "\n                    .handler(this::createUUIDHandler)";
                     if (StringUtils.isNotBlank(routerConfigureCode)) {
                         if (isAuthMethod) {
                             routerConfigureCode += "\n                    .handler(authHandler)";
@@ -325,6 +324,7 @@ public class ControllerProcessor extends AbstractProcessor {
                         if (isAPIKeyMethod) {
                             routerConfigureCode += "\n                    .handler(this::validateApiKey)";
                         }
+                        routerConfigureCode += "\n                    .handler(this::createUUIDHandler)";
                         if (!contextHandlerOrderAndClassListMap.isEmpty()) {
                             routerConfigureCode += routerHandleCodeForFilter.toString();
                         }
