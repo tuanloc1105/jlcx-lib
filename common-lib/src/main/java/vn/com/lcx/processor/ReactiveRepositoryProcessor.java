@@ -36,6 +36,30 @@ import java.util.stream.IntStream;
 @SupportedAnnotationTypes("vn.com.lcx.reactive.annotation.RRepository")
 public class ReactiveRepositoryProcessor extends AbstractProcessor {
 
+    /**
+     * Returns a sublist starting from the first element
+     * that contains the keyword (case-insensitive) until the end of the list.
+     *
+     * @param keywords the list of keywords to search in
+     * @param keyword  the keyword to search for (case-insensitive)
+     * @return a sublist of keywords from the found index to the end,
+     * or an empty list if no match is found
+     */
+    public static List<String> subListFromKeyword(List<String> keywords, String keyword) {
+        if (keywords == null || keyword == null) {
+            return Collections.emptyList();
+        }
+
+        int index = IntStream.range(0, keywords.size())
+                .filter(i -> keywords.get(i).toLowerCase().contains(keyword.toLowerCase()))
+                .findFirst()
+                .orElse(-1);
+
+        return index != -1
+                ? keywords.subList(index, keywords.size())
+                : Collections.emptyList();
+    }
+
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latest();
@@ -538,7 +562,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");");
         codeLines.add("}");
         if (lastParameterIsPageable(actualParameters)) {
-            codeLines.add(actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".setEntityClass(${{class}}.class);");
+            codeLines.add("if (" + actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getEntityClass() == null) {");
+            codeLines.add("    " + actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".setEntityClass(${{class}}.class);");
+            codeLines.add("}");
         }
         for (VariableElement actualParameter : actualParameters) {
             if (actualParameter.asType().toString().contains("java.util.List")) {
@@ -919,30 +945,6 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         "vn.com.lcx.common.database.pageable.Pageable"
                 ).asType()
         );
-    }
-
-    /**
-     * Returns a sublist starting from the first element
-     * that contains the keyword (case-insensitive) until the end of the list.
-     *
-     * @param keywords the list of keywords to search in
-     * @param keyword  the keyword to search for (case-insensitive)
-     * @return a sublist of keywords from the found index to the end,
-     * or an empty list if no match is found
-     */
-    public static List<String> subListFromKeyword(List<String> keywords, String keyword) {
-        if (keywords == null || keyword == null) {
-            return Collections.emptyList();
-        }
-
-        int index = IntStream.range(0, keywords.size())
-                .filter(i -> keywords.get(i).toLowerCase().contains(keyword.toLowerCase()))
-                .findFirst()
-                .orElse(-1);
-
-        return index != -1
-                ? keywords.subList(index, keywords.size())
-                : Collections.emptyList();
     }
 
 }
