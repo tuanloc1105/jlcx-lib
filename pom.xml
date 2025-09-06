@@ -19,7 +19,7 @@
         <commons-text-org.apache.commons.version>1.14.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.18.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
-        <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
+        <lombok-org.projectlombok.version>1.18.40</lombok-org.projectlombok.version>
         <ojdbc11-com.oracle.database.jdbc.version>23.9.0.25.07</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.7</postgresql-org.postgresql.version>
         <mysql-connector-j-com.mysql.version>9.4.0</mysql-connector-j-com.mysql.version>
@@ -89,7 +89,6 @@
         <maven-plugin-api-org.apache.maven.version>3.9.11</maven-plugin-api-org.apache.maven.version>
         <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.1
         </maven-plugin-annotations-org.apache.maven.plugin-tools.version>
-
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
         <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.0
