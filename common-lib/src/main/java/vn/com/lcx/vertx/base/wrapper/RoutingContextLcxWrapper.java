@@ -88,7 +88,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
 
     @Override
     public HttpServerResponse response() {
-        return realContext.response();
+        return new HttpServerResponseLcxWrapper(realContext.response(), realContext);
     }
 
     @Override
