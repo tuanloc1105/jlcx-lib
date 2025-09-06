@@ -1055,6 +1055,18 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             insertVertClientParameterCodeLines.add("}");
                         }
                     }
+                    if (!insertable) {
+                        insertStatementCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                        reactiveInsertStatementCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                        insertJdbcParameterCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                        insertVertClientParameterCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                    }
+                    if (!updatable) {
+                        updateStatementCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                        reactiveUpdateStatementCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                        updateJdbcParameterCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                        updateVertClientParameterCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                    }
                     if (!fieldName.equals(idFieldName) && updatable) {
                         updateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         updateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
