@@ -55,36 +55,9 @@ public class RepositoryProcessor extends AbstractProcessor {
             )
     );
 
-    private static final List<String> WHERE_STATEMENT_DELIMITER_KEYWORDS = Arrays.asList(
-            "NotEqual",
-            "NotIn",
-            "NotLike",
-            "NotBetween",
-            "NotNull",
-            "Not",
-            "Equal",
-            "In",
-            "Like",
-            "Between",
-            "Null",
-            "LessThan",
-            "GreaterThan",
-            "LessEqual",
-            "GreaterEqual"
-    );
-
     private final static String NOT_IMPLEMENT_CODE_TEMPLATE = "    public ${return-type} ${method-name}(${list-of-parameters}) {\n" +
             "        throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException(\"${error-message}\");\n" +
             "    }\n";
-
-    private static final Pattern WHERE_STATEMENT_SPLIT_PATTERN;
-
-    static {
-        // Sort by keyword's length to avoid mismatching
-        WHERE_STATEMENT_DELIMITER_KEYWORDS.sort(Comparator.comparingInt(String::length).reversed());
-        String joinedKeywords = String.join("|", WHERE_STATEMENT_DELIMITER_KEYWORDS);
-        WHERE_STATEMENT_SPLIT_PATTERN = Pattern.compile(joinedKeywords);
-    }
 
     private static void generateCodeForPageable(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
         VariableElement pageableParameter = methodInfo.getInputParameters().get(methodInfo.getInputParameters().size() - 1);
@@ -110,6 +83,25 @@ public class RepositoryProcessor extends AbstractProcessor {
         codeLines.add(
                 String.format(
                         "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createQuery(\"%1$s\" + orderStatement.toString(), %2$s.class);",
+                        sql,
+                        outputClass
+                )
+        );
+        codeLines.add("query.setFirstResult(pageimpl.getOffset());");
+        codeLines.add("query.setMaxResults(pageimpl.getPageSize());");
+    }
+
+    private static void generateCodeForPageableNative(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
+        VariableElement pageableParameter = methodInfo.getInputParameters().get(methodInfo.getInputParameters().size() - 1);
+        codeLines.add(
+                String.format(
+                        "vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) %s;",
+                        pageableParameter.getSimpleName()
+                )
+        );
+        codeLines.add(
+                String.format(
+                        "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", %2$s.class);",
                         sql,
                         outputClass
                 )
@@ -539,24 +531,28 @@ public class RepositoryProcessor extends AbstractProcessor {
         final var queryStatement = queryAnnotation.value().replace("\n", "\\n\" +\n                        \"");
         codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
         if (queryAnnotation.isNative()) {
-            if (Optional.ofNullable(executableElement.getAnnotation(ResultSetMapping.class)).isPresent()) {
-                final var resultSetMappingAnnotation = executableElement.getAnnotation(ResultSetMapping.class);
-                codeLines.add(
-                        String.format(
-                                "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", \"%3$s\", %2$s.class);",
-                                queryStatement,
-                                outputClass,
-                                resultSetMappingAnnotation.name()
-                        )
-                );
+            if (lastParameterIsPageable(methodInfo)) {
+                generateCodeForPageableNative(methodInfo, codeLines, queryStatement, outputClass);
             } else {
-                codeLines.add(
-                        String.format(
-                                "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", %2$s.class);",
-                                queryStatement,
-                                outputClass
-                        )
-                );
+                if (Optional.ofNullable(executableElement.getAnnotation(ResultSetMapping.class)).isPresent()) {
+                    final var resultSetMappingAnnotation = executableElement.getAnnotation(ResultSetMapping.class);
+                    codeLines.add(
+                            String.format(
+                                    "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", \"%3$s\", %2$s.class);",
+                                    queryStatement,
+                                    outputClass,
+                                    resultSetMappingAnnotation.name()
+                            )
+                    );
+                } else {
+                    codeLines.add(
+                            String.format(
+                                    "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", %2$s.class);",
+                                    queryStatement,
+                                    outputClass
+                            )
+                    );
+                }
             }
         } else {
             if (lastParameterIsPageable(methodInfo)) {

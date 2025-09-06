@@ -1,0 +1,10 @@
+package ${package-name};
+
+public final class ${class-name} implements vn.com.lcx.reactive.entity.EntityMapping<${entity-name}> {
+
+    private final static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(${class-name}.class);
+
+    public ${class-name}() {
+    }
+${methods}
+}

@@ -3,6 +3,8 @@ package vn.com.lcx.common.database.pageable;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.utils.EntityUtils;
+import vn.com.lcx.reactive.context.EntityMappingContainer;
+import vn.com.lcx.reactive.entity.EntityMapping;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,7 +108,9 @@ public class OraclePageable implements Pageable {
     public void fieldToColumn() {
         if (this.fieldNameAndDirectionMap != null && !this.fieldNameAndDirectionMap.isEmpty() && entityClass != null) {
             for (Map.Entry<String, Direction> entry : this.fieldNameAndDirectionMap.entrySet()) {
-                final var columnName = EntityUtils.getColumnNameFromFieldName(entry.getKey(), entityClass);
+                EntityMapping<?> entityMapping = EntityMappingContainer.getMapping(entityClass.getName());
+                final var columnName = entityMapping.getColumnNameFromFieldName(entry.getKey());
+                // final var columnName = EntityUtils.getColumnNameFromFieldName(entry.getKey(), entityClass);
                 if (StringUtils.isBlank(columnName)) {
                     throw new IllegalArgumentException("Cannot find column name for field " + entry.getKey());
                 }

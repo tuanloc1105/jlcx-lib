@@ -70,7 +70,7 @@ public final class CommonConstant {
             // Access and Security Related Information
             "token", "accessToken", "refreshToken",
             "apiKey", "clientSecret",
-            "privateKey", "publicKey", "signature", // If not encrypted
+            // "privateKey", "publicKey", "signature", // If not encrypted
             "sessionID", "sessionId",
             "cookie",
             "authorizationHeader",

@@ -91,16 +91,20 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 processorClassInfo.getClazz().getQualifiedName()
                         )
         );
-        var sqlMappingAnnotation = processorClassInfo.getClazz().getAnnotation(SQLMapping.class);
         final String sqlMappingTemplate = FileUtils.readResourceFileAsText(
                 this.getClass().getClassLoader(),
                 "template/sql-mapping-template.txt"
+        );
+        final String entityMappingImplTemplate = FileUtils.readResourceFileAsText(
+                this.getClass().getClassLoader(),
+                "template/entity-mapping-impl-template.txt"
         );
         final String methodTemplate = FileUtils.readResourceFileAsText(
                 this.getClass().getClassLoader(),
                 "template/method-template.txt"
         );
         assert sqlMappingTemplate != null;
+        assert entityMappingImplTemplate != null;
         assert methodTemplate != null;
         final var resultSetMappingCodeLines = new ArrayList<String>();
         final var vertxRowMappingCodeLines = new ArrayList<String>();
@@ -216,6 +220,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
         final var reactiveDeleteStatementCodeLines = new ArrayList<String>();
         final var deleteJdbcParameterCodeLines = new ArrayList<String>();
         final var deleteVertClientParameterCodeLines = new ArrayList<String>();
+        final var getColumnNameFromFieldNameCodeLine = new ArrayList<String>();
         final var idColumnNameCodeLines = new ArrayList<String>();
         buildStatement(
                 insertStatementCodeLines,
@@ -231,6 +236,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 deleteJdbcParameterCodeLines,
                 deleteVertClientParameterCodeLines,
                 idColumnNameCodeLines,
+                getColumnNameFromFieldNameCodeLine,
                 processorClassInfo
         );
         methodCodeBody.append(
@@ -488,6 +494,21 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                         )
                                 )
                         )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static String")
+                        .replace("${method-name}", "getColumnNameFromFieldName")
+                        .replace("${list-of-parameters}", "String fieldName")
+                        .replace("${method-body}", getColumnNameFromFieldNameCodeLine
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
         ).append("\n");
         final var packageName = processingEnv
                 .getElementUtils()
@@ -503,6 +524,17 @@ public class SQLMappingProcessor extends AbstractProcessor {
         JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
         try (Writer writer = builderFile.openWriter()) {
             writer.write(code);
+        }
+        final var className2 = processorClassInfo.getClazz().getSimpleName() + "MappingImpl";
+        final var code2 = entityMappingImplTemplate
+                .replace("${package-name}", packageName)
+                .replace("${class-name}", className2)
+                .replace("${entity-name}", processorClassInfo.getClazz().getSimpleName())
+                .replace("${methods}", MyStringUtils.removeSuffixOfString(methodCodeBody.toString(), "\n").replace("public static", "public"));
+        String fullClassName2 = packageName + "." + className2;
+        JavaFileObject builderFile2 = this.processingEnv.getFiler().createSourceFile(fullClassName2);
+        try (Writer writer = builderFile2.openWriter()) {
+            writer.write(code2);
         }
     }
 
@@ -871,6 +903,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 final ArrayList<String> deleteJdbcParameterCodeLines,
                                 final ArrayList<String> deleteVertClientParameterCodeLines,
                                 final ArrayList<String> idColumnNameCodeLines,
+                                final ArrayList<String> getColumnNameFromFieldNameCodeLine,
                                 final ProcessorClassInfo processorClassInfo) {
         final String tableName = getTableName(processorClassInfo);
         if (StringUtils.isBlank(tableName)) {
@@ -887,6 +920,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
             idColumnNameCodeLines.add("return null;");
+            getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
         }
         var idElements = processorClassInfo.getFields().stream()
@@ -911,6 +945,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
             idColumnNameCodeLines.add("return null;");
+            getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
         }
         if (idElements.size() > 1) {
@@ -927,6 +962,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
             idColumnNameCodeLines.add("return null;");
+            getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
         }
         final var idElement = idElements.get(0);
@@ -943,6 +979,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         idDatabaseColumnNameToBeGet
                 )
         );
+        getColumnNameFromFieldNameCodeLine.add("switch (fieldName) {");
         insertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         reactiveInsertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         updateStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
@@ -981,6 +1018,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             .filter(a -> StringUtils.isNotBlank(a.name()))
                             .map(ColumnName::name)
                             .orElse(convertCamelToConstant(fieldName));
+                    getColumnNameFromFieldNameCodeLine.add("    case \"" + fieldName + "\":");
+                    getColumnNameFromFieldNameCodeLine.add("        return \"" + databaseColumnNameToBeGet + "\";");
                     final boolean insertable = Optional
                             .ofNullable(columnNameAnnotation)
                             .map(ColumnName::insertable)
@@ -1016,6 +1055,18 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             insertVertClientParameterCodeLines.add("}");
                         }
                     }
+                    if (!insertable) {
+                        insertStatementCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                        reactiveInsertStatementCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                        insertJdbcParameterCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                        insertVertClientParameterCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                    }
+                    if (!updatable) {
+                        updateStatementCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                        reactiveUpdateStatementCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                        updateJdbcParameterCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                        updateVertClientParameterCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                    }
                     if (!fieldName.equals(idFieldName) && updatable) {
                         updateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
                         updateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
@@ -1045,6 +1096,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         // updateStatementCodeLines.addAll(codes);
                     }
                 });
+        getColumnNameFromFieldNameCodeLine.add("    default:");
+        getColumnNameFromFieldNameCodeLine.add("        throw new java.lang.IllegalArgumentException();");
+        getColumnNameFromFieldNameCodeLine.add("}");
         insertStatementCodeLines.add(String.format("return \"INSERT INTO %s\" +", tableName));
         insertStatementCodeLines.add("        cols.stream().collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \")) +");
         insertStatementCodeLines.add("        \"VALUES\" +");

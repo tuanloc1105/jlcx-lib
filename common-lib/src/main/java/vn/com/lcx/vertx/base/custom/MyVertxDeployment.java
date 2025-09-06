@@ -8,6 +8,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.micrometer.MicrometerMetricsFactory;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class MyVertxDeployment {
@@ -120,6 +122,13 @@ public class MyVertxDeployment {
             } else {
                 vertx = Vertx.vertx();
             }
+            final WorkerExecutor workerExecutor = vertx.createSharedWorkerExecutor(
+                    "lcx-vert.x-worker-pool",
+                    20,
+                    5,
+                    TimeUnit.MINUTES
+            );
+            ClassPool.setInstance(WorkerExecutor.class.getName(), workerExecutor);
             ClassPool.setInstance("vertx", vertx);
             ClassPool.setInstance(Vertx.class.getName(), vertx);
             if (preconfigure != null) {

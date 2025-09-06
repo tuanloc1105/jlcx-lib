@@ -36,6 +36,30 @@ import java.util.stream.IntStream;
 @SupportedAnnotationTypes("vn.com.lcx.reactive.annotation.RRepository")
 public class ReactiveRepositoryProcessor extends AbstractProcessor {
 
+    /**
+     * Returns a sublist starting from the first element
+     * that contains the keyword (case-insensitive) until the end of the list.
+     *
+     * @param keywords the list of keywords to search in
+     * @param keyword  the keyword to search for (case-insensitive)
+     * @return a sublist of keywords from the found index to the end,
+     * or an empty list if no match is found
+     */
+    public static List<String> subListFromKeyword(List<String> keywords, String keyword) {
+        if (keywords == null || keyword == null) {
+            return Collections.emptyList();
+        }
+
+        int index = IntStream.range(0, keywords.size())
+                .filter(i -> keywords.get(i).toLowerCase().contains(keyword.toLowerCase()))
+                .findFirst()
+                .orElse(-1);
+
+        return index != -1
+                ? keywords.subList(index, keywords.size())
+                : Collections.emptyList();
+    }
+
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latest();
@@ -537,6 +561,11 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("} else {");
         codeLines.add("    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");");
         codeLines.add("}");
+        if (lastParameterIsPageable(actualParameters)) {
+            codeLines.add("if (" + actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getEntityClass() == null) {");
+            codeLines.add("    " + actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".setEntityClass(${{class}}.class);");
+            codeLines.add("}");
+        }
         for (VariableElement actualParameter : actualParameters) {
             if (actualParameter.asType().toString().contains("java.util.List")) {
                 codeLines.add("if (" + actualParameter.getSimpleName() + " == null || " + actualParameter.getSimpleName() + ".isEmpty()) {");
@@ -545,7 +574,9 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             }
         }
         final var statement = executableElement.getAnnotation(Query.class);
-        final var statementArr = statement.value().split(" ");
+        final var statementArr = statement.value()
+                .replace(";", CommonConstant.EMPTY_STRING)
+                .split(" ");
         var index = 0;
         final var finalStatementArray = new ArrayList<String>();
         for (int i = 0; i < statementArr.length; i++) {
@@ -627,6 +658,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 ">"
                         );
             }
+            codeLines.replaceAll(s -> s.replace("${{class}}", genericTypeOfList));
             codeLines.add(
                     "            final java.util.List<" + genericTypeOfList + "> result = new java.util.ArrayList<>();"
             );
@@ -650,11 +682,13 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             );
             if (lastParameterIsPageable(actualParameters) && !isReturningList) {
                 final var countStatementArray = new ArrayList<String>();
-                countStatementArray.add("SELECT COUNT(1)");
-                countStatementArray.addAll(subListFromKeyword(
+                final var subListFromKeyword = subListFromKeyword(
                         finalStatementArray,
                         "from"
-                ));
+                );
+                subListFromKeyword.set(0, "FROM");
+                countStatementArray.add("SELECT COUNT(1)");
+                countStatementArray.addAll(subListFromKeyword);
                 final String countStatement = String.join(" ", countStatementArray).replace("\n", "\\n\" +\n                        \"");
                 codeLines.add(
                         "        }).compose(rs -> {"
@@ -721,7 +755,14 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             switch (genericType) {
                 case "java.lang.Long":
                     if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                            finalStatementArray.get(0).toLowerCase().startsWith("insert") ||
                             finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                        codeLines.add(
+                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                        );
+                        codeLines.add(
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                        );
                         codeLines.add(
                                 "            return (long) rowSet.rowCount();"
                         );
@@ -751,7 +792,14 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     break;
                 case "java.lang.Integer":
                     if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
+                            finalStatementArray.get(0).toLowerCase().startsWith("insert") ||
                             finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
+                        codeLines.add(
+                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                        );
+                        codeLines.add(
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.INFO, \"Executed SQL in {} ms\", duration);"
+                        );
                         codeLines.add(
                                 "            return rowSet.rowCount();"
                         );
@@ -809,6 +857,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     );
                     break;
                 default:
+                    codeLines.replaceAll(s -> s.replace("${{class}}", genericType));
                     codeLines.add(
                             "            if (rowSet.size() == 0) {"
                     );
@@ -878,7 +927,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 List<VariableElement> actualParameters,
                                                 boolean isReturningList,
                                                 String futureOutputType) {
-        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported method\");");
+        codeLines.clear();
+        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported method. " +
+                "The generator of this type of method is no longer maintained and would be removed soon, " +
+                "please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement\");");
     }
 
     public boolean lastParameterIsPageable(List<VariableElement> actualParameters) {
@@ -893,30 +945,6 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         "vn.com.lcx.common.database.pageable.Pageable"
                 ).asType()
         );
-    }
-
-    /**
-     * Returns a sublist starting from the first element
-     * that contains the keyword (case-insensitive) until the end of the list.
-     *
-     * @param keywords the list of keywords to search in
-     * @param keyword  the keyword to search for (case-insensitive)
-     * @return a sublist of keywords from the found index to the end,
-     * or an empty list if no match is found
-     */
-    public static List<String> subListFromKeyword(List<String> keywords, String keyword) {
-        if (keywords == null || keyword == null) {
-            return Collections.emptyList();
-        }
-
-        int index = IntStream.range(0, keywords.size())
-                .filter(i -> keywords.get(i).toLowerCase().contains(keyword.toLowerCase()))
-                .findFirst()
-                .orElse(-1);
-
-        return index != -1
-                ? keywords.subList(index, keywords.size())
-                : Collections.emptyList();
     }
 
 }

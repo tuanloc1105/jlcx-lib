@@ -18,6 +18,8 @@ import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.common.utils.PropertiesUtils;
+import vn.com.lcx.reactive.context.EntityMappingContainer;
+import vn.com.lcx.reactive.entity.EntityMapping;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -80,6 +82,11 @@ public class ClassPool {
 
                 if (aClass.getAnnotation(TableName.class) != null) {
                     EntityUtils.analyzeEntityClass(aClass, sourceType.toLowerCase(), folderPath);
+                    continue;
+                }
+
+                if (EntityMapping.class.isAssignableFrom(aClass) && !aClass.isInterface()) {
+                    EntityMappingContainer.addMapping(aClass);
                     continue;
                 }
 
