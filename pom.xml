@@ -54,22 +54,22 @@
         <hibernate-tools-orm-org.hibernate.tool.version>6.6.28.Final</hibernate-tools-orm-org.hibernate.tool.version>
         <hibernate-jcache-org.hibernate.orm.version>6.6.28.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
-        <vertx-core-io.vertx.version>5.0.3</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>5.0.3</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>5.0.3</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>5.0.3</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>5.0.3</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>5.0.3</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>5.0.3</vertx-auth-jwt-io.vertx.version>
-        <vertx-micrometer-metrics-io.vertx.version>5.0.3</vertx-micrometer-metrics-io.vertx.version>
-        <vertx-oracle-client-io.vertx.version>5.0.3</vertx-oracle-client-io.vertx.version>
-        <vertx-mysql-client-io.vertx.version>5.0.3</vertx-mysql-client-io.vertx.version>
-        <vertx-pg-client-io.vertx.version>5.0.3</vertx-pg-client-io.vertx.version>
-        <vertx-mssql-client-io.vertx.version>5.0.3</vertx-mssql-client-io.vertx.version>
-        <vertx-redis-client-io.vertx.version>5.0.3</vertx-redis-client-io.vertx.version>
-        <vertx-grpc-client-io.vertx.version>5.0.3</vertx-grpc-client-io.vertx.version>
-        <vertx-grpc-server-io.vertx.version>5.0.3</vertx-grpc-server-io.vertx.version>
-        <vertx-grpc-io.vertx.version>5.0.3</vertx-grpc-io.vertx.version>
+        <vertx-core-io.vertx.version>5.0.4</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>5.0.4</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>5.0.4</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>5.0.4</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>5.0.4</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>5.0.4</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>5.0.4</vertx-auth-jwt-io.vertx.version>
+        <vertx-micrometer-metrics-io.vertx.version>5.0.4</vertx-micrometer-metrics-io.vertx.version>
+        <vertx-oracle-client-io.vertx.version>5.0.4</vertx-oracle-client-io.vertx.version>
+        <vertx-mysql-client-io.vertx.version>5.0.4</vertx-mysql-client-io.vertx.version>
+        <vertx-pg-client-io.vertx.version>5.0.4</vertx-pg-client-io.vertx.version>
+        <vertx-mssql-client-io.vertx.version>5.0.4</vertx-mssql-client-io.vertx.version>
+        <vertx-redis-client-io.vertx.version>5.0.4</vertx-redis-client-io.vertx.version>
+        <vertx-grpc-client-io.vertx.version>5.0.4</vertx-grpc-client-io.vertx.version>
+        <vertx-grpc-server-io.vertx.version>5.0.4</vertx-grpc-server-io.vertx.version>
+        <vertx-grpc-io.vertx.version>5.0.4</vertx-grpc-io.vertx.version>
         <jakarta.annotation-api-jakarta.annotation.version>3.0.0</jakarta.annotation-api-jakarta.annotation.version>
         <javax.annotation-api-javax.annotation.version>1.3.2</javax.annotation-api-javax.annotation.version>
         <grpc-netty-shaded-io.grpc.version>1.75.0</grpc-netty-shaded-io.grpc.version>
