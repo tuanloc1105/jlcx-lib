@@ -324,7 +324,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
                         "=> Process duration: {}ms\n" +
                         "=> Response Payload:\n" +
                         "{}",
-                headerLogMsg,
+                String.join("\n", headerLogMsg),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 MyStringUtils.stringIsJsonFormat(chunk) ?
                         MyStringUtils.minifyJsonString(JsonMaskingUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk)) :
@@ -358,7 +358,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
                         "{}\n" +
                         "=> Process duration: {}ms\n" +
                         "=> Response Chunk Size: {} bytes",
-                headerLogMsg,
+                String.join("\n", headerLogMsg),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 chunk.length()
         );
