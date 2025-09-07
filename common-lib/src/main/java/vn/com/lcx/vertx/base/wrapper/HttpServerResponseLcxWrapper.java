@@ -189,7 +189,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
     @Override
     public Future<Void> end(String chunk) {
         responseLogging(chunk);
-        return realResponse.end();
+        return realResponse.end(chunk);
     }
 
     @Override
