@@ -17,8 +17,6 @@ import java.util.Optional;
 @RRepository
 public interface TaskRepository extends ReactiveRepository<TaskEntity> {
 
-    Future<Optional<TaskEntity>> findByIdAndFinished(RoutingContext context, SqlConnection client, BigInteger id, Boolean finished);
-
     @Query("SELECT t.*\n" +
             "FROM r_lcx.task t\n" +
             "LEFT JOIN r_lcx.user u ON t.user_id = u.id\n" +
