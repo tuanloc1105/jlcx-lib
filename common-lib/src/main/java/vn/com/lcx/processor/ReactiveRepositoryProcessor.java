@@ -929,7 +929,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                                 String futureOutputType) {
         codeLines.clear();
         codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported method. " +
-                "The generator of this type of method is no longer maintained and would be removed soon, " +
+                "The generator of this type of method were removed, " +
                 "please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement\");");
     }
 
