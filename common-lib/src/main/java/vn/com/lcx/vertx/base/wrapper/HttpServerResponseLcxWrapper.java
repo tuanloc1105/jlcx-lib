@@ -18,6 +18,8 @@ import vn.com.lcx.common.utils.MyStringUtils;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Set;
 
 public class HttpServerResponseLcxWrapper implements HttpServerResponse {
@@ -200,6 +202,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
 
     @Override
     public Future<Void> end(Buffer chunk) {
+        responseLogging(chunk);
         return realResponse.end(chunk);
     }
 
@@ -303,16 +306,61 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
             final var endTime = (double) System.currentTimeMillis();
             apiProcessDuration = (endTime - startTime);
         }
-
+        final var headerLogMsg = new ArrayList<String>();
+        for (Map.Entry<String, String> header : headers()) {
+            headerLogMsg.add(
+                    String.format(
+                            "        - Name: %s\n          Value: %s",
+                            header.getKey(),
+                            header.getValue()
+                    )
+            );
+        }
         LogUtils.writeLog(
                 context,
                 LogUtils.Level.INFO,
-                "Response Payload ({}ms):\n{}",
+                "=> Header:\n" +
+                        "{}\n" +
+                        "=> Process duration: {}ms\n" +
+                        "=> Response Payload:\n" +
+                        "{}",
+                headerLogMsg,
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 MyStringUtils.stringIsJsonFormat(chunk) ?
                         MyStringUtils.minifyJsonString(JsonMaskingUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk)) :
                         (chunk.length() > 10000 ? chunk.substring(0, 50) +
                                 "..." + chunk.substring(chunk.length() - 50) : chunk)
+        );
+    }
+
+    private void responseLogging(Buffer chunk) {
+        var apiProcessDuration = 0D;
+
+        if (context.get("startTime") != null) {
+            final var startTime = context.<Double>get("startTime");
+            final var endTime = (double) System.currentTimeMillis();
+            apiProcessDuration = (endTime - startTime);
+        }
+        final var headerLogMsg = new ArrayList<String>();
+        for (Map.Entry<String, String> header : headers()) {
+            headerLogMsg.add(
+                    String.format(
+                            "        - Name: %s\n          Value: %s",
+                            header.getKey(),
+                            header.getValue()
+                    )
+            );
+        }
+        LogUtils.writeLog(
+                context,
+                LogUtils.Level.INFO,
+                "=> Header:\n" +
+                        "{}\n" +
+                        "=> Process duration: {}ms\n" +
+                        "=> Response Chunk Size: {} bytes",
+                headerLogMsg,
+                apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
+                chunk.length()
         );
     }
 
