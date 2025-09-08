@@ -44,7 +44,7 @@ public class EntityMappingContainer {
                                 final var object = (EntityMapping<?>) clazz.getDeclaredConstructor().newInstance();
                                 addMapping(typeArgs[0].getTypeName(), object);
                             } catch (Exception e) {
-                                LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.WARN, "Error adding mapping for entity {}", ExceptionUtils.getStackTrace(e));
+                                throw new ExceptionInInitializerError(e);
                             }
                         }
                     }
