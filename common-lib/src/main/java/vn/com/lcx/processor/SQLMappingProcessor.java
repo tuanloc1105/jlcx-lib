@@ -1135,6 +1135,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
         updateVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
         updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(idFieldName)));
         updateVertClientParameterCodeLines.add("}");
+        updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
+        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(idFieldName)));
+        updateJdbcParameterCodeLines.add("}");
         insertJdbcParameterCodeLines.add("return map;");
         updateJdbcParameterCodeLines.add("return map;");
         deleteJdbcParameterCodeLines.add("return map;");
