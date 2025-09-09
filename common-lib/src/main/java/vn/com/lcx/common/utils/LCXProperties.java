@@ -20,6 +20,10 @@ public class LCXProperties {
         return yamlProperties.getProperty(key);
     }
 
+    public <T> T getProperty_(String key) {
+        return yamlProperties.getProperty_(key);
+    }
+
     public <T> T getProperty(String key, Function<String, T> function) {
         return function.apply(getProperty(key));
     }
