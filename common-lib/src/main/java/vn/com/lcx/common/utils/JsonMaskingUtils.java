@@ -18,8 +18,7 @@ import java.util.Map;
  */
 public class JsonMaskingUtils {
 
-    private static final List<String> CUSTOM_FIELD = new ArrayList<>();
-    private static volatile boolean checkedFromProperties = false;
+    public static final List<String> CUSTOM_FIELD = new ArrayList<>();
 
     /**
      * Mask the values of specified fields in a JSON string using either Gson or Jackson.
@@ -70,11 +69,6 @@ public class JsonMaskingUtils {
      * @return The JSON string with default sensitive fields' values masked
      */
     public static String maskJsonFields(final Object jsonHandler, final String inputJsonString) {
-        if (!checkedFromProperties) {
-            final List<String> fields = CommonConstant.applicationConfig.getProperty_("json.sensitive_field");
-            CUSTOM_FIELD.addAll(fields);
-            checkedFromProperties = true;
-        }
         return maskJsonFields(jsonHandler, inputJsonString,
                 CUSTOM_FIELD.isEmpty() ?
                 CommonConstant.SENSITIVE_FIELD_NAMES.toArray(String[]::new) :
