@@ -30,18 +30,10 @@ public final class PropertiesUtils {
             try (InputStream inputStream = Files.newInputStream(Paths.get(filePath))) {
                 // Load YAML
                 // noinspection RedundantTypeArguments
-                return new LCXProperties(new YamlProperties(yaml.<Map<String, Object>>load(inputStream)), null);
+                return new LCXProperties(new YamlProperties(yaml.<Map<String, Object>>load(inputStream)));
             } catch (Exception e) {
                 LogUtils.writeLog(e.getMessage(), e);
             }
-        } else {
-            final var properties = new Properties();
-            try (InputStream input = Files.newInputStream(Paths.get(filePath))) {
-                properties.load(input);
-            } catch (IOException ex) {
-                LogUtils.writeLog(ex.getMessage(), ex);
-            }
-            return new LCXProperties(null, properties);
         }
         return new LCXProperties();
     }
@@ -53,31 +45,18 @@ public final class PropertiesUtils {
             try (InputStream inputStream = classLoader.getResourceAsStream(resourceFilePath)) {
                 // Load YAML
                 if (inputStream == null) {
-                    return new LCXProperties(new YamlProperties(new HashMap<>()), null);
+                    return new LCXProperties(new YamlProperties(new HashMap<>()));
                 }
-                return new LCXProperties(new YamlProperties(yaml.<Map<String, Object>>load(inputStream)), null);
+                return new LCXProperties(new YamlProperties(yaml.<Map<String, Object>>load(inputStream)));
             } catch (Exception e) {
                 LogUtils.writeLog(e.getMessage(), e);
             }
-        } else {
-            final var properties = new Properties();
-            try (InputStream input = classLoader.getResourceAsStream(resourceFilePath)) {
-                if (input != null) {
-                    properties.load(input);
-                }
-            } catch (IOException ex) {
-                LogUtils.writeLog(ex.getMessage(), ex);
-            }
-            return new LCXProperties(null, properties);
         }
         return new LCXProperties();
     }
 
     public static LCXProperties emptyProperty() {
-        return new LCXProperties(
-                null,
-                null
-        );
+        return new LCXProperties(null);
     }
 
 }

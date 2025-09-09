@@ -8,23 +8,16 @@ import java.util.function.Function;
 
 public class LCXProperties {
     private YamlProperties yamlProperties;
-    private Properties properties;
 
     public LCXProperties() {
     }
 
-    public LCXProperties(YamlProperties yamlProperties, Properties properties) {
+    public LCXProperties(YamlProperties yamlProperties) {
         this.yamlProperties = yamlProperties;
-        this.properties = properties;
     }
 
     public String getProperty(String key) {
-        if (properties != null) {
-            return properties.getProperty(key);
-        } else if (yamlProperties != null) {
-            return yamlProperties.getProperty(key);
-        }
-        return CommonConstant.EMPTY_STRING;
+        return yamlProperties.getProperty(key);
     }
 
     public <T> T getProperty(String key, Function<String, T> function) {
