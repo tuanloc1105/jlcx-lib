@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,9 @@ import java.util.Map;
  * JSON masking utility that supports both Gson and Jackson.
  */
 public class JsonMaskingUtils {
+
+    private static final List<String> CUSTOM_FIELD = new ArrayList<>();
+    private static volatile boolean checkedFromProperties = false;
 
     /**
      * Mask the values of specified fields in a JSON string using either Gson or Jackson.
@@ -66,8 +70,16 @@ public class JsonMaskingUtils {
      * @return The JSON string with default sensitive fields' values masked
      */
     public static String maskJsonFields(final Object jsonHandler, final String inputJsonString) {
+        if (!checkedFromProperties) {
+            final List<String> fields = CommonConstant.applicationConfig.getProperty_("json.sensitive_field");
+            CUSTOM_FIELD.addAll(fields);
+            checkedFromProperties = true;
+        }
         return maskJsonFields(jsonHandler, inputJsonString,
-                CommonConstant.SENSITIVE_FIELD_NAMES.toArray(String[]::new));
+                CUSTOM_FIELD.isEmpty() ?
+                CommonConstant.SENSITIVE_FIELD_NAMES.toArray(String[]::new) :
+                        CUSTOM_FIELD.toArray(String[]::new)
+                );
     }
 
     /**
