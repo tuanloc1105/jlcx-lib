@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * This annotation should be used within {@link TableName#indexes()} to declare
  * indexes for the corresponding table.
  * </p>
- *
+ * <p>
  * Example usage:
  * <pre>
  * {@code

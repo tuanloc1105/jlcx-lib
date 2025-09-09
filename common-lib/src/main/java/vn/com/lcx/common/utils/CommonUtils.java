@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 
 public final class CommonUtils {
 
+    private static boolean bannerLogged = false;
+
     private CommonUtils() {
     }
-
-    private static boolean bannerLogged = false;
 
     public static void gc() {
         System.gc();

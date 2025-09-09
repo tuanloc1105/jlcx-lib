@@ -1,10 +1,7 @@
 package vn.com.lcx.reactive.context;
 
-import vn.com.lcx.common.utils.ExceptionUtils;
-import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.jpa.exception.IllegalEntityClassException;
 import vn.com.lcx.reactive.entity.EntityMapping;
-import vn.com.lcx.vertx.base.custom.EmptyRoutingContext;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -28,7 +25,7 @@ public class EntityMappingContainer {
         if (uuid == null) {
             throw new IllegalEntityClassException("Class `" + entityClassName + "` does not exist in container");
         }
-        //noinspection unchecked
+        // noinspection unchecked
         return (EntityMapping<T>) mapperContainer.get(uuid);
     }
 

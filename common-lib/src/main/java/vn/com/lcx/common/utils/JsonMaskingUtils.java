@@ -71,9 +71,9 @@ public class JsonMaskingUtils {
     public static String maskJsonFields(final Object jsonHandler, final String inputJsonString) {
         return maskJsonFields(jsonHandler, inputJsonString,
                 CUSTOM_FIELD.isEmpty() ?
-                CommonConstant.SENSITIVE_FIELD_NAMES.toArray(String[]::new) :
+                        CommonConstant.SENSITIVE_FIELD_NAMES.toArray(String[]::new) :
                         CUSTOM_FIELD.toArray(String[]::new)
-                );
+        );
     }
 
     /**

@@ -2,7 +2,6 @@ package vn.com.lcx.common.annotation.mapper;
 
 import vn.com.lcx.common.scanner.PackageScanner;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;

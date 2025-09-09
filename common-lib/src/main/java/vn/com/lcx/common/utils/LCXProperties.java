@@ -3,7 +3,6 @@ package vn.com.lcx.common.utils;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
 
-import java.util.Properties;
 import java.util.function.Function;
 
 public class LCXProperties {
@@ -17,11 +16,11 @@ public class LCXProperties {
     }
 
     public String getProperty(String key) {
-        return yamlProperties.getProperty(key);
+        return yamlProperties != null ? yamlProperties.getProperty(key) : null;
     }
 
     public <T> T getProperty_(String key) {
-        return yamlProperties.getProperty_(key);
+        return yamlProperties != null ? yamlProperties.getProperty_(key) : null;
     }
 
     public <T> T getProperty(String key, Function<String, T> function) {

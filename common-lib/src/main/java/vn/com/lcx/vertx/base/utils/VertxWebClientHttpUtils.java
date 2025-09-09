@@ -22,7 +22,6 @@ import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.dto.Response;
 import vn.com.lcx.common.utils.JsonMaskingUtils;
 import vn.com.lcx.common.utils.LogUtils;
-import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 

@@ -43,7 +43,7 @@ public class YamlProperties {
 
     public <T> T getProperty_(String key, String defaultValue) {
         Object value = getNestedValue(properties, key);
-        //noinspection unchecked
+        // noinspection unchecked
         return (T) value;
     }
 

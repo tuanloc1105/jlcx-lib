@@ -4,13 +4,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import vn.com.lcx.common.constant.CommonConstant;
 
-import java.util.Properties;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//TODO fix
+// TODO fix
 class LCXPropertiesTest {
     private LCXProperties lcxProperties;
     private YamlProperties yamlProperties;

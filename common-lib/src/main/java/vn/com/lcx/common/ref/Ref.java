@@ -31,24 +31,6 @@ public final class Ref<T> {
     }
 
     /**
-     * Returns the current value stored in this reference.
-     *
-     * @return the current value, may be {@code null}
-     */
-    public T getVal() {
-        return val;
-    }
-
-    /**
-     * Updates the value stored in this reference.
-     *
-     * @param val the new value to set (can be {@code null})
-     */
-    public void setVal(T val) {
-        this.val = val;
-    }
-
-    /**
      * Creates a new {@code Ref} with the specified initial value.
      *
      * @param val the initial value to wrap
@@ -67,5 +49,23 @@ public final class Ref<T> {
      */
     public static <T> Ref<T> init() {
         return new Ref<>(null);
+    }
+
+    /**
+     * Returns the current value stored in this reference.
+     *
+     * @return the current value, may be {@code null}
+     */
+    public T getVal() {
+        return val;
+    }
+
+    /**
+     * Updates the value stored in this reference.
+     *
+     * @param val the new value to set (can be {@code null})
+     */
+    public void setVal(T val) {
+        this.val = val;
     }
 }

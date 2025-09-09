@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.Clob;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.IdColumn;
-import vn.com.lcx.common.annotation.SQLMapping;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.constant.JavaSqlResultSetConstant;
@@ -1056,16 +1055,16 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         }
                     }
                     if (!insertable) {
-                        insertStatementCodeLines.add("// "+ fieldName +" is marked as unable to insert");
-                        reactiveInsertStatementCodeLines.add("// "+ fieldName +" is marked as unable to insert");
-                        insertJdbcParameterCodeLines.add("// "+ fieldName +" is marked as unable to insert");
-                        insertVertClientParameterCodeLines.add("// "+ fieldName +" is marked as unable to insert");
+                        insertStatementCodeLines.add("// " + fieldName + " is marked as unable to insert");
+                        reactiveInsertStatementCodeLines.add("// " + fieldName + " is marked as unable to insert");
+                        insertJdbcParameterCodeLines.add("// " + fieldName + " is marked as unable to insert");
+                        insertVertClientParameterCodeLines.add("// " + fieldName + " is marked as unable to insert");
                     }
                     if (!updatable) {
-                        updateStatementCodeLines.add("// "+ fieldName +" is marked as unable to update");
-                        reactiveUpdateStatementCodeLines.add("// "+ fieldName +" is marked as unable to update");
-                        updateJdbcParameterCodeLines.add("// "+ fieldName +" is marked as unable to update");
-                        updateVertClientParameterCodeLines.add("// "+ fieldName +" is marked as unable to update");
+                        updateStatementCodeLines.add("// " + fieldName + " is marked as unable to update");
+                        reactiveUpdateStatementCodeLines.add("// " + fieldName + " is marked as unable to update");
+                        updateJdbcParameterCodeLines.add("// " + fieldName + " is marked as unable to update");
+                        updateVertClientParameterCodeLines.add("// " + fieldName + " is marked as unable to update");
                     }
                     if (!fieldName.equals(idFieldName) && updatable) {
                         updateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
