@@ -601,12 +601,21 @@ public class RepositoryProcessor extends AbstractProcessor {
         } else if (methodInfo.getOutputParameter().toString().contains("vn.com.lcx.common.database.pageable.Page")) {
             final var countHql = replaceSelectToCount(queryAnnotation.value());
             final var finalCountHql = countHql.replace("\n", "\\n\" +\n                        \"");
-            codeLines.add(
-                    String.format(
-                            "org.hibernate.query.Query<Long> countQuery = currentSessionInContext.createQuery(\"%1$s\", Long.class);",
-                            finalCountHql
-                    )
-            );
+            if (queryAnnotation.isNative()) {
+                codeLines.add(
+                        String.format(
+                                "org.hibernate.query.Query<Long> countQuery = currentSessionInContext.createNativeQuery(\"%1$s\", Long.class);",
+                                finalCountHql
+                        )
+                );
+            } else {
+                codeLines.add(
+                        String.format(
+                                "org.hibernate.query.Query<Long> countQuery = currentSessionInContext.createQuery(\"%1$s\", Long.class);",
+                                finalCountHql
+                        )
+                );
+            }
             setParametersForCount(methodInfo, codeLines);
             codeLines.add(
                     "long totalItems = countQuery.getSingleResult();"
