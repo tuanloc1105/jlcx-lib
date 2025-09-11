@@ -89,7 +89,7 @@ public class RepositoryProcessor extends AbstractProcessor {
         codeLines.add("query.setMaxResults(pageimpl.getPageSize());");
     }
 
-    private static void generateCodeForPageableNative(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
+    private static void generateCodeForPageableNative(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass, String resultSetMappingName) {
         VariableElement pageableParameter = methodInfo.getInputParameters().get(methodInfo.getInputParameters().size() - 1);
         codeLines.add(
                 String.format(
@@ -97,13 +97,24 @@ public class RepositoryProcessor extends AbstractProcessor {
                         pageableParameter.getSimpleName()
                 )
         );
-        codeLines.add(
-                String.format(
-                        "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", %2$s.class);",
-                        sql,
-                        outputClass
-                )
-        );
+        if (resultSetMappingName != null) {
+            codeLines.add(
+                    String.format(
+                            "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", \"%3$s\", %2$s.class);",
+                            sql,
+                            outputClass,
+                            resultSetMappingName
+                    )
+            );
+        } else {
+            codeLines.add(
+                    String.format(
+                            "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", %2$s.class);",
+                            sql,
+                            outputClass
+                    )
+            );
+        }
         codeLines.add("query.setFirstResult(pageimpl.getOffset());");
         codeLines.add("query.setMaxResults(pageimpl.getPageSize());");
     }
@@ -530,7 +541,15 @@ public class RepositoryProcessor extends AbstractProcessor {
         codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
         if (queryAnnotation.isNative()) {
             if (lastParameterIsPageable(methodInfo)) {
-                generateCodeForPageableNative(methodInfo, codeLines, queryStatement, outputClass);
+                generateCodeForPageableNative(
+                        methodInfo,
+                        codeLines,
+                        queryStatement,
+                        outputClass,
+                        Optional.ofNullable(executableElement.getAnnotation(ResultSetMapping.class))
+                                .map(ResultSetMapping::name)
+                                .orElse(null)
+                );
             } else {
                 if (Optional.ofNullable(executableElement.getAnnotation(ResultSetMapping.class)).isPresent()) {
                     final var resultSetMappingAnnotation = executableElement.getAnnotation(ResultSetMapping.class);
