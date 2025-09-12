@@ -123,7 +123,7 @@
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.3.1.lcx-SNAPSHOT</version>
+    <version>3.4.0.lcx</version>
 
     <dependencyManagement>
 
