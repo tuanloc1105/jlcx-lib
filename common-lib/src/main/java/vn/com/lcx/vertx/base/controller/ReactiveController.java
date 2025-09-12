@@ -187,15 +187,6 @@ public abstract class ReactiveController {
     }
 
     private void returnResponse(RoutingContext ctx, Object jsonHandler, Object resp, int code) {
-        ctx.response().setStatusCode(code)
-                .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
-                .putHeader(
-                        VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
-                        DateTimeUtils.generateCurrentTimeDefault().format(
-                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
-                        )
-                )
-                .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
         String responseBody;
         if (jsonHandler instanceof Gson) {
             responseBody = ((Gson) jsonHandler).toJson(resp);
@@ -213,7 +204,17 @@ public abstract class ReactiveController {
         } else {
             responseBody = "{\n    \"error\": \"Unknown json handler. Only support `Gson` and `Jackson`\"\n}";
         }
-        ctx.end(responseBody);
+        ctx.response().setStatusCode(code)
+                .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
+                .putHeader(
+                        VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
+                        DateTimeUtils.generateCurrentTimeDefault().format(
+                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
+                        )
+                )
+                .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
+                .end(responseBody);
+        // ctx.end(responseBody);
     }
 
     public <T> T handleRequest(RoutingContext ctx, Object jsonHandler, TypeToken<T> reqType) {

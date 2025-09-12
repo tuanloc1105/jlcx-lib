@@ -15,6 +15,7 @@ import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.common.exception.DuplicateInstancesException;
 import vn.com.lcx.common.scanner.PackageScanner;
 import vn.com.lcx.common.utils.FileUtils;
+import vn.com.lcx.common.utils.JsonMaskingUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.common.utils.PropertiesUtils;
@@ -314,6 +315,10 @@ public class ClassPool {
             CommonConstant.applicationConfig = PropertiesUtils.getProperties(configFile);
         } else {
             CommonConstant.applicationConfig = PropertiesUtils.getProperties(classLoader, "application.yaml");
+        }
+        final List<String> fields = CommonConstant.applicationConfig.getProperty_("json.sensitive_field");
+        if (fields != null && !fields.isEmpty()) {
+            JsonMaskingUtils.CUSTOM_FIELD.addAll(fields);
         }
     }
 

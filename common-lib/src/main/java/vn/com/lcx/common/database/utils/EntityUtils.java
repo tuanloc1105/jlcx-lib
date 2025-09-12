@@ -4,19 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.scanner.PackageScanner;
-import vn.com.lcx.common.utils.DateTimeUtils;
-import vn.com.lcx.common.utils.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 import static vn.com.lcx.common.utils.WordCaseUtils.convertCamelToConstant;
 
 public final class EntityUtils {

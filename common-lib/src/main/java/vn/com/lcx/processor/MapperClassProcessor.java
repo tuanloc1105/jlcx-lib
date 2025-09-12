@@ -264,10 +264,10 @@ public class MapperClassProcessor extends AbstractProcessor {
             }
             for (Element outputClassField : outputClassFields) {
                 String toFieldType = outputClassField.asType() + CommonConstant.EMPTY_STRING;
-                if (handledFieldName.contains(toFieldType)) {
+                String toFieldName = WordCaseUtils.toPascalCase(WordCaseUtils.fromCamelCase(outputClassField.getSimpleName() + CommonConstant.EMPTY_STRING));
+                if (handledFieldName.contains(toFieldName)) {
                     continue;
                 }
-                String toFieldName = WordCaseUtils.toPascalCase(WordCaseUtils.fromCamelCase(outputClassField.getSimpleName() + CommonConstant.EMPTY_STRING));
                 Element inputClassField = this.findAppropriateFieldOfInputClassFromOutputFieldName(
                         inputClassFields,
                         outputClassField.getSimpleName() + CommonConstant.EMPTY_STRING,

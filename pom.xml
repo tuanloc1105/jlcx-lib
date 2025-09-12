@@ -19,12 +19,12 @@
         <commons-text-org.apache.commons.version>1.14.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.18.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
-        <lombok-org.projectlombok.version>1.18.38</lombok-org.projectlombok.version>
+        <lombok-org.projectlombok.version>1.18.40</lombok-org.projectlombok.version>
         <ojdbc11-com.oracle.database.jdbc.version>23.9.0.25.07</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.7</postgresql-org.postgresql.version>
         <mysql-connector-j-com.mysql.version>9.4.0</mysql-connector-j-com.mysql.version>
         <mssql-jdbc-com.microsoft.sqlserver.version>13.2.0.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
-        <gson-com.google.code.gson.version>2.13.1</gson-com.google.code.gson.version>
+        <gson-com.google.code.gson.version>2.13.2</gson-com.google.code.gson.version>
         <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.2</jakarta.xml.bind-api-jakarta.xml.bind.version>
         <jaxb-runtime-org.glassfish.jaxb.version>4.0.5</jaxb-runtime-org.glassfish.jaxb.version>
         <jackson-module-parameter-names-com.fasterxml.jackson.module.version>2.20.0
@@ -39,8 +39,8 @@
         </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
         <jakarta.mail-org.eclipse.angus.version>2.0.4</jakarta.mail-org.eclipse.angus.version>
         <jedis-redis.clients.version>6.2.0</jedis-redis.clients.version>
-        <micrometer-core-io.micrometer.version>1.15.3</micrometer-core-io.micrometer.version>
-        <micrometer-registry-prometheus-io.micrometer.version>1.15.3
+        <micrometer-core-io.micrometer.version>1.15.4</micrometer-core-io.micrometer.version>
+        <micrometer-registry-prometheus-io.micrometer.version>1.15.4
         </micrometer-registry-prometheus-io.micrometer.version>
         <metrics-core-io.dropwizard.metrics.version>4.2.36</metrics-core-io.dropwizard.metrics.version>
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.36</metrics-healthchecks-io.dropwizard.metrics.version>
@@ -70,6 +70,7 @@
         <vertx-grpc-client-io.vertx.version>5.0.4</vertx-grpc-client-io.vertx.version>
         <vertx-grpc-server-io.vertx.version>5.0.4</vertx-grpc-server-io.vertx.version>
         <vertx-grpc-io.vertx.version>5.0.4</vertx-grpc-io.vertx.version>
+        <vertx-reactive-streams-io.vertx.version>5.0.4</vertx-reactive-streams-io.vertx.version>
         <jakarta.annotation-api-jakarta.annotation.version>3.0.0</jakarta.annotation-api-jakarta.annotation.version>
         <javax.annotation-api-javax.annotation.version>1.3.2</javax.annotation-api-javax.annotation.version>
         <grpc-netty-shaded-io.grpc.version>1.75.0</grpc-netty-shaded-io.grpc.version>
@@ -89,7 +90,6 @@
         <maven-plugin-api-org.apache.maven.version>3.9.11</maven-plugin-api-org.apache.maven.version>
         <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.1
         </maven-plugin-annotations-org.apache.maven.plugin-tools.version>
-
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
         <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.0
@@ -123,7 +123,7 @@
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.3.0.lcx</version>
+    <version>3.4.0.lcx</version>
 
     <dependencyManagement>
 
@@ -497,6 +497,13 @@
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-grpc</artifactId>
                 <version>${vertx-grpc-io.vertx.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-reactive-streams -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-reactive-streams</artifactId>
+                <version>${vertx-reactive-streams-io.vertx.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->

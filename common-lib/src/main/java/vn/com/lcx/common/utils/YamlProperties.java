@@ -37,6 +37,16 @@ public class YamlProperties {
         return value != null ? value.toString() : defaultValue;
     }
 
+    public <T> T getProperty_(String key) {
+        return getProperty_(key, null);
+    }
+
+    public <T> T getProperty_(String key, String defaultValue) {
+        Object value = getNestedValue(properties, key);
+        // noinspection unchecked
+        return (T) value;
+    }
+
     @SuppressWarnings("unchecked")
     private Object getNestedValue(Map<String, Object> map, String key) {
         String[] keys = key.split("\\.");

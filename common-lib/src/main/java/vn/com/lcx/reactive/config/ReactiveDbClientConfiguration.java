@@ -216,7 +216,7 @@ public class ReactiveDbClientConfiguration {
                 // wait
             }
         }));
-        //noinspection SqlResolve
+        // noinspection SqlResolve
         refreshConnection(
                 () ->
                         pool.withConnection(connection ->

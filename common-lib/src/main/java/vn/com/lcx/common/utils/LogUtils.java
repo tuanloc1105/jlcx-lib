@@ -5,9 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.vertx.base.custom.EmptyRoutingContext;
-
-import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("DuplicatedCode")
 public final class LogUtils {

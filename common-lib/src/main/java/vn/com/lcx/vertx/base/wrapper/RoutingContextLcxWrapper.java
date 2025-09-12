@@ -31,6 +31,7 @@ import vn.com.lcx.common.utils.MyStringUtils;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,16 +45,14 @@ public class RoutingContextLcxWrapper implements RoutingContext {
     }
 
     public static RoutingContextLcxWrapper init(RoutingContext ctx) {
+        final var gson = ClassPool.getInstance(Gson.class);
         ctx.put("startTime", Double.parseDouble(System.currentTimeMillis() + CommonConstant.EMPTY_STRING));
-        final var headerLogMsg = new ArrayList<String>();
         final MultiMap requestHeader = ctx.request().headers();
+        Map<String, String> headerMap = new HashMap<>();
         for (Map.Entry<String, String> requestQueryParam : requestHeader) {
-            headerLogMsg.add(
-                    String.format(
-                            "        - Name: %s\n          Value: %s",
-                            requestQueryParam.getKey(),
-                            requestQueryParam.getValue()
-                    )
+            headerMap.put(
+                    requestQueryParam.getKey(),
+                    requestQueryParam.getValue()
             );
         }
         var payload = Optional.ofNullable(ctx.body())
@@ -61,7 +60,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 .map(RequestBody::asJsonObject)
                 .map(JsonObject::encode)
                 .filter(StringUtils::isNotBlank)
-                .map(it -> JsonMaskingUtils.maskJsonFields(ClassPool.getInstance(Gson.class), it))
+                .map(it -> JsonMaskingUtils.maskJsonFields(gson, it))
                 .orElse(
                         Optional.ofNullable(ctx.body())
                                 .map(rq -> rq.asString("UTF-8")).orElse(CommonConstant.EMPTY_STRING)
@@ -69,12 +68,11 @@ public class RoutingContextLcxWrapper implements RoutingContext {
         LogUtils.writeLog(ctx,
                 LogUtils.Level.INFO,
                 "=> Url: {}\n" +
-                        "=> Header:\n" +
-                        "{}\n" +
+                        "=> Header: {}\n" +
                         "=> Method: {}\n" +
                         "=> Request Payload:\n{}",
                 ctx.request().uri(),
-                String.join("\n", headerLogMsg),
+                JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
                 ctx.request().method().name(),
                 payload
         );

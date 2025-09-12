@@ -2,8 +2,6 @@ package vn.com.lcx.common.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
-import com.google.gson.Strictness;
-import com.google.gson.stream.JsonReader;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import org.apache.commons.lang3.StringUtils;

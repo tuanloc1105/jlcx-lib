@@ -2,7 +2,6 @@ package vn.com.lcx.common.database.pageable;
 
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.constant.CommonConstant;
-import vn.com.lcx.common.database.utils.EntityUtils;
 import vn.com.lcx.reactive.context.EntityMappingContainer;
 import vn.com.lcx.reactive.entity.EntityMapping;
 

@@ -8,11 +8,9 @@ import vn.com.lcx.common.constant.CommonConstant;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -152,13 +150,14 @@ public class FieldProcessor {
                     "ALTER TABLE\n" +
                             "    %1$s\n" +
                             "ADD\n" +
-                            "    CONSTRAINT FK_%2$s FOREIGN KEY (%3$s) REFERENCES %4$s%5$s(%6$s)",
+                            "    CONSTRAINT FK_%2$s_%7$s FOREIGN KEY (%3$s) REFERENCES %4$s%5$s(%6$s)",
                     context.getFinalTableName(),
                     String.format("%s_%s", referenceTable.toUpperCase(), referenceColumn.toUpperCase()),
                     columnName,
                     schemaPrefix,
                     referenceTable,
-                    referenceColumn
+                    referenceColumn,
+                    context.getTableNameAnnotation().value()
             );
 
             foreignKeyStatement += databaseStrategy.generateForeignKeyCascade(cascade) + "\n";
