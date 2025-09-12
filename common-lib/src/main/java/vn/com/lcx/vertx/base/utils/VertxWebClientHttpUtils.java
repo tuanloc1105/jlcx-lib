@@ -116,13 +116,11 @@ public class VertxWebClientHttpUtils {
         final var httpLogMessage = new StringBuilder("\nURL: ")
                 .append(url).append("\nMethod: ").append(method.name());
         HttpRequest<Buffer> request = client.requestAbs(method, url);
-        httpLogMessage.append("\n- Request header");
+        httpLogMessage.append("\n- Request header: ");
+        httpLogMessage.append(JsonMaskingUtils.maskJsonFields(jsonHandler, toJson(headers)));
         final var responseBuilder = Response.<T>builder();
         if (headers != null) {
-            headers.forEach((name, value) -> {
-                request.putHeader(name, value);
-                httpLogMessage.append("\n    - ").append(name).append(": ").append(value);
-            });
+            headers.forEach(request::putHeader);
         }
         final String jsonString = Optional.ofNullable(payload)
                 .map(it -> {
@@ -153,12 +151,12 @@ public class VertxWebClientHttpUtils {
             final var responseStatusCode = response.statusCode();
             final var responseBodyAsString = response.bodyAsString();
             httpLogMessage.append("\n- Response status code: ").append(responseStatusCode);
-            httpLogMessage.append("\n- Response header");
+            httpLogMessage.append("\n- Response header: ");
             final var headerMap = new HashMap<String, List<String>>();
             for (Map.Entry<String, String> header : response.headers()) {
-                httpLogMessage.append("\n    - ").append(header.getKey()).append(": ").append(header.getValue());
                 headerMap.put(header.getKey(), Collections.singletonList(header.getValue()));
             }
+            httpLogMessage.append(JsonMaskingUtils.maskJsonFields(jsonHandler, toJson(headerMap)));
             httpLogMessage.append("\n- Response body: ").append(JsonMaskingUtils.maskJsonFields(jsonHandler, responseBodyAsString));
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = endingTime - startingTime;
@@ -188,6 +186,18 @@ public class VertxWebClientHttpUtils {
             }
         }
         return requestObject;
+    }
+
+    private String toJson(Object input) {
+        if (jsonHandler instanceof Gson) {
+            return ((Gson) jsonHandler).toJson(input);
+        } else {
+            try {
+                return ((ObjectMapper) jsonHandler).writeValueAsString(input);
+            } catch (JsonProcessingException e) {
+                throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, e.getMessage());
+            }
+        }
     }
 
 }

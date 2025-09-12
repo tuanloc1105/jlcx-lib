@@ -135,10 +135,8 @@ public class HttpUtils {
                 http.setRequestProperty(entry.getKey(), entry.getValue());
             }
         }
-        httpLogMessage.append("\n- Request header");
-        for (Map.Entry<String, List<String>> header : http.getRequestProperties().entrySet()) {
-            httpLogMessage.append("\n    - ").append(header.getKey()).append(": ").append(String.join(", ", header.getValue()));
-        }
+        httpLogMessage.append("\n- Request header: ");
+        httpLogMessage.append(JsonMaskingUtils.maskJsonFields(gson, gson.toJson(requestHeader)));
         if (data != null && (HttpMethod.POST.name().equals(method.name()) || HttpMethod.PUT.name().equals(method.name()))) {
             http.setDoOutput(true);
             httpLogMessage.append("\n- Request body: ");
@@ -166,10 +164,8 @@ public class HttpUtils {
                 stringBuilder.append(output);
             }
             httpLogMessage.append("\n- Response status code: ").append(http.getResponseCode());
-            httpLogMessage.append("\n- Response header");
-            for (Map.Entry<String, List<String>> header : http.getHeaderFields().entrySet()) {
-                httpLogMessage.append("\n    - ").append(header.getKey()).append(": ").append(String.join(", ", header.getValue()));
-            }
+            httpLogMessage.append("\n- Response header: ");
+            httpLogMessage.append(JsonMaskingUtils.maskJsonFields(gson, gson.toJson(http.getHeaderFields())));
             httpLogMessage.append("\n- Response body: ");
             httpLogMessage.append("\n")
                     .append(this.isBeautifyPrinting ? "" : "\t")

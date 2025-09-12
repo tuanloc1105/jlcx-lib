@@ -19,6 +19,7 @@ import vn.com.lcx.common.utils.MyStringUtils;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -299,6 +300,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
     }
 
     private void responseLogging(String chunk) {
+        final var gson = ClassPool.getInstance(Gson.class);
         var apiProcessDuration = 0D;
 
         if (context.get("startTime") != null) {
@@ -306,25 +308,21 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
             final var endTime = (double) System.currentTimeMillis();
             apiProcessDuration = (endTime - startTime);
         }
-        final var headerLogMsg = new ArrayList<String>();
+        Map<String, String> headerMap = new HashMap<>();
         for (Map.Entry<String, String> header : headers()) {
-            headerLogMsg.add(
-                    String.format(
-                            "        - Name: %s\n          Value: %s",
-                            header.getKey(),
-                            header.getValue()
-                    )
+            headerMap.put(
+                    header.getKey(),
+                    header.getValue()
             );
         }
         LogUtils.writeLog(
                 context,
                 LogUtils.Level.INFO,
-                "=> Header:\n" +
-                        "{}\n" +
+                "=> Header: {}\n" +
                         "=> Process duration: {}ms\n" +
                         "=> Response Payload:\n" +
                         "{}",
-                String.join("\n", headerLogMsg),
+                JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 MyStringUtils.stringIsJsonFormat(chunk) ?
                         MyStringUtils.minifyJsonString(JsonMaskingUtils.maskJsonFields(ClassPool.getInstance(Gson.class), chunk)) :
@@ -334,6 +332,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
     }
 
     private void responseLogging(Buffer chunk) {
+        final var gson = ClassPool.getInstance(Gson.class);
         var apiProcessDuration = 0D;
 
         if (context.get("startTime") != null) {
@@ -341,24 +340,20 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
             final var endTime = (double) System.currentTimeMillis();
             apiProcessDuration = (endTime - startTime);
         }
-        final var headerLogMsg = new ArrayList<String>();
+        Map<String, String> headerMap = new HashMap<>();
         for (Map.Entry<String, String> header : headers()) {
-            headerLogMsg.add(
-                    String.format(
-                            "        - Name: %s\n          Value: %s",
-                            header.getKey(),
-                            header.getValue()
-                    )
+            headerMap.put(
+                    header.getKey(),
+                    header.getValue()
             );
         }
         LogUtils.writeLog(
                 context,
                 LogUtils.Level.INFO,
-                "=> Header:\n" +
-                        "{}\n" +
+                "=> Header: {}\n" +
                         "=> Process duration: {}ms\n" +
                         "=> Response Chunk Size: {} bytes",
-                String.join("\n", headerLogMsg),
+                JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 chunk.length()
         );
