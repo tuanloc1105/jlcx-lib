@@ -23,6 +23,7 @@ public class SocketUtils {
         if (StringUtils.isBlank(inputMessage)) {
             throw new NullPointerException("inputMessage is blank");
         }
+        final var startingTime = (double) System.currentTimeMillis();
         try (
                 Socket socket = new Socket(socketHost, socketPort);
                 var output = socket.getOutputStream();
@@ -33,14 +34,24 @@ public class SocketUtils {
                 var reader = new BufferedReader(new InputStreamReader(input))
 
         ) {
-            LogUtils.writeLog2(LogUtils.Level.INFO, "Connected to the socket server {}:{}", socketHost, socketPort);
-            LogUtils.writeLog2(LogUtils.Level.INFO, "Input message: {}", inputMessage);
             // writer.println(inputMessage);
             writer.write(inputMessage);
             writer.flush();
-
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = endingTime - startingTime;
             result = reader.readLine();
-            LogUtils.writeLog2(LogUtils.Level.INFO, "Server responded: {}", result);
+            LogUtils.writeLog2(
+                    LogUtils.Level.INFO,
+                    "Connected to the socket server {}:{}\n" +
+                            "Input message: {}\n" +
+                            "Server responded: {}\n" +
+                            "Took {}ms",
+                    socketHost,
+                    socketPort,
+                    inputMessage,
+                    result,
+                    duration
+            );
 
         } catch (IOException ex) {
             LogUtils.writeLog2(ex.getMessage(), ex);

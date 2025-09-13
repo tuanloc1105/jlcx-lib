@@ -67,10 +67,11 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                 );
         LogUtils.writeLog(ctx,
                 LogUtils.Level.INFO,
-                "=> Url: {}\n" +
-                        "=> Header: {}\n" +
-                        "=> Method: {}\n" +
-                        "=> Request Payload:\n{}",
+                "Request info:\n" +
+                        "    => Url: {}\n" +
+                        "    => Header: {}\n" +
+                        "    => Method: {}\n" +
+                        "    => Request Payload: {}",
                 ctx.request().uri(),
                 JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
                 ctx.request().method().name(),

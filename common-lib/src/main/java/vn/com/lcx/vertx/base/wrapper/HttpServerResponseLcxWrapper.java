@@ -18,7 +18,6 @@ import vn.com.lcx.common.utils.MyStringUtils;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -318,10 +317,10 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
         LogUtils.writeLog(
                 context,
                 LogUtils.Level.INFO,
-                "=> Header: {}\n" +
-                        "=> Process duration: {}ms\n" +
-                        "=> Response Payload:\n" +
-                        "{}",
+                "Response info:\n" +
+                        "    => Header: {}\n" +
+                        "    => Process duration: {}ms\n" +
+                        "    => Response Payload: {}",
                 JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 MyStringUtils.stringIsJsonFormat(chunk) ?
@@ -350,9 +349,10 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
         LogUtils.writeLog(
                 context,
                 LogUtils.Level.INFO,
-                "=> Header: {}\n" +
-                        "=> Process duration: {}ms\n" +
-                        "=> Response Chunk Size: {} bytes",
+                "Response info:\n" +
+                        "    => Header: {}\n" +
+                        "    => Process duration: {}ms\n" +
+                        "    => Response Chunk Size: {} bytes",
                 JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 chunk.length()
