@@ -18,7 +18,6 @@ import vn.com.lcx.common.utils.MyStringUtils;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -299,7 +298,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
         return realResponse.removeCookie(name, domain, path, invalidate);
     }
 
-    private void responseLogging(String chunk) {
+    /*private void responseLogging(String chunk) {
         final var gson = ClassPool.getInstance(Gson.class);
         var apiProcessDuration = 0D;
 
@@ -318,10 +317,10 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
         LogUtils.writeLog(
                 context,
                 LogUtils.Level.INFO,
-                "=> Header: {}\n" +
-                        "=> Process duration: {}ms\n" +
-                        "=> Response Payload:\n" +
-                        "{}",
+                "Response info:\n" +
+                        "    => Header: {}\n" +
+                        "    => Process duration: {}ms\n" +
+                        "    => Response Payload: {}",
                 JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 MyStringUtils.stringIsJsonFormat(chunk) ?
@@ -350,12 +349,75 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
         LogUtils.writeLog(
                 context,
                 LogUtils.Level.INFO,
-                "=> Header: {}\n" +
-                        "=> Process duration: {}ms\n" +
-                        "=> Response Chunk Size: {} bytes",
+                "Response info:\n" +
+                        "    => Header: {}\n" +
+                        "    => Process duration: {}ms\n" +
+                        "    => Response Chunk Size: {} bytes",
                 JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 chunk.length()
+        );
+    }*/
+
+    private void responseLogging(Object payload) {
+        final var gson = ClassPool.getInstance(Gson.class);
+        var apiProcessDuration = 0D;
+
+        // Calculate duration
+        if (context.get("startTime") != null) {
+            final var startTime = context.<Double>get("startTime");
+            final var endTime = (double) System.currentTimeMillis();
+            apiProcessDuration = (endTime - startTime);
+        }
+
+        // Collect headers
+        Map<String, String> headerMap = new HashMap<>();
+        for (Map.Entry<String, String> header : headers()) {
+            headerMap.put(header.getKey(), header.getValue());
+        }
+
+        // Build log message & payload detail
+        String logMessage;
+        Object payloadDetail;
+
+        if (payload instanceof Buffer) {
+            final var buffer = (Buffer) payload;
+            logMessage = "Response info:\n" +
+                    "    => Header: {}\n" +
+                    "    => Process duration: {}ms\n" +
+                    "    => Response Chunk Size: {} bytes";
+            payloadDetail = buffer.length();
+
+        } else if (payload instanceof String) {
+            final var chunk = (String) payload;
+            logMessage = "Response info:\n" +
+                    "    => Header: {}\n" +
+                    "    => Process duration: {}ms\n" +
+                    "    => Response Payload: {}";
+
+            payloadDetail = MyStringUtils.stringIsJsonFormat(chunk)
+                    ? MyStringUtils.minifyJsonString(
+                    JsonMaskingUtils.maskJsonFields(gson, chunk))
+                    : (chunk.length() > 10000
+                    ? chunk.substring(0, 50) + "..." + chunk.substring(chunk.length() - 50)
+                    : chunk);
+
+        } else {
+            logMessage = "Response info:\n" +
+                    "    => Header: {}\n" +
+                    "    => Process duration: {}ms\n" +
+                    "    => Unsupported payload type: {}";
+            payloadDetail = payload != null ? payload.getClass().getName() : "null";
+        }
+
+        // Write log with SLF4J-style placeholders
+        LogUtils.writeLog(
+                context,
+                LogUtils.Level.INFO,
+                logMessage,
+                JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
+                apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
+                payloadDetail
         );
     }
 
