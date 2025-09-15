@@ -60,6 +60,7 @@ public class JavaSqlResultSetConstant {
             put("String", "getString");
             put("LocalDateTime", "getLocalDateTime");
             put("LocalDate", "getLocalDate");
+            put("OffsetDateTime", "getOffsetDateTime");
         }
     };
 
@@ -83,6 +84,7 @@ public class JavaSqlResultSetConstant {
             put("String", "\"\"");
             put("LocalDateTime", "null");
             put("LocalDate", "null");
+            put("OffsetDateTime", "null");
         }
     };
 
