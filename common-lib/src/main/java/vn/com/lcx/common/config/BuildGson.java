@@ -93,66 +93,24 @@ public final class BuildGson {
                 )
                 .registerTypeAdapter(
                         OffsetDateTime.class,
-                        (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) -> {
+                        (JsonDeserializer<OffsetDateTime>) (json, type, jsonDeserializationContext) -> {
                             try {
-                                return LocalDateTime.parse(
+                                return OffsetDateTime.parse(
                                         json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ISO_INSTANT
                                 );
                             } catch (Exception e) {
                                 log.debug(e.getMessage(), e);
                             }
                             try {
-                                return LocalDateTime.parse(
+                                return OffsetDateTime.parse(
                                         json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME
                                 );
                             } catch (Exception e) {
                                 log.debug(e.getMessage(), e);
                             }
                             try {
-                                return LocalDateTime.parse(
+                                return OffsetDateTime.parse(
                                         json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ofPattern(CommonConstant.LOCAL_DATE_TIME_STRING_PATTERN_6)
-                                );
-                            } catch (Exception e) {
-                                log.debug(e.getMessage(), e);
-                            }
-                            try {
-                                return LocalDateTime.parse(
-                                        json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
-                                );
-                            } catch (Exception e) {
-                                log.debug(e.getMessage(), e);
-                            }
-                            try {
-                                return LocalDateTime.parse(
-                                        json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_VIETNAMESE_STRING_PATTERN)
-                                );
-                            } catch (Exception e) {
-                                log.debug(e.getMessage(), e);
-                            }
-                            try {
-                                return LocalDateTime.parse(
-                                        json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ofPattern(CommonConstant.LOCAL_DATE_TIME_STRING_PATTERN_1)
-                                );
-                            } catch (Exception e) {
-                                log.debug(e.getMessage(), e);
-                            }
-                            try {
-                                return LocalDateTime.parse(
-                                        json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ofPattern(CommonConstant.LOCAL_DATE_TIME_STRING_PATTERN_2)
-                                );
-                            } catch (Exception e) {
-                                log.debug(e.getMessage(), e);
-                            }
-                            try {
-                                return LocalDateTime.parse(
-                                        json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ofPattern(CommonConstant.LOCAL_DATE_TIME_STRING_PATTERN_3)
-                                );
-                            } catch (Exception e) {
-                                log.debug(e.getMessage(), e);
-                            }
-                            try {
-                                return LocalDateTime.parse(
-                                        json.getAsJsonPrimitive().getAsString(), DateTimeFormatter.ofPattern(CommonConstant.LOCAL_DATE_TIME_STRING_PATTERN_4)
                                 );
                             } catch (Exception e) {
                                 log.debug(e.getMessage(), e);
@@ -162,8 +120,8 @@ public final class BuildGson {
                 )
                 .registerTypeAdapter(
                         OffsetDateTime.class,
-                        (JsonSerializer<LocalDateTime>) (localDateTime, type, jsonSerializationContext) ->
-                                new JsonPrimitive(localDateTime.format(DateTimeFormatter.ofPattern(CommonConstant.LOCAL_DATE_TIME_STRING_PATTERN_6)))
+                        (JsonSerializer<OffsetDateTime>) (offsetDateTime, type, jsonSerializationContext) ->
+                                new JsonPrimitive(offsetDateTime.format(DateTimeFormatter.ofPattern(CommonConstant.LOCAL_DATE_TIME_STRING_PATTERN_6)))
                 )
                 .registerTypeAdapter(
                         LocalDate.class,
