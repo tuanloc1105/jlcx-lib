@@ -221,10 +221,11 @@ public final class DateTimeUtils {
      * expressed in the target timezone
      */
     public static OffsetDateTime convertCurrentTimeToAnotherTimeZone(TimezoneEnum fromTimeZone, TimezoneEnum toTimeZone) {
-        final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(toTimeZone.name()));
-        Instant now = Instant.now();
-        ZoneOffset offset = zoneId.getRules().getOffset(now);
-        return generateCurrentTimeDefaultWithTimezone(fromTimeZone).withOffsetSameInstant(offset);
+        return generateCurrentTimeDefaultWithTimezone(fromTimeZone).withOffsetSameInstant(toTimeZone.getZoneOffset());
+    }
+
+    public static OffsetDateTime convertCurrentTimeToAnotherTimeZone(TimezoneEnum fromTimeZone, ZoneOffset toTimeZone) {
+        return generateCurrentTimeDefaultWithTimezone(fromTimeZone).withOffsetSameInstant(toTimeZone);
     }
 
     /**
@@ -300,6 +301,32 @@ public final class DateTimeUtils {
         public String getValue() {
             return value;
         }
+
+        /**
+         * Gets the current {@link ZoneOffset} for this timezone based on the current instant.
+         *
+         * <p><b>Note:</b> For regions with Daylight Saving Time (DST), the result
+         * may vary depending on the current date and time. For a specific date/time,
+         * use {@link #getZoneOffset(LocalDateTime)} instead.</p>
+         *
+         * @return the current ZoneOffset for this timezone
+         */
+        public ZoneOffset getZoneOffset() {
+            final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(this.name()));
+            return zoneId.getRules().getOffset(Instant.now());
+        }
+
+        /**
+         * Gets the {@link ZoneOffset} for this timezone at a specific local date-time.
+         *
+         * @param localDateTime the local date-time to evaluate
+         * @return the ZoneOffset valid at the given local date-time
+         */
+        public ZoneOffset getZoneOffset(LocalDateTime localDateTime) {
+            final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(this.name()));
+            return zoneId.getRules().getOffset(localDateTime.atZone(zoneId).toInstant());
+        }
+
     }
 
 }
