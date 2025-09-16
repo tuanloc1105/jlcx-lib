@@ -169,7 +169,7 @@ public final class DateTimeUtils {
      *
      * @param localDateTime the {@code LocalDateTime} instance to be converted, must not be {@code null}
      * @return an {@code OffsetDateTime} representing the same local date-time with the offset
-     *         corresponding to Vietnam Standard Time
+     * corresponding to Vietnam Standard Time
      */
     public static OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime) {
         return localDateTimeToOffsetDateTime(localDateTime, TimezoneEnum.VST);
@@ -190,13 +190,41 @@ public final class DateTimeUtils {
      * @param localDateTime the {@code LocalDateTime} instance to be converted, must not be {@code null}
      * @param timezone      the target {@link TimezoneEnum}, must not be {@code null}
      * @return an {@code OffsetDateTime} representing the same local date-time with the offset
-     *         corresponding to the given timezone
+     * corresponding to the given timezone
      */
     public static OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime, TimezoneEnum timezone) {
         final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(timezone.name()));
         Instant now = Instant.now();
         ZoneOffset offset = zoneId.getRules().getOffset(now);
         return localDateTime.atOffset(offset);
+    }
+
+    /**
+     * Converts the current time from one timezone to another.
+     *
+     * <p>This method first generates the current {@link OffsetDateTime}
+     * in the source timezone ({@code fromTimeZone}), and then converts
+     * it to the target timezone ({@code toTimeZone}) while preserving
+     * the exact instant in time.</p>
+     *
+     * <h3>Usage example:</h3>
+     * <pre>{@code
+     * OffsetDateTime tokyoTime = DateTimeUtils.convertCurrentTimeToAnotherTimeZone(
+     *         TimezoneEnum.VST, // from Vietnam Standard Time
+     *         TimezoneEnum.JST  // to Japan Standard Time
+     * );
+     * }</pre>
+     *
+     * @param fromTimeZone the source timezone enum (must not be {@code null})
+     * @param toTimeZone   the target timezone enum (must not be {@code null})
+     * @return an {@link OffsetDateTime} representing the current instant,
+     * expressed in the target timezone
+     */
+    public static OffsetDateTime convertCurrentTimeToAnotherTimeZone(TimezoneEnum fromTimeZone, TimezoneEnum toTimeZone) {
+        final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(toTimeZone.name()));
+        Instant now = Instant.now();
+        ZoneOffset offset = zoneId.getRules().getOffset(now);
+        return generateCurrentTimeDefaultWithTimezone(fromTimeZone).withOffsetSameInstant(offset);
     }
 
     /**
@@ -250,6 +278,12 @@ public final class DateTimeUtils {
 
         private final String value;
 
+        /**
+         * Constructs a new enum constant with the given short ID value.
+         *
+         * @param value the short ID string corresponding to this timezone
+         *              (e.g., "VST" for Asia/Ho_Chi_Minh, "JST" for Asia/Tokyo)
+         */
         TimezoneEnum(String value) {
             this.value = value;
         }
