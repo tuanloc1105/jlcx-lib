@@ -22,8 +22,18 @@ ${constructor}
             if (enableMetric) {
                 router.route("/metrics").handler(io.vertx.micrometer.PrometheusScrapingHandler.create());
             }
-            router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
-                    // .handler(io.vertx.ext.web.handler.SessionHandler.create(io.vertx.ext.web.sstore.LocalSessionStore.create(vertx)));
+            try {
+                final Long bodyBytesLimit = vn.com.lcx.common.constant.CommonConstant.applicationConfig.<Long>getProperty_("server.body-bytes-limit");
+                if (bodyBytesLimit == null) {
+                    router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
+                } else {
+                    router.route().handler(io.vertx.ext.web.handler.BodyHandler.create().setBodyLimit(bodyBytesLimit));
+                }
+            } catch (Throwable e) {
+                logger.warn(e.getMessage(), e);
+                router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
+                throw e;
+            }
 
             router.get("/health").handler(routingContext -> routingContext.response().end("OK"));
             router.get("/starting_probe").handler(routingContext -> {
