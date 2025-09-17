@@ -45,8 +45,8 @@ public final class RSAUtils {
     public static RSAPublicKey getPublicKey(String key) throws Exception {
         String publicKeyPEM = key
                 .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replaceAll(System.lineSeparator(), "")
-                .replace("-----END PUBLIC KEY-----", "");
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s+", "");
 
         byte[] encoded = Base64.getDecoder().decode(publicKeyPEM);
 
@@ -58,8 +58,8 @@ public final class RSAUtils {
     public static RSAPrivateKey getPrivateKey(String key) throws Exception {
         String privateKeyPEM = key
                 .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replaceAll(System.lineSeparator(), "")
-                .replace("-----END PRIVATE KEY-----", "");
+                .replace("-----END PRIVATE KEY-----", "")
+                .replaceAll("\\s+", "");
 
         byte[] encoded = Base64.getDecoder().decode(privateKeyPEM);
 
