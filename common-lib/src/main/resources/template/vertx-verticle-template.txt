@@ -23,7 +23,7 @@ ${constructor}
                 router.route("/metrics").handler(io.vertx.micrometer.PrometheusScrapingHandler.create());
             }
             try {
-                final Long bodyBytesLimit = vn.com.lcx.common.constant.CommonConstant.applicationConfig.<Long>getProperty_("server.body-bytes-limit");
+                final Long bodyBytesLimit = (long) vn.com.lcx.common.constant.CommonConstant.applicationConfig.<Integer>getProperty_("server.body-bytes-limit");
                 if (bodyBytesLimit == null) {
                     router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
                 } else {
@@ -32,7 +32,6 @@ ${constructor}
             } catch (Throwable e) {
                 logger.warn(e.getMessage(), e);
                 router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
-                throw e;
             }
 
             router.get("/health").handler(routingContext -> routingContext.response().end("OK"));
