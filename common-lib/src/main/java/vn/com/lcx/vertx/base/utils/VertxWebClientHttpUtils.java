@@ -161,11 +161,11 @@ public class VertxWebClientHttpUtils {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = endingTime - startingTime;
             httpLogMessage.append("\n- Duration: ").append(duration).append(" ms");
+            LogUtils.writeLog(context, LogUtils.Level.INFO, httpLogMessage.toString());
             responseBuilder.code(responseStatusCode)
                     .responseHeaders(headerMap)
                     .errorResponse(responseStatusCode == 200 ? null : responseBodyAsString)
                     .response(responseBodyAsString == null ? null : readJson(responseBodyAsString, responseType));
-            LogUtils.writeLog(context, LogUtils.Level.INFO, httpLogMessage.toString());
             return Future.succeededFuture(responseBuilder.build());
         });
     }
