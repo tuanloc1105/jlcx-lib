@@ -30,7 +30,7 @@ ${constructor}
                     router.route().handler(io.vertx.ext.web.handler.BodyHandler.create().setBodyLimit(bodyBytesLimit));
                 }
             } catch (Throwable e) {
-                logger.warn(e.getMessage(), e);
+                logger.info("Create default body handler");
                 router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
             }
 
