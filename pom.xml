@@ -17,7 +17,7 @@
         <logback-classic-ch.qos.logback.version>1.5.18</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.14.0</commons-text-org.apache.commons.version>
-        <commons-lang3-org.apache.commons.version>3.18.0</commons-lang3-org.apache.commons.version>
+        <commons-lang3-org.apache.commons.version>3.19.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
         <lombok-org.projectlombok.version>1.18.42</lombok-org.projectlombok.version>
         <ojdbc11-com.oracle.database.jdbc.version>23.9.0.25.07</ojdbc11-com.oracle.database.jdbc.version>
@@ -85,8 +85,8 @@
         <mockito-junit-jupiter-org.mockito.version>5.20.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
         <byte-buddy-net.bytebuddy.version>1.17.7</byte-buddy-net.bytebuddy.version>
-        <datafaker-net.datafaker.version>2.5.0</datafaker-net.datafaker.version>
-        <h2-com.h2database.version>2.3.232</h2-com.h2database.version>
+        <datafaker-net.datafaker.version>2.5.1</datafaker-net.datafaker.version>
+        <h2-com.h2database.version>2.4.240</h2-com.h2database.version>
         <maven-plugin-api-org.apache.maven.version>3.9.11</maven-plugin-api-org.apache.maven.version>
         <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.1
         </maven-plugin-annotations-org.apache.maven.plugin-tools.version>
