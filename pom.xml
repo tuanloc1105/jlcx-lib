@@ -101,8 +101,6 @@
         </maven-resources-plugin-org.apache.maven.plugins.version>
         <sonar-maven-plugin-org.sonarsource.scanner.maven.version>5.2.0.4988
         </sonar-maven-plugin-org.sonarsource.scanner.maven.version>
-        <maven-javadoc-plugin-org.apache.maven.plugins.version>3.12.0
-        </maven-javadoc-plugin-org.apache.maven.plugins.version>
         <maven-source-plugin-org.apache.maven.plugins.version>3.3.1
         </maven-source-plugin-org.apache.maven.plugins.version>
         <maven-clean-plugin-org.apache.maven.plugins.version>3.5.0</maven-clean-plugin-org.apache.maven.plugins.version>
@@ -129,6 +127,7 @@
 
         <dependencies>
 
+            <!-- Released at 2025-03-18 -->
             <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
             <dependency>
                 <groupId>ch.qos.logback</groupId>
@@ -136,6 +135,7 @@
                 <version>${logback-classic-ch.qos.logback.version}</version>
             </dependency>
 
+            <!-- Released at 2025-02-25 -->
             <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -143,6 +143,7 @@
                 <version>${slf4j-api-org.slf4j.version}</version>
             </dependency>
 
+            <!-- Released at 2025-07-20 -->
             <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -150,6 +151,7 @@
                 <version>${commons-text-org.apache.commons.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-20 -->
             <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -157,6 +159,7 @@
                 <version>${commons-lang3-org.apache.commons.version}</version>
             </dependency>
 
+            <!-- Released at 2025-04-19 -->
             <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -164,6 +167,7 @@
                 <version>${commons-collections4-org.apache.commons.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-18 -->
             <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -172,6 +176,7 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- Released at 2025-07-28 -->
             <!-- https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc11 -->
             <dependency>
                 <groupId>com.oracle.database.jdbc</groupId>
@@ -179,6 +184,7 @@
                 <version>${ojdbc11-com.oracle.database.jdbc.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-19 -->
             <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
             <dependency>
                 <groupId>org.postgresql</groupId>
@@ -186,6 +192,7 @@
                 <version>${postgresql-org.postgresql.version}</version>
             </dependency>
 
+            <!-- Released at 2025-07-30 -->
             <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
             <dependency>
                 <groupId>com.mysql</groupId>
@@ -199,6 +206,7 @@
                 </exclusions>
             </dependency>
 
+            <!-- Released at 2025-08-15 -->
             <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
             <dependency>
                 <groupId>com.microsoft.sqlserver</groupId>
@@ -206,6 +214,7 @@
                 <version>${mssql-jdbc-com.microsoft.sqlserver.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-11 -->
             <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
             <dependency>
                 <groupId>com.google.code.gson</groupId>
@@ -213,6 +222,7 @@
                 <version>${gson-com.google.code.gson.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-15 -->
             <!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
             <dependency>
                 <groupId>jakarta.xml.bind</groupId>
@@ -221,6 +231,7 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- Released at 2025-09-22 -->
             <!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime -->
             <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
@@ -228,6 +239,7 @@
                 <version>${jaxb-runtime-org.glassfish.jaxb.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-29 -->
             <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-module-parameter-names -->
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
@@ -236,6 +248,7 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- Released at 2025-08-29 -->
             <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310 -->
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -244,6 +257,7 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- Released at 2025-08-29 -->
             <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jdk8 -->
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -252,6 +266,7 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- Released at 2025-08-29 -->
             <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -260,6 +275,7 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- Released at 2025-08-29 -->
             <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml -->
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -268,6 +284,7 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- Released at 2025-09-23 -->
             <!-- https://mvnrepository.com/artifact/org.eclipse.angus/jakarta.mail -->
             <dependency>
                 <groupId>org.eclipse.angus</groupId>
@@ -275,6 +292,7 @@
                 <version>${jakarta.mail-org.eclipse.angus.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-28 -->
             <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
             <dependency>
                 <groupId>redis.clients</groupId>
@@ -282,6 +300,7 @@
                 <version>${jedis-redis.clients.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-08 -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-core -->
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -289,6 +308,7 @@
                 <version>${micrometer-core-io.micrometer.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-08 -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -296,6 +316,7 @@
                 <version>${micrometer-registry-prometheus-io.micrometer.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-16 -->
             <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
@@ -304,6 +325,7 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- Released at 2025-09-16 -->
             <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-healthchecks -->
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
@@ -312,6 +334,7 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- Released at 2025-09-16 -->
             <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics5/metrics-core -->
             <dependency>
                 <groupId>io.dropwizard.metrics5</groupId>
@@ -320,6 +343,7 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- Released at 2023-12-24 -->
             <!-- https://mvnrepository.com/artifact/org.javassist/javassist -->
             <dependency>
                 <groupId>org.javassist</groupId>
@@ -327,6 +351,7 @@
                 <version>${javassist-org.javassist.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-31 -->
             <!-- https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
             <dependency>
                 <groupId>org.yaml</groupId>
@@ -334,6 +359,7 @@
                 <version>${snakeyaml-org.yaml.version}</version>
             </dependency>
 
+            <!-- Released at 2017-02-14 -->
             <!-- https://mvnrepository.com/artifact/org.mindrot/jbcrypt -->
             <dependency>
                 <groupId>org.mindrot</groupId>
@@ -341,6 +367,7 @@
                 <version>${jbcrypt-org.mindrot.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-19 -->
             <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
             <dependency>
                 <groupId>com.zaxxer</groupId>
@@ -348,6 +375,7 @@
                 <version>${HikariCP-com.zaxxer.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-27 -->
             <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
             <dependency>
                 <groupId>org.apache.kafka</groupId>
@@ -356,6 +384,7 @@
                 <optional>true</optional>
             </dependency>
 
+            <!-- Released at 2025-09-14 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -363,6 +392,7 @@
                 <version>${hibernate-core-org.hibernate.orm.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-15 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.tool/hibernate-tools-orm -->
             <dependency>
                 <groupId>org.hibernate.tool</groupId>
@@ -371,6 +401,7 @@
                 <optional>true</optional>
             </dependency>
 
+            <!-- Released at 2025-09-14 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-jcache -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -378,6 +409,7 @@
                 <version>${hibernate-jcache-org.hibernate.orm.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-29 -->
             <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
             <dependency>
                 <groupId>org.ehcache</groupId>
@@ -385,6 +417,7 @@
                 <version>${ehcache-org.ehcache.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -392,6 +425,7 @@
                 <version>${vertx-core-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -399,6 +433,7 @@
                 <version>${vertx-web-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -406,6 +441,7 @@
                 <version>${vertx-web-client-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-json-schema -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -413,6 +449,7 @@
                 <version>${vertx-json-schema-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-codegen -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -420,6 +457,7 @@
                 <version>${vertx-codegen-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-unit -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -428,6 +466,7 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-auth-jwt -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -436,6 +475,7 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-micrometer-metrics -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -443,6 +483,7 @@
                 <version>${vertx-micrometer-metrics-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-oracle-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -450,6 +491,7 @@
                 <version>${vertx-oracle-client-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mysql-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -457,6 +499,7 @@
                 <version>${vertx-mysql-client-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-pg-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -464,6 +507,7 @@
                 <version>${vertx-pg-client-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mssql-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -471,6 +515,7 @@
                 <version>${vertx-mssql-client-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-redis-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -478,6 +523,7 @@
                 <version>${vertx-redis-client-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -485,6 +531,7 @@
                 <version>${vertx-grpc-client-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc-server -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -492,6 +539,7 @@
                 <version>${vertx-grpc-server-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -499,6 +547,7 @@
                 <version>${vertx-grpc-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-03 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-reactive-streams -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -506,6 +555,7 @@
                 <version>${vertx-reactive-streams-io.vertx.version}</version>
             </dependency>
 
+            <!-- Released at 2024-02-15 -->
             <!-- https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
             <dependency>
                 <groupId>jakarta.annotation</groupId>
@@ -513,6 +563,7 @@
                 <version>${jakarta.annotation-api-jakarta.annotation.version}</version>
             </dependency>
 
+            <!-- Released at 2018-02-21 -->
             <!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
             <dependency>
                 <groupId>javax.annotation</groupId>
@@ -520,6 +571,7 @@
                 <version>${javax.annotation-api-javax.annotation.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-21 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -527,6 +579,7 @@
                 <version>${grpc-netty-shaded-io.grpc.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-21 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-protobuf -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -534,6 +587,7 @@
                 <version>${grpc-protobuf-io.grpc.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-21 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-stub -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -541,6 +595,7 @@
                 <version>${grpc-stub-io.grpc.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-12 -->
             <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -548,6 +603,7 @@
                 <version>${protobuf-java-com.google.protobuf.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-12 -->
             <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util -->
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -555,6 +611,7 @@
                 <version>${protobuf-java-util-com.google.protobuf.version}</version>
             </dependency>
 
+            <!-- Released at 2025-07-21 -->
             <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -562,6 +619,7 @@
                 <version>${junit-jupiter-api-org.junit.jupiter.version}</version>
             </dependency>
 
+            <!-- Released at 2025-07-21 -->
             <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -569,6 +627,7 @@
                 <version>${junit-jupiter-engine-org.junit.jupiter.version}</version>
             </dependency>
 
+            <!-- Released at 2025-07-21 -->
             <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-params -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -576,6 +635,7 @@
                 <version>${junit-jupiter-params-org.junit.jupiter.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-20 -->
             <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
             <dependency>
                 <groupId>org.mockito</groupId>
@@ -583,6 +643,7 @@
                 <version>${mockito-core-org.mockito.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-20 -->
             <!-- https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
             <dependency>
                 <groupId>org.mockito</groupId>
@@ -590,6 +651,7 @@
                 <version>${mockito-junit-jupiter-org.mockito.version}</version>
             </dependency>
 
+            <!-- Released at 2023-03-10 -->
             <!-- https://mvnrepository.com/artifact/org.mockito/mockito-inline -->
             <dependency>
                 <groupId>org.mockito</groupId>
@@ -597,6 +659,7 @@
                 <version>${mockito-inline-org.mockito.version}</version>
             </dependency>
 
+            <!-- Released at 2025-08-17 -->
             <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
             <dependency>
                 <groupId>net.bytebuddy</groupId>
@@ -604,6 +667,7 @@
                 <version>${byte-buddy-net.bytebuddy.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-24 -->
             <!-- https://mvnrepository.com/artifact/net.datafaker/datafaker -->
             <dependency>
                 <groupId>net.datafaker</groupId>
@@ -611,6 +675,7 @@
                 <version>${datafaker-net.datafaker.version}</version>
             </dependency>
 
+            <!-- Released at 2025-09-24 -->
             <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -618,6 +683,7 @@
                 <version>${h2-com.h2database.version}</version>
             </dependency>
 
+            <!-- Released at 2025-07-13 -->
             <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-plugin-api -->
             <dependency>
                 <groupId>org.apache.maven</groupId>
@@ -625,6 +691,7 @@
                 <version>${maven-plugin-api-org.apache.maven.version}</version>
             </dependency>
 
+            <!-- Released at 2024-10-22 -->
             <!-- https://mvnrepository.com/artifact/org.apache.maven.plugin-tools/maven-plugin-annotations -->
             <dependency>
                 <groupId>org.apache.maven.plugin-tools</groupId>
@@ -641,6 +708,7 @@
         <plugins>
 
             <plugin>
+                <!-- Released at 2024-03-15 -->
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-assembly-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -668,6 +736,7 @@
             </plugin>
 
             <plugin>
+                <!-- Released at 2025-09-19 -->
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -683,6 +752,7 @@
             </plugin>
 
             <plugin>
+                <!-- Released at 2024-10-19 -->
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-dependency-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -720,6 +790,7 @@
             </plugin>
 
             <plugin>
+                <!-- Released at 2024-06-16 -->
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -736,6 +807,7 @@
             </plugin>
 
             <plugin>
+                <!-- Released at 2023-03-21 -->
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-resources-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -763,28 +835,15 @@
             </plugin>
 
             <plugin>
+                <!-- Released at 2025-08-29 -->
                 <!-- https://mvnrepository.com/artifact/org.sonarsource.scanner.maven/sonar-maven-plugin -->
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>${sonar-maven-plugin-org.sonarsource.scanner.maven.version}</version>
             </plugin>
 
-            <!-- <plugin>
-                &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin &ndash;&gt;
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin-org.apache.maven.plugins.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin> -->
-
             <plugin>
+                <!-- Released at 2024-03-30 -->
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -806,6 +865,7 @@
             <plugins>
 
                 <plugin>
+                    <!-- Released at 2025-05-28 -->
                     <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-clean-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
@@ -813,6 +873,7 @@
                 </plugin>
 
                 <plugin>
+                    <!-- Released at 2025-09-10 -->
                     <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -820,6 +881,7 @@
                 </plugin>
 
                 <plugin>
+                    <!-- Released at 2024-06-16 -->
                     <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
@@ -827,6 +889,7 @@
                 </plugin>
 
                 <plugin>
+                    <!-- Released at 2025-02-24 -->
                     <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-install-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
@@ -834,7 +897,8 @@
                 </plugin>
 
                 <plugin>
-                    <!--  https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-plugin-plugin  -->
+                    <!-- Released at 2024-10-22 -->
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-plugin-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
                     <version>${maven-plugin-plugin-org.apache.maven.plugins.version}</version>
