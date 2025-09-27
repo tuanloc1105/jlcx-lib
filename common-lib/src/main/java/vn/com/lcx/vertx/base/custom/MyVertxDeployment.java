@@ -189,7 +189,7 @@ public class MyVertxDeployment {
     }
 
     private void logVerticleDeploymentId(Class<?> verticleClass, String verticleDeploymentId) {
-        LoggerFactory.getLogger("APP").info("Verticle {} wih deployment ID {} started", verticleClass, verticleDeploymentId);
+        LoggerFactory.getLogger("APP").info("Verticle {} with deployment ID {} started", verticleClass, verticleDeploymentId);
     }
 
     public void deployVerticle(Class<?> mainClass, Supplier<Void> preconfigure) {
