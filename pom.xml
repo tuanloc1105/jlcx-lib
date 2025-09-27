@@ -103,6 +103,8 @@
         </sonar-maven-plugin-org.sonarsource.scanner.maven.version>
         <maven-source-plugin-org.apache.maven.plugins.version>3.3.1
         </maven-source-plugin-org.apache.maven.plugins.version>
+        <spring-boot-maven-plugin-org.springframework.boot.version>2.7.18
+        </spring-boot-maven-plugin-org.springframework.boot.version>
         <maven-clean-plugin-org.apache.maven.plugins.version>3.5.0</maven-clean-plugin-org.apache.maven.plugins.version>
         <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.4
         </maven-surefire-plugin-org.apache.maven.plugins.version>
@@ -902,6 +904,15 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
                     <version>${maven-plugin-plugin-org.apache.maven.plugins.version}</version>
+                </plugin>
+
+                <plugin>
+                    <!-- I have to use an older version of the Spring Maven plugins because the newer versions require Java 17, while this project is still using Java 11 -->
+                    <!-- Released at 2023-11-23 -->
+                    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-maven-plugin -->
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot-maven-plugin-org.springframework.boot.version}</version>
                 </plugin>
 
             </plugins>
