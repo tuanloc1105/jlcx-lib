@@ -5,6 +5,7 @@ import java.util.List;
 public class MailProperties {
     private String host;
     private String port;
+    private String displayName;
     private String username;
     private String password;
     private MailSendingMethod mailSendingMethod;
@@ -15,12 +16,14 @@ public class MailProperties {
 
     public MailProperties(String host,
                           String port,
+                          String displayName,
                           String username,
                           String password,
                           MailSendingMethod mailSendingMethod,
                           List<EmailInfo> emailInfos) {
         this.host = host;
         this.port = port;
+        this.displayName = displayName;
         this.username = username;
         this.password = password;
         this.mailSendingMethod = mailSendingMethod;
@@ -45,6 +48,14 @@ public class MailProperties {
 
     public void setPort(String port) {
         this.port = port;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getUsername() {
@@ -82,6 +93,7 @@ public class MailProperties {
     public static class MailPropertiesBuilder {
         private String host;
         private String port;
+        private String displayName;
         private String username;
         private String password;
         private MailSendingMethod mailSendingMethod;
@@ -94,6 +106,11 @@ public class MailProperties {
 
         public MailPropertiesBuilder port(String port) {
             this.port = port;
+            return this;
+        }
+
+        public MailPropertiesBuilder displayName(String displayName) {
+            this.displayName = displayName;
             return this;
         }
 
@@ -118,7 +135,7 @@ public class MailProperties {
         }
 
         public MailProperties build() {
-            return new MailProperties(host, port, username, password, mailSendingMethod, emailInfos);
+            return new MailProperties(host, port, displayName, username, password, mailSendingMethod, emailInfos);
         }
 
     }

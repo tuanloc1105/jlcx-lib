@@ -41,7 +41,7 @@ public final class DBEntityAnalysis {
             put("LocalDate", "DATE");
             put("LocalDateTime", "TIMESTAMP");
             put("LocalTime", "TIME");
-            put("ZonedDateTime", "TIMESTAMP WITH TIME ZONE");
+            put("OffsetDateTime", "TIMESTAMP WITH TIME ZONE");
             put("Instant", "TIMESTAMP");
             put("UUID", "UUID");
             put("Enum", "VARCHAR(50)");
@@ -79,7 +79,7 @@ public final class DBEntityAnalysis {
             put("LocalDate", "DATE");
             put("LocalDateTime", "DATETIME");
             put("LocalTime", "TIME");
-            put("ZonedDateTime", "DATETIME");
+            put("OffsetDateTime", "DATETIME");
             put("Instant", "DATETIME");
             put("UUID", "CHAR(36)");
             put("Enum", "VARCHAR(50)");
@@ -117,7 +117,7 @@ public final class DBEntityAnalysis {
             put("LocalDate", "DATE");
             put("LocalDateTime", "TIMESTAMP");
             put("LocalTime", "DATE");
-            put("ZonedDateTime", "TIMESTAMP WITH TIME ZONE");
+            put("OffsetDateTime", "TIMESTAMP WITH TIME ZONE");
             put("Instant", "TIMESTAMP");
             put("UUID", "RAW(16)");
             put("Enum", "VARCHAR2(50)");
@@ -155,7 +155,7 @@ public final class DBEntityAnalysis {
             put("LocalDate", "DATE");
             put("LocalDateTime", "DATETIME2");
             put("LocalTime", "TIME");
-            put("ZonedDateTime", "DATETIMEOFFSET");
+            put("OffsetDateTime", "DATETIMEOFFSET");
             put("Instant", "DATETIME2");
             put("UUID", "UNIQUEIDENTIFIER");
             put("Enum", "NVARCHAR(50)");

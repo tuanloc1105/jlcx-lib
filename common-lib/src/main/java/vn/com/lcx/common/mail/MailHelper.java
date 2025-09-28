@@ -74,7 +74,16 @@ public final class MailHelper {
             for (var mailInfo : mailInfos) {
                 try {
                     final var message = new MimeMessage(session);
-                    message.setFrom(mailProperties.getUsername());
+                    if (StringUtils.isNotBlank(mailProperties.getDisplayName())) {
+                        final var internetAddress = new InternetAddress(
+                                mailProperties.getUsername(),
+                                mailProperties.getDisplayName(),
+                                CommonConstant.UTF_8_STANDARD_CHARSET
+                        );
+                        message.setFrom(internetAddress);
+                    } else {
+                        message.setFrom(mailProperties.getUsername());
+                    }
 
                     final var toAddresses = new InternetAddress[mailInfo.getToUsers().size()];
                     List<String> toUsers = mailInfo.getToUsers();

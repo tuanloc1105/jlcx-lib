@@ -384,6 +384,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
             final var buffer = (Buffer) payload;
             logMessage = "Response info:\n" +
                     "    => Header: {}\n" +
+                    "    => Response http code: {}\n" +
                     "    => Process duration: {}ms\n" +
                     "    => Response Chunk Size: {} bytes";
             payloadDetail = buffer.length();
@@ -392,6 +393,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
             final var chunk = (String) payload;
             logMessage = "Response info:\n" +
                     "    => Header: {}\n" +
+                    "    => Response http code: {}\n" +
                     "    => Process duration: {}ms\n" +
                     "    => Response Payload: {}";
 
@@ -405,6 +407,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
         } else {
             logMessage = "Response info:\n" +
                     "    => Header: {}\n" +
+                    "    => Response http code: {}\n" +
                     "    => Process duration: {}ms\n" +
                     "    => Unsupported payload type: {}";
             payloadDetail = payload != null ? payload.getClass().getName() : "null";
@@ -416,6 +419,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
                 LogUtils.Level.INFO,
                 logMessage,
                 JsonMaskingUtils.maskJsonFields(gson, gson.toJson(headerMap)),
+                getStatusCode(),
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,
                 payloadDetail
         );

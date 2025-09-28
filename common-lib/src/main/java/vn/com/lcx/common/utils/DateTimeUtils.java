@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
@@ -159,9 +160,92 @@ public final class DateTimeUtils {
     }
 
     /**
+     * Converts a {@link LocalDateTime} to an {@link OffsetDateTime} using the default timezone
+     * {@link TimezoneEnum#VST} (Vietnam Standard Time).
+     * <p>
+     * This method is a shortcut for calling
+     * {@link #localDateTimeToOffsetDateTime(LocalDateTime, TimezoneEnum)} with {@code TimezoneEnum.VST}.
+     * </p>
+     *
+     * @param localDateTime the {@code LocalDateTime} instance to be converted, must not be {@code null}
+     * @return an {@code OffsetDateTime} representing the same local date-time with the offset
+     * corresponding to Vietnam Standard Time
+     */
+    public static OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime) {
+        return localDateTimeToOffsetDateTime(localDateTime, TimezoneEnum.VST);
+    }
+
+    /**
+     * Converts a {@link LocalDateTime} to an {@link OffsetDateTime} using the provided {@link TimezoneEnum}.
+     * <p>
+     * The method resolves the {@link ZoneId} based on the given timezone enum, determines the current
+     * {@link ZoneOffset} for that zone using {@link java.time.zone.ZoneRules}, and applies that offset to the given
+     * local date-time.
+     * </p>
+     * <p><b>Note:</b> Because the offset is determined based on the current {@link Instant}, the result
+     * may not always reflect the historical or future offset for the given {@code localDateTime} in
+     * zones that observe Daylight Saving Time (DST).
+     * </p>
+     *
+     * @param localDateTime the {@code LocalDateTime} instance to be converted, must not be {@code null}
+     * @param timezone      the target {@link TimezoneEnum}, must not be {@code null}
+     * @return an {@code OffsetDateTime} representing the same local date-time with the offset
+     * corresponding to the given timezone
+     */
+    public static OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime, TimezoneEnum timezone) {
+        final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(timezone.name()));
+        Instant now = Instant.now();
+        ZoneOffset offset = zoneId.getRules().getOffset(now);
+        return localDateTime.atOffset(offset);
+    }
+
+    /**
+     * Converts the current time from one timezone to another.
+     *
+     * <p>This method first generates the current {@link OffsetDateTime}
+     * in the source timezone ({@code fromTimeZone}), and then converts
+     * it to the target timezone ({@code toTimeZone}) while preserving
+     * the exact instant in time.</p>
+     *
+     * <h3>Usage example:</h3>
+     * <pre>{@code
+     * OffsetDateTime tokyoTime = DateTimeUtils.convertCurrentTimeToAnotherTimeZone(
+     *         TimezoneEnum.VST, // from Vietnam Standard Time
+     *         TimezoneEnum.JST  // to Japan Standard Time
+     * );
+     * }</pre>
+     *
+     * @param fromTimeZone the source timezone enum (must not be {@code null})
+     * @param toTimeZone   the target timezone enum (must not be {@code null})
+     * @return an {@link OffsetDateTime} representing the current instant,
+     * expressed in the target timezone
+     */
+    public static OffsetDateTime convertCurrentTimeToAnotherTimeZone(TimezoneEnum fromTimeZone, TimezoneEnum toTimeZone) {
+        return generateCurrentTimeDefaultWithTimezone(fromTimeZone).withOffsetSameInstant(toTimeZone.getZoneOffset());
+    }
+
+    public static OffsetDateTime convertCurrentTimeToAnotherTimeZone(TimezoneEnum fromTimeZone, ZoneOffset toTimeZone) {
+        return generateCurrentTimeDefaultWithTimezone(fromTimeZone).withOffsetSameInstant(toTimeZone);
+    }
+
+    /**
      * Enum of supported time zone short IDs for use with {@link ZoneId#SHORT_IDS}.
      *
-     * <p>Each value maps to a region or offset, e.g. VST = Asia/Ho_Chi_Minh.</p>
+     * <p>Each enum constant maps to a standard short ID string recognized by
+     * {@link ZoneId#of(String, java.util.Map)} or {@link ZoneId#SHORT_IDS}.
+     * These short IDs resolve to either a specific region-based time zone
+     * (e.g. {@code VST -> Asia/Ho_Chi_Minh}) or a fixed UTC offset
+     * (e.g. {@code EST -> -05:00}).</p>
+     *
+     * <p>This enum provides a type-safe way of working with short IDs instead of
+     * hardcoding raw strings.</p>
+     *
+     * <h3>Usage example:</h3>
+     * <pre>{@code
+     * ZoneId zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
+     * LocalDateTime localDateTime = LocalDateTime.now();
+     * OffsetDateTime odt = localDateTime.atZone(zoneId).toOffsetDateTime();
+     * }</pre>
      */
     public enum TimezoneEnum {
         ACT("ACT"), // Australia/Darwin
@@ -191,10 +275,16 @@ public final class DateTimeUtils {
         VST("VST"), // Asia/Ho_Chi_Minh
         EST("EST"), // -05:00
         MST("MST"), // -07:00
-        HST("HST"), // -10:00
-        ;
+        HST("HST"); // -10:00
+
         private final String value;
 
+        /**
+         * Constructs a new enum constant with the given short ID value.
+         *
+         * @param value the short ID string corresponding to this timezone
+         *              (e.g., "VST" for Asia/Ho_Chi_Minh, "JST" for Asia/Tokyo)
+         */
         TimezoneEnum(String value) {
             this.value = value;
         }
@@ -202,11 +292,41 @@ public final class DateTimeUtils {
         /**
          * Gets the short ID value for this time zone.
          *
-         * @return the short ID string
+         * <p>This value can be used with {@link ZoneId#of(String, java.util.Map)}
+         * in combination with {@link ZoneId#SHORT_IDS} to resolve a proper
+         * {@link ZoneId} instance.</p>
+         *
+         * @return the short ID string (e.g. "VST", "EST", "PST")
          */
         public String getValue() {
             return value;
         }
+
+        /**
+         * Gets the current {@link ZoneOffset} for this timezone based on the current instant.
+         *
+         * <p><b>Note:</b> For regions with Daylight Saving Time (DST), the result
+         * may vary depending on the current date and time. For a specific date/time,
+         * use {@link #getZoneOffset(LocalDateTime)} instead.</p>
+         *
+         * @return the current ZoneOffset for this timezone
+         */
+        public ZoneOffset getZoneOffset() {
+            final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(this.name()));
+            return zoneId.getRules().getOffset(Instant.now());
+        }
+
+        /**
+         * Gets the {@link ZoneOffset} for this timezone at a specific local date-time.
+         *
+         * @param localDateTime the local date-time to evaluate
+         * @return the ZoneOffset valid at the given local date-time
+         */
+        public ZoneOffset getZoneOffset(LocalDateTime localDateTime) {
+            final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(this.name()));
+            return zoneId.getRules().getOffset(localDateTime.atZone(zoneId).toInstant());
+        }
+
     }
 
 }
