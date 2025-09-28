@@ -4,5 +4,5 @@
    \ V /  __/ |  | |_ _ /  \
     \_/ \___|_|   \__(_)_/\_\
 
-JLCX version 3.4.2.lcx-SNAPSHOT
+JLCX version 3.4.2.lcx
 Powered by Vert.X 5.0.4
