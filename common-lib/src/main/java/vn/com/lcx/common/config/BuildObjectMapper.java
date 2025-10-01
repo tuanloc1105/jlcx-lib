@@ -29,7 +29,7 @@ public final class BuildObjectMapper {
             {
                 findAndRegisterModules();
                 configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                setSerializationInclusion(JsonInclude.Include.ALWAYS);
+                setDefaultPropertyInclusion(JsonInclude.Include.ALWAYS);
             }
         };
     }
@@ -46,8 +46,8 @@ public final class BuildObjectMapper {
                 enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
                 disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
                 disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
-                setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-                setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY);
+                setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
                 setDateFormat(new SimpleDateFormat(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN));
                 JavaTimeModule javaTimeModule = new JavaTimeModule();
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_STRING_PATTERN);
