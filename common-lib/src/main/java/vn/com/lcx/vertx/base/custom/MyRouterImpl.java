@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 public class MyRouterImpl extends RouterImpl {
 
-    private final Logger logger = LoggerFactory.getLogger("Router register");
+    private final Logger logger = LoggerFactory.getLogger("Route register");
 
     public MyRouterImpl(Vertx vertx) {
         super(vertx);
