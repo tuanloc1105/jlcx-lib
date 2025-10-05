@@ -17,6 +17,7 @@ import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
+@Deprecated(forRemoval = true)
 public class ServiceProxyHandler<T> implements InvocationHandler {
 
     private final Object target;
