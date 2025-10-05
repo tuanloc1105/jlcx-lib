@@ -14,7 +14,7 @@
         <!--suppress CheckTagEmptyBody -->
         <main.class></main.class>
 
-        <logback-classic-ch.qos.logback.version>1.5.18</logback-classic-ch.qos.logback.version>
+        <logback-classic-ch.qos.logback.version>1.5.19</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.14.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.19.0</commons-lang3-org.apache.commons.version>
@@ -50,9 +50,9 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.1.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.29.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.29.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.29.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.31.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.31.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-jcache-org.hibernate.orm.version>6.6.31.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.4</vertx-core-io.vertx.version>
         <vertx-web-io.vertx.version>5.0.4</vertx-web-io.vertx.version>
@@ -78,9 +78,9 @@
         <grpc-stub-io.grpc.version>1.75.0</grpc-stub-io.grpc.version>
         <protobuf-java-com.google.protobuf.version>4.32.1</protobuf-java-com.google.protobuf.version>
         <protobuf-java-util-com.google.protobuf.version>4.32.1</protobuf-java-util-com.google.protobuf.version>
-        <junit-jupiter-api-org.junit.jupiter.version>5.13.4</junit-jupiter-api-org.junit.jupiter.version>
-        <junit-jupiter-engine-org.junit.jupiter.version>5.13.4</junit-jupiter-engine-org.junit.jupiter.version>
-        <junit-jupiter-params-org.junit.jupiter.version>5.13.4</junit-jupiter-params-org.junit.jupiter.version>
+        <junit-jupiter-api-org.junit.jupiter.version>6.0.0</junit-jupiter-api-org.junit.jupiter.version>
+        <junit-jupiter-engine-org.junit.jupiter.version>6.0.0</junit-jupiter-engine-org.junit.jupiter.version>
+        <junit-jupiter-params-org.junit.jupiter.version>6.0.0</junit-jupiter-params-org.junit.jupiter.version>
         <mockito-core-org.mockito.version>5.20.0</mockito-core-org.mockito.version>
         <mockito-junit-jupiter-org.mockito.version>5.20.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
@@ -94,7 +94,7 @@
         </maven-assembly-plugin-org.apache.maven.plugins.version>
         <maven-compiler-plugin-org.apache.maven.plugins.version>3.14.1
         </maven-compiler-plugin-org.apache.maven.plugins.version>
-        <maven-dependency-plugin-org.apache.maven.plugins.version>3.8.1
+        <maven-dependency-plugin-org.apache.maven.plugins.version>3.9.0
         </maven-dependency-plugin-org.apache.maven.plugins.version>
         <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
         <maven-resources-plugin-org.apache.maven.plugins.version>3.3.1
@@ -103,8 +103,6 @@
         </sonar-maven-plugin-org.sonarsource.scanner.maven.version>
         <maven-source-plugin-org.apache.maven.plugins.version>3.3.1
         </maven-source-plugin-org.apache.maven.plugins.version>
-        <spring-boot-maven-plugin-org.springframework.boot.version>2.7.18
-        </spring-boot-maven-plugin-org.springframework.boot.version>
         <maven-clean-plugin-org.apache.maven.plugins.version>3.5.0</maven-clean-plugin-org.apache.maven.plugins.version>
         <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.4
         </maven-surefire-plugin-org.apache.maven.plugins.version>
@@ -113,6 +111,8 @@
         </maven-install-plugin-org.apache.maven.plugins.version>
         <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.1
         </maven-plugin-plugin-org.apache.maven.plugins.version>
+        <spring-boot-maven-plugin-org.springframework.boot.version>2.7.18
+        </spring-boot-maven-plugin-org.springframework.boot.version>
 
     </properties>
 
