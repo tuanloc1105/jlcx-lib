@@ -117,7 +117,7 @@
     <!-- ======================== -->
     <!-- Root logger configuration -->
     <!-- ======================== -->
-    <root level="debug">
+    <root level="trace">
         <appender-ref ref="ASYNC_STDOUT"/>
         <appender-ref ref="ASYNC_FILE"/>
         <appender-ref ref="ASYNC_DEBUG"/>
