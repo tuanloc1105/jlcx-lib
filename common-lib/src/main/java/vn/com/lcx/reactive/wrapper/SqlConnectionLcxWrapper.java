@@ -76,7 +76,7 @@ public class SqlConnectionLcxWrapper implements SqlConnection {
 
     @Override
     public PreparedQuery<RowSet<Row>> preparedQuery(String sql) {
-        LogUtils.writeLog(context, LogUtils.Level.INFO, sql);
+        LogUtils.writeLog(context, LogUtils.Level.DEBUG, sql);
         PreparedQuery<RowSet<Row>> preparedQuery = realConnection.preparedQuery(sql);
         @SuppressWarnings("UnnecessaryLocalVariable")
         PreparedQueryWrapper<RowSet<Row>> wrapper = new PreparedQueryWrapper<>(preparedQuery, context);
@@ -85,7 +85,7 @@ public class SqlConnectionLcxWrapper implements SqlConnection {
 
     @Override
     public PreparedQuery<RowSet<Row>> preparedQuery(String sql, PrepareOptions options) {
-        LogUtils.writeLog(context, LogUtils.Level.INFO, sql);
+        LogUtils.writeLog(context, LogUtils.Level.DEBUG, sql);
         PreparedQuery<RowSet<Row>> preparedQuery = realConnection.preparedQuery(sql, options);
         @SuppressWarnings("UnnecessaryLocalVariable")
         PreparedQueryWrapper<RowSet<Row>> wrapper = new PreparedQueryWrapper<>(preparedQuery, context);
