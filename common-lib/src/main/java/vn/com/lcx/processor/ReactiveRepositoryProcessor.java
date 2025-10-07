@@ -861,6 +861,13 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     codeLines.add(
                             "            if (rowSet.size() == 0) {"
                     );
+                    codeLines.add(
+                            "                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                    );
+                    codeLines.add(
+                            "                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                    );
+
                     if (isOptional) {
                         codeLines.add(
                                 "                return java.util.Optional.empty();"
@@ -875,6 +882,12 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     );
                     codeLines.add(
                             "            if (rowSet.size() > 1) {"
+                    );
+                    codeLines.add(
+                            "                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
+                    );
+                    codeLines.add(
+                            "                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                     );
                     codeLines.add(
                             "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
