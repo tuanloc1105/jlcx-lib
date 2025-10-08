@@ -8,7 +8,7 @@ Utilities, annotations, and an annotation processor to speed up Java backend dev
 - `processor`: Annotation Processor registered via `META-INF/services/javax.annotation.processing.Processor` that works with the annotations and templates from `common-lib`.
 - `examples`: Working samples demonstrating usage: gRPC (server/client), Hibernate Reactive, and a Todo app.
 
-### Tech stack (from POMs)
+### Tech stack
 
 - Java 11, Maven
 - Vert.x 5.x (core, web, auth-jwt, grpc, micrometer, redis, DB clients)
