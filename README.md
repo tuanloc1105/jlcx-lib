@@ -129,3 +129,110 @@ Each example also includes `build.sh`, `clean.sh`, and PowerShell equivalents.
 ## Versioning
 
 The current version in the root POM is `3.4.3.lcx-SNAPSHOT`.
+
+---
+
+## Quickstart
+
+Build all modules:
+
+```bash
+mvn clean install -DskipTests=true
+```
+
+Build a single module (example):
+
+```bash
+mvn -pl common-lib -am clean install -DskipTests=true
+```
+
+---
+
+## Helper scripts and required environment
+
+Scripts are provided for both Bash and PowerShell.
+
+- Linux/macOS: `build.sh`, `clean.sh`, `snapshot.sh`, `release.sh`
+- Windows PowerShell: `build.ps1`, `clean.ps1`, `snapshot.ps1`, `release.ps1`
+
+The scripts expect JDK and Maven locations via environment variables:
+
+- Bash scripts set `JAVA_HOME` to `$HOME/dev-kit/jdk-11` and `MAVEN_HOME` to `$HOME/dev-kit/maven`.
+- PowerShell scripts expect `DEV_KIT_LOCATION` to be set so that:
+  - `JAVA_HOME = "$env:DEV_KIT_LOCATION\jdk-11"`
+  - `MAVEN_HOME = "$env:DEV_KIT_LOCATION\maven"`
+
+If your tools are installed elsewhere, either export the matching variables or run Maven directly without the scripts.
+
+---
+
+## Publishing (Snapshots/Releases)
+
+Use the provided scripts to deploy to your Nexus repositories (credentials must be configured in your Maven settings):
+
+```bash
+# Snapshot
+./snapshot.sh          # Bash
+./snapshot.ps1         # PowerShell
+
+# Release
+./release.sh           # Bash
+./release.ps1          # PowerShell
+```
+
+Configured endpoints (from scripts):
+
+- Snapshots: `https://nexus.vtl.name.vn/repository/maven-snapshots/`
+- Releases:  `https://nexus.vtl.name.vn/repository/maven-releases/`
+
+Maven runs with `-DskipTests=true` and UTF-8 file encoding by default in these scripts.
+
+---
+
+## Using the annotation processor
+
+Add the processor on the compile classpath (provided scope is typical):
+
+```xml
+<dependency>
+  <groupId>vn.com.lcx</groupId>
+  <artifactId>processor</artifactId>
+  <version>3.4.3.lcx-SNAPSHOT</version>
+  <scope>provided</scope>
+  <!-- or annotationProcessor path if you prefer -->
+</dependency>
+```
+
+If your build does not automatically pick up the processor, configure the Maven Compiler Plugin explicitly:
+
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <configuration>
+    <annotationProcessorPaths>
+      <path>
+        <groupId>vn.com.lcx</groupId>
+        <artifactId>processor</artifactId>
+        <version>3.4.3.lcx-SNAPSHOT</version>
+      </path>
+    </annotationProcessorPaths>
+    <compilerArgs>
+      <arg>-proc:full</arg>
+    </compilerArgs>
+  </configuration>
+  <!-- lock version via your parent/BOM as needed -->
+  <version>3.14.1</version>
+  <!-- version shown here for clarity; align with your build -->
+</plugin>
+```
+
+Generated sources will be produced during compilation based on annotations defined in `common-lib` and templates under `common-lib/src/main/resources/template/`.
+
+---
+
+## Troubleshooting
+
+- Ensure you are on JDK 11 when building this project (the POMs set the compiler target to 11).
+- If Maven cannot deploy, verify credentials and server IDs in your `~/.m2/settings.xml` match the repository endpoints above.
+- On Windows, set `DEV_KIT_LOCATION` before using the PowerShell scripts, or invoke Maven directly.
