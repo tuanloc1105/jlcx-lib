@@ -40,11 +40,6 @@ public interface DatabaseExecutor {
                         String sqlString,
                         Map<Integer, Object> parameter);
 
-    BigDecimal executeInsertReturnId(Connection connection,
-                                     String sqlString,
-                                     Map<Integer, Object> parameter,
-                                     DBTypeEnum dbType);
-
     Map<String, Integer> executeMutationBatch(Connection connection,
                                               String sqlString,
                                               List<Map<Integer, Object>> parameterMapList);
