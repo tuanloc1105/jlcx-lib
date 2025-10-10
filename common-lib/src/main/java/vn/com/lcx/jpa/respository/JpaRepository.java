@@ -30,7 +30,7 @@ public interface JpaRepository<E, ID> {
      * @param entity must not be {@literal null}
      * @throws IllegalArgumentException in case the given entity is {@literal null} or does not exist
      */
-    void update(E entity);
+    E update(E entity);
 
 
     /**
