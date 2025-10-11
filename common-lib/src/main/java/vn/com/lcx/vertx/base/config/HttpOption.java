@@ -26,7 +26,7 @@ public final class HttpOption {
                 .setKeyCertOptions(option)
                 .setUseAlpn(true) // Cần bật ALPN để hỗ trợ HTTP/2
                 .setPort(port)
-                .setLogActivity(true)
+                // .setLogActivity(true)
                 .setIdleTimeout(10)
                 .setCompressionSupported(true) // Bật gzip/brotli compression
                 .setHandle100ContinueAutomatically(true)
@@ -44,7 +44,7 @@ public final class HttpOption {
     public static HttpServerOptions configureHttp2H2C(Integer port) {
         return new HttpServerOptions()
                 .setPort(port != null && port > 0 ? port : 8443)
-                .setLogActivity(true)
+                // .setLogActivity(true)
                 .setCompressionSupported(true)
                 .setHandle100ContinueAutomatically(true)
                 .setMaxInitialLineLength(4096)

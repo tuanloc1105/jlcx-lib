@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+@Deprecated(forRemoval = true)
 public class RepositoryProxyHandler<T> implements InvocationHandler {
     private final Logger log = LoggerFactory.getLogger("proxy");
     private final Object target;

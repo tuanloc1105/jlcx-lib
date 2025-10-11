@@ -3,6 +3,7 @@ package vn.com.lcx.common.database.utils;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.utils.FileUtils;
+import vn.com.lcx.common.utils.LogUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -66,7 +67,10 @@ public class EntityAnalyzer {
     private void generateSqlFile() {
         String sqlContent = new SqlGenerator(context).generate();
         String fileName = buildFileName();
-        writeContentToFile(FileUtils.pathJoining(context.getFolderPath(), fileName), sqlContent);
+        final var exportSuccess = writeContentToFile(FileUtils.pathJoining(context.getFolderPath(), fileName), sqlContent);
+        if (exportSuccess) {
+            LogUtils.writeLog(LogUtils.Level.DEBUG, "Exported sql script at path {}", fileName);
+        }
     }
 
     private String buildFileName() {

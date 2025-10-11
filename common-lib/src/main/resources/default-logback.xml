@@ -1,42 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- disable logback startup messages -->
+    <!-- Disable Logback internal startup messages -->
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
 
+    <!-- Global properties -->
     <property name="APPLICATION_NAME" value="${APPLICATION_NAME}" scope="context"/>
     <property name="basePath" value="./data/log"/>
     <property name="fileName" value="app"/>
 
+    <!-- Common log pattern -->
     <property name="LOG_PATTERN"
               value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%25t] [%-40.40logger{1}] [%X{trace_id}] [%X{operation_name}]\n%m%n\n"/>
 
-    <!-- Console appender -->
+    <!-- ========================= -->
+    <!-- Console appender (INFO+) -->
+    <!-- ========================= -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
+        <!-- Only display logs with level >= INFO -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
     </appender>
 
-    <!-- File appender -->
+    <!-- ==================================== -->
+    <!-- File appender for INFO/WARN/ERROR -->
+    <!-- ==================================== -->
     <appender name="FILE-AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${basePath}/${fileName}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!-- rollover daily -->
             <fileNamePattern>
                 ${basePath}/rolling_archived/${fileName}/%d{yyyy_MM_dd}/${fileName}.%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
-            <!-- each file should be at most 10MB, keep 60 days worth of history, but at most 20GB -->
+            <!-- Rotate daily, max 10MB per file -->
             <maxFileSize>10MB</maxFileSize>
             <maxHistory>60</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
+            <!-- Automatically clean old logs on startup -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
+
+        <!-- Exclude TRACE and DEBUG logs -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
     </appender>
 
-    <!-- Async wrappers -->
+    <!-- ==================================== -->
+    <!-- File appender for TRACE and DEBUG -->
+    <!-- ==================================== -->
+    <appender name="FILE-DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${basePath}/${fileName}-debug.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>
+                ${basePath}/rolling_archived/${fileName}/%d{yyyy_MM_dd}/${fileName}-debug.%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+            <!-- Rotate daily, max 10MB per file -->
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+        <!-- only TRACE and DEBUG -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- ============================== -->
+    <!-- Async wrappers for performance -->
+    <!-- ============================== -->
     <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
         <queueSize>8192</queueSize>
         <discardingThreshold>0</discardingThreshold>
@@ -51,13 +107,25 @@
         <appender-ref ref="FILE-AUDIT"/>
     </appender>
 
-    <!-- Root logger -->
-    <root level="info">
+    <appender name="ASYNC_DEBUG" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <appender-ref ref="FILE-DEBUG"/>
+    </appender>
+
+    <!-- ======================== -->
+    <!-- Root logger configuration -->
+    <!-- ======================== -->
+    <root level="trace">
         <appender-ref ref="ASYNC_STDOUT"/>
         <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_DEBUG"/>
     </root>
 
-    <!-- Hibernate log levels -->
+    <!-- ================== -->
+    <!-- Hibernate loggers -->
+    <!-- ================== -->
     <logger name="org.hibernate.SQL" level="debug"/>
     <logger name="org.hibernate.orm.jdbc.bind" level="trace"/>
     <logger name="org.hibernate" level="info"/>

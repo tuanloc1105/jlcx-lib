@@ -5,6 +5,7 @@ import vn.com.lcx.common.constant.CommonConstant;
 import java.sql.Connection;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Deprecated(forRemoval = true)
 public class ConnectionContext {
 
     private static final ThreadLocal<Connection> connetionThreadLocal = new ThreadLocal<>();

@@ -1,14 +1,11 @@
 package vn.com.lcx.common.database;
 
-import oracle.jdbc.OraclePreparedStatement;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.handler.statement.SqlStatementHandler;
-import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.database.type.OracleTypeEnum;
 import vn.com.lcx.common.database.type.PostgresTypeEnum;
 import vn.com.lcx.common.utils.LogUtils;
 
-import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -140,12 +137,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             if (outParameters != null && !outParameters.isEmpty()) {
                 numberOfParameters += outParameters.size();
             }
-            String parameterString = "";
+            StringBuilder parameterString = new StringBuilder();
             for (int i = 0; i < numberOfParameters; i++) {
                 if (i == numberOfParameters - 1) {
-                    parameterString += "?";
+                    parameterString.append("?");
                 } else {
-                    parameterString += "?, ";
+                    parameterString.append("?, ");
                 }
             }
             String sqlCallingSPStatement = String.format(
@@ -250,12 +247,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             } else {
                 throw new RuntimeException("inParameterMaps is empty");
             }
-            String parameterString = "";
+            StringBuilder parameterString = new StringBuilder();
             for (int i = 0; i < numberOfParameters; i++) {
                 if (i == numberOfParameters - 1) {
-                    parameterString += "?";
+                    parameterString.append("?");
                 } else {
-                    parameterString += "?, ";
+                    parameterString.append("?, ");
                 }
             }
             String sqlCallingSPStatement = String.format(
@@ -386,12 +383,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             if (outParameters != null && !outParameters.isEmpty()) {
                 numberOfParameters += outParameters.size();
             }
-            String parameterString = "";
+            StringBuilder parameterString = new StringBuilder();
             for (int i = 0; i < numberOfParameters; i++) {
                 if (i == numberOfParameters - 1) {
-                    parameterString += "?";
+                    parameterString.append("?");
                 } else {
-                    parameterString += "?, ";
+                    parameterString.append("?, ");
                 }
             }
             String sqlCallingSPStatement = String.format(
@@ -549,98 +546,6 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
         }
         LogUtils.writeLog2(LogUtils.Level.INFO, "Modified {} row(s)", rowAffected);
         return rowAffected;
-    }
-
-    @SuppressWarnings("SqlSourceToSinkFlow")
-    @Override
-    public BigDecimal executeInsertReturnId(Connection connection,
-                                            String sqlString,
-                                            Map<Integer, Object> parameter,
-                                            DBTypeEnum dbType) {
-        if (dbType.equals(DBTypeEnum.MYSQL) || dbType.equals(DBTypeEnum.MSSQL)) {
-            throw new RuntimeException("Unsupported db type");
-        }
-
-        PreparedStatement statement = null;
-        BigDecimal id = BigDecimal.ZERO;
-        try {
-            statement = connection.prepareStatement(sqlString);
-            LogUtils.writeLog2(LogUtils.Level.INFO, "\n" + sqlString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
-            var parameterIsNotNullAndNotEmpty = parameter != null && !parameter.isEmpty();
-            if (parameterIsNotNullAndNotEmpty) {
-                StringBuilder parametersLog = new StringBuilder("parameters:");
-                for (Integer i : parameter.keySet()) {
-                    Object parameterValue = parameter.get(i);
-                    String aNull = String.format(
-                            "\n\t- parameter %s: %s",
-                            String.format("%-3d %-20s)", i, "("),
-                            "NULL"
-                    );
-                    if (parameterValue == null) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    Class<?> parameterClass = parameter.get(i).getClass();
-                    if (parameterClass.isPrimitive()) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    String parameterSimpleClassName = parameterClass.getSimpleName();
-                    SqlStatementHandler sqlStatementHandler = DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP.get(parameterSimpleClassName);
-                    if (sqlStatementHandler == null) {
-                        throw new RuntimeException("unknown parameter type");
-                    }
-                    parametersLog.append(
-                            String.format(
-                                    "\n\t- parameter %s: %s",
-                                    String.format("%-3d %-20s)", i, "(" + parameterSimpleClassName),
-                                    parameterValue
-                            )
-                    );
-                    sqlStatementHandler.handle(i, parameterValue, statement);
-                }
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
-            }
-            final var startingTime = (double) System.currentTimeMillis();
-
-            if (dbType.equals(DBTypeEnum.ORACLE)) {
-                final var oraclePreparedStatement = (OraclePreparedStatement) statement.unwrap(PreparedStatement.class);
-                final var index = parameter != null && !parameter.isEmpty() ? parameter.size() + 1 : 2;
-                oraclePreparedStatement.registerReturnParameter(index, OracleTypeEnum.NUMBER.getType());
-                oraclePreparedStatement.executeUpdate();
-
-                ResultSet rs = oraclePreparedStatement.getReturnResultSet();
-                if (rs.next()) {
-                    id = rs.getBigDecimal(1);
-                }
-                rs.close();
-            } else {
-                ResultSet rs = statement.executeQuery();
-                if (rs.next()) {
-                    id = rs.getBigDecimal(1);
-                }
-            }
-
-            final var endingTime = (double) System.currentTimeMillis();
-            final var duration = (endingTime - startingTime) / 1000D;
-
-            LogUtils.writeLog2(
-                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
-            );
-
-        } catch (SQLException e) {
-            LogUtils.writeLog(e.getMessage(), e);
-            throw new RuntimeException("Cannot insert");
-        } finally {
-            this.closeStatementAndResultSet(statement, null);
-        }
-        return id;
     }
 
     @SuppressWarnings("SqlSourceToSinkFlow")

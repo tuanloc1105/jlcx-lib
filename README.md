@@ -1,467 +1,137 @@
 # jlcx-lib
 
-**jlcx-lib** is a comprehensive Java development framework designed to accelerate backend application development by providing powerful, lightweight, and easy-to-use building blocks. It combines the best practices of modern Java development with innovative code generation techniques to reduce boilerplate code and improve developer productivity.
+jlcx-lib is an opinionated toolkit for building reactive Java services on Vert.x. It bundles utility classes, database helpers, code-generation templates, and an annotation processor so teams can ship production-ready microservices without re-implementing infrastructure pieces. The repository contains the library itself plus runnable examples that show common backend patterns.
 
----
+## Highlights
 
-## ✨ Key Features
+- Core utilities for JDBC, Vert.x base classes, reactive helpers, and lightweight JPA support.
+- Annotation-driven code generation that scans your project at compile time and produces repositories, services, controllers, and SQL mappings.
+- Ready-to-use templates, logging defaults, and banner assets that keep your services consistent from the first commit.
+- End-to-end examples (gRPC, Hibernate Reactive, Todo app) that double as documentation and integration tests for the toolkit.
 
-### 🗄️ **Database & ORM**
-- **Multi-Database Support**: Native support for PostgreSQL, MySQL, Oracle, and SQL Server
-- **Lightweight ORM**: Automatic entity-to-table mapping with custom annotations
-- **SQL Code Generation**: Compile-time generation of CRUD operations and SQL queries
-- **Connection Pool Management**: Built-in HikariCP integration with optimized configurations
-- **Database Schema Generation**: Automatic DDL generation from entity definitions
+## Modules
 
-### 🔄 **Reactive Programming**
-- **Vert.x Integration**: Full support for reactive programming with Vert.x 5.x
-- **Reactive Repositories**: Asynchronous database operations with Future-based APIs
-- **Reactive Controllers**: Non-blocking HTTP request handling
-- **WebSocket Support**: Built-in WebSocket handling capabilities
-- **Event-Driven Architecture**: Native support for event-driven application patterns
+- `common-lib`: Shared annotations, database utilities, Vert.x base components, reactive helpers, JPA helpers, templates, and default logging resources.
+- `processor`: Annotation processor registered via `META-INF/services/javax.annotation.processing.Processor` that works with the annotations and templates from `common-lib`.
+- `examples`: Runnable Vert.x projects that demonstrate typical usage patterns.
 
-### 🏗️ **Code Generation & Annotations**
-- **Annotation Processors**: Compile-time code generation for repositories, services, and controllers
-- **SQL Mapping**: Automatic generation of SQL utilities and mapping classes
-- **Custom Annotations**: Rich set of annotations for dependency injection and configuration
+## Tech stack
 
-### 🔧 **Dependency Injection & Configuration**
-- **Lightweight DI Container**: Annotation-based dependency injection inspired by Spring Boot
-- **Component Scanning**: Automatic discovery and registration of components
-- **Configuration Management**: Flexible configuration system with environment variable support
-- **Property Management**: Utilities for handling properties, YAML, and configuration files
+- Java 11, Maven 3.6+
+- Vert.x 5.x (core, web, auth-jwt, grpc, micrometer, redis, database clients)
+- Databases: Oracle, PostgreSQL, MySQL, SQL Server, H2 (via HikariCP)
+- Serialization: Jackson, Gson; YAML: SnakeYAML
+- Logging: SLF4J + Logback
+- Testing: JUnit Jupiter, Mockito, Datafaker
 
-### 🛡️ **Security & Authentication**
-- **JWT Authentication**: Built-in JWT token generation and validation
-- **API Key Support**: Configurable API key authentication
-- **Password Encryption**: BCrypt integration for secure password hashing
-- **Authorization Context**: Request-scoped authentication context management
+## Prerequisites
 
-### 📊 **Monitoring & Observability**
-- **Metrics Integration**: Micrometer and Prometheus metrics support
-- **Health Checks**: Built-in health check endpoints
-- **Logging**: Structured logging with Logback integration
-- **Tracing**: Request tracing and correlation ID support
+- JDK 11 or newer
+- Maven 3.6 or newer
+- (Optional) Node.js for the web assets in `examples/todo-app-example/web`
 
-### 🧪 **Testing & Development**
-- **Unit Testing**: Comprehensive test utilities and mocking support
-- **Integration Testing**: Vert.x test framework integration
-- **Data Faker**: Test data generation utilities
-- **Development Tools**: Hot reload and development-friendly configurations
+## Quick start
 
----
-
-## 📦 Module Structure
-
-```
-jlcx-lib/
-├── common-lib/        # Core utilities, database tools, and shared components
-│   ├── annotation/    # Custom annotations for code generation
-│   ├── database/      # Database utilities and connection management
-│   ├── utils/         # Common utility classes
-│   ├── vertx/         # Vert.x integration components
-│   ├── reactive/      # Reactive programming support
-│   └── jpa/           # JPA/Hibernate integration
-├── processor/         # Annotation processors for code generation
-└── example/           # Complete example application
-    ├── src/main/java/ # Backend example code
-    └── web/           # Frontend React application
-```
-
----
-
-## 🚀 Quick Start
-
-### 1. **Add Dependencies**
-
-Add the parent POM to your project:
-
-```xml
-<parent>
-    <groupId>vn.com.lcx</groupId>
-    <artifactId>lcx-lib</artifactId>
-    <version>3.4.2.lcx</version>
-    <relativePath/>
-</parent>
-```
-
-Add required dependencies:
-
-```xml
-<dependencies>
-    <!-- Core library -->
-    <dependency>
-        <groupId>vn.com.lcx</groupId>
-        <artifactId>common-lib</artifactId>
-        <version>3.4.2.lcx</version>
-    </dependency>
-
-    <!-- Annotation processor for code generation -->
-    <dependency>
-        <groupId>vn.com.lcx</groupId>
-        <artifactId>processor</artifactId>
-        <version>3.4.2.lcx</version>
-        <scope>provided</scope>
-    </dependency>
-</dependencies>
-
-<repositories>
-
-    <repository>
-        <id>nexus-releases</id>
-        <url>https://nexus.vtl.name.vn/repository/maven-releases/</url>
-    </repository>
-
-    <repository>
-        <id>nexus-snapshots</id>
-        <url>https://nexus.vtl.name.vn/repository/maven-snapshots/</url>
-    </repository>
-
-</repositories>
-
-```
-
-### 2. **Define Your Entity**
-
-```java
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-@SQLMapping
-@TableName("users")
-@Entity
-public class User {
-    @IdColumn
-    @ColumnName("id")
-    private Long id;
-    
-    @ColumnName("username")
-    private String username;
-    
-    @ColumnName("email")
-    private String email;
-    
-    @ColumnName("created_at")
-    private LocalDateTime createdAt;
-}
-```
-
-### 3. **Create Repository Interface**
-
-```java
-@Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    // Custom query methods will be automatically implemented
-    List<User> findByUsername(String username);
-    
-    @Query("SELECT u FROM User u WHERE u.email = :email")
-    Optional<User> findByEmail(@Param("email") String email);
-}
-```
-
-### 4. **Create Service Layer**
-
-```java
-@Service
-public class UserService {
-    private final UserRepository userRepository;
-    
-    @Transactional
-    public User createUser(User user) {
-        user.setCreatedAt(LocalDateTime.now());
-        userRepository.save(user);
-        return user;
-    }
-    
-    public List<User> getAllUsers() {
-        return userRepository.find(null);
-    }
-}
-```
-
-### 5. **Create Reactive Controller**
-
-```java
-@Component
-@Controller(path = "/api/users")
-public class UserController extends ReactiveController {
-    
-    private final UserService userService;
-    
-    @Post(path = "/create")
-    public void createUser(RoutingContext ctx) {
-        CreateUserRequest request = handleRequest(ctx, gson, CreateUserRequest.class);
-        userService.createUser(request.toUser())
-            .onSuccess(user -> handleResponse(ctx, gson, user))
-            .onFailure(err -> handleError(ctx, gson, err));
-    }
-}
-```
-
-### 6. **Configure Application**
-
-```java
-@VertxApplication(staticResource = true)
-public class App {
-    public static void main(String[] args) {
-        MyVertxDeployment.getInstance().deployVerticle(App.class);
-    }
-}
-```
-
----
-
-## 🛠️ Build & Run
-
-### **Prerequisites**
-- Java 11 or higher
-- Maven 3.6+
-- Node.js 16+ (for frontend development)
-
-### **Build Commands**
+Clone the repository and build all modules:
 
 ```bash
-# Build the entire project
-./build.sh
-
-# Or using Maven
 mvn clean install
-
-# Build and run the example application
-cd example
-./build-web.sh    # Build frontend
-./build.sh        # Build backend
-java -jar target/todo-app-example-1.0.0-jar-with-dependencies.jar
 ```
 
-### **Development Scripts**
+Helper scripts are available if you prefer: `./build.sh`, `./clean.sh` (or the PowerShell equivalents on Windows). Scripts assume `JAVA_HOME` and `MAVEN_HOME` under `$HOME/dev-kit` on Bash, or `DEV_KIT_LOCATION` on PowerShell; override those variables if your tooling lives elsewhere.
 
-```bash
-# Clean build artifacts
-./clean.sh
+## Use in your Maven project
 
-# Windows PowerShell
-./clean.ps1
-
-# Build with custom configuration
-mvn clean install -DskipTests=true
-```
-
----
-
-## 🔧 Configuration
-
-### **Database Configuration**
-
-```yaml
-# application.yaml
-database:
-  host: localhost
-  port: 5432
-  name: myapp
-  username: postgres
-  password: password
-  type: POSTGRESQL
-  max-pool-size: 20
-  initial-pool-size: 5
-```
-
-### **Server Configuration**
-
-```yaml
-server:
-  port: 8080
-  enable-metrics: true
-  api-key: your-api-key-here
-  jwt-secret: your-jwt-secret
-```
-
-### **Logging Configuration**
+Add the core library and annotation processor to your project (adjust the version as needed):
 
 ```xml
-<!-- logback.xml -->
-<configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-    
-    <root level="INFO">
-        <appender-ref ref="STDOUT" />
-    </root>
-</configuration>
+<dependency>
+  <groupId>vn.com.lcx</groupId>
+  <artifactId>common-lib</artifactId>
+  <version>3.4.3.lcx</version>
+</dependency>
+
+<!-- Annotation processor (compile-time) -->
+<dependency>
+  <groupId>vn.com.lcx</groupId>
+  <artifactId>processor</artifactId>
+  <version>3.4.3.lcx</version>
+  <scope>provided</scope>
+</dependency>
 ```
 
----
+If you manage versions centrally, declare the coordinates in your BOM or parent POM and omit the `<version>` tags above.
 
-## 📚 Advanced Features
+## Running the examples
 
-### **Custom Annotations**
-
-```java
-// SQL Mapping for custom queries
-@SQLMapping
-@TableName("custom_table")
-public class CustomEntity {
-    // Automatically generates SQL utilities
-}
-
-// Mapper for object transformation
-@MapperClass
-public interface UserMapper {
-    @Mapping(source = "user", target = "userDto")
-    UserDTO toDTO(User user);
-}
-
-// Reactive repository
-@RRepository
-public interface ReactiveUserRepository extends ReactiveRepository<User> {
-    Future<List<User>> findByStatus(RoutingContext ctx, SqlConnection conn, String status);
-}
-```
-
-### **Database Schema Generation**
-
-```java
-// Automatically generates DDL from entity definitions
-EntityAnalyzer analyzer = new EntityAnalyzer(
-    new EntityAnalysisContext(User.class, "POSTGRESQL", "sql/")
-);
-analyzer.analyze(); // Generates create-table.sql
-```
-
----
-
-## 🧪 Testing
-
-### **Unit Tests**
-
-```java
-@Test
-public void testUserCreation() {
-    User user = new User();
-    user.setUsername("testuser");
-    user.setEmail("test@example.com");
-    
-    User savedUser = userService.createUser(user);
-    
-    assertNotNull(savedUser.getId());
-    assertEquals("testuser", savedUser.getUsername());
-}
-```
-
-### **Integration Tests**
-
-```java
-@VertxTest
-public class UserControllerTest {
-    
-    @Test
-    public void testCreateUser(Vertx vertx, VertxTestContext testContext) {
-        // Test reactive endpoints
-        WebClient client = WebClient.create(vertx);
-        
-        client.post(8080, "localhost", "/api/users/create")
-            .sendJson(new CreateUserRequest("testuser", "test@example.com"))
-            .onSuccess(response -> {
-                assertEquals(200, response.statusCode());
-                testContext.completeNow();
-            })
-            .onFailure(testContext::failNow);
-    }
-}
-```
-
----
-
-## 📖 API Documentation
-
-### **Core Annotations**
-
-| Annotation | Purpose | Example |
-|------------|---------|---------|
-| `@SQLMapping` | Generate SQL utilities | `@SQLMapping class User` |
-| `@TableName` | Specify database table | `@TableName("users")` |
-| `@ColumnName` | Map field to column | `@ColumnName("user_name")` |
-| `@IdColumn` | Mark primary key | `@IdColumn private Long id` |
-| `@Repository` | Generate repository impl | `@Repository interface UserRepo` |
-| `@Service` | Generate service proxy | `@Service class UserService` |
-| `@Component` | Register for DI | `@Component class MyService` |
-| `@Controller` | Define REST endpoint | `@Controller(path="/api")` |
-
-### **Database Operations**
-
-```java
-// Basic CRUD
-userRepository.save(user);
-userRepository.update(user);
-userRepository.delete(user);
-Optional<User> user = userRepository.findById(1L);
-
-// Custom queries
-List<User> users = userRepository.find(criteria -> 
-    criteria.equal("status", "ACTIVE")
-);
-
-// Pagination
-Page<User> page = userRepository.find(
-    criteria -> criteria.like("name", "%john%"),
-    Pageable.of(0, 10, Sort.by("name"))
-);
-```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how you can help:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit your changes**: `git commit -m 'Add amazing feature'`
-4. **Push to the branch**: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
-
-### **Development Setup**
+Each example module can be built independently:
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/jlcx-lib.git
-cd jlcx-lib
-
-# Install dependencies
-mvn clean install
-
-# Run tests
-mvn test
-
-# Build example
-cd example
+cd examples/todo-app-example
 mvn clean package
 ```
 
----
+- `examples/grpc-example`: Vert.x gRPC server and client (see its `README.md` for run commands).
+- `examples/hibernate-reactive-example`: Hibernate Reactive + Vert.x demo with `application.yaml`, `logback.xml`, and `persistence.xml`.
+- `examples/todo-app-example`: Todo backend built with `common-lib` and `processor`, packaged with the Spring Boot repackage plugin for an executable JAR.
 
-## 📄 License
+Each example includes `build.sh`, `clean.sh`, and PowerShell counterparts.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Annotation processor
 
----
+The annotation processor runs during compilation and generates sources based on the annotations and templates in `common-lib`. If your build does not automatically pick it up, wire it into the Maven Compiler Plugin:
 
-## 🆘 Support
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <version>3.14.1</version>
+  <configuration>
+    <annotationProcessorPaths>
+      <path>
+        <groupId>vn.com.lcx</groupId>
+        <artifactId>processor</artifactId>
+        <version>3.4.3.lcx</version>
+      </path>
+    </annotationProcessorPaths>
+    <compilerArgs>
+      <arg>-proc:full</arg>
+    </compilerArgs>
+  </configuration>
+</plugin>
+```
 
-- **Documentation**: Check the `example/` directory for complete usage examples
-- **Issues**: Report bugs and request features via GitHub Issues
-- **Discussions**: Join community discussions for questions and ideas
+Generated sources are emitted under Maven's default `target/generated-sources/annotations` directory.
 
----
+## Publishing
 
-## 🔄 Version History
+Use the provided scripts to push artifacts to Nexus (credentials must be configured in your `~/.m2/settings.xml`):
 
-- **v2.0**: Major release with Vert.x 5.x support, enhanced reactive programming, and improved code generation
-- **v1.0**: Initial release with basic ORM and annotation processing capabilities
+```bash
+./snapshot.sh    # deploy to https://nexus.vtl.name.vn/repository/maven-snapshots/
+./release.sh     # deploy to https://nexus.vtl.name.vn/repository/maven-releases/
+```
 
----
+PowerShell equivalents (`snapshot.ps1`, `release.ps1`) are available for Windows. All scripts run Maven with `-DskipTests=true` and UTF-8 encoding by default.
 
-**Built with ❤️ for the Java community**
+## Repository layout
+
+```
+jlcx-lib/
+├─ common-lib/
+│  ├─ src/main/java/vn/com/lcx/common/
+│  └─ src/main/resources/
+├─ processor/
+│  └─ src/main/resources/META-INF/services/javax.annotation.processing.Processor
+└─ examples/
+   ├─ grpc-example/
+   ├─ hibernate-reactive-example/
+   └─ todo-app-example/
+```
+
+## Troubleshooting
+
+- Verify you are building with JDK 11; the Maven configuration targets Java 11 bytecode.
+- If deployments fail, confirm server IDs and credentials in `~/.m2/settings.xml` match the Nexus endpoints above.
+- On Windows, set `DEV_KIT_LOCATION` before running the PowerShell scripts, or invoke Maven directly.
+- Add the appropriate JDBC driver dependencies to your application; they are not shaded into the library.
