@@ -27,10 +27,10 @@
 
         <processor-vn.com.lcx.version>3.4.4.lcx-SNAPSHOT</processor-vn.com.lcx.version>
         <common-lib-vn.com.lcx.version>3.4.4.lcx-SNAPSHOT</common-lib-vn.com.lcx.version>
-        <hibernate-reactive-core-org.hibernate.reactive.version>4.1.0.Final
+        <hibernate-reactive-core-org.hibernate.reactive.version>4.1.1.Final
         </hibernate-reactive-core-org.hibernate.reactive.version>
         <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
-        <hibernate-core-org.hibernate.orm.version>7.1.0.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>7.1.3.Final</hibernate-core-org.hibernate.orm.version>
         <reactiverse-contextual-logging-logback-io.reactiverse.version>2.0.0
         </reactiverse-contextual-logging-logback-io.reactiverse.version>
 

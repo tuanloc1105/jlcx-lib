@@ -38,7 +38,7 @@
         <jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>2.20.0
         </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
         <jakarta.mail-org.eclipse.angus.version>2.0.5</jakarta.mail-org.eclipse.angus.version>
-        <jedis-redis.clients.version>6.2.0</jedis-redis.clients.version>
+        <jedis-redis.clients.version>7.0.0</jedis-redis.clients.version>
         <micrometer-core-io.micrometer.version>1.15.4</micrometer-core-io.micrometer.version>
         <micrometer-registry-prometheus-io.micrometer.version>1.15.4
         </micrometer-registry-prometheus-io.micrometer.version>
@@ -50,9 +50,9 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.1.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.31.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.31.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.31.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.33.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.33.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-jcache-org.hibernate.orm.version>6.6.33.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.4</vertx-core-io.vertx.version>
         <vertx-web-io.vertx.version>5.0.4</vertx-web-io.vertx.version>
@@ -73,9 +73,9 @@
         <vertx-reactive-streams-io.vertx.version>5.0.4</vertx-reactive-streams-io.vertx.version>
         <jakarta.annotation-api-jakarta.annotation.version>3.0.0</jakarta.annotation-api-jakarta.annotation.version>
         <javax.annotation-api-javax.annotation.version>1.3.2</javax.annotation-api-javax.annotation.version>
-        <grpc-netty-shaded-io.grpc.version>1.75.0</grpc-netty-shaded-io.grpc.version>
-        <grpc-protobuf-io.grpc.version>1.75.0</grpc-protobuf-io.grpc.version>
-        <grpc-stub-io.grpc.version>1.75.0</grpc-stub-io.grpc.version>
+        <grpc-netty-shaded-io.grpc.version>1.76.0</grpc-netty-shaded-io.grpc.version>
+        <grpc-protobuf-io.grpc.version>1.76.0</grpc-protobuf-io.grpc.version>
+        <grpc-stub-io.grpc.version>1.76.0</grpc-stub-io.grpc.version>
         <protobuf-java-com.google.protobuf.version>4.32.1</protobuf-java-com.google.protobuf.version>
         <protobuf-java-util-com.google.protobuf.version>4.32.1</protobuf-java-util-com.google.protobuf.version>
         <junit-jupiter-api-org.junit.jupiter.version>6.0.0</junit-jupiter-api-org.junit.jupiter.version>
@@ -84,8 +84,8 @@
         <mockito-core-org.mockito.version>5.20.0</mockito-core-org.mockito.version>
         <mockito-junit-jupiter-org.mockito.version>5.20.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
-        <byte-buddy-net.bytebuddy.version>1.17.7</byte-buddy-net.bytebuddy.version>
-        <datafaker-net.datafaker.version>2.5.1</datafaker-net.datafaker.version>
+        <byte-buddy-net.bytebuddy.version>1.17.8</byte-buddy-net.bytebuddy.version>
+        <datafaker-net.datafaker.version>2.5.2</datafaker-net.datafaker.version>
         <h2-com.h2database.version>2.4.240</h2-com.h2database.version>
         <maven-plugin-api-org.apache.maven.version>3.9.11</maven-plugin-api-org.apache.maven.version>
         <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.1
@@ -294,7 +294,7 @@
                 <version>${jakarta.mail-org.eclipse.angus.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-28 -->
+            <!-- Released at 2025-10-10 -->
             <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
             <dependency>
                 <groupId>redis.clients</groupId>
@@ -386,7 +386,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-10-03 -->
+            <!-- Released at 2025-10-10 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -394,7 +394,7 @@
                 <version>${hibernate-core-org.hibernate.orm.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-03 -->
+            <!-- Released at 2025-10-10 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.tool/hibernate-tools-orm -->
             <dependency>
                 <groupId>org.hibernate.tool</groupId>
@@ -403,7 +403,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-10-03 -->
+            <!-- Released at 2025-10-10 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-jcache -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -573,7 +573,7 @@
                 <version>${javax.annotation-api-javax.annotation.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-21 -->
+            <!-- Released at 2025-10-07 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -581,7 +581,7 @@
                 <version>${grpc-netty-shaded-io.grpc.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-21 -->
+            <!-- Released at 2025-10-07 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-protobuf -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -589,7 +589,7 @@
                 <version>${grpc-protobuf-io.grpc.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-21 -->
+            <!-- Released at 2025-10-07 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-stub -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -661,7 +661,7 @@
                 <version>${mockito-inline-org.mockito.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-17 -->
+            <!-- Released at 2025-10-09 -->
             <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
             <dependency>
                 <groupId>net.bytebuddy</groupId>
@@ -669,7 +669,7 @@
                 <version>${byte-buddy-net.bytebuddy.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-24 -->
+            <!-- Released at 2025-10-11 -->
             <!-- https://mvnrepository.com/artifact/net.datafaker/datafaker -->
             <dependency>
                 <groupId>net.datafaker</groupId>
