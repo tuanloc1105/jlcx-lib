@@ -250,7 +250,6 @@ public class MapperClassProcessor extends AbstractProcessor {
                     continue;
                 }
 
-                String fromField = WordCaseUtils.toPascalCase(WordCaseUtils.fromCamelCase(mappingAnnotation.fromField()));
                 // if (!(inputClassTypeElement.getQualifiedName() + Constant.EMPTY_STRING).equals(outputClassTypeElement.getQualifiedName() + Constant.EMPTY_STRING)) {
                 //     continue;
                 // }
@@ -262,6 +261,7 @@ public class MapperClassProcessor extends AbstractProcessor {
                             mappingAnnotation.code()
                     );
                 } else {
+                    String fromField = WordCaseUtils.toPascalCase(WordCaseUtils.fromCamelCase(mappingAnnotation.fromField()));
                     mappingLineCode = String.format(
                             mappingLineCodeTemplate,
                             toField,
