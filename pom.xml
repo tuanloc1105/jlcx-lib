@@ -14,7 +14,7 @@
         <!--suppress CheckTagEmptyBody -->
         <main.class></main.class>
 
-        <logback-classic-ch.qos.logback.version>1.5.19</logback-classic-ch.qos.logback.version>
+        <logback-classic-ch.qos.logback.version>1.5.20</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.14.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.19.0</commons-lang3-org.apache.commons.version>
@@ -129,7 +129,7 @@
 
         <dependencies>
 
-            <!-- Released at 2025-09-30 -->
+            <!-- Released at 2025-10-20 -->
             <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
             <dependency>
                 <groupId>ch.qos.logback</groupId>
