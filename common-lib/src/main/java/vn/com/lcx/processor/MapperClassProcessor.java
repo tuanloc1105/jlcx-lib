@@ -1,5 +1,6 @@
 package vn.com.lcx.processor;
 
+import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.mapper.MapperClass;
 import vn.com.lcx.common.annotation.mapper.Mapping;
 import vn.com.lcx.common.annotation.mapper.Merging;
@@ -253,12 +254,21 @@ public class MapperClassProcessor extends AbstractProcessor {
                 // if (!(inputClassTypeElement.getQualifiedName() + Constant.EMPTY_STRING).equals(outputClassTypeElement.getQualifiedName() + Constant.EMPTY_STRING)) {
                 //     continue;
                 // }
-                String mappingLineCode = String.format(
-                        mappingLineCodeTemplate,
-                        toField,
-                        firstInputParameterName,
-                        fromField
-                );
+                String mappingLineCode;
+                if (StringUtils.isNotBlank(mappingAnnotation.code())) {
+                    mappingLineCode = String.format(
+                            "\n        instance.set%s(%s);",
+                            toField,
+                            mappingAnnotation.code()
+                    );
+                } else {
+                    mappingLineCode = String.format(
+                            mappingLineCodeTemplate,
+                            toField,
+                            firstInputParameterName,
+                            fromField
+                    );
+                }
                 listOfMappingLineCodes.add(mappingLineCode);
                 handledFieldName.add(toField);
             }

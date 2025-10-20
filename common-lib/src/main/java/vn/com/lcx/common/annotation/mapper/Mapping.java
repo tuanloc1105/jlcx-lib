@@ -14,5 +14,7 @@ public @interface Mapping {
 
     String toField() default "";
 
+    String code() default "";
+
     boolean skip() default false;
 }
