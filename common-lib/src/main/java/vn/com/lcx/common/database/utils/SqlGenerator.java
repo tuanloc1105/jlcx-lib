@@ -48,6 +48,7 @@ public class SqlGenerator {
                         "%s\n" +
                         "%s\n" +
                         "%s\n" +
+                        "%s\n" +
                         "-- ################# FOREIGN KEY ####################### --\n" +
                         "\n" +
                         "%s",
