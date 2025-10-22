@@ -40,8 +40,7 @@ public class MSSQLStrategy implements DatabaseStrategy {
 
     @Override
     public String generateModifyColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        // MSSQL doesn't support MODIFY, would need to use ALTER COLUMN
-        return String.format("-- MSSQL: ALTER TABLE %s ALTER COLUMN %s %s;\n", tableName, columnName, dataType);
+        return String.format("ALTER TABLE %s ALTER COLUMN %s %s;\n", tableName, columnName, dataType);
     }
 
     @Override

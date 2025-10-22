@@ -16,6 +16,12 @@ public final class DBEntityAnalysis {
 
     public final static String CREATE_TABLE_TEMPLATE_NO_PRIMARY_KEY = "CREATE TABLE %s\n(\n    %s\n);";
 
+    public final static String DROP_TABLE_TEMPLATE_NO_PRIMARY_KEY = "-- DROP TABLE %s;";
+
+    public final static String TRUNCATE_TABLE_TEMPLATE_NO_PRIMARY_KEY = "-- TRUNCATE TABLE %s;";
+
+    // public final static String POSTGRESQL_TRUNCATE_TABLE_TEMPLATE_NO_PRIMARY_KEY = "-- TRUNCATE TABLE %s RESTART IDENTITY CASCADE;";
+
     public final static String CREATE_TABLE_TEMPLATE2 = "CREATE TABLE \"%s\".\"%s\"\n(\n    %s,\n    %s\n);";
 
     public final static Map<String, String> POSTGRESQL_DATATYPE_MAP = new HashMap<String, String>() {
