@@ -1,5 +1,6 @@
 package vn.com.lcx.processor;
 
+import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.mapper.MapperClass;
 import vn.com.lcx.common.annotation.mapper.Mapping;
 import vn.com.lcx.common.annotation.mapper.Merging;
@@ -126,7 +127,17 @@ public class MapperClassProcessor extends AbstractProcessor {
         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(fullClassName);
         try (Writer writer = builderFile.openWriter()) {
             String codeToWrite = String.format(
-                    "package %s;\n\nimport java.util.*;\n\n@vn.com.lcx.common.annotation.Component\npublic class %s implements %s {\n\n    public %s() {\n    }\n    %s\n\n}",
+                    "package %s;\n" +
+                            "\n" +
+                            "import java.util.*;\n" +
+                            "\n" +
+                            "@vn.com.lcx.common.annotation.Component\n" +
+                            "public class %s implements %s {\n" +
+                            "\n" +
+                            "    public %s() {\n" +
+                            "    }\n" +
+                            "    %s\n" +
+                            "}",
                     packageName,
                     className,
                     typeElement.getSimpleName() + CommonConstant.EMPTY_STRING,
@@ -150,9 +161,6 @@ public class MapperClassProcessor extends AbstractProcessor {
         }
 
         TypeElement firstClassTypeElement = processingEnv.getElementUtils().getTypeElement(firstInputParameterClass);
-        String mappingLineCodeTemplate = mergeNonNullField ?
-                "\n        %s.set%s(%s.get%s());" :
-                "\n        if (%s.get%s() == null) {\n            %s.set%s(%s.get%s());\n        }";
         List<Element> firstClassFields = new ArrayList<>(TypeHierarchyAnalyzer.getAllFields(processingEnv.getTypeUtils(), firstClassTypeElement));
         List<String> listOfMappingLineCodes = new ArrayList<>();
         for (Element field : firstClassFields) {
@@ -160,7 +168,7 @@ public class MapperClassProcessor extends AbstractProcessor {
             final String mappingLineCode;
             if (mergeNonNullField) {
                 mappingLineCode = String.format(
-                        mappingLineCodeTemplate,
+                        "\n        %s.set%s(%s.get%s());",
                         firstInputParameterName,
                         fieldName,
                         secondInputParameterName,
@@ -168,7 +176,10 @@ public class MapperClassProcessor extends AbstractProcessor {
                 );
             } else {
                 mappingLineCode = String.format(
-                        mappingLineCodeTemplate,
+                        "\n" +
+                                "        if (%s.get%s() == null) {\n" +
+                                "            %s.set%s(%s.get%s());\n" +
+                                "        }",
                         firstInputParameterName,
                         fieldName,
                         firstInputParameterName,
@@ -180,7 +191,14 @@ public class MapperClassProcessor extends AbstractProcessor {
             listOfMappingLineCodes.add(mappingLineCode);
         }
         String implementMethodCode = String.format(
-                "\n    public %s %s(%s %s, %s %s) {\n        if (%s == null || %s == null) {\n            %s\n        }\n        %s\n        %s\n    }",
+                "\n" +
+                        "    public %s %s(%s %s, %s %s) {\n" +
+                        "        if (%s == null || %s == null) {\n" +
+                        "            %s\n" +
+                        "        }\n" +
+                        "        %s\n" +
+                        "        %s\n" +
+                        "    }\n",
                 methodReturnClass,
                 methodName,
                 firstInputParameterClass,
@@ -249,16 +267,22 @@ public class MapperClassProcessor extends AbstractProcessor {
                     continue;
                 }
 
-                String fromField = WordCaseUtils.toPascalCase(WordCaseUtils.fromCamelCase(mappingAnnotation.fromField()));
-                // if (!(inputClassTypeElement.getQualifiedName() + Constant.EMPTY_STRING).equals(outputClassTypeElement.getQualifiedName() + Constant.EMPTY_STRING)) {
-                //     continue;
-                // }
-                String mappingLineCode = String.format(
-                        mappingLineCodeTemplate,
-                        toField,
-                        firstInputParameterName,
-                        fromField
-                );
+                String mappingLineCode;
+                if (StringUtils.isNotBlank(mappingAnnotation.code())) {
+                    mappingLineCode = String.format(
+                            "\n        instance.set%s(%s);",
+                            toField,
+                            mappingAnnotation.code()
+                    );
+                } else {
+                    String fromField = WordCaseUtils.toPascalCase(WordCaseUtils.fromCamelCase(mappingAnnotation.fromField()));
+                    mappingLineCode = String.format(
+                            mappingLineCodeTemplate,
+                            toField,
+                            firstInputParameterName,
+                            fromField
+                    );
+                }
                 listOfMappingLineCodes.add(mappingLineCode);
                 handledFieldName.add(toField);
             }
@@ -290,7 +314,15 @@ public class MapperClassProcessor extends AbstractProcessor {
         }
 
         String implementMethodCode = String.format(
-                "\n    public %s %s(%s %s) {\n        if (%s == null) {\n            return null;\n        }\n        %s instance = new %s();\n        %s\n        return instance;\n    }",
+                "\n" +
+                        "    public %s %s(%s %s) {\n" +
+                        "        if (%s == null) {\n" +
+                        "            return null;\n" +
+                        "        }\n" +
+                        "        %s instance = new %s();\n" +
+                        "        %s\n" +
+                        "        return instance;\n" +
+                        "    }\n",
                 methodReturnClass,
                 methodName,
                 firstInputParameterClass,

@@ -86,7 +86,8 @@ public class OracleStrategy implements DatabaseStrategy {
         return String.format(
                 "CREATE SEQUENCE %1$s_SEQ START WITH 1 INCREMENT BY 1 CACHE 20;\n" +
                         "-- SELECT %1$s_SEQ.NEXTVAL FROM dual;\n" +
-                        "-- SELECT %1$s_SEQ.CURRVAL FROM dual;\n",
+                        "-- SELECT %1$s_SEQ.CURRVAL FROM dual;\n" +
+                        "-- DROP SEQUENCE %1$s_SEQ;",
                 tableName
         );
     }

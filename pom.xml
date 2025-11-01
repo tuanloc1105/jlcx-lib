@@ -14,16 +14,16 @@
         <!--suppress CheckTagEmptyBody -->
         <main.class></main.class>
 
-        <logback-classic-ch.qos.logback.version>1.5.19</logback-classic-ch.qos.logback.version>
+        <logback-classic-ch.qos.logback.version>1.5.20</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.14.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.19.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
         <lombok-org.projectlombok.version>1.18.42</lombok-org.projectlombok.version>
-        <ojdbc11-com.oracle.database.jdbc.version>23.9.0.25.07</ojdbc11-com.oracle.database.jdbc.version>
+        <ojdbc11-com.oracle.database.jdbc.version>23.26.0.0.0</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.8</postgresql-org.postgresql.version>
-        <mysql-connector-j-com.mysql.version>9.4.0</mysql-connector-j-com.mysql.version>
-        <mssql-jdbc-com.microsoft.sqlserver.version>13.2.0.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
+        <mysql-connector-j-com.mysql.version>9.5.0</mysql-connector-j-com.mysql.version>
+        <mssql-jdbc-com.microsoft.sqlserver.version>13.2.1.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
         <gson-com.google.code.gson.version>2.13.2</gson-com.google.code.gson.version>
         <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.4</jakarta.xml.bind-api-jakarta.xml.bind.version>
         <jaxb-runtime-org.glassfish.jaxb.version>4.0.6</jaxb-runtime-org.glassfish.jaxb.version>
@@ -38,9 +38,9 @@
         <jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>2.20.0
         </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
         <jakarta.mail-org.eclipse.angus.version>2.0.5</jakarta.mail-org.eclipse.angus.version>
-        <jedis-redis.clients.version>6.2.0</jedis-redis.clients.version>
-        <micrometer-core-io.micrometer.version>1.15.4</micrometer-core-io.micrometer.version>
-        <micrometer-registry-prometheus-io.micrometer.version>1.15.4
+        <jedis-redis.clients.version>7.0.0</jedis-redis.clients.version>
+        <micrometer-core-io.micrometer.version>1.15.5</micrometer-core-io.micrometer.version>
+        <micrometer-registry-prometheus-io.micrometer.version>1.15.5
         </micrometer-registry-prometheus-io.micrometer.version>
         <metrics-core-io.dropwizard.metrics.version>4.2.37</metrics-core-io.dropwizard.metrics.version>
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.37</metrics-healthchecks-io.dropwizard.metrics.version>
@@ -50,45 +50,45 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.1.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.31.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.31.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.31.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.34.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.34.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-jcache-org.hibernate.orm.version>6.6.34.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
-        <vertx-core-io.vertx.version>5.0.4</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>5.0.4</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>5.0.4</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>5.0.4</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>5.0.4</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>5.0.4</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>5.0.4</vertx-auth-jwt-io.vertx.version>
-        <vertx-micrometer-metrics-io.vertx.version>5.0.4</vertx-micrometer-metrics-io.vertx.version>
-        <vertx-oracle-client-io.vertx.version>5.0.4</vertx-oracle-client-io.vertx.version>
-        <vertx-mysql-client-io.vertx.version>5.0.4</vertx-mysql-client-io.vertx.version>
-        <vertx-pg-client-io.vertx.version>5.0.4</vertx-pg-client-io.vertx.version>
-        <vertx-mssql-client-io.vertx.version>5.0.4</vertx-mssql-client-io.vertx.version>
-        <vertx-redis-client-io.vertx.version>5.0.4</vertx-redis-client-io.vertx.version>
-        <vertx-grpc-client-io.vertx.version>5.0.4</vertx-grpc-client-io.vertx.version>
-        <vertx-grpc-server-io.vertx.version>5.0.4</vertx-grpc-server-io.vertx.version>
-        <vertx-grpc-io.vertx.version>5.0.4</vertx-grpc-io.vertx.version>
-        <vertx-reactive-streams-io.vertx.version>5.0.4</vertx-reactive-streams-io.vertx.version>
+        <vertx-core-io.vertx.version>5.0.5</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>5.0.5</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>5.0.5</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>5.0.5</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>5.0.5</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>5.0.5</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>5.0.5</vertx-auth-jwt-io.vertx.version>
+        <vertx-micrometer-metrics-io.vertx.version>5.0.5</vertx-micrometer-metrics-io.vertx.version>
+        <vertx-oracle-client-io.vertx.version>5.0.5</vertx-oracle-client-io.vertx.version>
+        <vertx-mysql-client-io.vertx.version>5.0.5</vertx-mysql-client-io.vertx.version>
+        <vertx-pg-client-io.vertx.version>5.0.5</vertx-pg-client-io.vertx.version>
+        <vertx-mssql-client-io.vertx.version>5.0.5</vertx-mssql-client-io.vertx.version>
+        <vertx-redis-client-io.vertx.version>5.0.5</vertx-redis-client-io.vertx.version>
+        <vertx-grpc-client-io.vertx.version>5.0.5</vertx-grpc-client-io.vertx.version>
+        <vertx-grpc-server-io.vertx.version>5.0.5</vertx-grpc-server-io.vertx.version>
+        <vertx-grpc-io.vertx.version>5.0.5</vertx-grpc-io.vertx.version>
+        <vertx-reactive-streams-io.vertx.version>5.0.5</vertx-reactive-streams-io.vertx.version>
         <jakarta.annotation-api-jakarta.annotation.version>3.0.0</jakarta.annotation-api-jakarta.annotation.version>
         <javax.annotation-api-javax.annotation.version>1.3.2</javax.annotation-api-javax.annotation.version>
-        <grpc-netty-shaded-io.grpc.version>1.75.0</grpc-netty-shaded-io.grpc.version>
-        <grpc-protobuf-io.grpc.version>1.75.0</grpc-protobuf-io.grpc.version>
-        <grpc-stub-io.grpc.version>1.75.0</grpc-stub-io.grpc.version>
-        <protobuf-java-com.google.protobuf.version>4.32.1</protobuf-java-com.google.protobuf.version>
-        <protobuf-java-util-com.google.protobuf.version>4.32.1</protobuf-java-util-com.google.protobuf.version>
+        <grpc-netty-shaded-io.grpc.version>1.76.0</grpc-netty-shaded-io.grpc.version>
+        <grpc-protobuf-io.grpc.version>1.76.0</grpc-protobuf-io.grpc.version>
+        <grpc-stub-io.grpc.version>1.76.0</grpc-stub-io.grpc.version>
+        <protobuf-java-com.google.protobuf.version>4.33.0</protobuf-java-com.google.protobuf.version>
+        <protobuf-java-util-com.google.protobuf.version>4.33.0</protobuf-java-util-com.google.protobuf.version>
         <junit-jupiter-api-org.junit.jupiter.version>6.0.0</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>6.0.0</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>6.0.0</junit-jupiter-params-org.junit.jupiter.version>
         <mockito-core-org.mockito.version>5.20.0</mockito-core-org.mockito.version>
         <mockito-junit-jupiter-org.mockito.version>5.20.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
-        <byte-buddy-net.bytebuddy.version>1.17.7</byte-buddy-net.bytebuddy.version>
-        <datafaker-net.datafaker.version>2.5.1</datafaker-net.datafaker.version>
+        <byte-buddy-net.bytebuddy.version>1.17.8</byte-buddy-net.bytebuddy.version>
+        <datafaker-net.datafaker.version>2.5.3</datafaker-net.datafaker.version>
         <h2-com.h2database.version>2.4.240</h2-com.h2database.version>
         <maven-plugin-api-org.apache.maven.version>3.9.11</maven-plugin-api-org.apache.maven.version>
-        <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.1
+        <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.2
         </maven-plugin-annotations-org.apache.maven.plugin-tools.version>
         <maven-assembly-plugin-org.apache.maven.plugins.version>3.7.1
         </maven-assembly-plugin-org.apache.maven.plugins.version>
@@ -109,7 +109,7 @@
         <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
         <maven-install-plugin-org.apache.maven.plugins.version>3.1.4
         </maven-install-plugin-org.apache.maven.plugins.version>
-        <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.1
+        <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.2
         </maven-plugin-plugin-org.apache.maven.plugins.version>
         <spring-boot-maven-plugin-org.springframework.boot.version>2.7.18
         </spring-boot-maven-plugin-org.springframework.boot.version>
@@ -123,13 +123,13 @@
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.4.3.lcx</version>
+    <version>3.4.4.lcx</version>
 
     <dependencyManagement>
 
         <dependencies>
 
-            <!-- Released at 2025-09-30 -->
+            <!-- Released at 2025-10-20 -->
             <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
             <dependency>
                 <groupId>ch.qos.logback</groupId>
@@ -178,7 +178,7 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!-- Released at 2025-07-28 -->
+            <!-- Released at 2025-10-27 -->
             <!-- https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc11 -->
             <dependency>
                 <groupId>com.oracle.database.jdbc</groupId>
@@ -194,7 +194,7 @@
                 <version>${postgresql-org.postgresql.version}</version>
             </dependency>
 
-            <!-- Released at 2025-07-30 -->
+            <!-- Released at 2025-10-27 -->
             <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
             <dependency>
                 <groupId>com.mysql</groupId>
@@ -208,7 +208,7 @@
                 </exclusions>
             </dependency>
 
-            <!-- Released at 2025-08-15 -->
+            <!-- Released at 2025-10-14 -->
             <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
             <dependency>
                 <groupId>com.microsoft.sqlserver</groupId>
@@ -294,7 +294,7 @@
                 <version>${jakarta.mail-org.eclipse.angus.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-28 -->
+            <!-- Released at 2025-10-10 -->
             <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
             <dependency>
                 <groupId>redis.clients</groupId>
@@ -302,7 +302,7 @@
                 <version>${jedis-redis.clients.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-08 -->
+            <!-- Released at 2025-10-14 -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-core -->
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -310,7 +310,7 @@
                 <version>${micrometer-core-io.micrometer.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-08 -->
+            <!-- Released at 2025-10-14 -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -386,7 +386,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-10-03 -->
+            <!-- Released at 2025-10-27 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -394,7 +394,7 @@
                 <version>${hibernate-core-org.hibernate.orm.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-03 -->
+            <!-- Released at 2025-10-28 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.tool/hibernate-tools-orm -->
             <dependency>
                 <groupId>org.hibernate.tool</groupId>
@@ -403,7 +403,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-10-03 -->
+            <!-- Released at 2025-10-27 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-jcache -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -419,7 +419,7 @@
                 <version>${ehcache-org.ehcache.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -427,7 +427,7 @@
                 <version>${vertx-core-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -435,7 +435,7 @@
                 <version>${vertx-web-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -443,7 +443,7 @@
                 <version>${vertx-web-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-json-schema -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -451,7 +451,7 @@
                 <version>${vertx-json-schema-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-codegen -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -459,7 +459,7 @@
                 <version>${vertx-codegen-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-unit -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -468,7 +468,7 @@
                 <scope>test</scope>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-auth-jwt -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -477,7 +477,7 @@
                 <scope>compile</scope>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-micrometer-metrics -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -485,7 +485,7 @@
                 <version>${vertx-micrometer-metrics-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-oracle-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -493,7 +493,7 @@
                 <version>${vertx-oracle-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mysql-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -501,7 +501,7 @@
                 <version>${vertx-mysql-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-pg-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -509,7 +509,7 @@
                 <version>${vertx-pg-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mssql-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -517,7 +517,7 @@
                 <version>${vertx-mssql-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-redis-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -525,7 +525,7 @@
                 <version>${vertx-redis-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -533,7 +533,7 @@
                 <version>${vertx-grpc-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc-server -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -541,7 +541,7 @@
                 <version>${vertx-grpc-server-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -549,7 +549,7 @@
                 <version>${vertx-grpc-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-03 -->
+            <!-- Released at 2025-10-22 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-reactive-streams -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -573,7 +573,7 @@
                 <version>${javax.annotation-api-javax.annotation.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-21 -->
+            <!-- Released at 2025-10-07 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -581,7 +581,7 @@
                 <version>${grpc-netty-shaded-io.grpc.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-21 -->
+            <!-- Released at 2025-10-07 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-protobuf -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -589,7 +589,7 @@
                 <version>${grpc-protobuf-io.grpc.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-21 -->
+            <!-- Released at 2025-10-07 -->
             <!-- https://mvnrepository.com/artifact/io.grpc/grpc-stub -->
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -597,7 +597,7 @@
                 <version>${grpc-stub-io.grpc.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-12 -->
+            <!-- Released at 2025-10-16 -->
             <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -605,7 +605,7 @@
                 <version>${protobuf-java-com.google.protobuf.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-12 -->
+            <!-- Released at 2025-10-16 -->
             <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util -->
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -661,7 +661,7 @@
                 <version>${mockito-inline-org.mockito.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-17 -->
+            <!-- Released at 2025-10-09 -->
             <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
             <dependency>
                 <groupId>net.bytebuddy</groupId>
@@ -669,7 +669,7 @@
                 <version>${byte-buddy-net.bytebuddy.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-24 -->
+            <!-- Released at 2025-10-27 -->
             <!-- https://mvnrepository.com/artifact/net.datafaker/datafaker -->
             <dependency>
                 <groupId>net.datafaker</groupId>
@@ -693,7 +693,7 @@
                 <version>${maven-plugin-api-org.apache.maven.version}</version>
             </dependency>
 
-            <!-- Released at 2024-10-22 -->
+            <!-- Released at 2025-10-21 -->
             <!-- https://mvnrepository.com/artifact/org.apache.maven.plugin-tools/maven-plugin-annotations -->
             <dependency>
                 <groupId>org.apache.maven.plugin-tools</groupId>
@@ -899,7 +899,7 @@
                 </plugin>
 
                 <plugin>
-                    <!-- Released at 2024-10-22 -->
+                    <!-- Released at 2025-10-21 -->
                     <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-plugin-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
