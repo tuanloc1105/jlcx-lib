@@ -22,6 +22,7 @@ import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.dto.Response;
 import vn.com.lcx.common.utils.JsonMaskingUtils;
 import vn.com.lcx.common.utils.LogUtils;
+import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 
@@ -171,6 +172,9 @@ public class VertxWebClientHttpUtils {
     }
 
     private <T> T readJson(String responseBodyAsString, TypeToken<T> responseType) {
+        if (!MyStringUtils.stringIsJsonFormat(responseBodyAsString)) {
+            return null;
+        }
         T requestObject;
         if (jsonHandler instanceof Gson) {
             JsonReader jsonReader = new JsonReader(new StringReader(responseBodyAsString));
