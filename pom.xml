@@ -39,8 +39,8 @@
         </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
         <jakarta.mail-org.eclipse.angus.version>2.0.5</jakarta.mail-org.eclipse.angus.version>
         <jedis-redis.clients.version>7.0.0</jedis-redis.clients.version>
-        <micrometer-core-io.micrometer.version>1.15.5</micrometer-core-io.micrometer.version>
-        <micrometer-registry-prometheus-io.micrometer.version>1.15.5
+        <micrometer-core-io.micrometer.version>1.16.0</micrometer-core-io.micrometer.version>
+        <micrometer-registry-prometheus-io.micrometer.version>1.16.0
         </micrometer-registry-prometheus-io.micrometer.version>
         <metrics-core-io.dropwizard.metrics.version>4.2.37</metrics-core-io.dropwizard.metrics.version>
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.37</metrics-healthchecks-io.dropwizard.metrics.version>
@@ -302,7 +302,7 @@
                 <version>${jedis-redis.clients.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-14 -->
+            <!-- Released at 2025-11-07 -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-core -->
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -310,7 +310,7 @@
                 <version>${micrometer-core-io.micrometer.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-14 -->
+            <!-- Released at 2025-11-07 -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
             <dependency>
                 <groupId>io.micrometer</groupId>
