@@ -1,6 +1,7 @@
 package vn.com.lcx.processor;
 
 import org.apache.commons.lang3.StringUtils;
+import vn.com.lcx.common.annotation.ReadOnly;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.FileUtils;
@@ -168,27 +169,39 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         );
                         switch (methodInfo.getMethodName()) {
                             case "save":
-                                buildSaveModelMethodCodeBody(
-                                        codeLines,
-                                        contextVariable,
-                                        sqlConnectionVariable,
-                                        entityTypeMirror
-                                );
+                                if (processorClassInfo.getClazz().getAnnotation(ReadOnly.class) != null) {
+                                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
+                                } else {
+                                    buildSaveModelMethodCodeBody(
+                                            codeLines,
+                                            contextVariable,
+                                            sqlConnectionVariable,
+                                            entityTypeMirror
+                                    );
+                                }
                                 break;
                             case "update":
-                                buildUpdateModelMethodCodeBody(
-                                        codeLines,
-                                        contextVariable,
-                                        sqlConnectionVariable,
-                                        entityTypeMirror
-                                );
+                                if (processorClassInfo.getClazz().getAnnotation(ReadOnly.class) != null) {
+                                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
+                                } else {
+                                    buildUpdateModelMethodCodeBody(
+                                            codeLines,
+                                            contextVariable,
+                                            sqlConnectionVariable,
+                                            entityTypeMirror
+                                    );
+                                }
                                 break;
                             case "delete":
-                                buildDeleteModelMethodCodeBody(
-                                        codeLines,
-                                        contextVariable,
-                                        sqlConnectionVariable,
-                                        entityTypeMirror);
+                                if (processorClassInfo.getClazz().getAnnotation(ReadOnly.class) != null) {
+                                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
+                                } else {
+                                    buildDeleteModelMethodCodeBody(
+                                            codeLines,
+                                            contextVariable,
+                                            sqlConnectionVariable,
+                                            entityTypeMirror);
+                                }
                                 break;
                             default:
                                 if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
