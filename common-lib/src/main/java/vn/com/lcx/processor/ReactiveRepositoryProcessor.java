@@ -122,6 +122,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         final TypeMirror entityTypeMirror = genericClasses.get(0);
         StringBuilder methodCodeBody = new StringBuilder();
         methodCodeBody.append("\n");
+        final var entityTypeElement = TypeHierarchyAnalyzer.getTypeElementFromClassName(processingEnv.getElementUtils(), entityTypeMirror.toString());
         processorClassInfo.getMethods().forEach(
                 (methodInfo, executableElement) -> {
                     final String actualReturnType;
@@ -169,7 +170,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                         );
                         switch (methodInfo.getMethodName()) {
                             case "save":
-                                if (processorClassInfo.getClazz().getAnnotation(ReadOnly.class) != null) {
+                                if (entityTypeElement.getAnnotation(ReadOnly.class) != null) {
                                     codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
                                 } else {
                                     buildSaveModelMethodCodeBody(
@@ -181,7 +182,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 }
                                 break;
                             case "update":
-                                if (processorClassInfo.getClazz().getAnnotation(ReadOnly.class) != null) {
+                                if (entityTypeElement.getAnnotation(ReadOnly.class) != null) {
                                     codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
                                 } else {
                                     buildUpdateModelMethodCodeBody(
@@ -193,7 +194,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 }
                                 break;
                             case "delete":
-                                if (processorClassInfo.getClazz().getAnnotation(ReadOnly.class) != null) {
+                                if (entityTypeElement.getAnnotation(ReadOnly.class) != null) {
                                     codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
                                 } else {
                                     buildDeleteModelMethodCodeBody(
