@@ -4,6 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.Clob;
 import vn.com.lcx.common.annotation.ColumnName;
 import vn.com.lcx.common.annotation.IdColumn;
+import vn.com.lcx.common.annotation.PreInsert;
+import vn.com.lcx.common.annotation.PreUpdate;
 import vn.com.lcx.common.annotation.TableName;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.constant.JavaSqlResultSetConstant;
@@ -1005,6 +1007,73 @@ public class SQLMappingProcessor extends AbstractProcessor {
         insertVertClientParameterCodeLines.add("java.util.ArrayList<Object> params = new java.util.ArrayList<>();");
         updateVertClientParameterCodeLines.add("java.util.ArrayList<Object> params = new java.util.ArrayList<>();");
         deleteVertClientParameterCodeLines.add("java.util.ArrayList<Object> params = new java.util.ArrayList<>();");
+
+        final var preInsertMethodName = new AtomicReference<String>();
+        final var preUpdateMethodName = new AtomicReference<String>();
+
+        processorClassInfo.getMethods().forEach((info, exeElement) -> {
+            if (exeElement.getAnnotation(PreInsert.class) != null) {
+                if (!info.getInputParameters().isEmpty()) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.WARNING,
+                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                                    String.format(
+                                            "Pre insert method name %s is invalid. The parameters must be empty",
+                                            info.getMethodName()
+                                    )
+                    );
+                    return;
+                }
+                if (!info.getOutputParameter().getKind().equals(TypeKind.VOID)) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.WARNING,
+                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                                    String.format(
+                                            "Pre insert method name %s is invalid. Must be a void method",
+                                            info.getMethodName()
+                                    )
+                    );
+                    return;
+                }
+                preInsertMethodName.set(info.getMethodName());
+            }
+            if (exeElement.getAnnotation(PreUpdate.class) != null) {
+                if (!info.getInputParameters().isEmpty()) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.WARNING,
+                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                                    String.format(
+                                            "Pre update method name %s is invalid. The parameters must be empty",
+                                            info.getMethodName()
+                                    )
+                    );
+                    return;
+                }
+                if (!info.getOutputParameter().getKind().equals(TypeKind.VOID)) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.WARNING,
+                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                                    String.format(
+                                            "Pre update method name %s is invalid. Must be a void method",
+                                            info.getMethodName()
+                                    )
+                    );
+                    return;
+                }
+                preUpdateMethodName.set(info.getMethodName());
+            }
+        });
+
+        if (StringUtils.isNotBlank(preInsertMethodName.get())) {
+            insertJdbcParameterCodeLines.add("model." + preInsertMethodName.get() + "();");
+            insertVertClientParameterCodeLines.add("model." + preInsertMethodName.get() + "();");
+        }
+
+        if (StringUtils.isNotBlank(preUpdateMethodName.get())) {
+            updateJdbcParameterCodeLines.add("model." + preUpdateMethodName.get() + "();");
+            updateVertClientParameterCodeLines.add("model." + preUpdateMethodName.get() + "();");
+        }
+
         processorClassInfo.getFields().stream()
                 .filter(element ->
                         !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
