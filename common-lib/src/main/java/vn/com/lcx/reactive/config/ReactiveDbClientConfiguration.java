@@ -74,15 +74,7 @@ public class ReactiveDbClientConfiguration {
                 // wait
             }
         }));
-        refreshConnection(
-                () ->
-                        pool.withConnection(connection ->
-                                connection.query("SELECT 1")
-                                        .execute()
-                                        .map(rows -> CommonConstant.VOID)
-                        )
-        );
-        return getDatabaseVersion(type, pool);
+        return getDatabaseVersion(type, pool, "SELECT 1");
     }
 
     public Pool createMySql(final int port,
@@ -124,15 +116,7 @@ public class ReactiveDbClientConfiguration {
                 // wait
             }
         }));
-        refreshConnection(
-                () ->
-                        pool.withConnection(connection ->
-                                connection.query("SELECT 1")
-                                        .execute()
-                                        .map(rows -> CommonConstant.VOID)
-                        )
-        );
-        return getDatabaseVersion(type, pool);
+        return getDatabaseVersion(type, pool, "SELECT 1");
     }
 
     public Pool createMssql(final int port,
@@ -174,7 +158,7 @@ public class ReactiveDbClientConfiguration {
                 // wait
             }
         }));
-        return getDatabaseVersion(type, pool);
+        return getDatabaseVersion(type, pool, "SELECT 1");
     }
 
     public Pool createOracle(final int port,
@@ -216,25 +200,26 @@ public class ReactiveDbClientConfiguration {
                 // wait
             }
         }));
-        // noinspection SqlResolve
-        refreshConnection(
-                () ->
-                        pool.withConnection(connection ->
-                                connection.query("SELECT 1 FROM dual")
-                                        .execute()
-                                        .map(rows -> CommonConstant.VOID)
-                        )
-        );
-        return getDatabaseVersion(type, pool);
+        return getDatabaseVersion(type, pool, "SELECT 1 FROM dual");
     }
 
-    private Pool getDatabaseVersion(DBTypeEnum type, Pool pool) {
+    private Pool getDatabaseVersion(DBTypeEnum type, Pool pool, String verifyStatement) {
         final var future = pool.withConnection(conn ->
                         showDbVersion(conn, type)
                                 .eventually(conn::close)
                 )
                 .onSuccess(
-                        result -> LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result)
+                        result -> {
+                            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result);
+                            refreshConnection(
+                                    () ->
+                                            pool.withConnection(connection ->
+                                                    connection.query(verifyStatement)
+                                                            .execute()
+                                                            .map(rows -> CommonConstant.VOID)
+                                            )
+                            );
+                        }
                 )
                 .onFailure(
                         err -> {
@@ -319,32 +304,24 @@ public class ReactiveDbClientConfiguration {
         long now = System.currentTimeMillis();
         long next = ((now / period) + 1) * period; // next 30 seconds
         long initialDelay = next - now;
-        vertx.setTimer(initialDelay, id -> {
-            handler.get()
-                    /*.onSuccess(v ->
-                            LogUtils.writeLog(EmptyRoutingContext.init(),
-                                    LogUtils.Level.INFO,
-                                    "Connection valid")
-                    )*/
-                    .onFailure(e ->
-                            LogUtils.writeLog(EmptyRoutingContext.init(),
-                                    "Connection invalid",
-                                    e)
-                    );
-            vertx.setPeriodic(period, pid -> {
+        vertx.setTimer(initialDelay, id ->
                 handler.get()
-                        /*.onSuccess(v ->
-                                LogUtils.writeLog(EmptyRoutingContext.init(),
-                                        LogUtils.Level.INFO,
-                                        "Connection valid")
-                        )*/
+                        .onSuccess(v ->
+                                vertx.setPeriodic(period, pid -> {
+                                    handler.get()
+                                            .onFailure(e ->
+                                                    LogUtils.writeLog(EmptyRoutingContext.init(),
+                                                            "Connection invalid",
+                                                            e)
+                                            );
+                                })
+                        )
                         .onFailure(e ->
                                 LogUtils.writeLog(EmptyRoutingContext.init(),
                                         "Connection invalid",
                                         e)
-                        );
-            });
-        });
+                        )
+        );
     }
 
 }

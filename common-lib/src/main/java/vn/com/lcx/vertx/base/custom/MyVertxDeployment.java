@@ -20,6 +20,7 @@ import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.config.LogbackConfig;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.CommonUtils;
+import vn.com.lcx.common.utils.JVMSystemInfo;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
@@ -191,6 +192,7 @@ public class MyVertxDeployment {
                     }
                 });
             }
+            JVMSystemInfo.printMemoryUsage(vertx);
         } catch (Exception e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             System.exit(1);
