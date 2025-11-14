@@ -5,7 +5,9 @@ import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
+import io.vertx.core.ThreadingModel;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.WorkerExecutor;
@@ -147,17 +149,25 @@ public class MyVertxDeployment {
             List<Class<?>> verticles = new ArrayList<>();
             ClassPool.init(packagesToScan, verticles);
             Future<String> deploymentChain = null;
+            final var major = Runtime.version().feature();
+            final DeploymentOptions options;
+            if (major >= 21) {
+                options = new DeploymentOptions()
+                        .setThreadingModel(ThreadingModel.VIRTUAL_THREAD);
+            } else {
+                options = new DeploymentOptions();
+            }
             if (!verticles.isEmpty()) {
                 for (Class<?> aClass : verticles) {
                     if (aClass.getAnnotation(Verticle.class) != null) {
                         final VertxBaseVerticle verticle = (VertxBaseVerticle) ClassPool.getInstance(aClass);
                         if (deploymentChain == null) {
-                            deploymentChain = vertx.deployVerticle(verticle)
+                            deploymentChain = vertx.deployVerticle(verticle, options)
                                     .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle " + aClass, throwable))
                                     .onSuccess(s -> logVerticleDeploymentId(aClass, s));
                         } else {
                             deploymentChain = deploymentChain.compose(
-                                    s -> vertx.deployVerticle(verticle)
+                                    s -> vertx.deployVerticle(verticle, options)
                                             .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle " + aClass, throwable))
                                             .onSuccess(s2 -> logVerticleDeploymentId(aClass, s2))
                             );
