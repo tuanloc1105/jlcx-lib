@@ -223,13 +223,15 @@ public class ReactiveDbClientConfiguration {
                 )
                 .onFailure(
                         err -> {
-                            LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err);
-                            System.exit(1);
+                            LogUtils.writeLog(EmptyRoutingContext.init(), "An error occurred in initialization stage of reactive database pool", err);
                         }
                 );
         // noinspection StatementWithEmptyBody
         while (!future.isComplete()) {
             // wait
+        }
+        if (future.failed()) {
+            throw new ExceptionInInitializerError("Cannot create reactive database pool");
         }
         return pool;
     }
