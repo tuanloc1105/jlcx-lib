@@ -49,10 +49,10 @@
         <snakeyaml-org.yaml.version>2.5</snakeyaml-org.yaml.version>
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
-        <kafka-clients-org.apache.kafka.version>4.1.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.34.Final</hibernate-core-org.hibernate.orm.version>
+        <kafka-clients-org.apache.kafka.version>4.1.1</kafka-clients-org.apache.kafka.version>
+        <hibernate-core-org.hibernate.orm.version>6.6.36.Final</hibernate-core-org.hibernate.orm.version>
         <hibernate-tools-orm-org.hibernate.tool.version>6.6.34.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.34.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-jcache-org.hibernate.orm.version>6.6.36.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.5</vertx-core-io.vertx.version>
         <vertx-web-io.vertx.version>5.0.5</vertx-web-io.vertx.version>
@@ -76,15 +76,15 @@
         <grpc-netty-shaded-io.grpc.version>1.76.0</grpc-netty-shaded-io.grpc.version>
         <grpc-protobuf-io.grpc.version>1.76.0</grpc-protobuf-io.grpc.version>
         <grpc-stub-io.grpc.version>1.76.0</grpc-stub-io.grpc.version>
-        <protobuf-java-com.google.protobuf.version>4.33.0</protobuf-java-com.google.protobuf.version>
-        <protobuf-java-util-com.google.protobuf.version>4.33.0</protobuf-java-util-com.google.protobuf.version>
+        <protobuf-java-com.google.protobuf.version>4.33.1</protobuf-java-com.google.protobuf.version>
+        <protobuf-java-util-com.google.protobuf.version>4.33.1</protobuf-java-util-com.google.protobuf.version>
         <junit-jupiter-api-org.junit.jupiter.version>6.0.1</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>6.0.1</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>6.0.1</junit-jupiter-params-org.junit.jupiter.version>
         <mockito-core-org.mockito.version>5.20.0</mockito-core-org.mockito.version>
         <mockito-junit-jupiter-org.mockito.version>5.20.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
-        <byte-buddy-net.bytebuddy.version>1.18.0</byte-buddy-net.bytebuddy.version>
+        <byte-buddy-net.bytebuddy.version>1.18.1</byte-buddy-net.bytebuddy.version>
         <datafaker-net.datafaker.version>2.5.3</datafaker-net.datafaker.version>
         <h2-com.h2database.version>2.4.240</h2-com.h2database.version>
         <maven-plugin-api-org.apache.maven.version>3.9.11</maven-plugin-api-org.apache.maven.version>
@@ -96,7 +96,7 @@
         </maven-compiler-plugin-org.apache.maven.plugins.version>
         <maven-dependency-plugin-org.apache.maven.plugins.version>3.9.0
         </maven-dependency-plugin-org.apache.maven.plugins.version>
-        <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
+        <maven-jar-plugin-org.apache.maven.plugins.version>3.5.0</maven-jar-plugin-org.apache.maven.plugins.version>
         <maven-resources-plugin-org.apache.maven.plugins.version>3.3.1
         </maven-resources-plugin-org.apache.maven.plugins.version>
         <sonar-maven-plugin-org.sonarsource.scanner.maven.version>5.3.0.6276
@@ -106,7 +106,7 @@
         <maven-clean-plugin-org.apache.maven.plugins.version>3.5.0</maven-clean-plugin-org.apache.maven.plugins.version>
         <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.4
         </maven-surefire-plugin-org.apache.maven.plugins.version>
-        <maven-jar-plugin-org.apache.maven.plugins.version>3.4.2</maven-jar-plugin-org.apache.maven.plugins.version>
+        <maven-jar-plugin-org.apache.maven.plugins.version>3.5.0</maven-jar-plugin-org.apache.maven.plugins.version>
         <maven-install-plugin-org.apache.maven.plugins.version>3.1.4
         </maven-install-plugin-org.apache.maven.plugins.version>
         <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.2
@@ -377,7 +377,7 @@
                 <version>${HikariCP-com.zaxxer.version}</version>
             </dependency>
 
-            <!-- Released at 2025-08-27 -->
+            <!-- Released at 2025-10-27 -->
             <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
             <dependency>
                 <groupId>org.apache.kafka</groupId>
@@ -386,7 +386,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-10-27 -->
+            <!-- Released at 2025-11-16 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -403,7 +403,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-10-27 -->
+            <!-- Released at 2025-11-16 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-jcache -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -597,7 +597,7 @@
                 <version>${grpc-stub-io.grpc.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-16 -->
+            <!-- Released at 2025-11-13 -->
             <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -605,7 +605,7 @@
                 <version>${protobuf-java-com.google.protobuf.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-16 -->
+            <!-- Released at 2025-11-13 -->
             <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util -->
             <dependency>
                 <groupId>com.google.protobuf</groupId>
@@ -661,7 +661,7 @@
                 <version>${mockito-inline-org.mockito.version}</version>
             </dependency>
 
-            <!-- Released at 2025-11-11 -->
+            <!-- Released at 2025-11-12 -->
             <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
             <dependency>
                 <groupId>net.bytebuddy</groupId>
@@ -792,7 +792,7 @@
             </plugin>
 
             <plugin>
-                <!-- Released at 2024-06-16 -->
+                <!-- Released at 2025-11-11 -->
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -883,7 +883,7 @@
                 </plugin>
 
                 <plugin>
-                    <!-- Released at 2024-06-16 -->
+                    <!-- Released at 2025-11-11 -->
                     <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
