@@ -205,6 +205,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 }
                                 break;
                             case "find":
+                            case "findOne":
+                            case "findFirst":
                                 return;
                             default:
                                 if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
