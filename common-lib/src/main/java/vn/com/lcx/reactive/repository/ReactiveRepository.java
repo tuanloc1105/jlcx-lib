@@ -3,6 +3,12 @@ package vn.com.lcx.reactive.repository;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.SqlConnection;
+import vn.com.lcx.common.database.pageable.Page;
+import vn.com.lcx.common.database.pageable.Pageable;
+import vn.com.lcx.reactive.helper.SqlStatement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base interface for reactive repositories providing common CRUD operations.
@@ -41,5 +47,16 @@ public interface ReactiveRepository<T> {
      * @return a {@link Future} that, when completed, contains the number of rows deleted
      */
     Future<Integer> delete(RoutingContext context, SqlConnection connection, T entity);
+
+    Future<Page<T>> find(RoutingContext context,
+                         SqlConnection connection,
+                         SqlStatement statement,
+                         ArrayList<Object> parameters,
+                         Pageable pageable);
+
+    Future<List<T>> find(RoutingContext context,
+                         SqlConnection connection,
+                         SqlStatement statement,
+                         ArrayList<Object> parameters);
 
 }

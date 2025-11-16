@@ -360,15 +360,19 @@ public class SqlStatement {
      */
     public String finalizeQueryStatement(Pageable pageable) {
         final String sqlStatement;
-        if (pageable != null) {
-            sqlStatement = statement.append("\n").append(pageable.toSql()).toString();
+        if (alreadyCached()) {
+            sqlStatement = sqlCache.get(cacheKeyName);
         } else {
             sqlStatement = statement.toString();
+            if (isUseCache) {
+                sqlCache.put(cacheKeyName, sqlStatement);
+            }
         }
-        if (isUseCache) {
-            sqlCache.put(cacheKeyName, sqlStatement);
+        if (pageable != null) {
+            return sqlStatement + "\n" + pageable.toSql();
+        } else {
+            return sqlStatement;
         }
-        return sqlStatement;
     }
 
     /**
@@ -386,9 +390,15 @@ public class SqlStatement {
      * @return generated SQL COUNT query
      */
     public String finalizeCountStatement() {
-        final var sqlStatement = count.toString();
-        if (isUseCache) {
-            sqlCache.put(cacheKeyName + "_count", sqlStatement);
+        final String sqlStatement;
+        final var cacheKey = cacheKeyName + "_count";
+        if (alreadyCached()) {
+            sqlStatement = sqlCache.get(cacheKey);
+        } else {
+            sqlStatement = count.toString();
+            if (isUseCache) {
+                sqlCache.put(cacheKey, sqlStatement);
+            }
         }
         return sqlStatement;
     }
