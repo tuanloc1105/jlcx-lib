@@ -123,7 +123,7 @@ public class SqlStatement {
         statement.append("\n    ").append(columns[0]);
         if (columns.length > 1) {
             for (int i = 1; i < columns.length; i++) {
-                statement.append("\n    ").append(columns[i]);
+                statement.append(",\n    ").append(columns[i]);
             }
         }
         return this;
