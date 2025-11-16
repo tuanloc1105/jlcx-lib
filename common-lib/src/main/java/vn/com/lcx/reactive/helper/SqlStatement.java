@@ -366,6 +366,7 @@ public class SqlStatement {
             sqlStatement = statement.toString();
             if (isUseCache) {
                 sqlCache.put(cacheKeyName, sqlStatement);
+                sqlCache.put(cacheKeyName + "_count", count.toString());
             }
         }
         if (pageable != null) {
@@ -397,6 +398,7 @@ public class SqlStatement {
         } else {
             sqlStatement = count.toString();
             if (isUseCache) {
+                sqlCache.put(cacheKeyName, statement.toString());
                 sqlCache.put(cacheKey, sqlStatement);
             }
         }
