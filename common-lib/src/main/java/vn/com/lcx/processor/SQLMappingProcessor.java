@@ -1065,15 +1065,11 @@ public class SQLMappingProcessor extends AbstractProcessor {
         });
 
         if (StringUtils.isNotBlank(preInsertMethodName.get())) {
-            insertJdbcParameterCodeLines.add("model." + preInsertMethodName.get() + "();");
-            insertVertClientParameterCodeLines.add("model." + preInsertMethodName.get() + "();");
             insertStatementCodeLines.add("model." + preInsertMethodName.get() + "();");
             reactiveInsertStatementCodeLines.add("model." + preInsertMethodName.get() + "();");
         }
 
         if (StringUtils.isNotBlank(preUpdateMethodName.get())) {
-            updateJdbcParameterCodeLines.add("model." + preUpdateMethodName.get() + "();");
-            updateVertClientParameterCodeLines.add("model." + preUpdateMethodName.get() + "();");
             updateStatementCodeLines.add("model." + preUpdateMethodName.get() + "();");
             reactiveUpdateStatementCodeLines.add("model." + preUpdateMethodName.get() + "();");
         }

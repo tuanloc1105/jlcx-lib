@@ -286,7 +286,6 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         final var code = repositoryTemplate
                 .replace("${package-name}", packageName)
                 .replace("${proxy-class-name}", className)
-                .replace("${entity-class-name}", entityTypeMirror.toString())
                 .replace("${interface-class-name}", processorClassInfo.getClazz().getSimpleName())
                 .replace("${methods}", MyStringUtils.removeSuffixOfString(methodCodeBody.toString(), "\n"));
         String fullClassName = packageName + "." + className;
