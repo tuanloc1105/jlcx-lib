@@ -2,10 +2,16 @@ package vn.com.lcx.reactive.repository;
 
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.SqlConnection;
+import io.vertx.sqlclient.Tuple;
 import vn.com.lcx.common.database.pageable.Page;
 import vn.com.lcx.common.database.pageable.Pageable;
+import vn.com.lcx.jpa.exception.CodeGenError;
+import vn.com.lcx.reactive.context.EntityMappingContainer;
 import vn.com.lcx.reactive.helper.SqlStatement;
+import vn.com.lcx.reactive.utils.QueryProcessor;
+import vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,5 +64,103 @@ public interface ReactiveRepository<T> {
                          SqlConnection connection,
                          SqlStatement statement,
                          ArrayList<Object> parameters);
+
+    default <U> Future<Page<U>> find(RoutingContext context,
+                                     SqlConnection connection,
+                                     SqlStatement statement,
+                                     ArrayList<Object> parameters,
+                                     Pageable pageable,
+                                     Class<U> outputClazz) {
+        String databaseName = connection.databaseMetadata().productName();
+        String placeholder;
+        if (databaseName.equals("PostgreSQL")) {
+            placeholder = "$";
+        } else if (databaseName.equals("MySQL") || databaseName.equals("MariaDB")) {
+            placeholder = "?";
+        } else if (databaseName.equals("Microsoft SQL Server")) {
+            placeholder = "@p";
+        } else if (databaseName.equals("Oracle")) {
+            placeholder = "?";
+        } else {
+            throw new CodeGenError("Unsupported database type");
+        }
+        // noinspection SqlSourceToSinkFlow
+        return SqlConnectionLcxWrapper.init(connection, context)
+                .preparedQuery(
+                        QueryProcessor.processQueryStatement(
+                                statement.finalizeQueryStatement(pageable),
+                                parameters,
+                                placeholder
+                        )
+                )
+                .execute(Tuple.tuple(parameters))
+                .map(rowSet ->
+                        {
+                            final List<U> result = new ArrayList<>();
+                            for (Row row : rowSet) {
+                                result.add(EntityMappingContainer.<U>getMapping(outputClazz.getName()).vertxRowMapping(row));
+                            }
+                            return result;
+                        }
+                )
+                .compose(rs ->
+                        SqlConnectionLcxWrapper.init(connection, context)
+                                .preparedQuery(
+                                        QueryProcessor.processQueryStatement(
+                                                statement.finalizeCountStatement(),
+                                                parameters,
+                                                placeholder
+                                        )
+                                )
+                                .execute(Tuple.tuple(parameters))
+                                .map(rowSet -> {
+                                    long countRs = 0L;
+                                    for (Row row : rowSet) {
+                                        countRs = countRs + row.getLong(0);
+                                        break;
+                                    }
+                                    return Page.create(rs, countRs, pageable.getPageNumber(), pageable.getPageSize());
+                                })
+                );
+    }
+
+    default <U> Future<List<U>> find(RoutingContext context,
+                                     SqlConnection connection,
+                                     SqlStatement statement,
+                                     ArrayList<Object> parameters,
+                                     Class<U> outputClazz) {
+        String databaseName = connection.databaseMetadata().productName();
+        String placeholder;
+        if (databaseName.equals("PostgreSQL")) {
+            placeholder = "$";
+        } else if (databaseName.equals("MySQL") || databaseName.equals("MariaDB")) {
+            placeholder = "?";
+        } else if (databaseName.equals("Microsoft SQL Server")) {
+            placeholder = "@p";
+        } else if (databaseName.equals("Oracle")) {
+            placeholder = "?";
+        } else {
+            throw new CodeGenError("Unsupported database type");
+        }
+        // noinspection SqlSourceToSinkFlow
+        return SqlConnectionLcxWrapper.init(connection, context)
+                .preparedQuery(
+                        QueryProcessor.processQueryStatement(
+                                statement.finalizeQueryStatement(),
+                                parameters,
+                                placeholder
+                        )
+                )
+                .execute(Tuple.tuple(parameters))
+                .map(rowSet ->
+                        {
+                            final List<U> result = new ArrayList<>();
+                            for (Row row : rowSet) {
+                                result.add(EntityMappingContainer.<U>getMapping(outputClazz.getName()).vertxRowMapping(row));
+                            }
+                            return result;
+                        }
+                );
+    }
 
 }
