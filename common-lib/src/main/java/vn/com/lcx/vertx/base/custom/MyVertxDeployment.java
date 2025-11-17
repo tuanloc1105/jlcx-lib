@@ -11,6 +11,7 @@ import io.vertx.core.ThreadingModel;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.WorkerExecutor;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.micrometer.MicrometerMetricsFactory;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
@@ -96,31 +97,45 @@ public class MyVertxDeployment {
         try {
             ClassPool.loadProperties();
             boolean enableMetric = Boolean.parseBoolean(
-                    CommonConstant.applicationConfig.getPropertyWithEnvironment("server.enable-metrics") + CommonConstant.EMPTY_STRING
+                    CommonConstant.applicationConfig.getPropertyWithEnvironment("server.metrics.enable") + CommonConstant.EMPTY_STRING
             );
             final Vertx vertx;
             if (enableMetric) {
-                PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-                registry.config().meterFilter(
-                        new MeterFilter() {
-                            @SuppressWarnings("NullableProblems")
-                            @Override
-                            public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
-                                return DistributionStatisticConfig.builder()
-                                        .percentilesHistogram(true)
-                                        .build()
-                                        .merge(config);
-                            }
-                        });
-
-                vertx = Vertx.builder()
-                        .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
-                                .setEnabled(true)
-                                .setPrometheusOptions(new VertxPrometheusOptions()
-                                        .setEnabled(true))
-                        ))
-                        .withMetrics(new MicrometerMetricsFactory(registry))
-                        .build();
+                final int metricPort;
+                String metricPortString = CommonConstant.applicationConfig.getPropertyWithEnvironment("server.metrics.port") + CommonConstant.EMPTY_STRING;
+                if (vn.com.lcx.common.utils.MyStringUtils.isNotBlank(metricPortString) && vn.com.lcx.common.utils.MyStringUtils.isNumeric(metricPortString)) {
+                    metricPort = Integer.parseInt(metricPortString);
+                } else {
+                    metricPort = 8081;
+                }
+                String metricEndpoint = CommonConstant.applicationConfig.getPropertyWithEnvironment("server.metrics.endpoint") + CommonConstant.EMPTY_STRING;
+                vertx = Vertx.vertx(new VertxOptions().setMetricsOptions(
+                        new MicrometerMetricsOptions()
+                                .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true)
+                                        .setStartEmbeddedServer(true)
+                                        .setEmbeddedServerOptions(new HttpServerOptions().setPort(metricPort))
+                                        .setEmbeddedServerEndpoint(metricEndpoint.equals(CommonConstant.NULL_STRING) ? "/metrics" : metricEndpoint))
+                                .setEnabled(true)));
+                // PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+                // registry.config().meterFilter(
+                //         new MeterFilter() {
+                //             @SuppressWarnings("NullableProblems")
+                //             @Override
+                //             public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+                //                 return DistributionStatisticConfig.builder()
+                //                         .percentilesHistogram(true)
+                //                         .build()
+                //                         .merge(config);
+                //             }
+                //         });
+                // vertx = Vertx.builder()
+                //         .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
+                //                 .setEnabled(true)
+                //                 .setPrometheusOptions(new VertxPrometheusOptions()
+                //                         .setEnabled(true))
+                //         ))
+                //         .withMetrics(new MicrometerMetricsFactory(registry))
+                //         .build();
             } else {
                 vertx = Vertx.vertx();
             }
