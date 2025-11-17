@@ -38,10 +38,10 @@ public final class JVMSystemInfo {
     }
 
     public static void printMemoryUsage(Vertx vertx) {
-        long period = 30_000; // 30 seconds
+        long period = 6 * 60 * 60 * 1000; // 21,600,000 milliseconds (6 hours)
         long now = System.currentTimeMillis();
-        long next = ((now / period) + 1) * period; // next 30 seconds
-        long initialDelay = next - now;
+        long nextMinuteStart = ((now / 60000) + 1) * 60000; // 60000ms
+        long initialDelay = nextMinuteStart - now;
         vertx.setTimer(initialDelay, id -> {
             print();
             vertx.setPeriodic(period, pid -> {
