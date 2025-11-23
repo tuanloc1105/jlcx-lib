@@ -51,7 +51,7 @@
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.1.1</kafka-clients-org.apache.kafka.version>
         <hibernate-core-org.hibernate.orm.version>6.6.36.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.35.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>6.6.36.Final</hibernate-tools-orm-org.hibernate.tool.version>
         <hibernate-jcache-org.hibernate.orm.version>6.6.36.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.5</vertx-core-io.vertx.version>
@@ -394,7 +394,7 @@
                 <version>${hibernate-core-org.hibernate.orm.version}</version>
             </dependency>
 
-            <!-- Released at 2025-11-19 -->
+            <!-- Released at 2025-11-21 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.tool/hibernate-tools-orm -->
             <dependency>
                 <groupId>org.hibernate.tool</groupId>
