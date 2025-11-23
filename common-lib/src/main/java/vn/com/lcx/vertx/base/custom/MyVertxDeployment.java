@@ -5,10 +5,13 @@ import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
+import io.vertx.core.ThreadingModel;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.WorkerExecutor;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.micrometer.MicrometerMetricsFactory;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
@@ -18,6 +21,7 @@ import vn.com.lcx.common.config.ClassPool;
 import vn.com.lcx.common.config.LogbackConfig;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.CommonUtils;
+import vn.com.lcx.common.utils.JVMSystemInfo;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.annotation.app.ComponentScan;
 import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
@@ -93,31 +97,45 @@ public class MyVertxDeployment {
         try {
             ClassPool.loadProperties();
             boolean enableMetric = Boolean.parseBoolean(
-                    CommonConstant.applicationConfig.getPropertyWithEnvironment("server.enable-metrics") + CommonConstant.EMPTY_STRING
+                    CommonConstant.applicationConfig.getPropertyWithEnvironment("server.metrics.enable") + CommonConstant.EMPTY_STRING
             );
             final Vertx vertx;
             if (enableMetric) {
-                PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-                registry.config().meterFilter(
-                        new MeterFilter() {
-                            @SuppressWarnings("NullableProblems")
-                            @Override
-                            public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
-                                return DistributionStatisticConfig.builder()
-                                        .percentilesHistogram(true)
-                                        .build()
-                                        .merge(config);
-                            }
-                        });
-
-                vertx = Vertx.builder()
-                        .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
-                                .setEnabled(true)
-                                .setPrometheusOptions(new VertxPrometheusOptions()
-                                        .setEnabled(true))
-                        ))
-                        .withMetrics(new MicrometerMetricsFactory(registry))
-                        .build();
+                final int metricPort;
+                String metricPortString = CommonConstant.applicationConfig.getPropertyWithEnvironment("server.metrics.port") + CommonConstant.EMPTY_STRING;
+                if (vn.com.lcx.common.utils.MyStringUtils.isNotBlank(metricPortString) && vn.com.lcx.common.utils.MyStringUtils.isNumeric(metricPortString)) {
+                    metricPort = Integer.parseInt(metricPortString);
+                } else {
+                    metricPort = 8081;
+                }
+                String metricEndpoint = CommonConstant.applicationConfig.getPropertyWithEnvironment("server.metrics.endpoint") + CommonConstant.EMPTY_STRING;
+                vertx = Vertx.vertx(new VertxOptions().setMetricsOptions(
+                        new MicrometerMetricsOptions()
+                                .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true)
+                                        .setStartEmbeddedServer(true)
+                                        .setEmbeddedServerOptions(new HttpServerOptions().setPort(metricPort))
+                                        .setEmbeddedServerEndpoint(metricEndpoint.equals(CommonConstant.NULL_STRING) ? "/metrics" : metricEndpoint))
+                                .setEnabled(true)));
+                // PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+                // registry.config().meterFilter(
+                //         new MeterFilter() {
+                //             @SuppressWarnings("NullableProblems")
+                //             @Override
+                //             public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+                //                 return DistributionStatisticConfig.builder()
+                //                         .percentilesHistogram(true)
+                //                         .build()
+                //                         .merge(config);
+                //             }
+                //         });
+                // vertx = Vertx.builder()
+                //         .with(new VertxOptions().setMetricsOptions(new MicrometerMetricsOptions()
+                //                 .setEnabled(true)
+                //                 .setPrometheusOptions(new VertxPrometheusOptions()
+                //                         .setEnabled(true))
+                //         ))
+                //         .withMetrics(new MicrometerMetricsFactory(registry))
+                //         .build();
             } else {
                 vertx = Vertx.vertx();
             }
@@ -147,17 +165,26 @@ public class MyVertxDeployment {
             List<Class<?>> verticles = new ArrayList<>();
             ClassPool.init(packagesToScan, verticles);
             Future<String> deploymentChain = null;
+            final var major = Runtime.version().feature();
+            final DeploymentOptions options;
+            if (major >= 21) {
+                LogUtils.writeLog(LogUtils.Level.DEBUG, "Using virtual thread deployment option");
+                options = new DeploymentOptions()
+                        .setThreadingModel(ThreadingModel.VIRTUAL_THREAD);
+            } else {
+                options = new DeploymentOptions();
+            }
             if (!verticles.isEmpty()) {
                 for (Class<?> aClass : verticles) {
                     if (aClass.getAnnotation(Verticle.class) != null) {
                         final VertxBaseVerticle verticle = (VertxBaseVerticle) ClassPool.getInstance(aClass);
                         if (deploymentChain == null) {
-                            deploymentChain = vertx.deployVerticle(verticle)
+                            deploymentChain = vertx.deployVerticle(verticle, options)
                                     .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle " + aClass, throwable))
                                     .onSuccess(s -> logVerticleDeploymentId(aClass, s));
                         } else {
                             deploymentChain = deploymentChain.compose(
-                                    s -> vertx.deployVerticle(verticle)
+                                    s -> vertx.deployVerticle(verticle, options)
                                             .onFailure(throwable -> LoggerFactory.getLogger("APP").error("Cannot start verticle " + aClass, throwable))
                                             .onSuccess(s2 -> logVerticleDeploymentId(aClass, s2))
                             );
@@ -180,6 +207,7 @@ public class MyVertxDeployment {
                     }
                 });
             }
+            JVMSystemInfo.printMemoryUsage(vertx);
         } catch (Exception e) {
             LoggerFactory.getLogger(ClassPool.class).error(e.getMessage(), e);
             System.exit(1);

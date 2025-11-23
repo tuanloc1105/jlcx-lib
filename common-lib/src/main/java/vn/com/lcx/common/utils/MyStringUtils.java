@@ -617,6 +617,83 @@ public final class MyStringUtils {
     }
 
     /**
+     * Finds all indices (positions) of a specific character within a String.
+     * The function first normalizes the input string by replacing all Non-breaking
+     * Space characters (U+00A0) with regular spaces (U+0020).
+     * * @param text The input String to search through.
+     *
+     * @param character The character to find.
+     * @return A List<Integer> containing all 0-based indices where the character is found.
+     */
+    public static List<Integer> findAllOccurrences(String text, char character) {
+
+        // --- Normalization Step ---
+        // Replace all Non-breaking Spaces (\u00A0) with regular spaces.
+        // This is crucial because text copied from some sources (like web/PDF)
+        // often contains these hidden characters, causing index counting errors.
+        String normalizedText = text.replace('\u00A0', ' ');
+
+        List<Integer> indices = new ArrayList<>();
+        int startIndex = 0;
+
+        // The search logic operates on the normalized string
+        while (startIndex < normalizedText.length()) {
+
+            // Search for the character starting from the current startIndex
+            int foundIndex = normalizedText.indexOf(character, startIndex);
+
+            if (foundIndex == -1) {
+                break; // Character not found in the remainder
+            }
+
+            // Found it! The index is correct based on the normalized string.
+            indices.add(foundIndex);
+
+            // Update startIndex to the position *after* the index just found
+            startIndex = foundIndex + 1;
+        }
+
+        return indices;
+    }
+
+    /**
+     * Replaces the character at a specific index in the original string
+     * with a replacement string.
+     * * @param originalString The string to be modified.
+     *
+     * @param index             The zero-based index of the character to replace.
+     * @param replacementString The new string content to insert at the index.
+     * @return The new string after the replacement is done.
+     * @throws IndexOutOfBoundsException If the index is out of the string bounds.
+     */
+    public static String replaceCharWithSubstring(
+            String originalString,
+            int index,
+            String replacementString) {
+
+        // 1. Input Validation: Check if the index is valid.
+        if (index < 0 || index >= originalString.length()) {
+            throw new IndexOutOfBoundsException(
+                    "Index " + index + " is out of bounds for string length " + originalString.length()
+            );
+        }
+
+        // 2. Use StringBuilder for efficient modification.
+        // We create a mutable copy of the original string.
+        StringBuilder sb = new StringBuilder(originalString);
+
+        // 3. The replace method takes three arguments:
+        //    (start_index, end_index, replacement_string).
+        //    To replace only the single character at 'index', we use:
+        //    - start_index: index
+        //    - end_index: index + 1 (exclusive)
+        sb.replace(index, index + 1, replacementString);
+
+        // 4. Convert the StringBuilder back to an immutable String and return it.
+        return sb.toString();
+    }
+
+    /**
      * Normalizes a string by removing diacritical marks and converting special Vietnamese characters to ASCII.
      *
      * @param s the string to normalize

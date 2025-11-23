@@ -37,6 +37,10 @@ public class JsonMaskingUtils {
             return inputJsonString;
         }
 
+        if (!MyStringUtils.stringIsJsonFormat(inputJsonString)) {
+            return inputJsonString;
+        }
+
         if (!(jsonHandler instanceof Gson) && !(jsonHandler instanceof ObjectMapper)) {
             throw new UnsupportedOperationException("Unknown json handler. Only support `Gson` and `Jackson`");
         }
