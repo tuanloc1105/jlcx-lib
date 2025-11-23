@@ -253,4 +253,17 @@ public abstract class ReactiveController {
         return requestObject;
     }
 
+    public String getFormParam(RoutingContext context, String paramName) {
+        return context.request().getFormAttribute(paramName);
+    }
+
+    public io.vertx.ext.web.FileUpload getFileParam(RoutingContext context, String paramName) {
+        for (io.vertx.ext.web.FileUpload f : context.fileUploads()) {
+            if (f.name().equals(paramName)) {
+                return f;
+            }
+        }
+        return null;
+    }
+
 }
