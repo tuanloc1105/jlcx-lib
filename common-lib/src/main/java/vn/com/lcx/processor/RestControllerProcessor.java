@@ -189,7 +189,7 @@ public class RestControllerProcessor extends AbstractProcessor {
             }
         }
 
-        sb.append("            ").append(controllerVarName).append(".").append(method.getSimpleName()).append("(").append(String.join(", ", args)).append(").onSuccess(it -> {\n");
+        sb.append("            ").append(controllerVarName).append(".").append(method.getSimpleName()).append("(ctx, ").append(String.join(", ", args)).append(").onSuccess(it -> {\n");
         sb.append("                handleResponse(ctx, gson, it);\n");
         sb.append("            }).onFailure(err -> {\n");
         sb.append("                handleError(ctx, gson, err);\n");
