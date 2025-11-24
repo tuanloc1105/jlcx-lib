@@ -37,8 +37,10 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-@SupportedAnnotationTypes("*")
+@SupportedAnnotationTypes({"vn.com.lcx.vertx.base.annotation.process.Controller", "vn.com.lcx.vertx.base.annotation.app.VertxApplication"})
 public class ControllerProcessor extends AbstractProcessor {
+
+    static boolean serveStaticResource = false;
 
     private static String extractApiKeyValidationMethod(boolean applicationHaveAPIKey) {
         String apiKeyAuthHandler = "    // None of api key auth handler";
@@ -107,7 +109,6 @@ public class ControllerProcessor extends AbstractProcessor {
                 }
             }
         }
-        boolean serveStaticResource = false;
         for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(VertxApplication.class)) {
             if (annotatedElement instanceof TypeElement) {
                 TypeElement typeElement = (TypeElement) annotatedElement;
