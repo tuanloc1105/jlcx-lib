@@ -37,7 +37,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-@SupportedAnnotationTypes("vn.com.lcx.vertx.base.annotation.process.Controller")
+@SupportedAnnotationTypes("*")
 public class ControllerProcessor extends AbstractProcessor {
 
     private static String extractApiKeyValidationMethod(boolean applicationHaveAPIKey) {
