@@ -19,6 +19,7 @@ import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import vn.com.lcx.vertx.base.http.request.CommonRequest;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
+import vn.com.lcx.vertx.base.http.response.ResponseEntity;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
 import java.io.StringReader;
@@ -177,13 +178,28 @@ public abstract class ReactiveController {
     }
 
     public void handleResponse(RoutingContext ctx, Object jsonHandler, Object resp, int code) {
-        if (resp instanceof CommonResponse) {
-            ((CommonResponse) resp).setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
-            ((CommonResponse) resp).setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
-            ((CommonResponse) resp).setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
-            ((CommonResponse) resp).setHttpCode(code);
+
+        int finalStatus = code;
+        Object finalBody = resp;
+
+        // If resp is a ResponseEntity, override status and body
+        if (resp instanceof ResponseEntity<?>) {
+            ResponseEntity<?> entity = (ResponseEntity<?>) resp;
+            finalStatus = entity.getStatus();
+            finalBody = entity.getResponse();
         }
-        returnResponse(ctx, jsonHandler, resp, code);
+
+        // If the final body is a CommonResponse, apply the existing logic
+        if (finalBody instanceof CommonResponse) {
+            CommonResponse common = (CommonResponse) finalBody;
+            common.setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+            common.setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
+            common.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
+            common.setHttpCode(finalStatus);
+        }
+
+        // Return the final response with the resolved body and status
+        returnResponse(ctx, jsonHandler, finalBody, finalStatus);
     }
 
     private void returnResponse(RoutingContext ctx, Object jsonHandler, Object resp, int code) {
