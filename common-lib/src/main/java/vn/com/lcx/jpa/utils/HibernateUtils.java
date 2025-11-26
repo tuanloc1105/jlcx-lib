@@ -1,9 +1,11 @@
 package vn.com.lcx.jpa.utils;
 
 import org.hibernate.Session;
+import org.hibernate.query.NativeQuery;
 import vn.com.lcx.common.database.pageable.Pageable;
 import vn.com.lcx.common.database.pageable.PageableImpl;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,28 +19,7 @@ public final class HibernateUtils {
 
         @SuppressWarnings("SqlSourceToSinkFlow") var query = session.createNativeQuery(sql, Object[].class);
 
-        // Bind parameters
-        if (params != null) {
-            params.forEach(query::setParameter);
-        }
-
-        // Apply transformer
-        org.hibernate.query.NativeQuery<?> nativeQuery =
-                query.unwrap(org.hibernate.query.NativeQuery.class);
-
-        nativeQuery.setTupleTransformer((tuple, aliases) -> {
-            Map<String, Object> map = new LinkedHashMap<>();
-            for (int i = 0; i < aliases.length; i++) {
-                map.put(aliases[i], tuple[i]);
-            }
-            return map;
-        });
-
-        // Hibernate returns List<Object> but each Object is actually Map<String, Object>
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> result = (List<Map<String, Object>>) nativeQuery.getResultList();
-
-        return result;
+        return getMaps(params, query);
     }
 
     public static List<Map<String, Object>> queryToMap(Session session, String sql, Map<String, Object> params, Pageable pageable) {
@@ -50,19 +31,22 @@ public final class HibernateUtils {
         query.setFirstResult(pageimpl.getOffset());
         query.setMaxResults(pageimpl.getPageSize());
 
+        return getMaps(params, query);
+    }
+
+    private static List<Map<String, Object>> getMaps(Map<String, Object> params, NativeQuery<Object[]> query) {
         // Bind parameters
         if (params != null) {
             params.forEach(query::setParameter);
         }
 
         // Apply transformer
-        org.hibernate.query.NativeQuery<?> nativeQuery =
-                query.unwrap(org.hibernate.query.NativeQuery.class);
+        NativeQuery<?> nativeQuery = query.unwrap(NativeQuery.class);
 
         nativeQuery.setTupleTransformer((tuple, aliases) -> {
             Map<String, Object> map = new LinkedHashMap<>();
             for (int i = 0; i < aliases.length; i++) {
-                map.put(aliases[i], tuple[i]);
+                map.put(aliases[i], convertToString(tuple[i]));
             }
             return map;
         });
@@ -72,6 +56,69 @@ public final class HibernateUtils {
         List<Map<String, Object>> result = (List<Map<String, Object>>) nativeQuery.getResultList();
 
         return result;
+    }
+
+    private static String convertToString(Object value) {
+        // Null value
+        if (value == null) {
+            return null;
+        }
+
+        // BigDecimal → plain string
+        if (value instanceof BigDecimal) {
+            return ((BigDecimal) value).toPlainString();
+        }
+
+        // java.sql.Timestamp → ISO-8601 string
+        if (value instanceof java.sql.Timestamp) {
+            java.sql.Timestamp ts = (java.sql.Timestamp) value;
+            return ts.toInstant().toString();
+        }
+
+        // java.sql.Date → yyyy-MM-dd
+        if (value instanceof java.sql.Date) {
+            java.sql.Date d = (java.sql.Date) value;
+            return d.toLocalDate().toString();
+        }
+
+        // java.util.Date → ISO-8601 string
+        if (value instanceof java.util.Date) {
+            java.util.Date d = (java.util.Date) value;
+            return d.toInstant().toString();
+        }
+
+        // Boolean → "true" / "false"
+        if (value instanceof Boolean) {
+            return value.toString();
+        }
+
+        // Enum → enum name
+        if (value instanceof Enum) {
+            return ((Enum<?>) value).name();
+        }
+
+        // BLOB → convert to UTF-8 string
+        if (value instanceof java.sql.Blob) {
+            try {
+                java.sql.Blob blob = (java.sql.Blob) value;
+                return new String(blob.getBytes(1, (int) blob.length()), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        // CLOB → convert character data to string
+        if (value instanceof java.sql.Clob) {
+            try {
+                java.sql.Clob clob = (java.sql.Clob) value;
+                return clob.getSubString(1, (int) clob.length());
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        // Fallback → use toString() for all other types
+        return value.toString();
     }
 
 }
