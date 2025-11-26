@@ -5,6 +5,8 @@ import org.hibernate.query.NativeQuery;
 import vn.com.lcx.common.database.pageable.Pageable;
 import vn.com.lcx.common.database.pageable.PageableImpl;
 import vn.com.lcx.jpa.functional.BatchCallback;
+import vn.com.lcx.jpa.functional.ResultBatchCallback;
+import vn.com.lcx.jpa.functional.RowMapper;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -98,6 +100,60 @@ public final class HibernateUtils {
 
             } catch (Exception e) {
                 throw new RuntimeException("Error streaming query", e);
+            }
+        });
+    }
+
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    public static <T> void streamQueryWithMapper(
+            Session session,
+            String sql,
+            Map<String, Object> params,
+            int batchSize,
+            RowMapper<T> mapper,
+            ResultBatchCallback<T> callback
+    ) {
+        session.doWork(connection -> {
+            try (PreparedStatement ps = connection.prepareStatement(
+                    sql,
+                    ResultSet.TYPE_FORWARD_ONLY,
+                    ResultSet.CONCUR_READ_ONLY
+            )) {
+                ps.setFetchSize(batchSize);
+
+                // Bind parameters
+                if (params != null) {
+                    int i = 1;
+                    for (Map.Entry<String, Object> entry : params.entrySet()) {
+                        ps.setObject(i++, entry.getValue());
+                    }
+                }
+
+                try (ResultSet rs = ps.executeQuery()) {
+
+                    List<T> batch = new ArrayList<>(batchSize);
+
+                    while (rs.next()) {
+
+                        // Let user map ResultSet → T
+                        T item = mapper.map(rs);
+                        batch.add(item);
+
+                        // When enough rows collected → callback
+                        if (batch.size() == batchSize) {
+                            callback.handle(batch);
+                            batch.clear();
+                        }
+                    }
+
+                    // Last partial batch
+                    if (!batch.isEmpty()) {
+                        callback.handle(batch);
+                    }
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException("Error while streaming with custom mapper", e);
             }
         });
     }
