@@ -144,6 +144,8 @@ public class RestControllerProcessor extends AbstractProcessor {
 
             if (param.getAnnotation(RequestBody.class) != null) {
                 if (paramType.equals("java.lang.String")) {
+                    sb.append("            ").append(paramType).append(" ").append(paramName).append(" = ctx.body().asString(\"UTF-8\");\n");
+                } else if (paramType.equals("io.vertx.ext.web.RequestBody")) {
                     sb.append("            ").append(paramType).append(" ").append(paramName).append(" = ctx.body();\n");
                 } else {
                     sb.append("            ").append(paramType).append(" ").append(paramName).append(" = handleRequest(ctx, gson, new TypeToken<>() {\n");
