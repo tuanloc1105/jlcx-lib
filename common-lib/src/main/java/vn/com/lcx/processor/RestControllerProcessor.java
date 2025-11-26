@@ -143,8 +143,12 @@ public class RestControllerProcessor extends AbstractProcessor {
             String paramType = param.asType().toString();
 
             if (param.getAnnotation(RequestBody.class) != null) {
-                sb.append("            ").append(paramType).append(" ").append(paramName).append(" = handleRequest(ctx, gson, new TypeToken<>() {\n");
-                sb.append("            });\n");
+                if (paramType.equals("java.lang.String")) {
+                    sb.append("            ").append(paramType).append(" ").append(paramName).append(" = ctx.body();\n");
+                } else {
+                    sb.append("            ").append(paramType).append(" ").append(paramName).append(" = handleRequest(ctx, gson, new TypeToken<>() {\n");
+                    sb.append("            });\n");
+                }
                 args.add(paramName);
             } else if (param.getAnnotation(vn.com.lcx.vertx.base.annotation.process.PathVariable.class) != null) {
                 vn.com.lcx.vertx.base.annotation.process.PathVariable pathVar = param.getAnnotation(vn.com.lcx.vertx.base.annotation.process.PathVariable.class);
