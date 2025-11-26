@@ -50,7 +50,7 @@ public abstract class ReactiveController {
         try {
             return getPathParam(context, paramName);
         } catch (Exception e) {
-            return CommonConstant.EMPTY_STRING;
+            return null;
         }
     }
 
@@ -120,7 +120,7 @@ public abstract class ReactiveController {
         if (CollectionUtils.isEmpty(paramValue)) {
             return CommonConstant.EMPTY_STRING;
         }
-        return paramValue.get(0);
+        return StringUtils.isBlank(paramValue.get(0)) ? null : paramValue.get(0);
     }
 
     public <T> T getNoneRequiringRequestQueryParam(RoutingContext context, String paramName, Function<String, T> function) {
@@ -128,7 +128,7 @@ public abstract class ReactiveController {
         if (CollectionUtils.isEmpty(paramValue)) {
             return null;
         }
-        return function.apply(paramValue.get(0));
+        return StringUtils.isBlank(paramValue.get(0)) ? null : function.apply(paramValue.get(0));
     }
 
     public List<String> getNoneRequiringRequestQueryParamInList(RoutingContext context, String paramName) {
