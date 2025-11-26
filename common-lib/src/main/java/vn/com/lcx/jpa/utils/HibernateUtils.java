@@ -4,8 +4,13 @@ import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import vn.com.lcx.common.database.pageable.Pageable;
 import vn.com.lcx.common.database.pageable.PageableImpl;
+import vn.com.lcx.jpa.functional.BatchCallback;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +37,69 @@ public final class HibernateUtils {
         query.setMaxResults(pageimpl.getPageSize());
 
         return getMaps(params, query);
+    }
+
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    public static void streamQuery(
+            Session session,
+            String sql,
+            Map<String, Object> params,
+            int batchSize,
+            BatchCallback callback
+    ) {
+
+        session.doWork(connection -> {
+            try (PreparedStatement ps = connection.prepareStatement(
+                    sql,
+                    ResultSet.TYPE_FORWARD_ONLY,
+                    ResultSet.CONCUR_READ_ONLY
+            )) {
+
+                // Set fetch size for streaming
+                ps.setFetchSize(batchSize);
+
+                // Bind parameters
+                if (params != null) {
+                    int index = 1;
+                    for (Map.Entry<String, Object> e : params.entrySet()) {
+                        ps.setObject(index++, e.getValue());
+                    }
+                }
+
+                try (ResultSet rs = ps.executeQuery()) {
+
+                    ResultSetMetaData meta = rs.getMetaData();
+                    int columnCount = meta.getColumnCount();
+
+                    List<Map<String, String>> batch = new ArrayList<>(batchSize);
+
+                    while (rs.next()) {
+                        Map<String, String> row = new LinkedHashMap<>();
+
+                        for (int i = 1; i <= columnCount; i++) {
+                            String alias = meta.getColumnLabel(i);
+                            Object value = rs.getObject(i);
+                            row.put(alias, convertToString(value));
+                        }
+
+                        batch.add(row);
+
+                        if (batch.size() == batchSize) {
+                            callback.handle(batch);
+                            batch.clear();
+                        }
+                    }
+
+                    // Last incomplete batch
+                    if (!batch.isEmpty()) {
+                        callback.handle(batch);
+                    }
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException("Error streaming query", e);
+            }
+        });
     }
 
     private static List<Map<String, Object>> getMaps(Map<String, Object> params, NativeQuery<Object[]> query) {
