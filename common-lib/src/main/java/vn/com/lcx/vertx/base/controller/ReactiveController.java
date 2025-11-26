@@ -118,7 +118,7 @@ public abstract class ReactiveController {
     public String getNoneRequiringRequestQueryParam(RoutingContext context, String paramName) {
         final var paramValue = context.queryParam(paramName);
         if (CollectionUtils.isEmpty(paramValue)) {
-            return CommonConstant.EMPTY_STRING;
+            return null;
         }
         return StringUtils.isBlank(paramValue.get(0)) ? null : paramValue.get(0);
     }
