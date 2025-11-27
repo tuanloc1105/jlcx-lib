@@ -213,6 +213,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
 
     @Override
     public Future<Void> sendFile(String filename, long offset, long length) {
+        responseLogging(String.format("file name: %s", filename));
         return realResponse.sendFile(filename, offset, length);
     }
 
