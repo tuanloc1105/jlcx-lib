@@ -181,6 +181,7 @@ public abstract class ReactiveController {
         try {
             handleResponse(ctx, jsonHandler, resp, 200);
         } catch (Throwable t) {
+            LogUtils.writeLog(ctx, t.getMessage(), t);
             ctx.response().setStatusCode(500)
                     .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
                     .putHeader(
