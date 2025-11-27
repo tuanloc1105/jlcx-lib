@@ -196,7 +196,7 @@ public final class HibernateUtils {
         // java.sql.Timestamp → ISO-8601 string
         if (value instanceof java.sql.Timestamp) {
             java.sql.Timestamp ts = (java.sql.Timestamp) value;
-            return ts.toInstant().toString();
+            return ts.toLocalDateTime().toString();
         }
 
         // java.sql.Date → yyyy-MM-dd
@@ -208,7 +208,7 @@ public final class HibernateUtils {
         // java.util.Date → ISO-8601 string
         if (value instanceof java.util.Date) {
             java.util.Date d = (java.util.Date) value;
-            return d.toInstant().toString();
+            return d.toString();
         }
 
         // Boolean → "true" / "false"
