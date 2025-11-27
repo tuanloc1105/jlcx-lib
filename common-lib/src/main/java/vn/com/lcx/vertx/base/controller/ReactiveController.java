@@ -19,10 +19,14 @@ import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import vn.com.lcx.vertx.base.http.request.CommonRequest;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
+import vn.com.lcx.vertx.base.http.response.FileEntity;
 import vn.com.lcx.vertx.base.http.response.ResponseEntity;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -216,8 +220,15 @@ public abstract class ReactiveController {
     }
 
     private void returnResponse(RoutingContext ctx, Object jsonHandler, Object resp, int code) {
+        if (resp instanceof FileEntity) {
+            handleFileResponse(ctx, (FileEntity) resp, code);
+            return;
+        }
+
         String responseBody;
-        if (jsonHandler instanceof Gson) {
+        if (resp instanceof String) {
+            responseBody = (String) resp;
+        } else if (jsonHandler instanceof Gson) {
             responseBody = ((Gson) jsonHandler).toJson(resp);
         } else if (jsonHandler instanceof ObjectMapper) {
             try {
@@ -244,6 +255,46 @@ public abstract class ReactiveController {
                 .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
                 .end(responseBody);
         // ctx.end(responseBody);
+    }
+
+    private void handleFileResponse(RoutingContext ctx, FileEntity fileEntity, int code) {
+        var response = ctx.response()
+                .setStatusCode(code)
+                .putHeader(
+                        VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
+                        DateTimeUtils.generateCurrentTimeDefault().format(
+                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
+                        )
+                )
+                .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+
+        if (!response.headers().contains(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME)) {
+            response.putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, "application/octet-stream");
+        }
+
+        response.sendFile(fileEntity.getFilePath())
+                .onSuccess(v -> deleteFileIfNeeded(ctx, fileEntity))
+                .onFailure(throwable -> LogUtils.writeLog(
+                        ctx,
+                        String.format("Failed to send file: %s", fileEntity.getFilePath()),
+                        throwable,
+                        LogUtils.Level.ERROR
+                ));
+    }
+
+    private void deleteFileIfNeeded(RoutingContext ctx, FileEntity fileEntity) {
+        if (!fileEntity.isDeleteAfterSend()) {
+            return;
+        }
+        ctx.vertx().<Void>executeBlocking(() -> {
+            Files.deleteIfExists(Paths.get(fileEntity.getFilePath()));
+            return null;
+        }).onFailure(e -> LogUtils.writeLog(
+                ctx,
+                String.format("Failed to delete file after sending: %s", fileEntity.getFilePath()),
+                e,
+                LogUtils.Level.WARN
+        ));
     }
 
     public <T> T handleRequest(RoutingContext ctx, Object jsonHandler, TypeToken<T> reqType) {

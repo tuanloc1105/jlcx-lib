@@ -56,15 +56,27 @@ public class RoutingContextLcxWrapper implements RoutingContext {
             );
         }
         var payload = Optional.ofNullable(ctx.body())
-                .filter(rq -> MyStringUtils.stringIsJsonFormat(rq.asString("UTF-8")))
-                .map(RequestBody::asJsonObject)
-                .map(JsonObject::encode)
-                .filter(StringUtils::isNotBlank)
-                .map(it -> JsonMaskingUtils.maskJsonFields(gson, it))
-                .orElse(
-                        Optional.ofNullable(ctx.body())
-                                .map(rq -> rq.asString("UTF-8")).orElse(CommonConstant.EMPTY_STRING)
-                );
+                .map(rq -> rq.asString("UTF-8"))
+                .map(bodyStr -> {
+                    // Case 1: body is JSON → apply existing JSON masking logic
+                    if (MyStringUtils.stringIsJsonFormat(bodyStr)) {
+                        return Optional.of(bodyStr)
+                                .map(JsonObject::new)
+                                .map(JsonObject::encode)
+                                .filter(StringUtils::isNotBlank)
+                                .map(it -> JsonMaskingUtils.maskJsonFields(gson, it))
+                                .orElse(CommonConstant.EMPTY_STRING);
+                    }
+
+                    // Case 2: body is NOT JSON → check size > 1000
+                    if (bodyStr.length() > 100) {
+                        return "Request body is not JSON and too long";
+                    }
+
+                    // Case 3: body is NOT JSON but short → return raw value
+                    return bodyStr;
+                })
+                .orElse(CommonConstant.EMPTY_STRING);
         LogUtils.writeLog(ctx,
                 LogUtils.Level.INFO,
                 "Request info:\n" +
