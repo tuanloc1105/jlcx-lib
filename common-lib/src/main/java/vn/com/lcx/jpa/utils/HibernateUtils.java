@@ -4,11 +4,14 @@ import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import vn.com.lcx.common.database.pageable.Pageable;
 import vn.com.lcx.common.database.pageable.PageableImpl;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.jpa.functional.BatchCallback;
 import vn.com.lcx.jpa.functional.ResultBatchCallback;
 import vn.com.lcx.jpa.functional.RowMapper;
 
+import java.io.Reader;
 import java.math.BigDecimal;
+import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -180,6 +183,79 @@ public final class HibernateUtils {
         List<Map<String, Object>> result = (List<Map<String, Object>>) nativeQuery.getResultList();
 
         return result;
+    }
+
+    private static List<Map<String, Object>> getMaps(ResultSet rs) {
+        try {
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            List<Map<String, Object>> rows = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                for (int i = 1; i <= columnCount; i++) {
+                    String columnName = metaData.getColumnName(i);
+                    Object value = rs.getObject(i);
+                    row.put(columnName, convertObjectToString(value));
+                }
+                rows.add(row);
+            }
+            LogUtils.writeLog(LogUtils.Level.INFO, String.format("Processing %d rows with %d columns", rows.size(), columnCount));
+            return rows;
+        } catch (Throwable t) {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Convert database object to String, handling special types like CLOB, BLOB, etc.
+     */
+    private static String convertObjectToString(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        try {
+            // Handle CLOB/NCLOB - using getSubString for full content
+            if (value instanceof Clob) {
+                Clob clob = (Clob) value;
+                try {
+                    long clobLength = clob.length();
+                    if (clobLength > Integer.MAX_VALUE) {
+                        // If CLOB is too large, read in chunks using character stream
+                        try (Reader reader = clob.getCharacterStream()) {
+                            StringBuilder sb = new StringBuilder();
+                            char[] buffer = new char[8192];
+                            int charsRead;
+                            while ((charsRead = reader.read(buffer)) != -1) {
+                                sb.append(buffer, 0, charsRead);
+                            }
+                            return sb.toString();
+                        }
+                    } else {
+                        // Use getSubString for complete content
+                        return clob.getSubString(1, (int) clobLength);
+                    }
+                } catch (Exception e) {
+                    LogUtils.writeLog(LogUtils.Level.WARN, "Failed to read CLOB content, trying character stream", e);
+                    // Fallback to character stream
+                    try (Reader reader = clob.getCharacterStream()) {
+                        StringBuilder sb = new StringBuilder();
+                        char[] buffer = new char[8192];
+                        int charsRead;
+                        while ((charsRead = reader.read(buffer)) != -1) {
+                            sb.append(buffer, 0, charsRead);
+                        }
+                        return sb.toString();
+                    }
+                }
+            }
+
+            // For other types, use toString()
+            return value.toString();
+        } catch (Exception e) {
+            LogUtils.writeLog(LogUtils.Level.WARN, "Failed to convert object to string: " + value.getClass().getName(), e);
+            return value.toString();
+        }
     }
 
     private static String convertToString(Object value) {
