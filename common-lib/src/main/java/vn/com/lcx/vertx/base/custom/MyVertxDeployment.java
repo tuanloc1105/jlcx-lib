@@ -167,7 +167,7 @@ public class MyVertxDeployment {
             Future<String> deploymentChain = null;
             final var major = Runtime.version().feature();
             final DeploymentOptions options;
-            if (major >= 21) {
+            if (major >= 21 && CommonConstant.applicationConfig.<Boolean>getProperty_("server.enable-virtual-thread") == Boolean.TRUE) {
                 LogUtils.writeLog(LogUtils.Level.DEBUG, "Using virtual thread deployment option");
                 options = new DeploymentOptions()
                         .setThreadingModel(ThreadingModel.VIRTUAL_THREAD);
