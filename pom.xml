@@ -66,6 +66,7 @@
         <vertx-mysql-client-io.vertx.version>5.0.5</vertx-mysql-client-io.vertx.version>
         <vertx-pg-client-io.vertx.version>5.0.5</vertx-pg-client-io.vertx.version>
         <vertx-mssql-client-io.vertx.version>5.0.5</vertx-mssql-client-io.vertx.version>
+        <vertx-jdbc-client-io.vertx.version>5.0.5</vertx-jdbc-client-io.vertx.version>
         <vertx-redis-client-io.vertx.version>5.0.5</vertx-redis-client-io.vertx.version>
         <vertx-grpc-client-io.vertx.version>5.0.5</vertx-grpc-client-io.vertx.version>
         <vertx-grpc-server-io.vertx.version>5.0.5</vertx-grpc-server-io.vertx.version>
@@ -515,6 +516,14 @@
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-mssql-client</artifactId>
                 <version>${vertx-mssql-client-io.vertx.version}</version>
+            </dependency>
+
+            <!-- Released at 2025-10-22 -->
+            <!-- https://mvnrepository.com/artifact/io.vertx/vertx-jdbc-client -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-jdbc-client</artifactId>
+                <version>${vertx-jdbc-client-io.vertx.version}</version>
             </dependency>
 
             <!-- Released at 2025-10-22 -->
