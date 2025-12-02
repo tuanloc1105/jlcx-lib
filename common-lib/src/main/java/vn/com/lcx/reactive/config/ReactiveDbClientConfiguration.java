@@ -204,10 +204,7 @@ public class ReactiveDbClientConfiguration {
     }
 
     private Pool getDatabaseVersion(DBTypeEnum type, Pool pool, String verifyStatement) {
-        final var future = pool.withConnection(conn ->
-                        showDbVersion(conn, type)
-                                .eventually(conn::close)
-                )
+        final var future = pool.withConnection(conn -> showDbVersion(conn, type))
                 .onSuccess(
                         result -> {
                             LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result);
