@@ -6,7 +6,12 @@ import com.google.gson.Gson;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.utils.HttpUtils;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.SocketUtils;
+
+import java.lang.reflect.Method;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 public class DefaultConfiguration {
@@ -34,6 +39,48 @@ public class DefaultConfiguration {
     @Instance
     public SocketUtils defaultSocketUtils() {
         return new SocketUtils();
+    }
+
+    @Instance
+    public ExecutorService defaultExecutorService() {
+        final int major = Runtime.version().feature();
+
+        final ExecutorService service =
+                (major < 21)
+                        ? Executors.newCachedThreadPool()
+                        : createVirtualThreadExecutor();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                service.shutdownNow();
+                if (major >= 21) {
+                    // Try calling close() if available
+                    Method closeMethod = service.getClass().getMethod("close");
+                    closeMethod.invoke(service);
+                }
+            } catch (Exception e) {
+                LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage(), e);
+            }
+        }));
+
+        return service;
+    }
+
+    private ExecutorService createVirtualThreadExecutor() {
+        try {
+            Class<?> executorsClass = Class.forName("java.util.concurrent.Executors");
+
+            // Lấy method newVirtualThreadPerTaskExecutor()
+            Method method =
+                    executorsClass.getMethod("newVirtualThreadPerTaskExecutor");
+
+            // Invoke static method → instance of ExecutorService
+            return (ExecutorService) method.invoke(null);
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            throw new UnsupportedOperationException("Virtual threads are not supported on this JVM", e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
