@@ -2,6 +2,8 @@ package vn.com.lcx.reactive.config;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.jdbcclient.JDBCConnectOptions;
+import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.mssqlclient.MSSQLBuilder;
 import io.vertx.mssqlclient.MSSQLConnectOptions;
 import io.vertx.mysqlclient.MySQLBuilder;
@@ -203,11 +205,46 @@ public class ReactiveDbClientConfiguration {
         return getDatabaseVersion(type, pool, "SELECT 1 FROM dual");
     }
 
-    private Pool getDatabaseVersion(DBTypeEnum type, Pool pool, String verifyStatement) {
-        final var future = pool.withConnection(conn ->
-                        showDbVersion(conn, type)
-                                .eventually(conn::close)
+    public Pool createJdbc(final int port,
+                           final String host,
+                           final String database,
+                           final String user,
+                           final String password,
+                           final int maxPoolSize,
+                           DBTypeEnum type) {
+        JDBCConnectOptions connectOptions = new JDBCConnectOptions()
+                .setJdbcUrl(
+                        String.format(type.getTemplateUrlConnectionString(), host, port, database)
                 )
+                .setUser(user)
+                .setPassword(password);
+
+        PoolOptions poolOptions = new PoolOptions()
+                .setIdleTimeout(30)
+                .setIdleTimeoutUnit(TimeUnit.SECONDS)
+                .setMaxSize(maxPoolSize);
+
+        Pool pool = JDBCPool.pool(vertx, connectOptions, poolOptions);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            final var threadName = "vertx-mssql-sql-client-shutdown-hook";
+            Thread.currentThread().setName(threadName);
+            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            final var f = pool.close()
+                    .onSuccess(it -> {
+                        Thread.currentThread().setName(threadName);
+                        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                    })
+                    .onFailure(err -> LogUtils.writeLog(EmptyRoutingContext.init(), err.getMessage(), err));
+            // noinspection StatementWithEmptyBody
+            while (!f.isComplete()) {
+                // wait
+            }
+        }));
+        return getDatabaseVersion(type, pool, "SELECT 1");
+    }
+
+    private Pool getDatabaseVersion(DBTypeEnum type, Pool pool, String verifyStatement) {
+        final var future = pool.withConnection(conn -> showDbVersion(conn, type))
                 .onSuccess(
                         result -> {
                             LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, result);

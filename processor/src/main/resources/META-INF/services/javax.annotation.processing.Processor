@@ -5,3 +5,4 @@ vn.com.lcx.processor.ServiceProcessor
 vn.com.lcx.processor.RepositoryProcessor
 vn.com.lcx.processor.ControllerProcessor
 vn.com.lcx.processor.DIScanner
+vn.com.lcx.processor.RestControllerProcessor

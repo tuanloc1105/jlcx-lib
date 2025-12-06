@@ -19,9 +19,14 @@ import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
 import vn.com.lcx.vertx.base.http.request.CommonRequest;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
+import vn.com.lcx.vertx.base.http.response.FileEntity;
+import vn.com.lcx.vertx.base.http.response.ResponseEntity;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,7 +54,7 @@ public abstract class ReactiveController {
         try {
             return getPathParam(context, paramName);
         } catch (Exception e) {
-            return CommonConstant.EMPTY_STRING;
+            return null;
         }
     }
 
@@ -117,9 +122,9 @@ public abstract class ReactiveController {
     public String getNoneRequiringRequestQueryParam(RoutingContext context, String paramName) {
         final var paramValue = context.queryParam(paramName);
         if (CollectionUtils.isEmpty(paramValue)) {
-            return CommonConstant.EMPTY_STRING;
+            return null;
         }
-        return paramValue.get(0);
+        return StringUtils.isBlank(paramValue.get(0)) ? null : paramValue.get(0);
     }
 
     public <T> T getNoneRequiringRequestQueryParam(RoutingContext context, String paramName, Function<String, T> function) {
@@ -127,7 +132,7 @@ public abstract class ReactiveController {
         if (CollectionUtils.isEmpty(paramValue)) {
             return null;
         }
-        return function.apply(paramValue.get(0));
+        return StringUtils.isBlank(paramValue.get(0)) ? null : function.apply(paramValue.get(0));
     }
 
     public List<String> getNoneRequiringRequestQueryParamInList(RoutingContext context, String paramName) {
@@ -173,22 +178,58 @@ public abstract class ReactiveController {
     }
 
     public void handleResponse(RoutingContext ctx, Object jsonHandler, Object resp) {
-        handleResponse(ctx, jsonHandler, resp, 200);
+        try {
+            handleResponse(ctx, jsonHandler, resp, 200);
+        } catch (Throwable t) {
+            LogUtils.writeLog(ctx, t.getMessage(), t);
+            ctx.response().setStatusCode(500)
+                    .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
+                    .putHeader(
+                            VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
+                            DateTimeUtils.generateCurrentTimeDefault().format(
+                                    DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
+                            )
+                    )
+                    .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
+                    .end("Internal Error");
+        }
     }
 
     public void handleResponse(RoutingContext ctx, Object jsonHandler, Object resp, int code) {
-        if (resp instanceof CommonResponse) {
-            ((CommonResponse) resp).setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
-            ((CommonResponse) resp).setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
-            ((CommonResponse) resp).setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
-            ((CommonResponse) resp).setHttpCode(code);
+
+        int finalStatus = code;
+        Object finalBody = resp;
+
+        // If resp is a ResponseEntity, override status and body
+        if (resp instanceof ResponseEntity<?>) {
+            ResponseEntity<?> entity = (ResponseEntity<?>) resp;
+            finalStatus = entity.getStatus();
+            finalBody = entity.getResponse();
         }
-        returnResponse(ctx, jsonHandler, resp, code);
+
+        // If the final body is a CommonResponse, apply the existing logic
+        if (finalBody instanceof CommonResponse) {
+            CommonResponse common = (CommonResponse) finalBody;
+            common.setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+            common.setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
+            common.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
+            common.setHttpCode(finalStatus);
+        }
+
+        // Return the final response with the resolved body and status
+        returnResponse(ctx, jsonHandler, finalBody, finalStatus);
     }
 
     private void returnResponse(RoutingContext ctx, Object jsonHandler, Object resp, int code) {
+        if (resp instanceof FileEntity) {
+            handleFileResponse(ctx, (FileEntity) resp, code);
+            return;
+        }
+
         String responseBody;
-        if (jsonHandler instanceof Gson) {
+        if (resp instanceof String) {
+            responseBody = (String) resp;
+        } else if (jsonHandler instanceof Gson) {
             responseBody = ((Gson) jsonHandler).toJson(resp);
         } else if (jsonHandler instanceof ObjectMapper) {
             try {
@@ -215,6 +256,46 @@ public abstract class ReactiveController {
                 .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
                 .end(responseBody);
         // ctx.end(responseBody);
+    }
+
+    private void handleFileResponse(RoutingContext ctx, FileEntity fileEntity, int code) {
+        var response = ctx.response()
+                .setStatusCode(code)
+                .putHeader(
+                        VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
+                        DateTimeUtils.generateCurrentTimeDefault().format(
+                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
+                        )
+                )
+                .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
+
+        if (!response.headers().contains(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME)) {
+            response.putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, "application/octet-stream");
+        }
+
+        response.sendFile(fileEntity.getFilePath())
+                .onSuccess(v -> deleteFileIfNeeded(ctx, fileEntity))
+                .onFailure(throwable -> LogUtils.writeLog(
+                        ctx,
+                        String.format("Failed to send file: %s", fileEntity.getFilePath()),
+                        throwable,
+                        LogUtils.Level.ERROR
+                ));
+    }
+
+    private void deleteFileIfNeeded(RoutingContext ctx, FileEntity fileEntity) {
+        if (!fileEntity.isDeleteAfterSend()) {
+            return;
+        }
+        ctx.vertx().<Void>executeBlocking(() -> {
+            Files.deleteIfExists(Paths.get(fileEntity.getFilePath()));
+            return null;
+        }).onFailure(e -> LogUtils.writeLog(
+                ctx,
+                String.format("Failed to delete file after sending: %s", fileEntity.getFilePath()),
+                e,
+                LogUtils.Level.WARN
+        ));
     }
 
     public <T> T handleRequest(RoutingContext ctx, Object jsonHandler, TypeToken<T> reqType) {
@@ -251,6 +332,19 @@ public abstract class ReactiveController {
             }
         }
         return requestObject;
+    }
+
+    public String getFormParam(RoutingContext context, String paramName) {
+        return context.request().getFormAttribute(paramName);
+    }
+
+    public io.vertx.ext.web.FileUpload getFileParam(RoutingContext context, String paramName) {
+        for (io.vertx.ext.web.FileUpload f : context.fileUploads()) {
+            if (f.name().equals(paramName)) {
+                return f;
+            }
+        }
+        return null;
     }
 
 }

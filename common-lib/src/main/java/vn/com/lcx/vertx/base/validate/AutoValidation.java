@@ -59,7 +59,7 @@ public final class AutoValidation {
                 // --- handle @NotNull ---
                 if (notNull != null) {
                     if (ObjectUtils.isNullOrEmpty(fieldValue)) {
-                        errorFields.add(fieldName);
+                        errorFields.add(fieldName + " must not be null or empty");
                     }
                 }
 
