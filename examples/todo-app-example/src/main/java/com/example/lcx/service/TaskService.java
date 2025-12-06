@@ -16,6 +16,7 @@ import com.example.lcx.object.request.SearchTasksByNameRequest;
 import com.example.lcx.object.request.UpdateTaskRequest;
 import com.example.lcx.respository.TaskRepository;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.SqlConnection;
@@ -225,22 +226,13 @@ public class TaskService {
 
     // Helper methods
     private Future<UserJWTTokenInfo> getUserFromContext(final RoutingContext context) {
-        // A note for how to use Promise
-        // final var promise = Promise.<UserJWTTokenInfo>promise();
-        // final var userInfo = context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER);
-        // if (userInfo == null) {
-        //     promise.fail(new InternalServiceException(AppError.UNKNOWN_USER));
-        // }
-        // promise.succeed(userInfo);
-        // return promise.future();
-
-        return Future.succeededFuture(context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER))
-                .compose(it -> {
-                    if (it == null) {
-                        return Future.failedFuture(new InternalServiceException(AppError.UNKNOWN_USER));
-                    }
-                    return Future.succeededFuture(it);
-                });
+        final var promise = Promise.<UserJWTTokenInfo>promise();
+        final var userInfo = context.<UserJWTTokenInfo>get(CommonConstant.CURRENT_USER);
+        if (userInfo == null) {
+            promise.fail(new InternalServiceException(AppError.UNKNOWN_USER));
+        }
+        promise.succeed(userInfo);
+        return promise.future();
     }
 
     private Future<UserEntity> validateUserAndGetConnection(final RoutingContext context, final String username) {
