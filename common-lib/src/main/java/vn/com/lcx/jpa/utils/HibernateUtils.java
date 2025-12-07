@@ -1,5 +1,6 @@
 package vn.com.lcx.jpa.utils;
 
+import jakarta.persistence.Tuple;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import vn.com.lcx.common.database.pageable.Pageable;
@@ -16,6 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,25 @@ public final class HibernateUtils {
         query.setMaxResults(pageimpl.getPageSize());
 
         return getMaps(params, query);
+    }
+
+    public static List<Map<String, Object>> queryToMap2(Session session, String sql, Map<String, Object> params) {
+        @SuppressWarnings("SqlSourceToSinkFlow") var query = session.createNativeQuery(sql, Tuple.class);
+        if (params != null) {
+            params.forEach(query::setParameter);
+        }
+        return executeAndMapIntoMap(query);
+    }
+
+    public static List<Map<String, Object>> queryToMap2(Session session, String sql, Map<String, Object> params, Pageable pageable) {
+        var pageimpl = (PageableImpl) pageable;
+        @SuppressWarnings("SqlSourceToSinkFlow") var query = session.createNativeQuery(sql, Tuple.class);
+        if (params != null) {
+            params.forEach(query::setParameter);
+        }
+        query.setFirstResult(pageimpl.getOffset());
+        query.setMaxResults(pageimpl.getPageSize());
+        return executeAndMapIntoMap(query);
     }
 
     @SuppressWarnings("SqlSourceToSinkFlow")
@@ -204,6 +225,20 @@ public final class HibernateUtils {
         } catch (Throwable t) {
             return new ArrayList<>();
         }
+    }
+
+    private static List<Map<String, Object>> executeAndMapIntoMap(NativeQuery<Tuple> query) {
+        final var results = query.getResultList();
+        List<Map<String, Object>> mapResults = new ArrayList<>();
+        for (Tuple tuple : results) {
+            Map<String, Object> row = new HashMap<>();
+            for (jakarta.persistence.TupleElement<?> element : tuple.getElements()) {
+                String alias = element.getAlias();
+                row.put(alias, tuple.get(alias));
+            }
+            mapResults.add(row);
+        }
+        return mapResults;
     }
 
     /**
