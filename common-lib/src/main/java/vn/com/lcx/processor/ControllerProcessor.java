@@ -38,13 +38,14 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes({
+        "vn.com.lcx.vertx.base.annotation.app.ContextHandler",
         "vn.com.lcx.vertx.base.annotation.process.Controller",
         "vn.com.lcx.vertx.base.annotation.app.VertxApplication",
-        "vn.com.lcx.vertx.base.annotation.app.ContextHandler"
 })
 public class ControllerProcessor extends AbstractProcessor {
 
     static boolean serveStaticResource = false;
+    final TreeMap<Integer, LinkedList<TypeElement>> contextHandlerOrderAndClassListMap = new TreeMap<>();
 
     private static String extractApiKeyValidationMethod(boolean applicationHaveAPIKey) {
         String apiKeyAuthHandler = "    // None of api key auth handler";
@@ -133,22 +134,20 @@ public class ControllerProcessor extends AbstractProcessor {
         boolean applicationHaveAuthentication = false;
         boolean applicationHaveAPIKey = false;
 
-        if (!classMap.isEmpty()) {
-
-            final var contextHandlerOrderAndClassListMap = new TreeMap<Integer, LinkedList<TypeElement>>();
-
-            for (Element contextHandlerElement : roundEnv.getElementsAnnotatedWith(ContextHandler.class)) {
-                if (contextHandlerElement instanceof TypeElement) {
-                    TypeElement typeElement = (TypeElement) contextHandlerElement;
-                    ContextHandler contextHandler = typeElement.getAnnotation(ContextHandler.class);
-                    var mapElement = contextHandlerOrderAndClassListMap.get(contextHandler.order());
-                    if (mapElement == null) {
-                        contextHandlerOrderAndClassListMap.put(contextHandler.order(), new LinkedList<>(Collections.singleton(typeElement)));
-                    } else {
-                        mapElement.addLast(typeElement);
-                    }
+        for (Element contextHandlerElement : roundEnv.getElementsAnnotatedWith(ContextHandler.class)) {
+            if (contextHandlerElement instanceof TypeElement) {
+                TypeElement typeElement = (TypeElement) contextHandlerElement;
+                ContextHandler contextHandler = typeElement.getAnnotation(ContextHandler.class);
+                var elementList = contextHandlerOrderAndClassListMap.get(contextHandler.order());
+                if (elementList == null) {
+                    contextHandlerOrderAndClassListMap.put(contextHandler.order(), new LinkedList<>(Collections.singleton(typeElement)));
+                } else {
+                    elementList.addLast(typeElement);
                 }
             }
+        }
+
+        if (!classMap.isEmpty()) {
 
             int count = 1;
 
