@@ -83,7 +83,6 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
     }
 
     @Override
-    @SuppressWarnings("SqlSourceToSinkFlow")
     public <T> List<T> executeOracleStoreProcedure(Connection connection,
                                                    String storeProcedureName,
                                                    Map<Integer, Object> inParameters,
@@ -93,48 +92,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
         List<T> result;
         try {
 
-            int numberOfParameters = 0;
-
-            if (inParameters != null && !inParameters.isEmpty()) {
-                numberOfParameters += inParameters.size();
-            }
-            if (outParameters != null && !outParameters.isEmpty()) {
-                numberOfParameters += outParameters.size();
-            }
-            StringBuilder parameterString = new StringBuilder();
-            for (int i = 0; i < numberOfParameters; i++) {
-                if (i == numberOfParameters - 1) {
-                    parameterString.append("?");
-                } else {
-                    parameterString.append("?, ");
-                }
-            }
-            String sqlCallingSPStatement = String.format(
-                    "{ CALL %s(%s) }",
-                    storeProcedureName,
-                    parameterString);
-            statement = connection.prepareCall(sqlCallingSPStatement);
-            LogUtils.writeLog2(LogUtils.Level.INFO,
-                    "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
-            var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
-            if (inParameterIsNotNullAndNotEmpty) {
-                StringBuilder parametersLog = new StringBuilder("input parameters:");
-                this.handleInputParameters(statement, inParameters, parametersLog);
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
-            }
-            var outParameterIsNotNullAndNotEmpty = outParameters != null && !outParameters.isEmpty();
-            if (outParameterIsNotNullAndNotEmpty) {
-                StringBuilder parametersLog = new StringBuilder("output parameters:");
-                for (Integer i : outParameters.keySet()) {
-                    statement.registerOutParameter(i, outParameters.get(i).getType());
-                    parametersLog.append(
-                            String.format(
-                                    "\n\t- parameter %s: %s",
-                                    String.format("%-3d", i),
-                                    outParameters.get(i).name()));
-                }
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
-            }
+            statement = this.prepareOracleStatement(connection, storeProcedureName, inParameters, outParameters);
             final var startingTime = (double) System.currentTimeMillis();
 
             statement.execute();
@@ -153,6 +111,33 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             this.closeStatementAndResultSet(statement, null);
         }
         return result;
+    }
+
+    public void runOracleStoreProcedure(Connection connection,
+                                        String storeProcedureName,
+                                        Map<Integer, Object> inParameters,
+                                        Map<Integer, OracleTypeEnum> outParameters,
+                                        CallableStatementHandler<List<Void>> handler) {
+        CallableStatement statement = null;
+        try {
+
+            statement = this.prepareOracleStatement(connection, storeProcedureName, inParameters, outParameters);
+            final var startingTime = (double) System.currentTimeMillis();
+
+            statement.execute();
+
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
+
+            handler.handle(statement);
+
+            LogUtils.writeLog2(
+                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
+        } catch (SQLException e) {
+            LogUtils.writeLog2(e.getMessage(), e);
+        } finally {
+            this.closeStatementAndResultSet(statement, null);
+        }
     }
 
     @Override
@@ -446,6 +431,55 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             LogUtils.writeLog2(e.getMessage(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    private CallableStatement prepareOracleStatement(Connection connection,
+                                                     String storeProcedureName,
+                                                     Map<Integer, Object> inParameters,
+                                                     Map<Integer, OracleTypeEnum> outParameters) throws SQLException {
+        int numberOfParameters = 0;
+
+        if (inParameters != null && !inParameters.isEmpty()) {
+            numberOfParameters += inParameters.size();
+        }
+        if (outParameters != null && !outParameters.isEmpty()) {
+            numberOfParameters += outParameters.size();
+        }
+        StringBuilder parameterString = new StringBuilder();
+        for (int i = 0; i < numberOfParameters; i++) {
+            if (i == numberOfParameters - 1) {
+                parameterString.append("?");
+            } else {
+                parameterString.append("?, ");
+            }
+        }
+        String sqlCallingSPStatement = String.format(
+                "{ CALL %s(%s) }",
+                storeProcedureName,
+                parameterString);
+        CallableStatement statement = connection.prepareCall(sqlCallingSPStatement);
+        LogUtils.writeLog2(LogUtils.Level.INFO,
+                "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
+        var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
+        if (inParameterIsNotNullAndNotEmpty) {
+            StringBuilder parametersLog = new StringBuilder("input parameters:");
+            this.handleInputParameters(statement, inParameters, parametersLog);
+            LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+        }
+        var outParameterIsNotNullAndNotEmpty = outParameters != null && !outParameters.isEmpty();
+        if (outParameterIsNotNullAndNotEmpty) {
+            StringBuilder parametersLog = new StringBuilder("output parameters:");
+            for (Integer i : outParameters.keySet()) {
+                statement.registerOutParameter(i, outParameters.get(i).getType());
+                parametersLog.append(
+                        String.format(
+                                "\n\t- parameter %s: %s",
+                                String.format("%-3d", i),
+                                outParameters.get(i).name()));
+            }
+            LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+        }
+        return statement;
     }
 
     private String formatParameterValue(Object value) {
