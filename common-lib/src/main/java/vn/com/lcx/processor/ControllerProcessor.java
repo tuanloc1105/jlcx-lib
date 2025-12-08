@@ -37,7 +37,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-@SupportedAnnotationTypes({"vn.com.lcx.vertx.base.annotation.process.Controller", "vn.com.lcx.vertx.base.annotation.app.VertxApplication"})
+@SupportedAnnotationTypes({
+        "vn.com.lcx.vertx.base.annotation.process.Controller",
+        "vn.com.lcx.vertx.base.annotation.app.VertxApplication",
+        "vn.com.lcx.vertx.base.annotation.app.ContextHandler"
+})
 public class ControllerProcessor extends AbstractProcessor {
 
     static boolean serveStaticResource = false;
