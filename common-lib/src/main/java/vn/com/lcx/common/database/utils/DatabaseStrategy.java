@@ -47,13 +47,11 @@ public interface DatabaseStrategy {
     /**
      * Generate ADD COLUMN statement
      *
-     * @param columnName  the column name
-     * @param dataType    the data type
-     * @param constraints the column constraints
-     * @param tableName   the table name
+     * @param columnDefinition the column definition
+     * @param tableName        the table name
      * @return the ADD COLUMN statement
      */
-    String generateAddColumn(String columnName, String dataType, List<String> constraints, String tableName);
+    String generateAddColumn(ColumnDefinition columnDefinition, String tableName);
 
     /**
      * Generate DROP COLUMN statement
@@ -67,13 +65,11 @@ public interface DatabaseStrategy {
     /**
      * Generate MODIFY COLUMN statement
      *
-     * @param columnName  the column name
-     * @param dataType    the data type
-     * @param constraints the column constraints
-     * @param tableName   the table name
+     * @param columnDefinition the column definition
+     * @param tableName        the table name
      * @return the MODIFY COLUMN statement
      */
-    String generateModifyColumn(String columnName, String dataType, List<String> constraints, String tableName);
+    String generateModifyColumn(ColumnDefinition columnDefinition, String tableName);
 
     /**
      * Generate sequence statement (if applicable)
@@ -90,4 +86,4 @@ public interface DatabaseStrategy {
      * @return the cascade options
      */
     String generateForeignKeyCascade(boolean cascade);
-} 
+}

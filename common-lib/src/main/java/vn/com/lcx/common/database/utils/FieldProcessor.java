@@ -31,7 +31,7 @@ public class FieldProcessor {
         String dataType = getSqlDataType(field, columnNameAnnotation);
 
         if (isIdField(field)) {
-            processIdField(columnName, field.getType().getName());
+            processIdField(columnName, field.getType().getName(), field.getType());
         } else {
             processRegularField(field, columnName, dataType);
         }
@@ -58,14 +58,17 @@ public class FieldProcessor {
                 .orElse("VARCHAR(255)");
     }
 
-    private void processIdField(String columnName, String fieldTypeName) {
-        if (fieldTypeName.contains("Long") || fieldTypeName.contains("BigDecimal") || fieldTypeName.contains("BigInteger")) {
-            String idDefinition = databaseStrategy.generateIdColumnDefinition(context.getFinalTableName(), columnName, fieldTypeName);
+    private void processIdField(String columnName, String fieldTypeName, Class<?> fieldType) {
+        if (fieldType == Long.class || fieldType == long.class ||
+                java.math.BigDecimal.class.isAssignableFrom(fieldType) ||
+                java.math.BigInteger.class.isAssignableFrom(fieldType)) {
+
+            String idDefinition = databaseStrategy.generateIdColumnDefinition(context.getFinalTableName(), columnName,
+                    fieldTypeName);
             final var definitionLineParts = new ArrayList<String>();
             definitionLineParts.add(columnName);
             definitionLineParts.addAll(
-                    Arrays.stream(idDefinition.split(" ")).collect(Collectors.toCollection(ArrayList::new))
-            );
+                    Arrays.stream(idDefinition.split(" ")).collect(Collectors.toCollection(ArrayList::new)));
             context.getColumnDefinitionLines().add(new ArrayList<>(new LinkedHashSet<>(definitionLineParts)));
 
             String sequenceStatement = databaseStrategy.generateSequenceStatement(context.getFinalTableName());
@@ -79,14 +82,25 @@ public class FieldProcessor {
 
     private void processRegularField(Field field, String columnName, String dataType) {
         ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
-        List<String> constraints = buildConstraints(columnNameAnnotation);
+        ColumnDefinition columnDefinition = buildColumnDefinition(columnName, dataType, columnNameAnnotation);
 
-        // Add column definition
-        List<String> columnDefinition = new ArrayList<>();
-        columnDefinition.add(columnName);
-        columnDefinition.add(dataType);
-        columnDefinition.addAll(constraints);
-        context.getColumnDefinitionLines().add(columnDefinition);
+        // Add column definition for CREATE TABLE (still using string list for now to
+        // minimize scope)
+        List<String> columnDefinitionList = new ArrayList<>();
+        columnDefinitionList.add(columnName);
+        columnDefinitionList.add(dataType);
+        if (!columnDefinition.isNullable())
+            columnDefinitionList.add("NOT NULL");
+        else
+            columnDefinitionList.add("NULL");
+
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            columnDefinitionList.add("DEFAULT " + columnDefinition.getDefaultValue());
+        }
+        if (columnDefinition.isUnique())
+            columnDefinitionList.add("UNIQUE");
+
+        context.getColumnDefinitionLines().add(columnDefinitionList);
 
         // Process index
         if (columnNameAnnotation.index()) {
@@ -97,31 +111,20 @@ public class FieldProcessor {
         processForeignKey(field, columnName);
 
         // Generate ALTER statements
-        generateAlterStatements(columnName, dataType, constraints);
+        generateAlterStatements(columnDefinition);
     }
 
-    private List<String> buildConstraints(ColumnName columnNameAnnotation) {
-        List<String> constraints = new ArrayList<>();
+    private ColumnDefinition buildColumnDefinition(String columnName, String dataType, ColumnName annotation) {
+        boolean isNullable = annotation.nullable();
+        String defaultValue = StringUtils.isNotBlank(annotation.defaultValue()) ? annotation.defaultValue() : null;
+        boolean isUnique = annotation.unique();
 
-        if (columnNameAnnotation.nullable()) {
-            if (StringUtils.isBlank(columnNameAnnotation.defaultValue())) {
-                constraints.add("NULL");
-            } else {
-                constraints.add("DEFAULT " + columnNameAnnotation.defaultValue());
-            }
-        } else {
-            if (StringUtils.isBlank(columnNameAnnotation.defaultValue())) {
-                constraints.add("NOT NULL");
-            } else {
-                constraints.add("DEFAULT " + columnNameAnnotation.defaultValue());
-                constraints.add("NOT NULL");
-            }
-            if (columnNameAnnotation.unique()) {
-                constraints.add("UNIQUE");
-            }
+        // Handle constraint logic from annotation
+        if (!isNullable && defaultValue != null) {
+            // Logic: if not null and has default
         }
 
-        return constraints;
+        return new ColumnDefinition(columnName, dataType, isNullable, defaultValue, isUnique);
     }
 
     private void processIndex(String columnName, boolean isUnique) {
@@ -157,23 +160,24 @@ public class FieldProcessor {
                     schemaPrefix,
                     referenceTable,
                     referenceColumn,
-                    context.getTableNameAnnotation().value()
-            );
+                    context.getTableNameAnnotation().value());
 
             foreignKeyStatement += databaseStrategy.generateForeignKeyCascade(cascade) + "\n";
             context.getAddForeignKeyList().add(foreignKeyStatement);
         }
     }
 
-    private void generateAlterStatements(String columnName, String dataType, List<String> constraints) {
-        String renameColumn = databaseStrategy.generateRenameColumn(columnName, context.getFinalTableName());
-        String alterAddColumn = databaseStrategy.generateAddColumn(columnName, dataType, constraints, context.getFinalTableName());
-        String alterDropColumn = databaseStrategy.generateDropColumn(columnName, context.getFinalTableName());
-        String alterModifyColumn = databaseStrategy.generateModifyColumn(columnName, dataType, constraints, context.getFinalTableName());
+    private void generateAlterStatements(ColumnDefinition columnDefinition) {
+        String renameColumn = databaseStrategy.generateRenameColumn(columnDefinition.getColumnName(),
+                context.getFinalTableName());
+        String alterAddColumn = databaseStrategy.generateAddColumn(columnDefinition, context.getFinalTableName());
+        String alterDropColumn = databaseStrategy.generateDropColumn(columnDefinition.getColumnName(),
+                context.getFinalTableName());
+        String alterModifyColumn = databaseStrategy.generateModifyColumn(columnDefinition, context.getFinalTableName());
 
         context.getRenameColumnList().add(renameColumn);
         context.getAlterAddColumnList().add(alterAddColumn);
         context.getAlterDropColumnList().add(alterDropColumn);
         context.getAlterModifyColumnList().add(alterModifyColumn);
     }
-} 
+}

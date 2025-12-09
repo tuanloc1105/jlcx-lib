@@ -30,17 +30,21 @@ public class OracleStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateAddColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        String constraintStr = constraints.stream()
-                .filter(c -> !c.equalsIgnoreCase("unique"))
-                .collect(Collectors.joining(" "));
+    public String generateAddColumn(ColumnDefinition columnDefinition, String tableName) {
+        StringBuilder constraints = new StringBuilder();
+        if (!columnDefinition.isNullable()) {
+            constraints.append(" NOT NULL");
+        }
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            constraints.append(" DEFAULT ").append(columnDefinition.getDefaultValue());
+        }
 
-        String result = String.format("ALTER TABLE %s\n  ADD (%s %s %s);\n",
-                tableName, columnName, dataType, constraintStr);
+        String result = String.format("ALTER TABLE %s\n  ADD (%s %s%s);\n",
+                tableName, columnDefinition.getColumnName(), columnDefinition.getDataType(), constraints);
 
-        if (constraints.stream().anyMatch(c -> c.equalsIgnoreCase("unique"))) {
+        if (columnDefinition.isUnique()) {
             result += String.format("ALTER TABLE %s\n  ADD CONSTRAINT %s_unique UNIQUE (%s);\n",
-                    tableName, columnName, columnName);
+                    tableName, columnDefinition.getColumnName(), columnDefinition.getColumnName());
         }
 
         return result;
@@ -54,28 +58,33 @@ public class OracleStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateModifyColumn(String columnName, String dataType, List<String> constraints, String tableName) {
+    public String generateModifyColumn(ColumnDefinition columnDefinition, String tableName) {
+        StringBuilder constraints = new StringBuilder();
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            constraints.append(" DEFAULT ").append(columnDefinition.getDefaultValue());
+        }
+
+        // Basic modify for type and default
         StringBuilder result = new StringBuilder();
+        result.append(String.format("ALTER TABLE %s\n  MODIFY (%s %s%s);\n",
+                tableName, columnDefinition.getColumnName(), columnDefinition.getDataType(), constraints));
 
-        // Basic modify
-        String basicConstraints = constraints.stream()
-                .filter(c -> !c.equalsIgnoreCase("null") && !c.equalsIgnoreCase("unique"))
-                .collect(Collectors.joining(" "));
-        result.append(String.format("ALTER TABLE %s\n  MODIFY (%s %s %s);\n",
-                tableName, columnName, dataType, basicConstraints));
-
-        // Handle NULL/NOT NULL separately
-        if (constraints.stream().anyMatch(c -> c.equalsIgnoreCase("null"))) {
-            result.append(String.format("ALTER TABLE %s\n  MODIFY (%s NULL);\n", tableName, columnName));
-        }
-        if (constraints.stream().anyMatch(c -> c.equalsIgnoreCase("not null"))) {
-            result.append(String.format("ALTER TABLE %s\n  MODIFY (%s NOT NULL);\n", tableName, columnName));
+        // Handle NULL/NOT NULL separately as Oracle Modify syntax allows specifying it
+        // to change state
+        if (columnDefinition.isNullable()) {
+            result.append(String.format("ALTER TABLE %s\n  MODIFY (%s NULL);\n", tableName,
+                    columnDefinition.getColumnName()));
+        } else {
+            result.append(String.format("ALTER TABLE %s\n  MODIFY (%s NOT NULL);\n", tableName,
+                    columnDefinition.getColumnName()));
         }
 
-        // Handle UNIQUE constraint
-        if (constraints.stream().anyMatch(c -> c.equalsIgnoreCase("unique"))) {
+        // Handle UNIQUE constraint (Add if unique)
+        // Note: Removing unique is harder without knowing constraint name, but here we
+        // only add if requested.
+        if (columnDefinition.isUnique()) {
             result.append(String.format("ALTER TABLE %s\n  ADD CONSTRAINT %s_unique UNIQUE (%s);\n",
-                    tableName, columnName, columnName));
+                    tableName, columnDefinition.getColumnName(), columnDefinition.getColumnName()));
         }
 
         return result.toString();
@@ -88,12 +97,11 @@ public class OracleStrategy implements DatabaseStrategy {
                         "-- SELECT %1$s_SEQ.NEXTVAL FROM dual;\n" +
                         "-- SELECT %1$s_SEQ.CURRVAL FROM dual;\n" +
                         "-- DROP SEQUENCE %1$s_SEQ;",
-                tableName
-        );
+                tableName);
     }
 
     @Override
     public String generateForeignKeyCascade(boolean cascade) {
         return cascade ? "\nON DELETE CASCADE;" : ";";
     }
-} 
+}
