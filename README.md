@@ -62,6 +62,75 @@ Add the core library and annotation processor to your project (adjust the versio
 
 If you manage versions centrally, declare the coordinates in your BOM or parent POM and omit the `<version>` tags above.
 
+
+## Configuration Reference
+
+The library uses a set of configuration keys (typically in `application.yaml`) to set up database connections, metrics, and server options. Below is the reference for the supported properties.
+
+### General Configuration
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `server.port` | Integer | The HTTP server port for the application (default: `8080`). Used in the generated application verticle. |
+| `server.enable-http-2` | Boolean | Enable HTTP/2 support for the server (default: `false`). Used in the generated application verticle. |
+
+### JDBC Database Configuration (Hibernate)
+
+Used when configuring Hibernate `SessionFactory`.
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `server.database.host` | String | Database host address. |
+| `server.database.port` | Integer | Database port. |
+| `server.database.username` | String | Database username. |
+| `server.database.password` | String | Database password. |
+| `server.database.name` | String | Database name. |
+| `server.database.schema_name` | String | (Optional) Default schema name. |
+| `server.database.type` | Enum | Database type. Supported values: `ORACLE`, `POSTGRESQL`, `MYSQL`, `MSSQL`. Determines default driver and connection string. |
+| `server.database.driver_class_name` | String | JDBC driver class name. Defaults to the one associated with `server.database.type` if not specified. |
+| `server.database.initial_pool_size` | Integer | Initial size of the connection pool (HikariCP `minimumIdle`). |
+| `server.database.max_pool_size` | Integer | Maximum size of the connection pool (HikariCP `maximumPoolSize`). |
+| `server.database.max_timeout` | Integer | Connection timeout in seconds (multiplied by 1000 for HikariCP `connectionTimeout`). |
+| `server.database.dialect` | String | **(Deprecated/Unused)** Hibernate dialect class name. The library typically relies on Hibernate or the `server.database.type` to determine the dialect. |
+
+### Reactive Database Configuration (Vert.x SQL Clients)
+
+Used by `ReactiveDbClientConfiguration` to create Vert.x SQL pools.
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `server.reactive.database.host` | String | Reactive database host. |
+| `server.reactive.database.port` | Integer | Reactive database port. |
+| `server.reactive.database.username` | String | Reactive database username. |
+| `server.reactive.database.password` | String | Reactive database password. |
+| `server.reactive.database.name` | String | Reactive database name. |
+| `server.reactive.database.max_pool_size` | Integer | Maximum pool size for the reactive client. |
+| `server.reactive.database.type` | Enum | Database type. Supported values: `ORACLE`, `POSTGRESQL`, `MYSQL`, `MSSQL`. |
+
+### Redis Configuration (Vert.x Redis)
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `server.reactive.redis.host` | String | Redis host. |
+| `server.reactive.redis.port` | Integer | Redis port. |
+| `server.reactive.redis.password` | String | Redis password. |
+| `server.reactive.database.max_pool_size` | Integer | **Note:** The Redis client configuration currently reuses `server.reactive.database.max_pool_size` for its pool size (default `5` if not set). |
+
+### Metrics Configuration
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `server.metrics.enable` | Boolean | Enables Vert.x Micrometer metrics (Prometheus). If true, it may start a separate embedded metrics server based on `server.metrics.port`. |
+| `server.metrics.port` | Integer | Port for the embedded metrics server (default `8081`). |
+| `server.metrics.endpoint` | String | Endpoint for the embedded metrics server (default `/metrics`). |
+| `server.enable-metrics` | Boolean | Enables the `/metrics` route handler in the **main** application router (as defined in `ApplicationVerticle` template). |
+
+### JSON Configuration
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `json.sensitive_field` | List/Array | A list of field names that should be masked/obfuscated when serializing JSON (e.g. logging). |
+
 ## Running the examples
 
 Each example module can be built independently:
