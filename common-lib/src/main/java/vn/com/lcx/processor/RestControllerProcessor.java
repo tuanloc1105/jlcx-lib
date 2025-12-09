@@ -15,6 +15,7 @@ import vn.com.lcx.vertx.base.annotation.process.Put;
 import vn.com.lcx.vertx.base.annotation.process.RequestBody;
 import vn.com.lcx.vertx.base.annotation.process.RestController;
 import vn.com.lcx.vertx.base.controller.ReactiveController;
+import vn.com.lcx.vertx.base.http.response.CommonResponse;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -78,6 +79,7 @@ public class RestControllerProcessor extends AbstractProcessor {
         classContent.append("import ").append(Gson.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(TypeToken.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(RoutingContext.class.getCanonicalName()).append(";\n");
+        classContent.append("import ").append(CommonResponse.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(Component.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(Controller.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(ReactiveController.class.getCanonicalName()).append(";\n");
@@ -231,7 +233,7 @@ public class RestControllerProcessor extends AbstractProcessor {
                 .append(String.join(", ", args)).append(").onSuccess(it -> {\n");
         if (method.getReturnType().toString().equals("io.vertx.core.Future<java.lang.Void>")) {
             sb.append(
-                    "                handleResponse(ctx, gson, new vn.com.lcx.vertx.base.http.response.CommonResponse());\n");
+                    "                handleResponse(ctx, gson, new CommonResponse());\n");
         } else {
             sb.append("                handleResponse(ctx, gson, it);\n");
         }

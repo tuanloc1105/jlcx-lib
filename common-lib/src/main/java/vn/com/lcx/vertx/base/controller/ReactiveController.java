@@ -154,6 +154,10 @@ public abstract class ReactiveController {
     }
 
     public void handleError(RoutingContext ctx, Object jsonHandler, Throwable e) {
+        if (ctx.response().ended()) {
+            LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Cannot write response due to response has been ended");
+            return;
+        }
         LogUtils.writeLog(ctx, e.getMessage(), e);
         CommonResponse response;
         int httpCode = 500;
@@ -178,6 +182,10 @@ public abstract class ReactiveController {
     }
 
     public void handleResponse(RoutingContext ctx, Object jsonHandler, Object resp) {
+        if (ctx.response().ended()) {
+            LogUtils.writeLog(ctx, LogUtils.Level.INFO, "Cannot write response due to response has been ended");
+            return;
+        }
         try {
             handleResponse(ctx, jsonHandler, resp, 200);
         } catch (Throwable t) {
