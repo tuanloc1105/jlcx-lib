@@ -16,7 +16,7 @@
 
         <logback-classic-ch.qos.logback.version>1.5.21</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
-        <commons-text-org.apache.commons.version>1.14.0</commons-text-org.apache.commons.version>
+        <commons-text-org.apache.commons.version>1.15.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.20.0</commons-lang3-org.apache.commons.version>
         <commons-collections4-org.apache.commons.version>4.5.0</commons-collections4-org.apache.commons.version>
         <lombok-org.projectlombok.version>1.18.42</lombok-org.projectlombok.version>
@@ -39,8 +39,8 @@
         </jackson-dataformat-xml-com.fasterxml.jackson.dataformat.version>
         <jakarta.mail-org.eclipse.angus.version>2.0.5</jakarta.mail-org.eclipse.angus.version>
         <jedis-redis.clients.version>7.1.0</jedis-redis.clients.version>
-        <micrometer-core-io.micrometer.version>1.16.0</micrometer-core-io.micrometer.version>
-        <micrometer-registry-prometheus-io.micrometer.version>1.16.0
+        <micrometer-core-io.micrometer.version>1.16.1</micrometer-core-io.micrometer.version>
+        <micrometer-registry-prometheus-io.micrometer.version>1.16.1
         </micrometer-registry-prometheus-io.micrometer.version>
         <metrics-core-io.dropwizard.metrics.version>4.2.37</metrics-core-io.dropwizard.metrics.version>
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.37</metrics-healthchecks-io.dropwizard.metrics.version>
@@ -82,8 +82,8 @@
         <junit-jupiter-api-org.junit.jupiter.version>6.0.1</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>6.0.1</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>6.0.1</junit-jupiter-params-org.junit.jupiter.version>
-        <mockito-core-org.mockito.version>5.20.0</mockito-core-org.mockito.version>
-        <mockito-junit-jupiter-org.mockito.version>5.20.0</mockito-junit-jupiter-org.mockito.version>
+        <mockito-core-org.mockito.version>5.21.0</mockito-core-org.mockito.version>
+        <mockito-junit-jupiter-org.mockito.version>5.21.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
         <byte-buddy-net.bytebuddy.version>1.18.2</byte-buddy-net.bytebuddy.version>
         <datafaker-net.datafaker.version>2.5.3</datafaker-net.datafaker.version>
@@ -146,7 +146,7 @@
                 <version>${slf4j-api-org.slf4j.version}</version>
             </dependency>
 
-            <!-- Released at 2025-07-20 -->
+            <!-- Released at 2025-12-04 -->
             <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -303,7 +303,7 @@
                 <version>${jedis-redis.clients.version}</version>
             </dependency>
 
-            <!-- Released at 2025-11-07 -->
+            <!-- Released at 2025-12-09 -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-core -->
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -311,7 +311,7 @@
                 <version>${micrometer-core-io.micrometer.version}</version>
             </dependency>
 
-            <!-- Released at 2025-11-07 -->
+            <!-- Released at 2025-12-09 -->
             <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
             <dependency>
                 <groupId>io.micrometer</groupId>
@@ -646,7 +646,7 @@
                 <version>${junit-jupiter-params-org.junit.jupiter.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-20 -->
+            <!-- Released at 2025-12-10 -->
             <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
             <dependency>
                 <groupId>org.mockito</groupId>
@@ -654,7 +654,7 @@
                 <version>${mockito-core-org.mockito.version}</version>
             </dependency>
 
-            <!-- Released at 2025-09-20 -->
+            <!-- Released at 2025-12-10 -->
             <!-- https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
             <dependency>
                 <groupId>org.mockito</groupId>
