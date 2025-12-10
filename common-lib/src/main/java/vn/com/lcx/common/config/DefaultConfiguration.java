@@ -12,6 +12,7 @@ import vn.com.lcx.common.utils.SocketUtils;
 import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.AutoCloseable;
 
 @Component
 public class DefaultConfiguration {
@@ -53,10 +54,9 @@ public class DefaultConfiguration {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 service.shutdownNow();
-                if (major >= 21) {
-                    // Try calling close() if available
-                    Method closeMethod = service.getClass().getMethod("close");
-                    closeMethod.invoke(service);
+                if (major >= 21 && service instanceof AutoCloseable) {
+                    // Call close() if ExecutorService implements AutoCloseable
+                    ((AutoCloseable) service).close();
                 }
             } catch (Exception e) {
                 LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage(), e);
