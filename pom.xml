@@ -124,7 +124,7 @@
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>3.4.7.lcx-SNAPSHOT</version>
+    <version>3.4.7.lcx</version>
 
     <dependencyManagement>
 
