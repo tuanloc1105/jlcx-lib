@@ -12,7 +12,6 @@ import vn.com.lcx.common.utils.SocketUtils;
 import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.AutoCloseable;
 
 @Component
 public class DefaultConfiguration {
