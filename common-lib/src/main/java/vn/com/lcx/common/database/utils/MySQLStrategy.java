@@ -29,9 +29,20 @@ public class MySQLStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateAddColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        return String.format("ALTER TABLE %s\n  ADD %s %s %s;\n",
-                tableName, columnName, dataType, String.join(" ", constraints));
+    public String generateAddColumn(ColumnDefinition columnDefinition, String tableName) {
+        StringBuilder constraints = new StringBuilder();
+        if (!columnDefinition.isNullable()) {
+            constraints.append(" NOT NULL");
+        }
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            constraints.append(" DEFAULT ").append(columnDefinition.getDefaultValue());
+        }
+        if (columnDefinition.isUnique()) {
+            constraints.append(" UNIQUE");
+        }
+
+        return String.format("ALTER TABLE %s\n  ADD %s %s%s;\n",
+                tableName, columnDefinition.getColumnName(), columnDefinition.getDataType(), constraints);
     }
 
     @Override
@@ -40,9 +51,19 @@ public class MySQLStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateModifyColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        return String.format("ALTER TABLE %s\n  MODIFY %s %s %s;\n",
-                tableName, columnName, dataType, String.join(" ", constraints));
+    public String generateModifyColumn(ColumnDefinition columnDefinition, String tableName) {
+        StringBuilder constraints = new StringBuilder();
+        if (!columnDefinition.isNullable()) {
+            constraints.append(" NOT NULL");
+        } else {
+            constraints.append(" NULL");
+        }
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            constraints.append(" DEFAULT ").append(columnDefinition.getDefaultValue());
+        }
+
+        return String.format("ALTER TABLE %s\n  MODIFY %s %s%s;\n",
+                tableName, columnDefinition.getColumnName(), columnDefinition.getDataType(), constraints);
     }
 
     @Override
@@ -54,4 +75,4 @@ public class MySQLStrategy implements DatabaseStrategy {
     public String generateForeignKeyCascade(boolean cascade) {
         return cascade ? "\nON DELETE CASCADE\nON UPDATE RESTRICT;" : ";";
     }
-} 
+}

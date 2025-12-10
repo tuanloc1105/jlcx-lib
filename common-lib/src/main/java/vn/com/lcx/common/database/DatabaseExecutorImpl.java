@@ -48,47 +48,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             }
             // finalQueryString = MyStringUtils.minifyString(finalQueryString);
             statement = connection.prepareStatement(finalQueryString);
-            LogUtils.writeLog2(LogUtils.Level.INFO, "\n" + finalQueryString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
+            LogUtils.writeLog2(LogUtils.Level.INFO,
+                    "\n" + finalQueryString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             var parameterIsNotNullAndNotEmpty = parameter != null && !parameter.isEmpty();
             if (parameterIsNotNullAndNotEmpty) {
                 StringBuilder parametersLog = new StringBuilder("parameters:");
-                for (Integer i : parameter.keySet()) {
-                    Object parameterValue = parameter.get(i);
-                    String aNull = String.format(
-                            "\n\t- parameter %s: %s",
-                            String.format("%-3d %-20s)", i, "("),
-                            "NULL"
-                    );
-                    if (parameterValue == null) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    Class<?> parameterClass = parameter.get(i).getClass();
-                    if (parameterClass.isPrimitive()) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    String parameterSimpleClassName = parameterClass.getSimpleName();
-                    SqlStatementHandler sqlStatementHandler = DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP.get(parameterSimpleClassName);
-                    if (sqlStatementHandler == null) {
-                        throw new RuntimeException("unknown parameter type");
-                    }
-                    parametersLog.append(
-                            String.format(
-                                    "\n\t- parameter %s: %s",
-                                    String.format("%-3d %-20s)", i + 1, "(" + parameterSimpleClassName),
-                                    parameterValue
-                            )
-                    );
-                    // statement.setObject(i, parameterValue);
-                    sqlStatementHandler.handle(i, parameterValue, statement);
-                }
+                this.handleInputParameters(statement, parameter, parametersLog);
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
             final var startingTime = (double) System.currentTimeMillis();
@@ -100,8 +65,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
-                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
-            );
+                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             var count = 0;
             while (resultSet.next()) {
@@ -119,7 +83,6 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
     }
 
     @Override
-    @SuppressWarnings("SqlSourceToSinkFlow")
     public <T> List<T> executeOracleStoreProcedure(Connection connection,
                                                    String storeProcedureName,
                                                    Map<Integer, Object> inParameters,
@@ -129,85 +92,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
         List<T> result;
         try {
 
-            int numberOfParameters = 0;
-
-            if (inParameters != null && !inParameters.isEmpty()) {
-                numberOfParameters += inParameters.size();
-            }
-            if (outParameters != null && !outParameters.isEmpty()) {
-                numberOfParameters += outParameters.size();
-            }
-            StringBuilder parameterString = new StringBuilder();
-            for (int i = 0; i < numberOfParameters; i++) {
-                if (i == numberOfParameters - 1) {
-                    parameterString.append("?");
-                } else {
-                    parameterString.append("?, ");
-                }
-            }
-            String sqlCallingSPStatement = String.format(
-                    "{ CALL %s(%s) }",
-                    storeProcedureName,
-                    parameterString
-            );
-            statement = connection.prepareCall(sqlCallingSPStatement);
-            LogUtils.writeLog2(LogUtils.Level.INFO, "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
-            var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
-            if (inParameterIsNotNullAndNotEmpty) {
-                StringBuilder parametersLog = new StringBuilder("input parameters:");
-                for (Integer i : inParameters.keySet()) {
-                    Object parameterValue = inParameters.get(i);
-                    String aNull = String.format(
-                            "\n\t- parameter %s: %s",
-                            String.format("%-3d %-20s)", i, "("),
-                            "NULL"
-                    );
-                    if (parameterValue == null) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    Class<?> parameterClass = inParameters.get(i).getClass();
-                    if (parameterClass.isPrimitive()) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    String parameterSimpleClassName = parameterClass.getSimpleName();
-                    SqlStatementHandler sqlStatementHandler = DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP.get(parameterSimpleClassName);
-                    if (sqlStatementHandler == null) {
-                        throw new RuntimeException("unknown parameter type");
-                    }
-                    parametersLog.append(
-                            String.format(
-                                    "\n\t- parameter %s: %s",
-                                    String.format("%-3d %-20s)", i, "(" + parameterSimpleClassName),
-                                    parameterValue
-                            )
-                    );
-                    sqlStatementHandler.handle(i, parameterValue, statement);
-                }
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
-            }
-            var outParameterIsNotNullAndNotEmpty = outParameters != null && !outParameters.isEmpty();
-            if (outParameterIsNotNullAndNotEmpty) {
-                StringBuilder parametersLog = new StringBuilder("output parameters:");
-                for (Integer i : outParameters.keySet()) {
-                    statement.registerOutParameter(i, outParameters.get(i).getType());
-                    parametersLog.append(
-                            String.format(
-                                    "\n\t- parameter %s: %s",
-                                    String.format("%-3d", i),
-                                    outParameters.get(i).name()
-                            )
-                    );
-                }
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
-            }
+            statement = this.prepareOracleStatement(connection, storeProcedureName, inParameters, outParameters);
             final var startingTime = (double) System.currentTimeMillis();
 
             statement.execute();
@@ -216,8 +101,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
-                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
-            );
+                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             result = new ArrayList<>(handler.handle(statement));
         } catch (SQLException e) {
@@ -227,6 +111,33 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             this.closeStatementAndResultSet(statement, null);
         }
         return result;
+    }
+
+    public void runOracleStoreProcedure(Connection connection,
+                                        String storeProcedureName,
+                                        Map<Integer, Object> inParameters,
+                                        Map<Integer, OracleTypeEnum> outParameters,
+                                        CallableStatementHandler<List<Void>> handler) {
+        CallableStatement statement = null;
+        try {
+
+            statement = this.prepareOracleStatement(connection, storeProcedureName, inParameters, outParameters);
+            final var startingTime = (double) System.currentTimeMillis();
+
+            statement.execute();
+
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = (endingTime - startingTime) / 1000D;
+
+            handler.handle(statement);
+
+            LogUtils.writeLog2(
+                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
+        } catch (SQLException e) {
+            LogUtils.writeLog2(e.getMessage(), e);
+        } finally {
+            this.closeStatementAndResultSet(statement, null);
+        }
     }
 
     @Override
@@ -258,50 +169,15 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             String sqlCallingSPStatement = String.format(
                     "{ CALL %s(%s) }",
                     storeProcedureName,
-                    parameterString
-            );
+                    parameterString);
             statement = connection.prepareCall(sqlCallingSPStatement);
-            LogUtils.writeLog2(LogUtils.Level.INFO, "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
+            LogUtils.writeLog2(LogUtils.Level.INFO,
+                    "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             for (Map<Integer, Object> inParameters : inParameterMaps) {
                 var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
                 if (inParameterIsNotNullAndNotEmpty) {
                     StringBuilder parametersLog = new StringBuilder("input parameters:");
-                    for (Integer i : inParameters.keySet()) {
-                        Object parameterValue = inParameters.get(i);
-                        String aNull = String.format(
-                                "\n\t- parameter %s: %s",
-                                String.format("%-3d %-20s)", i, "("),
-                                "NULL"
-                        );
-                        if (parameterValue == null) {
-                            statement.setObject(i, null);
-                            parametersLog.append(
-                                    aNull
-                            );
-                            continue;
-                        }
-                        Class<?> parameterClass = inParameters.get(i).getClass();
-                        if (parameterClass.isPrimitive()) {
-                            statement.setObject(i, null);
-                            parametersLog.append(
-                                    aNull
-                            );
-                            continue;
-                        }
-                        String parameterSimpleClassName = parameterClass.getSimpleName();
-                        SqlStatementHandler sqlStatementHandler = DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP.get(parameterSimpleClassName);
-                        if (sqlStatementHandler == null) {
-                            throw new RuntimeException("unknown parameter type");
-                        }
-                        parametersLog.append(
-                                String.format(
-                                        "\n\t- parameter %s: %s",
-                                        String.format("%-3d %-20s)", i, "(" + parameterSimpleClassName),
-                                        parameterValue
-                                )
-                        );
-                        sqlStatementHandler.handle(i, parameterValue, statement);
-                    }
+                    this.handleInputParameters(statement, inParameters, parametersLog);
                     statement.addBatch();
                     LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
                 }
@@ -317,8 +193,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
-                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
-            );
+                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             if (result.length > 0) {
                 for (int i : result) {
@@ -338,8 +213,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                                 "\n    - Execute failed: {}",
                         success,
                         successNoInfo,
-                        executeFailed
-                );
+                        executeFailed);
             }
             batchExecutionResult.put(SUCCESS_KEY_NAME, success);
             batchExecutionResult.put(SUCCESS_BUT_NO_INFO_KEY_NAME, successNoInfo);
@@ -394,49 +268,14 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             String sqlCallingSPStatement = String.format(
                     "CALL %s(%s)",
                     storeProcedureName,
-                    parameterString
-            );
+                    parameterString);
             statement = connection.prepareCall(sqlCallingSPStatement);
-            LogUtils.writeLog2(LogUtils.Level.INFO, "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
+            LogUtils.writeLog2(LogUtils.Level.INFO,
+                    "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
             if (inParameterIsNotNullAndNotEmpty) {
                 StringBuilder parametersLog = new StringBuilder("input parameters:");
-                for (Integer i : inParameters.keySet()) {
-                    Object parameterValue = inParameters.get(i);
-                    String aNull = String.format(
-                            "\n\t- parameter %s: %s",
-                            String.format("%-3d %-20s)", i, "("),
-                            "NULL"
-                    );
-                    if (parameterValue == null) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    Class<?> parameterClass = inParameters.get(i).getClass();
-                    if (parameterClass.isPrimitive()) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    String parameterSimpleClassName = parameterClass.getSimpleName();
-                    SqlStatementHandler sqlStatementHandler = DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP.get(parameterSimpleClassName);
-                    if (sqlStatementHandler == null) {
-                        throw new RuntimeException("unknown parameter type");
-                    }
-                    parametersLog.append(
-                            String.format(
-                                    "\n\t- parameter %s: %s",
-                                    String.format("%-3d %-20s)", i, "(" + parameterSimpleClassName),
-                                    parameterValue
-                            )
-                    );
-                    sqlStatementHandler.handle(i, parameterValue, statement);
-                }
+                this.handleInputParameters(statement, inParameters, parametersLog);
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
             var outParameterIsNotNullAndNotEmpty = outParameters != null && !outParameters.isEmpty();
@@ -448,9 +287,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                             String.format(
                                     "\n\t- parameter %s: %s",
                                     String.format("%-3d", i),
-                                    outParameters.get(i).name()
-                            )
-                    );
+                                    outParameters.get(i).name()));
                 }
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
@@ -462,8 +299,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
-                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
-            );
+                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             result = new ArrayList<>(handler.handle(statement));
         } catch (SQLException e) {
@@ -485,47 +321,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
         try {
             // sqlString = MyStringUtils.minifyString(sqlString);
             statement = connection.prepareStatement(sqlString);
-            LogUtils.writeLog2(LogUtils.Level.INFO, "\n" + sqlString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
+            LogUtils.writeLog2(LogUtils.Level.INFO,
+                    "\n" + sqlString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             var parameterIsNotNullAndNotEmpty = parameter != null && !parameter.isEmpty();
             if (parameterIsNotNullAndNotEmpty) {
                 StringBuilder parametersLog = new StringBuilder("parameters:");
-                for (Integer i : parameter.keySet()) {
-                    Object parameterValue = parameter.get(i);
-                    String aNull = String.format(
-                            "\n\t- parameter %s: %s",
-                            String.format("%-3d %-20s)", i, "("),
-                            "NULL"
-                    );
-                    if (parameterValue == null) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    Class<?> parameterClass = parameter.get(i).getClass();
-                    if (parameterClass.isPrimitive()) {
-                        statement.setObject(i, null);
-                        parametersLog.append(
-                                aNull
-                        );
-                        continue;
-                    }
-                    String parameterSimpleClassName = parameterClass.getSimpleName();
-                    SqlStatementHandler sqlStatementHandler = DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP.get(parameterSimpleClassName);
-                    if (sqlStatementHandler == null) {
-                        throw new RuntimeException("unknown parameter type");
-                    }
-                    parametersLog.append(
-                            String.format(
-                                    "\n\t- parameter %s: %s",
-                                    String.format("%-3d %-20s)", i, "(" + parameterSimpleClassName),
-                                    parameterValue
-                            )
-                    );
-                    // statement.setObject(i, parameterValue);
-                    sqlStatementHandler.handle(i, parameterValue, statement);
-                }
+                this.handleInputParameters(statement, parameter, parametersLog);
                 LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
             }
             final var startingTime = (double) System.currentTimeMillis();
@@ -536,8 +337,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
-                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
-            );
+                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
         } catch (SQLException e) {
             LogUtils.writeLog2(e.getMessage(), e);
@@ -557,49 +357,15 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
         PreparedStatement statement = null;
         try {
             statement = connection.prepareStatement(sqlString);
-            LogUtils.writeLog2(LogUtils.Level.INFO, "\n" + sqlString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
+            LogUtils.writeLog2(LogUtils.Level.INFO,
+                    "\n" + sqlString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             final var parameterMapListIsNotNullAndNotEmpty = parameterMapList != null && !parameterMapList.isEmpty();
             if (parameterMapListIsNotNullAndNotEmpty) {
                 for (Map<Integer, Object> parameter : parameterMapList) {
                     final var parameterIsNotNullAndNotEmpty = parameter != null && !parameter.isEmpty();
                     if (parameterIsNotNullAndNotEmpty) {
                         StringBuilder parametersLog = new StringBuilder("parameters:");
-                        for (Integer i : parameter.keySet()) {
-                            Object parameterValue = parameter.get(i);
-                            String aNull = String.format(
-                                    "\n\t- parameter %s: %s",
-                                    String.format("%-3d %-20s)", i, "("),
-                                    "NULL"
-                            );
-                            if (parameterValue == null) {
-                                statement.setObject(i, null);
-                                parametersLog.append(
-                                        aNull
-                                );
-                                continue;
-                            }
-                            Class<?> parameterClass = parameter.get(i).getClass();
-                            if (parameterClass.isPrimitive()) {
-                                statement.setObject(i, null);
-                                parametersLog.append(
-                                        aNull
-                                );
-                                continue;
-                            }
-                            String parameterSimpleClassName = parameterClass.getSimpleName();
-                            SqlStatementHandler sqlStatementHandler = DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP.get(parameterSimpleClassName);
-                            if (sqlStatementHandler == null) {
-                                throw new RuntimeException("unknown parameter type");
-                            }
-                            parametersLog.append(
-                                    String.format(
-                                            "\n\t- parameter %s: %s",
-                                            String.format("%-3d %-20s)", i, "(" + parameterSimpleClassName),
-                                            parameterValue
-                                    )
-                            );
-                            sqlStatementHandler.handle(i, parameterValue, statement);
-                        }
+                        this.handleInputParameters(statement, parameter, parametersLog);
                         LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
                         statement.addBatch();
                     }
@@ -616,8 +382,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var duration = (endingTime - startingTime) / 1000D;
 
             LogUtils.writeLog2(
-                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration)
-            );
+                    LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             if (result.length > 0) {
                 for (int i : result) {
@@ -637,8 +402,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                                 "\n    - Execute failed: {}",
                         success,
                         successNoInfo,
-                        executeFailed
-                );
+                        executeFailed);
                 batchExecutionResult.put(SUCCESS_KEY_NAME, success);
                 batchExecutionResult.put(SUCCESS_BUT_NO_INFO_KEY_NAME, successNoInfo);
                 batchExecutionResult.put(FAILED_KEY_NAME, executeFailed);
@@ -666,6 +430,101 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
         } catch (SQLException e) {
             LogUtils.writeLog2(e.getMessage(), e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private CallableStatement prepareOracleStatement(Connection connection,
+                                                     String storeProcedureName,
+                                                     Map<Integer, Object> inParameters,
+                                                     Map<Integer, OracleTypeEnum> outParameters) throws SQLException {
+        int numberOfParameters = 0;
+
+        if (inParameters != null && !inParameters.isEmpty()) {
+            numberOfParameters += inParameters.size();
+        }
+        if (outParameters != null && !outParameters.isEmpty()) {
+            numberOfParameters += outParameters.size();
+        }
+        StringBuilder parameterString = new StringBuilder();
+        for (int i = 0; i < numberOfParameters; i++) {
+            if (i == numberOfParameters - 1) {
+                parameterString.append("?");
+            } else {
+                parameterString.append("?, ");
+            }
+        }
+        String sqlCallingSPStatement = String.format(
+                "{ CALL %s(%s) }",
+                storeProcedureName,
+                parameterString);
+        CallableStatement statement = connection.prepareCall(sqlCallingSPStatement);
+        LogUtils.writeLog2(LogUtils.Level.INFO,
+                "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
+        var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
+        if (inParameterIsNotNullAndNotEmpty) {
+            StringBuilder parametersLog = new StringBuilder("input parameters:");
+            this.handleInputParameters(statement, inParameters, parametersLog);
+            LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+        }
+        var outParameterIsNotNullAndNotEmpty = outParameters != null && !outParameters.isEmpty();
+        if (outParameterIsNotNullAndNotEmpty) {
+            StringBuilder parametersLog = new StringBuilder("output parameters:");
+            for (Integer i : outParameters.keySet()) {
+                statement.registerOutParameter(i, outParameters.get(i).getType());
+                parametersLog.append(
+                        String.format(
+                                "\n\t- parameter %s: %s",
+                                String.format("%-3d", i),
+                                outParameters.get(i).name()));
+            }
+            LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+        }
+        return statement;
+    }
+
+    private String formatParameterValue(Object value) {
+        if (value == null) {
+            return "NULL";
+        }
+        String stringValue = String.valueOf(value);
+        if (stringValue.length() > 100) {
+            return stringValue.substring(0, 10) + "..." + stringValue.substring(stringValue.length() - 10);
+        }
+        return stringValue;
+    }
+
+    private void handleInputParameters(PreparedStatement statement, Map<Integer, Object> parameters,
+                                       StringBuilder parametersLog) throws SQLException {
+        for (Integer i : parameters.keySet()) {
+            Object parameterValue = parameters.get(i);
+            String aNull = String.format(
+                    "\n\t- parameter %s: %s",
+                    String.format("%-3d %-20s)", i, "("),
+                    "NULL");
+            if (parameterValue == null) {
+                statement.setObject(i, null);
+                parametersLog.append(aNull);
+                continue;
+            }
+            Class<?> parameterClass = parameters.get(i).getClass();
+            if (parameterClass.isPrimitive()) {
+                statement.setObject(i, null);
+                parametersLog.append(aNull);
+                continue;
+            }
+            String parameterSimpleClassName = parameterClass.getSimpleName();
+            SqlStatementHandler sqlStatementHandler = DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP
+                    .get(parameterSimpleClassName);
+            if (sqlStatementHandler == null) {
+                throw new RuntimeException("unknown parameter type");
+            }
+            parametersLog.append(
+                    String.format(
+                            "\n\t- parameter %s: %s",
+                            String.format("%-3d %-20s)", i, "(" + parameterSimpleClassName),
+                            this.formatParameterValue(parameterValue)));
+            // statement.setObject(i, parameterValue);
+            sqlStatementHandler.handle(i, parameterValue, statement);
         }
     }
 

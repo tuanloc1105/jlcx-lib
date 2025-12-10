@@ -30,17 +30,21 @@ public class PostgreSQLStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateAddColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        String constraintStr = constraints.stream()
-                .filter(c -> !c.equalsIgnoreCase("unique"))
-                .collect(Collectors.joining(" "));
+    public String generateAddColumn(ColumnDefinition columnDefinition, String tableName) {
+        StringBuilder constraints = new StringBuilder();
+        if (!columnDefinition.isNullable()) {
+            constraints.append(" NOT NULL");
+        }
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            constraints.append(" DEFAULT ").append(columnDefinition.getDefaultValue());
+        }
 
-        String result = String.format("ALTER TABLE %s\n  ADD COLUMN %s %s %s;\n",
-                tableName, columnName, dataType, constraintStr);
+        String result = String.format("ALTER TABLE %s\n  ADD COLUMN %s %s%s;\n",
+                tableName, columnDefinition.getColumnName(), columnDefinition.getDataType(), constraints);
 
-        if (constraints.stream().anyMatch(c -> c.equalsIgnoreCase("unique"))) {
+        if (columnDefinition.isUnique()) {
             result += String.format("ALTER TABLE %s\n  ADD CONSTRAINT %s_unique UNIQUE (%s);\n",
-                    tableName, columnName, columnName);
+                    tableName, columnDefinition.getColumnName(), columnDefinition.getColumnName());
         }
 
         return result;
@@ -54,25 +58,30 @@ public class PostgreSQLStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateModifyColumn(String columnName, String dataType, List<String> constraints, String tableName) {
+    public String generateModifyColumn(ColumnDefinition columnDefinition, String tableName) {
         StringBuilder result = new StringBuilder();
-        result.append(String.format("ALTER TABLE %s\n  ALTER COLUMN %s TYPE %s", tableName, columnName, dataType));
+        result.append(String.format("ALTER TABLE %s\n  ALTER COLUMN %s TYPE %s",
+                tableName, columnDefinition.getColumnName(), columnDefinition.getDataType()));
 
-        if (!constraints.isEmpty()) {
-            result.append(",\n  ");
-            result.append(constraints.stream()
-                    .map(constraint -> {
-                        if (constraint.toLowerCase().contains("unique")) {
-                            return String.format("ADD CONSTRAINT %s_unique UNIQUE (%s)", columnName, columnName);
-                        } else if (constraint.equalsIgnoreCase("null")) {
-                            return String.format("ALTER COLUMN %s DROP NOT NULL", columnName);
-                        } else {
-                            return String.format("ALTER COLUMN %s SET %s", columnName, constraint);
-                        }
-                    })
-                    .collect(Collectors.joining(",\n  ")));
+        if (columnDefinition.isNullable()) {
+            result.append(",\n  ALTER COLUMN ").append(columnDefinition.getColumnName()).append(" DROP NOT NULL");
+        } else {
+            result.append(",\n  ALTER COLUMN ").append(columnDefinition.getColumnName()).append(" SET NOT NULL");
         }
+
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            result.append(",\n  ALTER COLUMN ").append(columnDefinition.getColumnName()).append(" SET DEFAULT ")
+                    .append(columnDefinition.getDefaultValue());
+        } else {
+            result.append(",\n  ALTER COLUMN ").append(columnDefinition.getColumnName()).append(" DROP DEFAULT");
+        }
+
         result.append(";\n");
+
+        if (columnDefinition.isUnique()) {
+            result.append(String.format("ALTER TABLE %s\n  ADD CONSTRAINT %s_unique UNIQUE (%s);\n",
+                    tableName, columnDefinition.getColumnName(), columnDefinition.getColumnName()));
+        }
 
         return result.toString();
     }
@@ -86,4 +95,4 @@ public class PostgreSQLStrategy implements DatabaseStrategy {
     public String generateForeignKeyCascade(boolean cascade) {
         return cascade ? "\nON DELETE SET NULL\nON UPDATE CASCADE;" : ";";
     }
-} 
+}

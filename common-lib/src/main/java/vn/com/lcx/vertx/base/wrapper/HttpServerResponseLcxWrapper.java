@@ -12,6 +12,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.RoutingContext;
 import vn.com.lcx.common.config.ClassPool;
+import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.utils.JsonMaskingUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
@@ -208,6 +209,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
 
     @Override
     public Future<Void> end() {
+        responseLogging(CommonConstant.EMPTY_STRING);
         return realResponse.end();
     }
 

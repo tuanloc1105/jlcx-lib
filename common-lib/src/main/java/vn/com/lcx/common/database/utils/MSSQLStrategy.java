@@ -28,9 +28,20 @@ public class MSSQLStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateAddColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        return String.format("ALTER TABLE %s\n  ADD %s %s %s;\n",
-                tableName, columnName, dataType, String.join(" ", constraints));
+    public String generateAddColumn(ColumnDefinition columnDefinition, String tableName) {
+        StringBuilder constraints = new StringBuilder();
+        if (!columnDefinition.isNullable()) {
+            constraints.append(" NOT NULL");
+        }
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            constraints.append(" DEFAULT ").append(columnDefinition.getDefaultValue());
+        }
+        if (columnDefinition.isUnique()) {
+            constraints.append(" UNIQUE");
+        }
+
+        return String.format("ALTER TABLE %s\n  ADD %s %s%s;\n",
+                tableName, columnDefinition.getColumnName(), columnDefinition.getDataType(), constraints);
     }
 
     @Override
@@ -39,8 +50,14 @@ public class MSSQLStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateModifyColumn(String columnName, String dataType, List<String> constraints, String tableName) {
-        return String.format("ALTER TABLE %s ALTER COLUMN %s %s;\n", tableName, columnName, dataType);
+    public String generateModifyColumn(ColumnDefinition columnDefinition, String tableName) {
+        // MSSQL ALTER COLUMN syntax mostly supports datatype and nullability.
+        // Default and Unique usually require constraints management (dropping/adding).
+        // For simplicity/safety we only handle NULL/NOT NULL here as implicit
+        // constraint.
+        String nullability = columnDefinition.isNullable() ? "NULL" : "NOT NULL";
+        return String.format("ALTER TABLE %s ALTER COLUMN %s %s %s;\n",
+                tableName, columnDefinition.getColumnName(), columnDefinition.getDataType(), nullability);
     }
 
     @Override
@@ -52,4 +69,4 @@ public class MSSQLStrategy implements DatabaseStrategy {
     public String generateForeignKeyCascade(boolean cascade) {
         return cascade ? "\nON DELETE CASCADE\nON UPDATE CASCADE;" : ";";
     }
-} 
+}
