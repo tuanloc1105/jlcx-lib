@@ -50,9 +50,9 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.1.1</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>6.6.38.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>6.6.38.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>6.6.38.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>7.1.11.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>7.1.11.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-jcache-org.hibernate.orm.version>7.1.11.Final</hibernate-jcache-org.hibernate.orm.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.5</vertx-core-io.vertx.version>
         <vertx-web-io.vertx.version>5.0.5</vertx-web-io.vertx.version>
@@ -112,7 +112,7 @@
         </maven-install-plugin-org.apache.maven.plugins.version>
         <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.2
         </maven-plugin-plugin-org.apache.maven.plugins.version>
-        <spring-boot-maven-plugin-org.springframework.boot.version>2.7.18
+        <spring-boot-maven-plugin-org.springframework.boot.version>4.0.0
         </spring-boot-maven-plugin-org.springframework.boot.version>
 
     </properties>
@@ -387,7 +387,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-11-30 -->
+            <!-- Released at 2025-12-01 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -404,7 +404,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-11-30 -->
+            <!-- Released at 2025-12-01 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-jcache -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -916,8 +916,7 @@
                 </plugin>
 
                 <plugin>
-                    <!-- I have to use an older version of the Spring Maven plugins because the newer versions require Java 17, while this project is still using Java 11 -->
-                    <!-- Released at 2023-11-23 -->
+                    <!-- Released at 2025-11-21 -->
                     <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-maven-plugin -->
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
