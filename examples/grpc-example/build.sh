@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export JAVA_HOME="$HOME/dev-kit/jdk-11"
+export JAVA_HOME="$HOME/dev-kit/jdk-17"
 export MAVEN_HOME="$HOME/dev-kit/maven"
 export PATH="$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
 

@@ -1,6 +1,6 @@
 Clear-Host
 
-$env:JAVA_HOME  = "$env:DEV_KIT_LOCATION\jdk-11"
+$env:JAVA_HOME  = "$env:DEV_KIT_LOCATION\jdk-17"
 $env:MAVEN_HOME = "$env:DEV_KIT_LOCATION\maven"
 $env:PATH       = "$env:JAVA_HOME\bin;$env:MAVEN_HOME\bin;$env:PATH"
 
