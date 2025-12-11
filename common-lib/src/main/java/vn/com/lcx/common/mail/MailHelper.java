@@ -46,7 +46,6 @@ public final class MailHelper {
                         StringUtils.isBlank(mailProperties.getPort()) ||
                         StringUtils.isBlank(mailProperties.getUsername()) ||
                         StringUtils.isBlank(mailProperties.getPassword()) ||
-                        mailProperties.getMailSendingMethod() == null ||
                         CollectionUtils.isEmpty(mailProperties.getEmailInfos())
         ) {
             throw new MailPropertiesEmptyError("Mail properties empty" + (mailProperties != null ? mailProperties.toString() : ""));
