@@ -95,7 +95,6 @@ public class HibernateConfiguration {
             settings.put(Environment.STATEMENT_BATCH_SIZE, "50");
             settings.put(Environment.ORDER_INSERTS, "true");
             settings.put(Environment.ORDER_UPDATES, "true");
-            settings.put(Environment.BATCH_VERSIONED_DATA, "true");
 
             if (useCache) {
                 // Add second-level cache configuration
