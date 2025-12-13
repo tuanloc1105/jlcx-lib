@@ -2,37 +2,24 @@ package com.example.controller;
 
 import com.example.http.request.CreateBookRequest;
 import com.example.service.BookService;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.vertx.base.annotation.process.Controller;
 import vn.com.lcx.vertx.base.annotation.process.Post;
-import vn.com.lcx.vertx.base.controller.ReactiveController;
-import vn.com.lcx.vertx.base.http.response.CommonResponse;
+import vn.com.lcx.vertx.base.annotation.process.RequestBody;
+import vn.com.lcx.vertx.base.annotation.process.RestController;
 
 @Component
-@Controller(path = "/api")
+@RestController(path = "/api")
 @RequiredArgsConstructor
-public class APIController extends ReactiveController {
+public class APIController {
 
-    private final Gson gson;
     private final BookService bookService;
 
     @Post(path = "/create_book")
-    public void createBook(RoutingContext ctx) {
-        try {
-            CreateBookRequest req = handleRequest(ctx, gson, new TypeToken<>() {
-            });
-            bookService.createBook(ctx, req).onSuccess(user -> {
-                handleResponse(ctx, gson, new CommonResponse());
-            }).onFailure(err -> {
-                handleError(ctx, gson, err);
-            });
-        } catch (Throwable t) {
-            handleError(ctx, gson, t);
-        }
+    public Future<Void> createBook(RoutingContext ctx, @RequestBody CreateBookRequest req) {
+        return bookService.createBook(ctx, req);
     }
 
 }
