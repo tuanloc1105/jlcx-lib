@@ -107,6 +107,20 @@ Used by `ReactiveDbClientConfiguration` to create Vert.x SQL pools.
 | `server.reactive.database.max_pool_size` | Integer | Maximum pool size for the reactive client. |
 | `server.reactive.database.type` | Enum | Database type. Supported values: `ORACLE`, `POSTGRESQL`, `MYSQL`, `MSSQL`. |
 
+### Hibernate Reactive Configuration
+
+Used when configuring Hibernate Reactive `Stage.SessionFactory`.
+
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `server.hreactive.database.host` | String | Database host address. |
+| `server.hreactive.database.port` | Integer | Database port. |
+| `server.hreactive.database.username` | String | Database username. |
+| `server.hreactive.database.password` | String | Database password. |
+| `server.hreactive.database.name` | String | Database name. |
+| `server.hreactive.database.type` | Enum | Database type. Supported values: `ORACLE`, `POSTGRESQL`, `MYSQL`, `MSSQL`. |
+| `server.hreactive.database.max_pool_size` | Integer | Maximum size of the connection pool. |
+
 ### Redis Configuration (Vert.x Redis)
 
 | Key | Type | Description |
