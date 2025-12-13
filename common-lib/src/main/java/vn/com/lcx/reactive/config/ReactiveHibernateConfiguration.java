@@ -22,7 +22,6 @@ import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 @Component
 public class ReactiveHibernateConfiguration {
 
-    @SuppressWarnings({"resource", "CommentedOutCode"})
     @Instance
     public Stage.SessionFactory sessionFactory() {
         final String host = applicationConfig.getPropertyWithEnvironment("server.hreactive.database.host");
@@ -58,6 +57,10 @@ public class ReactiveHibernateConfiguration {
         ) {
             return null;
         }
+        return createHreactiveSessionFactory(type, host, port, name, username, password, maxPoolSize);
+    }
+
+    public static Stage.SessionFactory createHreactiveSessionFactory(DBTypeEnum type, String host, int port, String name, String username, String password, int maxPoolSize) {
         final String connectionString = String.format(type.getTemplateUrlConnectionString(), host, port, name);
         Map<String, Object> settings = new HashMap<>();
         settings.put(AvailableSettings.JAKARTA_PERSISTENCE_PROVIDER, "org.hibernate.reactive.provider.ReactivePersistenceProvider");
@@ -84,6 +87,7 @@ public class ReactiveHibernateConfiguration {
         // Stage.SessionFactory factory = emf.unwrap(Stage.SessionFactory.class);
         Stage.SessionFactory factory = metadata.getSessionFactoryBuilder().build().unwrap(Stage.SessionFactory.class);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Thread.currentThread().setName("hreactive-shutdown-hook");
             LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down SessionFactory");
             factory.close();
             // LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down EntityManagerFactory");
