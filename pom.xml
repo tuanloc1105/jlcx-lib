@@ -53,6 +53,9 @@
         <hibernate-core-org.hibernate.orm.version>7.1.11.Final</hibernate-core-org.hibernate.orm.version>
         <hibernate-tools-orm-org.hibernate.tool.version>7.1.11.Final</hibernate-tools-orm-org.hibernate.tool.version>
         <hibernate-jcache-org.hibernate.orm.version>7.1.11.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-reactive-core-org.hibernate.reactive.version>4.1.8.Final
+        </hibernate-reactive-core-org.hibernate.reactive.version>
+        <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
         <vertx-core-io.vertx.version>5.0.5</vertx-core-io.vertx.version>
         <vertx-web-io.vertx.version>5.0.5</vertx-web-io.vertx.version>
@@ -410,6 +413,22 @@
                 <groupId>org.hibernate.orm</groupId>
                 <artifactId>hibernate-jcache</artifactId>
                 <version>${hibernate-jcache-org.hibernate.orm.version}</version>
+            </dependency>
+
+            <!-- Released at 2025-11-30 -->
+            <!-- https://mvnrepository.com/artifact/org.hibernate.reactive/hibernate-reactive-core -->
+            <dependency>
+                <groupId>org.hibernate.reactive</groupId>
+                <artifactId>hibernate-reactive-core</artifactId>
+                <version>${hibernate-reactive-core-org.hibernate.reactive.version}</version>
+            </dependency>
+
+            <!-- Released at 2024-04-10 -->
+            <!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
+            <dependency>
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>${jakarta.persistence-api-jakarta.persistence.version}</version>
             </dependency>
 
             <!-- Released at 2025-08-29 -->

@@ -239,6 +239,16 @@
         </dependency>
 
         <dependency>
+            <groupId>org.hibernate.reactive</groupId>
+            <artifactId>hibernate-reactive-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-oracle-client</artifactId>
         </dependency>
