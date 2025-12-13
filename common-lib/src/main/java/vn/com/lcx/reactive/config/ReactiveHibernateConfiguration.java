@@ -22,6 +22,42 @@ import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 @Component
 public class ReactiveHibernateConfiguration {
 
+    public static Stage.SessionFactory createHreactiveSessionFactory(DBTypeEnum type, String host, int port, String name, String username, String password, int maxPoolSize) {
+        final String connectionString = String.format(type.getTemplateUrlConnectionString(), host, port, name);
+        Map<String, Object> settings = new HashMap<>();
+        settings.put(AvailableSettings.JAKARTA_PERSISTENCE_PROVIDER, "org.hibernate.reactive.provider.ReactivePersistenceProvider");
+        settings.put(AvailableSettings.JAKARTA_JDBC_URL, connectionString);
+        settings.put(AvailableSettings.JAKARTA_JDBC_USER, username);
+        settings.put(AvailableSettings.JAKARTA_JDBC_PASSWORD, password);
+        settings.put(AvailableSettings.POOL_SIZE, maxPoolSize);
+        settings.put(AvailableSettings.JAKARTA_HBM2DDL_DATABASE_ACTION, Action.NONE);
+        settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_UPDATE);
+        settings.put(AvailableSettings.JAKARTA_HBM2DDL_CREATE_SCRIPT_SOURCE, "data/sql-exported.sql");
+        settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET, "data/sql-exported.sql");
+        settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET, "data/sql-exported.sql");
+        settings.put(AvailableSettings.FORMAT_SQL, true);
+        settings.put(AvailableSettings.HBM2DDL_AUTO, Action.ACTION_NONE);
+        ReactiveServiceRegistryBuilder registryBuilder = new ReactiveServiceRegistryBuilder();
+        registryBuilder.applySettings(settings);
+        MetadataSources metadataSources = new MetadataSources(registryBuilder.build());
+        for (Class<?> entity : ClassPool.ENTITIES) {
+            metadataSources.addAnnotatedClass(entity);
+        }
+        Metadata metadata = metadataSources.buildMetadata();
+
+        // EntityManagerFactory emf = Persistence.createEntityManagerFactory("postgresql-example");
+        // Stage.SessionFactory factory = emf.unwrap(Stage.SessionFactory.class);
+        @SuppressWarnings("resource") Stage.SessionFactory factory = metadata.getSessionFactoryBuilder().build().unwrap(Stage.SessionFactory.class);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Thread.currentThread().setName("hreactive-shutdown-hook");
+            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down SessionFactory");
+            factory.close();
+            // LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down EntityManagerFactory");
+            // emf.close();
+        }));
+        return factory;
+    }
+
     @Instance
     public Stage.SessionFactory sessionFactory() {
         final String host = applicationConfig.getPropertyWithEnvironment("server.hreactive.database.host");
@@ -58,42 +94,6 @@ public class ReactiveHibernateConfiguration {
             return null;
         }
         return createHreactiveSessionFactory(type, host, port, name, username, password, maxPoolSize);
-    }
-
-    public static Stage.SessionFactory createHreactiveSessionFactory(DBTypeEnum type, String host, int port, String name, String username, String password, int maxPoolSize) {
-        final String connectionString = String.format(type.getTemplateUrlConnectionString(), host, port, name);
-        Map<String, Object> settings = new HashMap<>();
-        settings.put(AvailableSettings.JAKARTA_PERSISTENCE_PROVIDER, "org.hibernate.reactive.provider.ReactivePersistenceProvider");
-        settings.put(AvailableSettings.JAKARTA_JDBC_URL, connectionString);
-        settings.put(AvailableSettings.JAKARTA_JDBC_USER, username);
-        settings.put(AvailableSettings.JAKARTA_JDBC_PASSWORD, password);
-        settings.put(AvailableSettings.POOL_SIZE, maxPoolSize);
-        settings.put(AvailableSettings.JAKARTA_HBM2DDL_DATABASE_ACTION, Action.NONE);
-        settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_ACTION, Action.ACTION_UPDATE);
-        settings.put(AvailableSettings.JAKARTA_HBM2DDL_CREATE_SCRIPT_SOURCE, "data/sql-exported.sql");
-        settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_CREATE_TARGET, "data/sql-exported.sql");
-        settings.put(AvailableSettings.JAKARTA_HBM2DDL_SCRIPTS_DROP_TARGET, "data/sql-exported.sql");
-        settings.put(AvailableSettings.FORMAT_SQL, true);
-        settings.put(AvailableSettings.HBM2DDL_AUTO, Action.ACTION_NONE);
-        ReactiveServiceRegistryBuilder registryBuilder = new ReactiveServiceRegistryBuilder();
-        registryBuilder.applySettings(settings);
-        MetadataSources metadataSources = new MetadataSources(registryBuilder.build());
-        for (Class<?> entity : ClassPool.ENTITIES) {
-            metadataSources.addAnnotatedClass(entity);
-        }
-        Metadata metadata = metadataSources.buildMetadata();
-
-        // EntityManagerFactory emf = Persistence.createEntityManagerFactory("postgresql-example");
-        // Stage.SessionFactory factory = emf.unwrap(Stage.SessionFactory.class);
-        Stage.SessionFactory factory = metadata.getSessionFactoryBuilder().build().unwrap(Stage.SessionFactory.class);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Thread.currentThread().setName("hreactive-shutdown-hook");
-            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down SessionFactory");
-            factory.close();
-            // LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down EntityManagerFactory");
-            // emf.close();
-        }));
-        return factory;
     }
 
 }
