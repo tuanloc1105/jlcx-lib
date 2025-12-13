@@ -1,4 +1,4 @@
-package com.example.config;
+package vn.com.lcx.reactive.config;
 
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
