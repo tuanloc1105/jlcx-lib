@@ -567,7 +567,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "} catch (java.sql.SQLException e) {"
             );
             resultSetMappingCodeLines.add(
-                    "    log.debug(e.getMessage(), e);"
+                    "    log.debug(e.getMessage());"
             );
             resultSetMappingCodeLines.add(
                     "}"
@@ -606,7 +606,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "} catch (java.sql.SQLException e) {"
             );
             resultSetMappingCodeLines.add(
-                    "    log.debug(e.getMessage(), e);"
+                    "    log.debug(e.getMessage());"
             );
             resultSetMappingCodeLines.add(
                     "}"
@@ -688,7 +688,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "} catch (java.sql.SQLException e) {"
             );
             resultSetMappingCodeLines.add(
-                    "    log.debug(e.getMessage(), e);"
+                    "    log.debug(e.getMessage());"
             );
             resultSetMappingCodeLines.add(
                     "}"
@@ -724,7 +724,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "} catch (java.lang.Throwable e) {"
             );
             vertxRowMappingCodeLines.add(
-                    "    log.debug(e.getMessage(), e);"
+                    "    log.debug(e.getMessage());"
             );
             vertxRowMappingCodeLines.add(
                     "}"
@@ -753,7 +753,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "} catch (java.lang.Throwable e) {"
             );
             vertxRowMappingCodeLines.add(
-                    "    log.debug(e.getMessage(), e);"
+                    "    log.debug(e.getMessage());"
             );
             vertxRowMappingCodeLines.add(
                     "}"
@@ -786,7 +786,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "} catch (java.lang.Throwable e) {"
             );
             vertxRowMappingCodeLines.add(
-                    "    log.debug(e.getMessage(), e);"
+                    "    log.debug(e.getMessage());"
             );
             vertxRowMappingCodeLines.add(
                     "}"
