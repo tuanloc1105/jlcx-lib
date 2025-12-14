@@ -63,7 +63,12 @@ public class HRRepositoryProcessor extends AbstractProcessor {
     public void generateCode(ProcessorClassInfo processorClassInfo) throws IOException {
         processingEnv.getMessager().printMessage(
                 Diagnostic.Kind.NOTE,
-                "Generating code for HRRepository : " + processorClassInfo.getClazz().getQualifiedName());
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                        String.format(
+                                "Generating code for HRRepository : %s",
+                                processorClassInfo.getClazz().getQualifiedName()
+                        )
+        );
 
         List<TypeMirror> genericClasses = TypeHierarchyAnalyzer.getGenericTypeOfExtendingInterface(
                 processingEnv.getElementUtils(),
