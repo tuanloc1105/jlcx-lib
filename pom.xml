@@ -50,10 +50,10 @@
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.1.1</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>7.2.0.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-core-org.hibernate.orm.version>7.1.12.Final</hibernate-core-org.hibernate.orm.version>
         <hibernate-tools-orm-org.hibernate.tool.version>7.1.11.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>7.2.0.Final</hibernate-jcache-org.hibernate.orm.version>
-        <hibernate-reactive-core-org.hibernate.reactive.version>4.1.8.Final
+        <hibernate-jcache-org.hibernate.orm.version>7.1.12.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-reactive-core-org.hibernate.reactive.version>4.1.9.Final
         </hibernate-reactive-core-org.hibernate.reactive.version>
         <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
@@ -390,7 +390,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-12-13 -->
+            <!-- Released at 2025-12-14 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -407,7 +407,7 @@
                 <optional>true</optional>
             </dependency>
 
-            <!-- Released at 2025-12-13 -->
+            <!-- Released at 2025-12-14 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-jcache -->
             <dependency>
                 <groupId>org.hibernate.orm</groupId>
@@ -415,7 +415,7 @@
                 <version>${hibernate-jcache-org.hibernate.orm.version}</version>
             </dependency>
 
-            <!-- Released at 2025-11-30 -->
+            <!-- Released at 2025-12-14 -->
             <!-- https://mvnrepository.com/artifact/org.hibernate.reactive/hibernate-reactive-core -->
             <dependency>
                 <groupId>org.hibernate.reactive</groupId>
