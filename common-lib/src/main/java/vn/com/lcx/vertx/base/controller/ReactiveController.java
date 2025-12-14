@@ -44,8 +44,7 @@ public abstract class ReactiveController {
         if (val == null) {
             throw new InternalServiceException(
                     ErrorCodeEnums.INVALID_REQUEST,
-                    String.format("Path parameter `%s` can not be empty", paramName)
-            );
+                    String.format("Path parameter `%s` can not be empty", paramName));
         }
         return val;
     }
@@ -80,14 +79,12 @@ public abstract class ReactiveController {
         if (CollectionUtils.isEmpty(paramValue)) {
             throw new InternalServiceException(
                     ErrorCodeEnums.INVALID_REQUEST,
-                    String.format("Query parameter `%s` can not be empty", paramName)
-            );
+                    String.format("Query parameter `%s` can not be empty", paramName));
         }
         if (StringUtils.isBlank(paramValue.get(0))) {
             throw new InternalServiceException(
                     ErrorCodeEnums.INVALID_REQUEST,
-                    String.format("Query parameter `%s` can not be empty", paramName)
-            );
+                    String.format("Query parameter `%s` can not be empty", paramName));
         }
         return paramValue;
     }
@@ -96,25 +93,24 @@ public abstract class ReactiveController {
         return extractQueryParams(context, paramName);
     }
 
-    public <T> List<T> getRequestQueryParamInList(RoutingContext context, String paramName, Function<String, T> function) {
+    public <T> List<T> getRequestQueryParamInList(RoutingContext context, String paramName,
+            Function<String, T> function) {
         return extractQueryParams(context, paramName).stream().map(function).collect(Collectors.toList());
     }
 
     private List<String> extractQueryParams(RoutingContext context, String paramName) {
-        final List<String> paramValue = context.queryParam(paramName).isEmpty() ?
-                new ArrayList<>() :
-                Arrays.stream(context.queryParam(paramName).get(0).split(",")).map(String::trim).collect(Collectors.toList());
+        final List<String> paramValue = context.queryParam(paramName).isEmpty() ? new ArrayList<>()
+                : Arrays.stream(context.queryParam(paramName).get(0).split(",")).map(String::trim)
+                        .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(paramValue)) {
             throw new InternalServiceException(
                     ErrorCodeEnums.INVALID_REQUEST,
-                    String.format("%s can not be empty", paramValue)
-            );
+                    String.format("%s can not be empty", paramValue));
         }
         if (paramValue.stream().anyMatch(StringUtils::isBlank)) {
             throw new InternalServiceException(
                     ErrorCodeEnums.INVALID_REQUEST,
-                    String.format("%s's elements can not be empty", paramValue)
-            );
+                    String.format("%s's elements can not be empty", paramValue));
         }
         return paramValue;
     }
@@ -127,7 +123,8 @@ public abstract class ReactiveController {
         return StringUtils.isBlank(paramValue.get(0)) ? null : paramValue.get(0);
     }
 
-    public <T> T getNoneRequiringRequestQueryParam(RoutingContext context, String paramName, Function<String, T> function) {
+    public <T> T getNoneRequiringRequestQueryParam(RoutingContext context, String paramName,
+            Function<String, T> function) {
         final var paramValue = context.queryParam(paramName);
         if (CollectionUtils.isEmpty(paramValue)) {
             return null;
@@ -139,18 +136,33 @@ public abstract class ReactiveController {
         return extractNonRequiredQueryParams(context, paramName);
     }
 
-    public <T> List<T> getNoneRequiringRequestQueryParamInList(RoutingContext context, String paramName, Function<String, T> function) {
+    public <T> List<T> getNoneRequiringRequestQueryParamInList(RoutingContext context, String paramName,
+            Function<String, T> function) {
         return extractNonRequiredQueryParams(context, paramName).stream().map(function).collect(Collectors.toList());
     }
 
     private List<String> extractNonRequiredQueryParams(RoutingContext context, String paramName) {
-        final var paramValue = context.queryParam(paramName).isEmpty() ?
-                new ArrayList<String>() :
-                Arrays.stream(context.queryParam(paramName).get(0).split(",")).map(String::trim).collect(Collectors.toList());
+        final var paramValue = context.queryParam(paramName).isEmpty() ? new ArrayList<String>()
+                : Arrays.stream(context.queryParam(paramName).get(0).split(",")).map(String::trim)
+                        .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(paramValue)) {
             new ArrayList<>();
         }
         return paramValue;
+    }
+
+    public String getRequestHeaderParam(RoutingContext context, String headerName) {
+        String headerValue = context.request().getHeader(headerName);
+        if (StringUtils.isBlank(headerValue)) {
+            throw new InternalServiceException(
+                    ErrorCodeEnums.INVALID_REQUEST,
+                    String.format("Header parameter `%s` can not be empty", headerName));
+        }
+        return headerValue;
+    }
+
+    public String getNoneRequiringRequestHeaderParam(RoutingContext context, String headerName) {
+        return context.request().getHeader(headerName);
     }
 
     public void handleError(RoutingContext ctx, Object jsonHandler, Throwable e) {
@@ -191,14 +203,14 @@ public abstract class ReactiveController {
         } catch (Throwable t) {
             LogUtils.writeLog(ctx, t.getMessage(), t);
             ctx.response().setStatusCode(500)
-                    .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME, VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
+                    .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME,
+                            VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
                     .putHeader(
                             VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
                             DateTimeUtils.generateCurrentTimeDefault().format(
-                                    DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
-                            )
-                    )
-                    .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
+                                    DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)))
+                    .putHeader(VertxBaseConstant.TRACE_HEADER_NAME,
+                            ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
                     .end("Internal Error");
         }
     }
@@ -247,8 +259,7 @@ public abstract class ReactiveController {
                         "{\n" +
                                 "    \"error\": \"%s\"\n" +
                                 "}",
-                        ExceptionUtils.getStackTrace(e)
-                );
+                        ExceptionUtils.getStackTrace(e));
             }
         } else {
             responseBody = "{\n    \"error\": \"Unknown json handler. Only support `Gson` and `Jackson`\"\n}";
@@ -258,9 +269,7 @@ public abstract class ReactiveController {
                 .putHeader(
                         VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
                         DateTimeUtils.generateCurrentTimeDefault().format(
-                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
-                        )
-                )
+                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)))
                 .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
                 .end(responseBody);
         // ctx.end(responseBody);
@@ -272,9 +281,7 @@ public abstract class ReactiveController {
                 .putHeader(
                         VertxBaseConstant.PROCESSED_TIME_HEADER_NAME,
                         DateTimeUtils.generateCurrentTimeDefault().format(
-                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)
-                        )
-                )
+                                DateTimeFormatter.ofPattern(CommonConstant.DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN)))
                 .putHeader(VertxBaseConstant.TRACE_HEADER_NAME, ctx.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
 
         if (!response.headers().contains(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME)) {
@@ -287,8 +294,7 @@ public abstract class ReactiveController {
                         ctx,
                         String.format("Failed to send file: %s", fileEntity.getFilePath()),
                         throwable,
-                        LogUtils.Level.ERROR
-                ));
+                        LogUtils.Level.ERROR));
     }
 
     private void deleteFileIfNeeded(RoutingContext ctx, FileEntity fileEntity) {
@@ -302,8 +308,7 @@ public abstract class ReactiveController {
                 ctx,
                 String.format("Failed to delete file after sending: %s", fileEntity.getFilePath()),
                 e,
-                LogUtils.Level.WARN
-        ));
+                LogUtils.Level.WARN));
     }
 
     public <T> T handleRequest(RoutingContext ctx, Object jsonHandler, TypeToken<T> reqType) {
@@ -325,7 +330,8 @@ public abstract class ReactiveController {
                 throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, e.getMessage());
             }
         } else {
-            throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, "Unknown json handler. Only support `Gson` and `Jackson`");
+            throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR,
+                    "Unknown json handler. Only support `Gson` and `Jackson`");
         }
         if (requestObject instanceof CommonRequest) {
             try {
