@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * </ul>
  * <p>
  * Example:
- * 
+ *
  * <pre>
  * public class User {
  *     &#64;Regex(value = "^[a-zA-Z0-9]+$")

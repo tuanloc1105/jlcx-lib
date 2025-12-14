@@ -10,9 +10,14 @@ import vn.com.lcx.vertx.base.annotation.process.Auth;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
 import vn.com.lcx.vertx.base.annotation.process.Delete;
 import vn.com.lcx.vertx.base.annotation.process.Get;
+import vn.com.lcx.vertx.base.annotation.process.PathVariable;
 import vn.com.lcx.vertx.base.annotation.process.Post;
 import vn.com.lcx.vertx.base.annotation.process.Put;
 import vn.com.lcx.vertx.base.annotation.process.RequestBody;
+import vn.com.lcx.vertx.base.annotation.process.RequestFile;
+import vn.com.lcx.vertx.base.annotation.process.RequestForm;
+import vn.com.lcx.vertx.base.annotation.process.RequestHeader;
+import vn.com.lcx.vertx.base.annotation.process.RequestParam;
 import vn.com.lcx.vertx.base.annotation.process.RestController;
 import vn.com.lcx.vertx.base.controller.ReactiveController;
 import vn.com.lcx.vertx.base.http.response.CommonResponse;
@@ -72,7 +77,7 @@ public class RestControllerProcessor extends AbstractProcessor {
                 .filter(e -> e.getKind() == ElementKind.METHOD).map(e -> (ExecutableElement) e)
                 .filter(e -> e.getAnnotation(Post.class) != null || e.getAnnotation(Get.class) != null
                         || e.getAnnotation(Put.class) != null || e.getAnnotation(Delete.class) != null)
-                .collect(Collectors.toList());
+                .toList();
 
         StringBuilder classContent = new StringBuilder();
         classContent.append("package ").append(packageName).append(";\n\n");
@@ -172,16 +177,16 @@ public class RestControllerProcessor extends AbstractProcessor {
                     sb.append("            });\n");
                 }
                 args.add(paramName);
-            } else if (param.getAnnotation(vn.com.lcx.vertx.base.annotation.process.PathVariable.class) != null) {
-                vn.com.lcx.vertx.base.annotation.process.PathVariable pathVar = param
-                        .getAnnotation(vn.com.lcx.vertx.base.annotation.process.PathVariable.class);
+            } else if (param.getAnnotation(PathVariable.class) != null) {
+                PathVariable pathVar = param
+                        .getAnnotation(PathVariable.class);
                 String pathName = StringUtils.isNotBlank(pathVar.value()) ? pathVar.value() : paramName;
                 sb.append("            ").append(paramType).append(" ").append(paramName)
                         .append(" = getPathParam(ctx, \"").append(pathName).append("\");\n");
                 args.add(paramName);
-            } else if (param.getAnnotation(vn.com.lcx.vertx.base.annotation.process.RequestParam.class) != null) {
-                vn.com.lcx.vertx.base.annotation.process.RequestParam reqParam = param
-                        .getAnnotation(vn.com.lcx.vertx.base.annotation.process.RequestParam.class);
+            } else if (param.getAnnotation(RequestParam.class) != null) {
+                RequestParam reqParam = param
+                        .getAnnotation(RequestParam.class);
                 String queryName = StringUtils.isNotBlank(reqParam.value()) ? reqParam.value() : paramName;
                 boolean required = reqParam.required();
                 String defaultValue = reqParam.defaultValue();
@@ -208,19 +213,38 @@ public class RestControllerProcessor extends AbstractProcessor {
                     }
                 }
                 args.add(paramName);
-            } else if (param.getAnnotation(vn.com.lcx.vertx.base.annotation.process.RequestForm.class) != null) {
-                vn.com.lcx.vertx.base.annotation.process.RequestForm reqForm = param
-                        .getAnnotation(vn.com.lcx.vertx.base.annotation.process.RequestForm.class);
+            } else if (param.getAnnotation(RequestForm.class) != null) {
+                RequestForm reqForm = param
+                        .getAnnotation(RequestForm.class);
                 String formName = StringUtils.isNotBlank(reqForm.value()) ? reqForm.value() : paramName;
                 sb.append("            ").append(paramType).append(" ").append(paramName)
                         .append(" = getFormParam(ctx, \"").append(formName).append("\");\n");
                 args.add(paramName);
-            } else if (param.getAnnotation(vn.com.lcx.vertx.base.annotation.process.RequestFile.class) != null) {
-                vn.com.lcx.vertx.base.annotation.process.RequestFile reqFile = param
-                        .getAnnotation(vn.com.lcx.vertx.base.annotation.process.RequestFile.class);
+            } else if (param.getAnnotation(RequestFile.class) != null) {
+                RequestFile reqFile = param
+                        .getAnnotation(RequestFile.class);
                 String fileName = StringUtils.isNotBlank(reqFile.value()) ? reqFile.value() : paramName;
                 sb.append("            ").append(paramType).append(" ").append(paramName)
                         .append(" = getFileParam(ctx, \"").append(fileName).append("\");\n");
+                args.add(paramName);
+            } else if (param.getAnnotation(RequestHeader.class) != null) {
+                RequestHeader reqHeader = param.getAnnotation(RequestHeader.class);
+                String headerName = StringUtils.isNotBlank(reqHeader.value()) ? reqHeader.value() : paramName;
+                boolean required = reqHeader.required();
+                String defaultValue = reqHeader.defaultValue();
+
+                if (required) {
+                    sb.append("            ").append(paramType).append(" ").append(paramName)
+                            .append(" = getRequestHeaderParam(ctx, \"").append(headerName).append("\");\n");
+                } else {
+                    sb.append("            ").append(paramType).append(" ").append(paramName)
+                            .append(" = getNoneRequiringRequestHeaderParam(ctx, \"").append(headerName)
+                            .append("\");\n");
+                    if (StringUtils.isNotBlank(defaultValue)) {
+                        sb.append("            if (").append(paramName).append(" == null) ").append(paramName)
+                                .append(" = \"").append(defaultValue).append("\";\n");
+                    }
+                }
                 args.add(paramName);
             } else if (paramType.equals(RoutingContext.class.getCanonicalName())) {
                 args.add("ctx");
