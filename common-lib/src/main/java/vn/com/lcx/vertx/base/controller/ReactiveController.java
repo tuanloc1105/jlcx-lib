@@ -180,6 +180,14 @@ public abstract class ReactiveController {
                     .errorDescription(internalServiceException.getMessage())
                     .httpCode(httpCode)
                     .build();
+        } else if (e.getCause() instanceof InternalServiceException internalServiceException ) {
+            httpCode = internalServiceException.getHttpCode();
+            response = CommonResponse.builder()
+                    .trace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
+                    .errorCode(internalServiceException.getCode())
+                    .errorDescription(internalServiceException.getMessage())
+                    .httpCode(httpCode)
+                    .build();
         } else {
             response = CommonResponse.builder()
                     .trace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
