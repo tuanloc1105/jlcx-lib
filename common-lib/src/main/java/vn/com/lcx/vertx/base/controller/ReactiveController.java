@@ -23,7 +23,6 @@ import vn.com.lcx.vertx.base.http.response.FileEntity;
 import vn.com.lcx.vertx.base.http.response.ResponseEntity;
 import vn.com.lcx.vertx.base.validate.AutoValidation;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -94,14 +93,14 @@ public abstract class ReactiveController {
     }
 
     public <T> List<T> getRequestQueryParamInList(RoutingContext context, String paramName,
-            Function<String, T> function) {
+                                                  Function<String, T> function) {
         return extractQueryParams(context, paramName).stream().map(function).collect(Collectors.toList());
     }
 
     private List<String> extractQueryParams(RoutingContext context, String paramName) {
         final List<String> paramValue = context.queryParam(paramName).isEmpty() ? new ArrayList<>()
                 : Arrays.stream(context.queryParam(paramName).get(0).split(",")).map(String::trim)
-                        .collect(Collectors.toList());
+                .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(paramValue)) {
             throw new InternalServiceException(
                     ErrorCodeEnums.INVALID_REQUEST,
@@ -124,7 +123,7 @@ public abstract class ReactiveController {
     }
 
     public <T> T getNoneRequiringRequestQueryParam(RoutingContext context, String paramName,
-            Function<String, T> function) {
+                                                   Function<String, T> function) {
         final var paramValue = context.queryParam(paramName);
         if (CollectionUtils.isEmpty(paramValue)) {
             return null;
@@ -137,14 +136,14 @@ public abstract class ReactiveController {
     }
 
     public <T> List<T> getNoneRequiringRequestQueryParamInList(RoutingContext context, String paramName,
-            Function<String, T> function) {
+                                                               Function<String, T> function) {
         return extractNonRequiredQueryParams(context, paramName).stream().map(function).collect(Collectors.toList());
     }
 
     private List<String> extractNonRequiredQueryParams(RoutingContext context, String paramName) {
         final var paramValue = context.queryParam(paramName).isEmpty() ? new ArrayList<String>()
                 : Arrays.stream(context.queryParam(paramName).get(0).split(",")).map(String::trim)
-                        .collect(Collectors.toList());
+                .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(paramValue)) {
             new ArrayList<>();
         }
@@ -173,8 +172,7 @@ public abstract class ReactiveController {
         LogUtils.writeLog(ctx, e.getMessage(), e);
         CommonResponse response;
         int httpCode = 500;
-        if (e instanceof InternalServiceException) {
-            InternalServiceException internalServiceException = (InternalServiceException) e;
+        if (e instanceof InternalServiceException internalServiceException) {
             httpCode = internalServiceException.getHttpCode();
             response = CommonResponse.builder()
                     .trace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME))
@@ -221,15 +219,13 @@ public abstract class ReactiveController {
         Object finalBody = resp;
 
         // If resp is a ResponseEntity, override status and body
-        if (resp instanceof ResponseEntity<?>) {
-            ResponseEntity<?> entity = (ResponseEntity<?>) resp;
+        if (resp instanceof ResponseEntity<?> entity) {
             finalStatus = entity.getStatus();
             finalBody = entity.getResponse();
         }
 
         // If the final body is a CommonResponse, apply the existing logic
-        if (finalBody instanceof CommonResponse) {
-            CommonResponse common = (CommonResponse) finalBody;
+        if (finalBody instanceof CommonResponse common) {
             common.setTrace(ctx.get(CommonConstant.TRACE_ID_MDC_KEY_NAME));
             common.setErrorCode(ErrorCodeEnums.SUCCESS.getCode());
             common.setErrorDescription(ErrorCodeEnums.SUCCESS.getMessage());
@@ -256,9 +252,10 @@ public abstract class ReactiveController {
                 responseBody = ((ObjectMapper) jsonHandler).writeValueAsString(resp);
             } catch (JsonProcessingException e) {
                 responseBody = String.format(
-                        "{\n" +
-                                "    \"error\": \"%s\"\n" +
-                                "}",
+                        """
+                                {
+                                    "error": "%s"
+                                }""",
                         ExceptionUtils.getStackTrace(e));
             }
         } else {
@@ -321,11 +318,10 @@ public abstract class ReactiveController {
         T requestObject;
         if (jsonHandler instanceof Gson) {
             requestObject = ((Gson) jsonHandler).fromJson(jsonReader, reqType);
-        } else if (jsonHandler instanceof ObjectMapper) {
+        } else if (jsonHandler instanceof ObjectMapper objectMapper) {
             try {
-                final var objectMapper = ((ObjectMapper) jsonHandler);
                 JavaType jt = objectMapper.getTypeFactory().constructType(reqType.getType());
-                requestObject = ((ObjectMapper) jsonHandler).readValue(requestBody, jt);
+                requestObject = objectMapper.readValue(requestBody, jt);
             } catch (JsonProcessingException e) {
                 throw new InternalServiceException(ErrorCodeEnums.INTERNAL_ERROR, e.getMessage());
             }

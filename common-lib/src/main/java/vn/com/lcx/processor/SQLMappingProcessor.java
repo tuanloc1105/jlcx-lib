@@ -61,8 +61,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // roundEnv.getRootElements()
         for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(vn.com.lcx.common.annotation.SQLMapping.class)) {
-            if (annotatedElement instanceof TypeElement) {
-                TypeElement typeElement = (TypeElement) annotatedElement;
+            if (annotatedElement instanceof TypeElement typeElement) {
                 try {
                     ProcessorClassInfo processorClassInfo = ProcessorClassInfo.init(
                             typeElement,
