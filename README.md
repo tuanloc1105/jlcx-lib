@@ -17,7 +17,7 @@ jlcx-lib is an opinionated toolkit for building reactive Java services on Vert.x
 
 ## Tech stack
 
-- Java 11, Maven 3.6+
+- Java 17, Maven 3.9+
 - Vert.x 5.x (core, web, auth-jwt, grpc, micrometer, redis, database clients)
 - Databases: Oracle, PostgreSQL, MySQL, SQL Server, H2 (via HikariCP)
 - Serialization: Jackson, Gson; YAML: SnakeYAML
@@ -26,8 +26,8 @@ jlcx-lib is an opinionated toolkit for building reactive Java services on Vert.x
 
 ## Prerequisites
 
-- JDK 11 or newer
-- Maven 3.6 or newer
+- JDK 17 or newer
+- Maven 3.9 or newer
 - (Optional) Node.js for the web assets in `examples/todo-app-example/web`
 
 ## Quick start
