@@ -1,11 +1,13 @@
 package vn.com.lcx.vertx.base.validate;
 
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.exception.ValidationException;
 import vn.com.lcx.common.utils.ObjectUtils;
 import vn.com.lcx.vertx.base.annotation.GreaterThan;
 import vn.com.lcx.vertx.base.annotation.LessThan;
 import vn.com.lcx.vertx.base.annotation.NotNull;
+import vn.com.lcx.vertx.base.annotation.Regex;
 import vn.com.lcx.vertx.base.annotation.Values;
 import vn.com.lcx.vertx.base.enums.ErrorCodeEnums;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
@@ -55,6 +57,7 @@ public final class AutoValidation {
                 GreaterThan greaterThan = field.getAnnotation(GreaterThan.class);
                 LessThan lessThan = field.getAnnotation(LessThan.class);
                 Values valuesPattern = field.getAnnotation(Values.class);
+                Regex regex = field.getAnnotation(Regex.class);
 
                 // --- handle @NotNull ---
                 if (notNull != null) {
@@ -90,8 +93,7 @@ public final class AutoValidation {
                     }
 
                     // 3. Handle parameterized type (e.g., Optional<T>)
-                    if (field.getGenericType() instanceof ParameterizedType) {
-                        ParameterizedType pType = (ParameterizedType) field.getGenericType();
+                    if (field.getGenericType() instanceof ParameterizedType pType) {
                         for (Type actualType : pType.getActualTypeArguments()) {
                             if (actualType instanceof Class<?>) {
                                 // recursive validate on generic type value
@@ -114,8 +116,7 @@ public final class AutoValidation {
                     if (fieldValue == null) {
                         throw new InternalServiceException(
                                 ErrorCodeEnums.INVALID_REQUEST,
-                                String.format("%s's value must not null", fieldName)
-                        );
+                                String.format("%s's value must not null", fieldName));
                     }
                     List<String> patterns = Arrays.asList(valuesPattern.value());
                     if (!patterns.contains(fieldValue.toString())) {
@@ -124,9 +125,23 @@ public final class AutoValidation {
                                 String.format(
                                         "%s's value must be like one of these: %s",
                                         fieldName,
-                                        patterns.stream().collect(Collectors.joining(", ", "[", "]"))
-                                )
-                        );
+                                        patterns.stream().collect(Collectors.joining(", ", "[", "]"))));
+                    }
+                }
+
+                // --- @Regex validation ---
+                if (field.getType().isAssignableFrom(String.class) && regex != null) {
+                    assert fieldValue instanceof String;
+                    String strVal = (String) fieldValue;
+                    if (StringUtils.isBlank(strVal)) {
+                        throw new InternalServiceException(
+                                ErrorCodeEnums.INVALID_REQUEST,
+                                String.format("%s's value must not be null or empty", fieldName));
+                    }
+                    if (!strVal.matches(regex.value())) {
+                        throw new InternalServiceException(
+                                ErrorCodeEnums.INVALID_REQUEST,
+                                String.format("%s's value is invalid (regex mismatch)", fieldName));
                     }
                 }
 
@@ -145,8 +160,7 @@ public final class AutoValidation {
                         if (fieldNumber >= conditionNumber) {
                             throw new InternalServiceException(
                                     ErrorCodeEnums.INVALID_REQUEST,
-                                    String.format("%s's value must be less than [%.2f]", fieldName, conditionNumber)
-                            );
+                                    String.format("%s's value must be less than [%.2f]", fieldName, conditionNumber));
                         }
                     }
                     if (greaterThan != null) {
@@ -154,8 +168,8 @@ public final class AutoValidation {
                         if (fieldNumber <= conditionNumber) {
                             throw new InternalServiceException(
                                     ErrorCodeEnums.INVALID_REQUEST,
-                                    String.format("%s's value must be greater than [%.2f]", fieldName, conditionNumber)
-                            );
+                                    String.format("%s's value must be greater than [%.2f]", fieldName,
+                                            conditionNumber));
                         }
                     }
                 }
