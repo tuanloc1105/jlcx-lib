@@ -63,12 +63,11 @@ public class HRRepositoryProcessor extends AbstractProcessor {
     public void generateCode(ProcessorClassInfo processorClassInfo) throws IOException {
         processingEnv.getMessager().printMessage(
                 Diagnostic.Kind.NOTE,
-                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                vn.com.lcx.common.utils.DateTimeUtils
+                        .toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                         String.format(
                                 "Generating code for HRRepository : %s",
-                                processorClassInfo.getClazz().getQualifiedName()
-                        )
-        );
+                                processorClassInfo.getClazz().getQualifiedName()));
 
         List<TypeMirror> genericClasses = TypeHierarchyAnalyzer.getGenericTypeOfExtendingInterface(
                 processingEnv.getElementUtils(),
@@ -137,26 +136,28 @@ public class HRRepositoryProcessor extends AbstractProcessor {
                         buildFindOneMethod(codeLines, parameters, entityTypeMirror);
                         break;
                     default:
-                        // No default implementation generation for unknown methods without @Query
+                        codeLines.add(
+                                "return io.vertx.core.Future.failedFuture(new vn.com.lcx.jpa.exception.CodeGenError(\"Method "
+                                        + methodName + " not implemented\"));");
                         break;
                 }
             }
 
             if (!codeLines.isEmpty()) {
                 methodCodeBody.append(
-                        methodTemplate
-                                .replace("${return-type}", actualReturnType)
-                                .replace("${method-name}", methodName)
-                                .replace("${list-of-parameters}",
-                                        methodInfo.getInputParameters().stream().map(v -> {
-                                            String type = v.asType().toString();
-                                            if (type.equals("T"))
-                                                type = entityTypeMirror.toString();
-                                            type = type.replace("<T>", "<" + entityTypeMirror.toString() + ">");
-                                            return type + " " + v.getSimpleName();
-                                        }).collect(Collectors.joining(", ")))
-                                .replace("${method-body}",
-                                        codeLines.stream().collect(Collectors.joining("\n        "))))
+                                methodTemplate
+                                        .replace("${return-type}", actualReturnType)
+                                        .replace("${method-name}", methodName)
+                                        .replace("${list-of-parameters}",
+                                                methodInfo.getInputParameters().stream().map(v -> {
+                                                    String type = v.asType().toString();
+                                                    if (type.equals("T"))
+                                                        type = entityTypeMirror.toString();
+                                                    type = type.replace("<T>", "<" + entityTypeMirror.toString() + ">");
+                                                    return type + " " + v.getSimpleName();
+                                                }).collect(Collectors.joining(", ")))
+                                        .replace("${method-body}",
+                                                codeLines.stream().collect(Collectors.joining("\n        "))))
                         .append("\n");
             }
         });
@@ -177,8 +178,9 @@ public class HRRepositoryProcessor extends AbstractProcessor {
         }
     }
 
-    private void buildSaveMethod(List<String> codeLines, List<? extends VariableElement> parameters,
-            TypeMirror entityType) {
+    private void buildSaveMethod(List<String> codeLines,
+                                 List<? extends VariableElement> parameters,
+                                 TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String entity = parameters.get(1).getSimpleName().toString();
         codeLines.add("return io.vertx.core.Future.fromCompletionStage(");
@@ -195,8 +197,9 @@ public class HRRepositoryProcessor extends AbstractProcessor {
         codeLines.add(");");
     }
 
-    private void buildFindListMethod(List<String> codeLines, List<? extends VariableElement> parameters,
-            TypeMirror entityType) {
+    private void buildFindListMethod(List<String> codeLines,
+                                     List<? extends VariableElement> parameters,
+                                     TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String handler = parameters.get(1).getSimpleName().toString();
 
@@ -214,8 +217,9 @@ public class HRRepositoryProcessor extends AbstractProcessor {
         codeLines.add(");");
     }
 
-    private void buildFindPageMethod(List<String> codeLines, List<? extends VariableElement> parameters,
-            TypeMirror entityType) {
+    private void buildFindPageMethod(List<String> codeLines,
+                                     List<? extends VariableElement> parameters,
+                                     TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String handler = parameters.get(1).getSimpleName().toString();
         String pageable = parameters.get(2).getSimpleName().toString();
@@ -276,7 +280,7 @@ public class HRRepositoryProcessor extends AbstractProcessor {
     }
 
     private void buildFindOneMethod(List<String> codeLines, List<? extends VariableElement> parameters,
-            TypeMirror entityType) {
+                                    TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String handler = parameters.get(1).getSimpleName().toString();
 
@@ -295,7 +299,7 @@ public class HRRepositoryProcessor extends AbstractProcessor {
     }
 
     private void buildQueryMethodCodeBody(ExecutableElement executableElement, List<String> codeLines,
-            List<? extends VariableElement> parameters, String returnType, TypeMirror entityType) {
+                                          List<? extends VariableElement> parameters, String returnType, TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         Query queryAnn = executableElement.getAnnotation(Query.class);
         String queryStr = queryAnn.value();
@@ -303,8 +307,29 @@ public class HRRepositoryProcessor extends AbstractProcessor {
 
         boolean isModifying = executableElement.getAnnotation(Modifying.class) != null;
 
+        vn.com.lcx.jpa.annotation.ResultSetMapping resultSetMappingAnn = executableElement
+                .getAnnotation(vn.com.lcx.jpa.annotation.ResultSetMapping.class);
         String createQueryCall;
-        if (isModifying) {
+        if (resultSetMappingAnn != null) {
+            if (isNative) {
+                createQueryCall = session + ".createNativeQuery(\"" + queryStr.replace("\"", "\\\"")
+                        + "\", new ResultSetMapping<" + entityType + ">() {\n" +
+                        "    @Override\n" +
+                        "    public String getName() {\n" +
+                        "        return \"" + resultSetMappingAnn.name() + "\";\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public Class<" + entityType + "> getResultType() {\n" +
+                        "        return " + entityType + ".class;\n" +
+                        "    }\n" +
+                        "})";
+            } else {
+                codeLines.add(
+                        "return io.vertx.core.Future.failedFuture(new vn.com.lcx.jpa.exception.CodeGenError(\"Native query is required for ResultSetMapping\"));");
+                return;
+            }
+        } else if (isModifying) {
             if (isNative) {
                 createQueryCall = session + ".createNativeQuery(\"" + queryStr.replace("\"", "\\\"") + "\")";
             } else {
@@ -434,7 +459,7 @@ public class HRRepositoryProcessor extends AbstractProcessor {
                 // But the query is a string literal in the annotation. We have it in
                 // 'queryStr'.
 
-                String countQueryStr = queryStr;
+                String countQueryStr;
                 String trimmedQuery = queryStr.trim();
                 if (trimmedQuery.toLowerCase().startsWith("select")) {
                     // Replace the first select ... from with select count(*) from
