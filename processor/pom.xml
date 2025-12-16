@@ -10,7 +10,6 @@
     </parent>
 
     <artifactId>processor</artifactId>
-    <version>4.0.0.lcx-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>processor</name>
