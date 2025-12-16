@@ -57,24 +57,24 @@
         </hibernate-reactive-core-org.hibernate.reactive.version>
         <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
-        <vertx-core-io.vertx.version>5.0.5</vertx-core-io.vertx.version>
-        <vertx-web-io.vertx.version>5.0.5</vertx-web-io.vertx.version>
-        <vertx-web-client-io.vertx.version>5.0.5</vertx-web-client-io.vertx.version>
-        <vertx-json-schema-io.vertx.version>5.0.5</vertx-json-schema-io.vertx.version>
-        <vertx-codegen-io.vertx.version>5.0.5</vertx-codegen-io.vertx.version>
-        <vertx-unit-io.vertx.version>5.0.5</vertx-unit-io.vertx.version>
-        <vertx-auth-jwt-io.vertx.version>5.0.5</vertx-auth-jwt-io.vertx.version>
-        <vertx-micrometer-metrics-io.vertx.version>5.0.5</vertx-micrometer-metrics-io.vertx.version>
-        <vertx-oracle-client-io.vertx.version>5.0.5</vertx-oracle-client-io.vertx.version>
-        <vertx-mysql-client-io.vertx.version>5.0.5</vertx-mysql-client-io.vertx.version>
-        <vertx-pg-client-io.vertx.version>5.0.5</vertx-pg-client-io.vertx.version>
-        <vertx-mssql-client-io.vertx.version>5.0.5</vertx-mssql-client-io.vertx.version>
-        <vertx-jdbc-client-io.vertx.version>5.0.5</vertx-jdbc-client-io.vertx.version>
-        <vertx-redis-client-io.vertx.version>5.0.5</vertx-redis-client-io.vertx.version>
-        <vertx-grpc-client-io.vertx.version>5.0.5</vertx-grpc-client-io.vertx.version>
-        <vertx-grpc-server-io.vertx.version>5.0.5</vertx-grpc-server-io.vertx.version>
-        <vertx-grpc-io.vertx.version>5.0.5</vertx-grpc-io.vertx.version>
-        <vertx-reactive-streams-io.vertx.version>5.0.5</vertx-reactive-streams-io.vertx.version>
+        <vertx-core-io.vertx.version>5.0.6</vertx-core-io.vertx.version>
+        <vertx-web-io.vertx.version>5.0.6</vertx-web-io.vertx.version>
+        <vertx-web-client-io.vertx.version>5.0.6</vertx-web-client-io.vertx.version>
+        <vertx-json-schema-io.vertx.version>5.0.6</vertx-json-schema-io.vertx.version>
+        <vertx-codegen-io.vertx.version>5.0.6</vertx-codegen-io.vertx.version>
+        <vertx-unit-io.vertx.version>5.0.6</vertx-unit-io.vertx.version>
+        <vertx-auth-jwt-io.vertx.version>5.0.6</vertx-auth-jwt-io.vertx.version>
+        <vertx-micrometer-metrics-io.vertx.version>5.0.6</vertx-micrometer-metrics-io.vertx.version>
+        <vertx-oracle-client-io.vertx.version>5.0.6</vertx-oracle-client-io.vertx.version>
+        <vertx-mysql-client-io.vertx.version>5.0.6</vertx-mysql-client-io.vertx.version>
+        <vertx-pg-client-io.vertx.version>5.0.6</vertx-pg-client-io.vertx.version>
+        <vertx-mssql-client-io.vertx.version>5.0.6</vertx-mssql-client-io.vertx.version>
+        <vertx-jdbc-client-io.vertx.version>5.0.6</vertx-jdbc-client-io.vertx.version>
+        <vertx-redis-client-io.vertx.version>5.0.6</vertx-redis-client-io.vertx.version>
+        <vertx-grpc-client-io.vertx.version>5.0.6</vertx-grpc-client-io.vertx.version>
+        <vertx-grpc-server-io.vertx.version>5.0.6</vertx-grpc-server-io.vertx.version>
+        <vertx-grpc-io.vertx.version>5.0.6</vertx-grpc-io.vertx.version>
+        <vertx-reactive-streams-io.vertx.version>5.0.6</vertx-reactive-streams-io.vertx.version>
         <jakarta.annotation-api-jakarta.annotation.version>3.0.0</jakarta.annotation-api-jakarta.annotation.version>
         <javax.annotation-api-javax.annotation.version>1.3.2</javax.annotation-api-javax.annotation.version>
         <grpc-netty-shaded-io.grpc.version>1.77.0</grpc-netty-shaded-io.grpc.version>
@@ -439,7 +439,7 @@
                 <version>${ehcache-org.ehcache.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -447,7 +447,7 @@
                 <version>${vertx-core-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -455,7 +455,7 @@
                 <version>${vertx-web-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -463,7 +463,7 @@
                 <version>${vertx-web-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-json-schema -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -471,7 +471,7 @@
                 <version>${vertx-json-schema-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-codegen -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -479,7 +479,7 @@
                 <version>${vertx-codegen-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-unit -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -488,7 +488,7 @@
                 <scope>test</scope>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-auth-jwt -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -497,7 +497,7 @@
                 <scope>compile</scope>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-micrometer-metrics -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -505,7 +505,7 @@
                 <version>${vertx-micrometer-metrics-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-oracle-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -513,7 +513,7 @@
                 <version>${vertx-oracle-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mysql-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -521,7 +521,7 @@
                 <version>${vertx-mysql-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-pg-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -529,7 +529,7 @@
                 <version>${vertx-pg-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-mssql-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -537,7 +537,7 @@
                 <version>${vertx-mssql-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-jdbc-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -545,7 +545,7 @@
                 <version>${vertx-jdbc-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-redis-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -553,7 +553,7 @@
                 <version>${vertx-redis-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc-client -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -561,7 +561,7 @@
                 <version>${vertx-grpc-client-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc-server -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -569,7 +569,7 @@
                 <version>${vertx-grpc-server-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-grpc -->
             <dependency>
                 <groupId>io.vertx</groupId>
@@ -577,7 +577,7 @@
                 <version>${vertx-grpc-io.vertx.version}</version>
             </dependency>
 
-            <!-- Released at 2025-10-22 -->
+            <!-- Released at 2025-12-15 -->
             <!-- https://mvnrepository.com/artifact/io.vertx/vertx-reactive-streams -->
             <dependency>
                 <groupId>io.vertx</groupId>
