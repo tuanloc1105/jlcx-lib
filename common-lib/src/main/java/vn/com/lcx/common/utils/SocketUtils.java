@@ -42,10 +42,11 @@ public class SocketUtils {
             result = reader.readLine();
             LogUtils.writeLog2(
                     LogUtils.Level.INFO,
-                    "Connected to the socket server {}:{}\n" +
-                            "Input message: {}\n" +
-                            "Server responded: {}\n" +
-                            "Took {}ms",
+                    """
+                            Connected to the socket server {}:{}
+                            - Input message: {}
+                            - Server responded: {}
+                            - Duration {}ms""",
                     socketHost,
                     socketPort,
                     inputMessage,

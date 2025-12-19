@@ -184,8 +184,9 @@ public class HttpUtils {
             return responseBuilder.build();
         } finally {
             final var endingTime = (double) System.currentTimeMillis();
-            final var duration = (endingTime - startingTime) / 1000D;
-            LogUtils.writeLog2(LogUtils.Level.INFO, "Took {} second(s) to made a HTTP request", duration);
+            final var duration = endingTime - startingTime;
+            httpLogMessage.append("\n- Duration: ").append(duration).append("ms");
+            LogUtils.writeLog2(LogUtils.Level.INFO, httpLogMessage.toString());
         }
     }
 
