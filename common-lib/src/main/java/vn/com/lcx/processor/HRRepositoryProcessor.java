@@ -123,7 +123,7 @@ public class HRRepositoryProcessor extends AbstractProcessor {
                         buildSaveMethod(codeLines, parameters, entityTypeMirror);
                         break;
                     case "delete":
-                        buildDeleteMethod(codeLines, parameters);
+                        buildDeleteMethod(codeLines, parameters, entityTypeMirror);
                         break;
                     case "find":
                         if (parameters.size() == 3 && parameters.get(2).asType().toString().contains("Pageable")) {
@@ -145,19 +145,19 @@ public class HRRepositoryProcessor extends AbstractProcessor {
 
             if (!codeLines.isEmpty()) {
                 methodCodeBody.append(
-                                methodTemplate
-                                        .replace("${return-type}", actualReturnType)
-                                        .replace("${method-name}", methodName)
-                                        .replace("${list-of-parameters}",
-                                                methodInfo.getInputParameters().stream().map(v -> {
-                                                    String type = v.asType().toString();
-                                                    if (type.equals("T"))
-                                                        type = entityTypeMirror.toString();
-                                                    type = type.replace("<T>", "<" + entityTypeMirror.toString() + ">");
-                                                    return type + " " + v.getSimpleName();
-                                                }).collect(Collectors.joining(", ")))
-                                        .replace("${method-body}",
-                                                codeLines.stream().collect(Collectors.joining("\n        "))))
+                        methodTemplate
+                                .replace("${return-type}", actualReturnType)
+                                .replace("${method-name}", methodName)
+                                .replace("${list-of-parameters}",
+                                        methodInfo.getInputParameters().stream().map(v -> {
+                                            String type = v.asType().toString();
+                                            if (type.equals("T"))
+                                                type = entityTypeMirror.toString();
+                                            type = type.replace("<T>", "<" + entityTypeMirror.toString() + ">");
+                                            return type + " " + v.getSimpleName();
+                                        }).collect(Collectors.joining(", ")))
+                                .replace("${method-body}",
+                                        codeLines.stream().collect(Collectors.joining("\n        "))))
                         .append("\n");
             }
         });
@@ -179,27 +179,77 @@ public class HRRepositoryProcessor extends AbstractProcessor {
     }
 
     private void buildSaveMethod(List<String> codeLines,
-                                 List<? extends VariableElement> parameters,
-                                 TypeMirror entityType) {
+            List<? extends VariableElement> parameters,
+            TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String entity = parameters.get(1).getSimpleName().toString();
-        codeLines.add("return io.vertx.core.Future.fromCompletionStage(");
-        codeLines.add("        (java.util.concurrent.CompletionStage<" + entityType + ">) " + session + ".merge("
-                + entity + ")");
-        codeLines.add(");");
+        if (parameters.get(1).asType().toString().contains("java.util.List")) {
+            codeLines.add("io.vertx.core.Future<java.util.List<" + entityType
+                    + ">> chain = io.vertx.core.Future.succeededFuture(new java.util.ArrayList<>());");
+            codeLines.add(
+                    "java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);");
+            codeLines.add("for (" + entityType + " item : " + entity + ") {");
+            codeLines.add("    chain = chain.compose(list ->");
+            codeLines.add("            io.vertx.core.Future.fromCompletionStage(" + session + ".merge(item))");
+            codeLines.add("                    .compose(rs ->");
+            codeLines.add("                            count.incrementAndGet() % 50 == 0 ?");
+            codeLines.add("                                    io.vertx.core.Future.fromCompletionStage(");
+            codeLines.add("                                            " + session + ".flush()");
+            codeLines.add(
+                    "                                                    .thenAccept(v -> " + session + ".clear())");
+            codeLines.add("                                    ).map(rs) : io.vertx.core.Future.succeededFuture(rs)");
+            codeLines.add("                    ).map(rs ->");
+            codeLines.add("                            {");
+            codeLines.add("                                list.add(rs);");
+            codeLines.add("                                return list;");
+            codeLines.add("                            }");
+            codeLines.add("                    )");
+            codeLines.add("    );");
+            codeLines.add("}");
+            codeLines.add("return chain;");
+        } else {
+            codeLines.add("return io.vertx.core.Future.fromCompletionStage(");
+            codeLines.add("        (java.util.concurrent.CompletionStage<" + entityType + ">) " + session + ".merge("
+                    + entity + ")");
+            codeLines.add(");");
+        }
     }
 
-    private void buildDeleteMethod(List<String> codeLines, List<? extends VariableElement> parameters) {
+    private void buildDeleteMethod(List<String> codeLines,
+            List<? extends VariableElement> parameters,
+            TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String entity = parameters.get(1).getSimpleName().toString();
-        codeLines.add("return io.vertx.core.Future.fromCompletionStage(");
-        codeLines.add("        (java.util.concurrent.CompletionStage<Void>) " + session + ".remove(" + entity + ")");
-        codeLines.add(");");
+        if (parameters.get(1).asType().toString().contains("java.util.List")) {
+            codeLines.add("io.vertx.core.Future<Void> chain = io.vertx.core.Future.succeededFuture();");
+            codeLines.add(
+                    "java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);");
+            codeLines.add("for (" + entityType + " item : " + entity + ") {");
+            codeLines.add("    chain = chain.compose(v ->");
+            codeLines.add("            io.vertx.core.Future.fromCompletionStage(" + session + ".remove(item))");
+            codeLines.add("                    .compose(rs ->");
+            codeLines.add("                            count.incrementAndGet() % 50 == 0 ?");
+            codeLines.add("                                    io.vertx.core.Future.fromCompletionStage(");
+            codeLines.add("                                            " + session + ".flush()");
+            codeLines.add("                                                    .thenAccept(ignored -> " + session
+                    + ".clear())");
+            codeLines.add(
+                    "                                    ).map(ignored -> null) : io.vertx.core.Future.succeededFuture()");
+            codeLines.add("                    )");
+            codeLines.add("    );");
+            codeLines.add("}");
+            codeLines.add("return chain;");
+        } else {
+            codeLines.add("return io.vertx.core.Future.fromCompletionStage(");
+            codeLines
+                    .add("        (java.util.concurrent.CompletionStage<Void>) " + session + ".remove(" + entity + ")");
+            codeLines.add(");");
+        }
     }
 
     private void buildFindListMethod(List<String> codeLines,
-                                     List<? extends VariableElement> parameters,
-                                     TypeMirror entityType) {
+            List<? extends VariableElement> parameters,
+            TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String handler = parameters.get(1).getSimpleName().toString();
 
@@ -218,8 +268,8 @@ public class HRRepositoryProcessor extends AbstractProcessor {
     }
 
     private void buildFindPageMethod(List<String> codeLines,
-                                     List<? extends VariableElement> parameters,
-                                     TypeMirror entityType) {
+            List<? extends VariableElement> parameters,
+            TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String handler = parameters.get(1).getSimpleName().toString();
         String pageable = parameters.get(2).getSimpleName().toString();
@@ -280,7 +330,7 @@ public class HRRepositoryProcessor extends AbstractProcessor {
     }
 
     private void buildFindOneMethod(List<String> codeLines, List<? extends VariableElement> parameters,
-                                    TypeMirror entityType) {
+            TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         String handler = parameters.get(1).getSimpleName().toString();
 
@@ -299,7 +349,7 @@ public class HRRepositoryProcessor extends AbstractProcessor {
     }
 
     private void buildQueryMethodCodeBody(ExecutableElement executableElement, List<String> codeLines,
-                                          List<? extends VariableElement> parameters, String returnType, TypeMirror entityType) {
+            List<? extends VariableElement> parameters, String returnType, TypeMirror entityType) {
         String session = parameters.get(0).getSimpleName().toString();
         Query queryAnn = executableElement.getAnnotation(Query.class);
         String queryStr = queryAnn.value();

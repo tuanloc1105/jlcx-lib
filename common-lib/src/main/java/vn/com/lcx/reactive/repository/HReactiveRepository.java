@@ -37,6 +37,20 @@ public interface HReactiveRepository<T> {
     Future<T> save(Stage.Session session, T entity);
 
     /**
+     * Persists or updates the given list of entities.
+     * <p>
+     * Uses {@link Stage.Session#merge(Object)} to merge the state of the given
+     * entities into the current persistence context.
+     * Processed in batches to avoid memory issues.
+     * </p>
+     *
+     * @param session The Hibernate Reactive session.
+     * @param entity  The list of entities to save or update.
+     * @return A {@link Future} containing the list of merged entities.
+     */
+    Future<List<T>> save(Stage.Session session, List<T> entity);
+
+    /**
      * Deletes the given entity.
      * <p>
      * Uses {@link Stage.Session#remove(Object)} to remove the entity instance.
@@ -47,6 +61,19 @@ public interface HReactiveRepository<T> {
      * @return A {@link Future} that completes when the operation is finished.
      */
     Future<Void> delete(Stage.Session session, T entity);
+
+    /**
+     * Deletes the given list of entities.
+     * <p>
+     * Uses {@link Stage.Session#remove(Object)} to remove the entity instances.
+     * Processed in batches.
+     * </p>
+     *
+     * @param session The Hibernate Reactive session.
+     * @param entity  The list of entities to delete.
+     * @return A {@link Future} that completes when the operation is finished.
+     */
+    Future<Void> delete(Stage.Session session, List<T> entity);
 
     /**
      * Finds entities matching the given criteria.
