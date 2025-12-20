@@ -63,6 +63,7 @@ public class TasksEntity {
         final var currentTime = DateTimeUtils.generateCurrentTimeDefault();
         createdAt = currentTime;
         updatedAt = currentTime;
+        finished = false;
     }
 
     @PreUpdate

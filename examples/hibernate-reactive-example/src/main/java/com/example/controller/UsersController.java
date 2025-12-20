@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.model.http.request.CreateNewUserRequest;
 import com.example.model.http.request.UserLoginRequest;
+import com.example.model.http.response.AppResponse;
 import com.example.model.http.response.UserLoginResponse;
 import com.example.service.UsersService;
 import io.vertx.core.Future;
@@ -25,8 +26,8 @@ public class UsersController {
     }
 
     @Post(path = "/login")
-    public Future<UserLoginResponse> login(final RoutingContext context, @RequestBody final UserLoginRequest request) {
-        return usersService.login(context, request);
+    public Future<AppResponse<UserLoginResponse>> login(final RoutingContext context, @RequestBody final UserLoginRequest request) {
+        return usersService.login(context, request).map(AppResponse::new);
     }
 
 }
