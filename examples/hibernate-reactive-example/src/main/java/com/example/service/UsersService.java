@@ -47,7 +47,7 @@ public class UsersService {
                         );
                         return cb.and(predicates.toArray(Predicate[]::new));
                     };
-                    return usersRepository.findOne(session, usersEntityCriteriaHandler)
+                    final var future =  usersRepository.findOne(session, usersEntityCriteriaHandler)
                             .map(opt ->
                                     {
                                         if (opt.isPresent()) {
@@ -69,8 +69,8 @@ public class UsersService {
                                         LogUtils.writeLog(context, e.getMessage(), e);
                                         transaction.markForRollback();
                                     }
-                            )
-                            .toCompletionStage();
+                            );
+                    return future.toCompletionStage();
                 }
         );
         return Future.fromCompletionStage(completionStage);
@@ -89,7 +89,7 @@ public class UsersService {
                         );
                         return cb.and(predicates.toArray(Predicate[]::new));
                     };
-                    return usersRepository.findOne(session, usersEntityCriteriaHandler)
+                    final var future = usersRepository.findOne(session, usersEntityCriteriaHandler)
                             .map(opt ->
                                     {
                                         if (opt.isEmpty()) {
@@ -112,8 +112,37 @@ public class UsersService {
                                         );
                                         return new UserLoginResponse(token, usersMapper.map(user));
                                     }
-                            )
-                            .toCompletionStage();
+                            );
+                    return future.toCompletionStage();
+                }
+        );
+        return Future.fromCompletionStage(completionStage);
+    }
+
+    public Future<UsersEntity> validateUser(final RoutingContext context, final String username) {
+        final var completionStage = sessionFactory.withSession(session ->
+                {
+                    CriteriaHandler<UsersEntity> usersEntityCriteriaHandler = (cb, cq, root) -> {
+                        List<Predicate> predicates = new ArrayList<>();
+                        predicates.add(
+                                cb.equal(root.get("username"), username)
+                        );
+                        return cb.and(predicates.toArray(Predicate[]::new));
+                    };
+                    final var future = usersRepository.findOne(session, usersEntityCriteriaHandler)
+                            .map(opt ->
+                                    {
+                                        if (opt.isEmpty()) {
+                                            throw new InternalServiceException(AppError.USER_NOT_EXIST);
+                                        }
+                                        final var user = opt.get();
+                                        if (user.getDeletedAt() != null) {
+                                            throw new InternalServiceException(AppError.INACTIVE_USER);
+                                        }
+                                        return opt.get();
+                                    }
+                            );
+                    return future.toCompletionStage();
                 }
         );
         return Future.fromCompletionStage(completionStage);
