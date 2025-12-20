@@ -50,7 +50,7 @@ public class TasksService {
 
     public Future<Void> createTask(final RoutingContext context, final CreateTaskRequest request) {
         final var validateUserFuture = getUserFromContext(context)
-                .compose(userJWTTokenInfo -> usersService.validateUser(context, userJWTTokenInfo.getUsername()));
+                .compose(userJWTTokenInfo -> usersService.validateUser(userJWTTokenInfo.getUsername()));
         return validateUserFuture.compose(user ->
                 Future.fromCompletionStage(
                         sessionFactory.withTransaction((session, transaction) ->
@@ -75,7 +75,7 @@ public class TasksService {
 
     public Future<TaskDTO> getTaskDetail(final RoutingContext context, final GetTaskDetailRequest request) {
         final var validateUserFuture = getUserFromContext(context)
-                .compose(userJWTTokenInfo -> usersService.validateUser(context, userJWTTokenInfo.getUsername()));
+                .compose(userJWTTokenInfo -> usersService.validateUser(userJWTTokenInfo.getUsername()));
         return validateUserFuture.compose(user ->
                 Future.fromCompletionStage(
                         sessionFactory.withSession(session ->
@@ -101,7 +101,7 @@ public class TasksService {
 
     public Future<Page<TaskDTO>> searchTaskByName(final RoutingContext context, final SearchTasksByNameRequest request) {
         final var validateUserFuture = getUserFromContext(context)
-                .compose(userJWTTokenInfo -> usersService.validateUser(context, userJWTTokenInfo.getUsername()));
+                .compose(userJWTTokenInfo -> usersService.validateUser(userJWTTokenInfo.getUsername()));
         return validateUserFuture.compose(user ->
                 Future.fromCompletionStage(
                         sessionFactory.withSession(session ->
@@ -134,7 +134,7 @@ public class TasksService {
 
     public Future<Page<TaskDTO>> getAllTask(final RoutingContext context, final GetAllTaskRequest request) {
         final var validateUserFuture = getUserFromContext(context)
-                .compose(userJWTTokenInfo -> usersService.validateUser(context, userJWTTokenInfo.getUsername()));
+                .compose(userJWTTokenInfo -> usersService.validateUser(userJWTTokenInfo.getUsername()));
         return validateUserFuture.compose(user ->
                 Future.fromCompletionStage(
                         sessionFactory.withSession(session ->
@@ -156,7 +156,7 @@ public class TasksService {
 
     public Future<Void> updateTask(final RoutingContext context, final UpdateTaskRequest request) {
         final var validateUserFuture = getUserFromContext(context)
-                .compose(userJWTTokenInfo -> usersService.validateUser(context, userJWTTokenInfo.getUsername()));
+                .compose(userJWTTokenInfo -> usersService.validateUser(userJWTTokenInfo.getUsername()));
         return validateUserFuture.compose(user ->
                 Future.fromCompletionStage(
                         sessionFactory.withTransaction((session, transaction) ->
@@ -189,7 +189,7 @@ public class TasksService {
 
     public Future<Void> deleteTask(final RoutingContext context, final UpdateTaskRequest request) {
         final var validateUserFuture = getUserFromContext(context)
-                .compose(userJWTTokenInfo -> usersService.validateUser(context, userJWTTokenInfo.getUsername()));
+                .compose(userJWTTokenInfo -> usersService.validateUser(userJWTTokenInfo.getUsername()));
         return validateUserFuture.compose(user ->
                 Future.fromCompletionStage(
                         sessionFactory.withTransaction((session, transaction) ->

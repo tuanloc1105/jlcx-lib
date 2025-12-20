@@ -37,8 +37,8 @@ public class UsersService {
     private final Gson gson;
     private final JWTAuth jwtAuth;
 
-    public Future<Void> createNew(final RoutingContext context, final CreateNewUserRequest request) {
-        final var completionStage = sessionFactory.withTransaction((session, transaction) ->
+    public Future<Void> createNew(final CreateNewUserRequest request) {
+        final var completionStage = sessionFactory.withSession(session ->
                 {
                     CriteriaHandler<UsersEntity> usersEntityCriteriaHandler = (cb, cq, root) -> {
                         List<Predicate> predicates = new ArrayList<>();
@@ -63,20 +63,14 @@ public class UsersService {
                                         user.setFullName(request.getFullName());
                                         return usersRepository.save(session, user);
                                     }
-                            ).map(CommonConstant.VOID)
-                            .onFailure(e ->
-                                    {
-                                        LogUtils.writeLog(context, e.getMessage(), e);
-                                        transaction.markForRollback();
-                                    }
-                            );
+                            ).map(CommonConstant.VOID);
                     return future.toCompletionStage();
                 }
         );
         return Future.fromCompletionStage(completionStage);
     }
 
-    public Future<UserLoginResponse> login(final RoutingContext context, final UserLoginRequest request) {
+    public Future<UserLoginResponse> login(final UserLoginRequest request) {
         final var completionStage = sessionFactory.withSession(session ->
                 {
                     CriteriaHandler<UsersEntity> usersEntityCriteriaHandler = (cb, cq, root) -> {
@@ -119,7 +113,7 @@ public class UsersService {
         return Future.fromCompletionStage(completionStage);
     }
 
-    public Future<UsersEntity> validateUser(final RoutingContext context, final String username) {
+    public Future<UsersEntity> validateUser(final String username) {
         final var completionStage = sessionFactory.withSession(session ->
                 {
                     CriteriaHandler<UsersEntity> usersEntityCriteriaHandler = (cb, cq, root) -> {
