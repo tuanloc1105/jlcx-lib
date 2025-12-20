@@ -63,3 +63,9 @@ buildNumber.properties
 *.tmp
 *.temp
 data
+
+# ClaudeKit
+plans/*/reports/
+.claude
+.claude
+CLAUDE.md
