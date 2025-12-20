@@ -6,7 +6,6 @@ import com.example.model.http.response.AppResponse;
 import com.example.model.http.response.UserLoginResponse;
 import com.example.service.UsersService;
 import io.vertx.core.Future;
-import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.vertx.base.annotation.process.Post;
@@ -21,13 +20,13 @@ public class UsersController {
     private final UsersService usersService;
 
     @Post(path = "/create_new")
-    public Future<Void> createNew(final RoutingContext context, @RequestBody final CreateNewUserRequest request) {
-        return usersService.createNew(context, request);
+    public Future<Void> createNew(@RequestBody final CreateNewUserRequest request) {
+        return usersService.createNew(request);
     }
 
     @Post(path = "/login")
-    public Future<AppResponse<UserLoginResponse>> login(final RoutingContext context, @RequestBody final UserLoginRequest request) {
-        return usersService.login(context, request).map(AppResponse::new);
+    public Future<AppResponse<UserLoginResponse>> login(@RequestBody final UserLoginRequest request) {
+        return usersService.login(request).map(AppResponse::new);
     }
 
 }
