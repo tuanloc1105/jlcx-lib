@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import vn.com.lcx.common.constant.CommonConstant;
 
+import java.util.ArrayList;
+
 @SuppressWarnings("DuplicatedCode")
 public final class LogUtils {
 
@@ -130,113 +132,61 @@ public final class LogUtils {
                 ">>>>>>>> ";
     }
 
-    /*public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
-        final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
-        try {
-            final var currentThreadName = Thread.currentThread().getName();
-            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            if (context instanceof EmptyRoutingContext) {
-                CompletableFuture.runAsync(
-                        () -> {
-                            final var oldSubThreadName = Thread.currentThread().getName();
-                            Thread.currentThread().setName(currentThreadName);
-                            try {
-                                MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-                                MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-                                writeLog3(fullClassName, level, message, messageParameter);
-                            } finally {
-                                Thread.currentThread().setName(oldSubThreadName);
-                            }
-                        }
-                );
-            } else {
-                context.vertx().executeBlocking(
-                        () -> {
-                            final var oldSubThreadName = Thread.currentThread().getName();
-                            Thread.currentThread().setName(currentThreadName);
-                            try {
-                                MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-                                MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-                                writeLog3(fullClassName, level, message, messageParameter);
-                            } finally {
-                                Thread.currentThread().setName(oldSubThreadName);
-                            }
-                            return CommonConstant.VOID;
-                        }
-                );
-            }
-        } finally {
-            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-        }
-    }
-
-    public static void writeLog(RoutingContext context, String message, Throwable throwable, Level... level) {
-        final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
-        try {
-            final var currentThreadName = Thread.currentThread().getName();
-            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            if (context instanceof EmptyRoutingContext) {
-                CompletableFuture.runAsync(
-                        () -> {
-                            final var oldSubThreadName = Thread.currentThread().getName();
-                            Thread.currentThread().setName(currentThreadName);
-                            try {
-                                MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-                                MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-                                writeLog3(fullClassName, message, throwable, level);
-                            } finally {
-                                Thread.currentThread().setName(oldSubThreadName);
-                            }
-                        }
-                );
-            } else {
-                context.vertx().executeBlocking(
-                        () -> {
-                            final var oldSubThreadName = Thread.currentThread().getName();
-                            Thread.currentThread().setName(currentThreadName);
-                            try {
-                                MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-                                MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
-                                writeLog3(fullClassName, message, throwable, level);
-                            } finally {
-                                Thread.currentThread().setName(oldSubThreadName);
-                            }
-                            return CommonConstant.VOID;
-                        }
-                );
-            }
-        } finally {
-            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-        }
-    }*/
-
     public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
+        final var logKeyList = new ArrayList<String>();
         try {
-            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+            context.data().forEach((key, value) ->
+                    {
+                        if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
+                            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                        }
+                        if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
+                            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                        }
+                        if (String.valueOf(key).startsWith("log-key")) {
+                            MDC.put(key, value + CommonConstant.EMPTY_STRING);
+                            logKeyList.add(key);
+                        }
+                    }
+            );
             writeLog2(level, message, messageParameter);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            if (!logKeyList.isEmpty()) {
+                for (String key : logKeyList) {
+                    MDC.remove(key);
+                }
+            }
         }
     }
 
     public static void writeLog(RoutingContext context, String message, Throwable throwable, Level... level) {
+        final var logKeyList = new ArrayList<String>();
         try {
-            final var trace = context.<String>get(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            final var operation = context.<String>get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, trace);
-            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, operation);
+            context.data().forEach((key, value) ->
+                    {
+                        if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
+                            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                        }
+                        if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
+                            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                        }
+                        if (String.valueOf(key).startsWith("log-key")) {
+                            MDC.put(key, value + CommonConstant.EMPTY_STRING);
+                            logKeyList.add(key);
+                        }
+                    }
+            );
             writeLog2(message, throwable, level);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            if (!logKeyList.isEmpty()) {
+                for (String key : logKeyList) {
+                    MDC.remove(key);
+                }
+            }
         }
     }
 
