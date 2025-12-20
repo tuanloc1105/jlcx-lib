@@ -88,7 +88,7 @@
         <mockito-core-org.mockito.version>5.21.0</mockito-core-org.mockito.version>
         <mockito-junit-jupiter-org.mockito.version>5.21.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
-        <byte-buddy-net.bytebuddy.version>1.18.2</byte-buddy-net.bytebuddy.version>
+        <byte-buddy-net.bytebuddy.version>1.18.3</byte-buddy-net.bytebuddy.version>
         <datafaker-net.datafaker.version>2.5.3</datafaker-net.datafaker.version>
         <h2-com.h2database.version>2.4.240</h2-com.h2database.version>
         <maven-plugin-api-org.apache.maven.version>3.9.12</maven-plugin-api-org.apache.maven.version>
@@ -115,7 +115,7 @@
         </maven-install-plugin-org.apache.maven.plugins.version>
         <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.2
         </maven-plugin-plugin-org.apache.maven.plugins.version>
-        <spring-boot-maven-plugin-org.springframework.boot.version>4.0.0
+        <spring-boot-maven-plugin-org.springframework.boot.version>4.0.1
         </spring-boot-maven-plugin-org.springframework.boot.version>
 
     </properties>
@@ -298,7 +298,7 @@
                 <version>${jakarta.mail-org.eclipse.angus.version}</version>
             </dependency>
 
-            <!-- Released at 2025-11-20 -->
+            <!-- Released at 2025-12-17 -->
             <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
             <dependency>
                 <groupId>redis.clients</groupId>
@@ -689,7 +689,7 @@
                 <version>${mockito-inline-org.mockito.version}</version>
             </dependency>
 
-            <!-- Released at 2025-11-27 -->
+            <!-- Released at 2025-12-19 -->
             <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
             <dependency>
                 <groupId>net.bytebuddy</groupId>
@@ -935,7 +935,7 @@
                 </plugin>
 
                 <plugin>
-                    <!-- Released at 2025-11-21 -->
+                    <!-- Released at 2025-12-19 -->
                     <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-maven-plugin -->
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
