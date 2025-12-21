@@ -6,6 +6,7 @@ import com.example.model.dto.UserJWTTokenInfo;
 import com.example.model.entity.TasksEntity;
 import com.example.model.enums.AppError;
 import com.example.model.http.request.CreateTaskRequest;
+import com.example.model.http.request.DeleteTaskRequest;
 import com.example.model.http.request.GetAllTaskRequest;
 import com.example.model.http.request.GetTaskDetailRequest;
 import com.example.model.http.request.SearchTasksByNameRequest;
@@ -22,6 +23,7 @@ import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.database.pageable.Direction;
 import vn.com.lcx.common.database.pageable.Page;
 import vn.com.lcx.common.database.pageable.Pageable;
+import vn.com.lcx.common.utils.DateTimeUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.jpa.respository.CriteriaHandler;
 import vn.com.lcx.vertx.base.exception.InternalServiceException;
@@ -112,7 +114,10 @@ public class TasksService {
                                                 cb.equal(root.get("user"), user)
                                         );
                                         predicates.add(
-                                                cb.like(root.get("task_title"), request.getSearchContent())
+                                                cb.or(
+                                                        cb.like(root.get("taskTitle"), "%" + request.getSearchContent() + "%"),
+                                                        cb.like(root.get("taskDetail"), "%" + request.getSearchContent() + "%")
+                                                )
                                         );
                                         predicates.add(
                                                 cb.isNull(root.get("deletedAt"))
@@ -187,7 +192,7 @@ public class TasksService {
         );
     }
 
-    public Future<Void> deleteTask(final RoutingContext context, final UpdateTaskRequest request) {
+    public Future<Void> deleteTask(final RoutingContext context, final DeleteTaskRequest request) {
         final var validateUserFuture = getUserFromContext(context)
                 .compose(userJWTTokenInfo -> usersService.validateUser(userJWTTokenInfo.getUsername()));
         return validateUserFuture.compose(user ->
@@ -204,14 +209,10 @@ public class TasksService {
                                                     return Future.failedFuture(new InternalServiceException(AppError.TASK_NOT_FOUND));
                                                 }
                                                 final var entity = opt.get();
-                                                entity.setTaskDetail(request.getTaskDetail());
-                                                entity.setTaskTitle(request.getTaskTitle());
-                                                if (request.getFinished() != null) {
-                                                    entity.setFinished(request.getFinished());
-                                                }
+                                                entity.setDeletedAt(DateTimeUtils.generateCurrentTimeDefault());
                                                 return tasksRepository.delete(session, entity);
                                             }
-                                    );
+                                    ).map(CommonConstant.VOID);
                                     return deleteTaskFuture.toCompletionStage();
                                 }
                         )
