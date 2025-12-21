@@ -1,5 +1,5 @@
 server:
-  port: 6060
+  port: 5050
   enable-http-2: true
   enable-metrics: true
   hreactive:

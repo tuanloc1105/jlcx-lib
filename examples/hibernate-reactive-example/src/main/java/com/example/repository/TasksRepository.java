@@ -13,7 +13,7 @@ import java.util.Optional;
 @HRRepository
 public interface TasksRepository extends HReactiveRepository<TasksEntity> {
 
-    @Query("from TasksEntity t where t.user = ? and t.id = ?")
+    @Query("from TasksEntity t where t.user = ?1 and t.id = ?2")
     Future<Optional<TasksEntity>> findTaskDetail(Stage.Session session, UsersEntity user, Long id);
 
 }
