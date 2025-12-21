@@ -165,6 +165,7 @@ public class EmptyRoutingContext implements RoutingContext {
      * @return the value associated with the key, or null if not found
      */
     @Override
+    @SuppressWarnings("unchecked")
     public <T> @Nullable T get(String key) {
         return (T) map.get(key);
     }
@@ -181,6 +182,7 @@ public class EmptyRoutingContext implements RoutingContext {
      * @return the value associated with the key, or the default value if not found
      */
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(String key, T defaultValue) {
         return (T) map.getOrDefault(key, defaultValue);
     }
@@ -196,6 +198,7 @@ public class EmptyRoutingContext implements RoutingContext {
      * @return the value that was associated with the key, or null if the key was not found
      */
     @Override
+    @SuppressWarnings("unchecked")
     public <T> @Nullable T remove(String key) {
         return (T) map.remove(key);
     }
@@ -205,9 +208,10 @@ public class EmptyRoutingContext implements RoutingContext {
      *
      * @throws NotImplementedException always thrown as this method requires access to the full data map
      */
+    @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<String, T> data() {
-        throw new NotImplementedException();
+    public Map<String, Object> data() {
+        return map;
     }
 
     /**
