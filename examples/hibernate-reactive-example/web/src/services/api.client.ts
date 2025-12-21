@@ -22,6 +22,20 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    let message = "An unexpected error occurred.";
+    if (error.response?.data?.errorDescription) {
+      message = error.response.data.errorDescription;
+    } else if (error.message) {
+      message = error.message;
+    }
+
+    // Dispatch custom event for GlobalErrorDialog
+    window.dispatchEvent(
+      new CustomEvent("api-error", {
+        detail: { message },
+      })
+    );
+
     return Promise.reject(error);
   }
 );
