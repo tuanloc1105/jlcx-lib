@@ -144,8 +144,18 @@ public class TasksService {
                 Future.fromCompletionStage(
                         sessionFactory.withSession(session ->
                                 {
-                                    CriteriaHandler<TasksEntity> criteriaHandler = (cb, cq, root) ->
-                                            cb.conjunction();
+                                    // CriteriaHandler<TasksEntity> criteriaHandler = (cb, cq, root) ->
+                                    //         cb.conjunction();
+                                    CriteriaHandler<TasksEntity> criteriaHandler = (cb, cq, root) -> {
+                                        List<Predicate> predicates = new ArrayList<>();
+                                        predicates.add(
+                                                cb.equal(root.get("user"), user)
+                                        );
+                                        predicates.add(
+                                                cb.isNull(root.get("deletedAt"))
+                                        );
+                                        return cb.and(predicates.toArray(Predicate[]::new));
+                                    };
                                     final var searchTaskFuture = tasksRepository.find(
                                             session,
                                             criteriaHandler,

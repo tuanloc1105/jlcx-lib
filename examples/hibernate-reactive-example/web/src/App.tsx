@@ -6,6 +6,8 @@ import RegisterPage from "./pages/RegisterPage";
 import TodoListPage from "./pages/TodoListPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
+import { GlobalErrorDialog } from "./components/global-error-dialog";
+
 function App() {
   return (
     <BrowserRouter>
@@ -19,6 +21,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toaster />
+        <GlobalErrorDialog />
       </AuthProvider>
     </BrowserRouter>
   );
