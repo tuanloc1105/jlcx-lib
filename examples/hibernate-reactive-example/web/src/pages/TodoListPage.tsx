@@ -29,6 +29,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 export default function TodoListPage() {
   const { user, logout } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -38,6 +49,7 @@ export default function TodoListPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
+  const [deletingTaskId, setDeletingTaskId] = useState<number | null>(null);
 
   // Debounce search
   useEffect(() => {
@@ -70,18 +82,28 @@ export default function TodoListPage() {
     fetchTasks();
   }, [page, debouncedSearch]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this task?")) return;
+  const handleDelete = (id: number) => {
+    setDeletingTaskId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingTaskId) return;
     try {
-      const res = await taskService.deleteTask(id);
+      const res = await taskService.deleteTask(deletingTaskId);
       if (res.errorCode === 100000) {
         toast.success("Task deleted");
-        fetchTasks();
+        if (tasks.length === 1 && page > 1) {
+          setPage((p) => p - 1);
+        } else {
+          fetchTasks();
+        }
       } else {
         toast.error(res.errorDescription || "Failed to delete");
       }
     } catch (e: any) {
       toast.error(e.message || "Error deleting task");
+    } finally {
+      setDeletingTaskId(null);
     }
   };
 
@@ -261,6 +283,37 @@ export default function TodoListPage() {
           />
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={!!deletingTaskId}
+        onOpenChange={(open) => !open && setDeletingTaskId(null)}
+      >
+        <AlertDialogContent
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              confirmDelete();
+            }
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              task.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
