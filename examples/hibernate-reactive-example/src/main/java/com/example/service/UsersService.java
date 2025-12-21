@@ -61,7 +61,9 @@ public class UsersService {
                                         user.setUsername(request.getUsername());
                                         user.setPassword(BCryptUtils.hashPassword(request.getPassword()));
                                         user.setFullName(request.getFullName());
-                                        return usersRepository.save(session, user);
+                                        return usersRepository.save(session, user).compose(savedUser ->
+                                                Future.fromCompletionStage(session.flush())
+                                        );
                                     }
                             ).map(CommonConstant.VOID);
                     return future.toCompletionStage();
