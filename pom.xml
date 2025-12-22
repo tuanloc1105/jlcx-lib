@@ -88,7 +88,6 @@
         <mockito-core-org.mockito.version>5.21.0</mockito-core-org.mockito.version>
         <mockito-junit-jupiter-org.mockito.version>5.21.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
-        <byte-buddy-net.bytebuddy.version>1.18.3</byte-buddy-net.bytebuddy.version>
         <datafaker-net.datafaker.version>2.5.3</datafaker-net.datafaker.version>
         <h2-com.h2database.version>2.4.240</h2-com.h2database.version>
         <maven-plugin-api-org.apache.maven.version>3.9.12</maven-plugin-api-org.apache.maven.version>
@@ -687,14 +686,6 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-inline</artifactId>
                 <version>${mockito-inline-org.mockito.version}</version>
-            </dependency>
-
-            <!-- Released at 2025-12-19 -->
-            <!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
-            <dependency>
-                <groupId>net.bytebuddy</groupId>
-                <artifactId>byte-buddy</artifactId>
-                <version>${byte-buddy-net.bytebuddy.version}</version>
             </dependency>
 
             <!-- Released at 2025-10-27 -->
