@@ -13,18 +13,30 @@ public final class ReactiveLockUtils {
     public static <T> Future<T> executeInTransaction(Vertx vertx, String lockName, Supplier<Future<T>> function) {
         final var sharedData = vertx.sharedData();
         return sharedData.getLock(lockName).compose(
-                lock ->
-                        function.get()
-                                .onComplete(ar -> lock.release())
+                lock -> {
+                    try {
+                        return function.get()
+                                .onComplete(ar -> lock.release());
+                    } catch (Throwable e) {
+                        lock.release();
+                        return Future.failedFuture(e);
+                    }
+                }
         );
     }
 
     public static <T> Future<T> executeInTransactionWithTimeout(Vertx vertx, String lockName, long timeoutMs, Supplier<Future<T>> function) {
         final var sharedData = vertx.sharedData();
         return sharedData.getLockWithTimeout(lockName, timeoutMs).compose(
-                lock ->
-                        function.get()
-                                .onComplete(ar -> lock.release())
+                lock -> {
+                    try {
+                        return function.get()
+                                .onComplete(ar -> lock.release());
+                    } catch (Throwable e) {
+                        lock.release();
+                        return Future.failedFuture(e);
+                    }
+                }
         );
     }
 
