@@ -728,9 +728,9 @@
 
         <plugins>
 
-            <plugin>
-                <!-- Released at 2025-11-23 -->
-                <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-assembly-plugin -->
+            <!-- <plugin>
+                &lt;!&ndash; Released at 2025-11-23 &ndash;&gt;
+                &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-assembly-plugin &ndash;&gt;
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>${maven-assembly-plugin-org.apache.maven.plugins.version}</version>
@@ -754,7 +754,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin> -->
 
             <plugin>
                 <!-- Released at 2025-09-19 -->
