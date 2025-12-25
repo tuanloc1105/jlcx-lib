@@ -135,19 +135,26 @@ public final class LogUtils {
 
     public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
         final var logKeyList = new ArrayList<String>();
+        final var vertxCurrentContext = Vertx.currentContext();
         try {
             context.data().forEach((key, value) ->
                     {
                         if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
-                            Vertx.currentContext().put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            }
                             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                         }
                         if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
-                            Vertx.currentContext().put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            }
                             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                         }
                         if (String.valueOf(key).startsWith("log-key")) {
-                            Vertx.currentContext().put(key, value + CommonConstant.EMPTY_STRING);
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(key, value + CommonConstant.EMPTY_STRING);
+                            }
                             MDC.put(key, value + CommonConstant.EMPTY_STRING);
                             logKeyList.add(key);
                         }
@@ -156,13 +163,19 @@ public final class LogUtils {
             writeLog2(level, message, messageParameter);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            Vertx.currentContext().remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            if (vertxCurrentContext != null) {
+                vertxCurrentContext.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            }
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            Vertx.currentContext().remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            if (vertxCurrentContext != null) {
+                vertxCurrentContext.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            }
             if (!logKeyList.isEmpty()) {
                 for (String key : logKeyList) {
                     MDC.remove(key);
-                    Vertx.currentContext().remove(key);
+                    if (vertxCurrentContext != null) {
+                        vertxCurrentContext.remove(key);
+                    }
                 }
             }
         }
@@ -170,19 +183,26 @@ public final class LogUtils {
 
     public static void writeLog(RoutingContext context, String message, Throwable throwable, Level... level) {
         final var logKeyList = new ArrayList<String>();
+        final var vertxCurrentContext = Vertx.currentContext();
         try {
             context.data().forEach((key, value) ->
                     {
                         if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
-                            Vertx.currentContext().put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            }
                             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                         }
                         if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
-                            Vertx.currentContext().put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            }
                             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                         }
                         if (String.valueOf(key).startsWith("log-key")) {
-                            Vertx.currentContext().put(key, value + CommonConstant.EMPTY_STRING);
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(key, value + CommonConstant.EMPTY_STRING);
+                            }
                             MDC.put(key, value + CommonConstant.EMPTY_STRING);
                             logKeyList.add(key);
                         }
@@ -191,13 +211,19 @@ public final class LogUtils {
             writeLog2(message, throwable, level);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            Vertx.currentContext().remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            if (vertxCurrentContext != null) {
+                vertxCurrentContext.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            }
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            Vertx.currentContext().remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            if (vertxCurrentContext != null) {
+                vertxCurrentContext.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            }
             if (!logKeyList.isEmpty()) {
                 for (String key : logKeyList) {
                     MDC.remove(key);
-                    Vertx.currentContext().remove(key);
+                    if (vertxCurrentContext != null) {
+                        vertxCurrentContext.remove(key);
+                    }
                 }
             }
         }
