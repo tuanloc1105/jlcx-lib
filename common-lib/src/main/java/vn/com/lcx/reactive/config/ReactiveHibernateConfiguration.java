@@ -1,10 +1,12 @@
 package vn.com.lcx.reactive.config;
 
+import io.vertx.core.Vertx;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.reactive.provider.ReactiveServiceRegistryBuilder;
 import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.vertx.VertxInstance;
 import org.hibernate.tool.schema.Action;
 import org.hibernate.tool.schema.SourceType;
 import vn.com.lcx.common.annotation.Component;
@@ -23,7 +25,13 @@ import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
 @Component
 public class ReactiveHibernateConfiguration {
 
-    public static Stage.SessionFactory createHreactiveSessionFactory(DBTypeEnum type, String host, int port, String name, String username, String password, int maxPoolSize) {
+    private final Vertx vertx;
+
+    public ReactiveHibernateConfiguration(Vertx vertx) {
+        this.vertx = vertx;
+    }
+
+    public static Stage.SessionFactory createHreactiveSessionFactory(Vertx vertx, DBTypeEnum type, String host, int port, String name, String username, String password, int maxPoolSize) {
         final String connectionString = String.format(type.getTemplateUrlConnectionString(), host, port, name);
         Map<String, Object> settings = new HashMap<>();
         settings.put(AvailableSettings.JAKARTA_PERSISTENCE_PROVIDER, "org.hibernate.reactive.provider.ReactivePersistenceProvider");
@@ -41,6 +49,7 @@ public class ReactiveHibernateConfiguration {
         settings.put(AvailableSettings.HBM2DDL_AUTO, Action.ACTION_NONE);
         ReactiveServiceRegistryBuilder registryBuilder = new ReactiveServiceRegistryBuilder();
         registryBuilder.applySettings(settings);
+        registryBuilder.addService(VertxInstance.class, (VertxInstance) () -> vertx);
         MetadataSources metadataSources = new MetadataSources(registryBuilder.build());
         for (Class<?> entity : ClassPool.ENTITIES) {
             metadataSources.addAnnotatedClass(entity);
@@ -95,7 +104,7 @@ public class ReactiveHibernateConfiguration {
         ) {
             return null;
         }
-        return createHreactiveSessionFactory(type, host, port, name, username, password, maxPoolSize);
+        return createHreactiveSessionFactory(vertx, type, host, port, name, username, password, maxPoolSize);
     }
 
 }
