@@ -4,14 +4,21 @@
     <!-- Disable Logback internal startup messages -->
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
 
+    <conversionRule conversionWord="vMdcTrace"
+                    converterClass="vn.com.lcx.common.logging.VertxTraceIdMDCConverter" />
+    <conversionRule conversionWord="vMdcOperation"
+                    converterClass="vn.com.lcx.common.logging.VertxOperationMDCConverter" />
+
     <!-- Global properties -->
     <property name="APPLICATION_NAME" value="${APPLICATION_NAME}" scope="context"/>
     <property name="basePath" value="./data/log"/>
     <property name="fileName" value="app"/>
 
     <!-- Common log pattern -->
+    <!-- <property name="LOG_PATTERN"
+              value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } -&#45;&#45; [%25t] [%-40.40logger{1}] [%X{trace_id}] [%X{operation_name}]\n%m%n\n"/> -->
     <property name="LOG_PATTERN"
-              value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%25t] [%-40.40logger{1}] [%X{trace_id}] [%X{operation_name}]\n%m%n\n"/>
+              value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%25t] [%-40.40logger{1}] [%vMdcTrace] [%vMdcOperation]\n%m%n\n"/>
 
     <!-- ========================= -->
     <!-- Console appender (INFO+) -->
