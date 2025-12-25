@@ -6,6 +6,7 @@ import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang3.StringUtils;
 import vn.com.lcx.common.annotation.Component;
 import vn.com.lcx.common.utils.ExceptionUtils;
+import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.annotation.process.Auth;
 import vn.com.lcx.vertx.base.annotation.process.Controller;
 import vn.com.lcx.vertx.base.annotation.process.Delete;
@@ -89,6 +90,7 @@ public class RestControllerProcessor extends AbstractProcessor {
         classContent.append("import ").append(Controller.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(ReactiveController.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(typeElement.getQualifiedName()).append(";\n");
+        classContent.append("import ").append(LogUtils.class.getCanonicalName()).append(";\n");
 
         // Add imports for method annotations
         classContent.append("import ").append(Post.class.getCanonicalName()).append(";\n");
@@ -156,6 +158,7 @@ public class RestControllerProcessor extends AbstractProcessor {
         }
 
         sb.append("    public void ").append(method.getSimpleName()).append("(RoutingContext ctx) {\n");
+        sb.append("        LogUtils.initContextInfo(ctx);\n");
         sb.append("        try {\n");
 
         List<String> args = new ArrayList<>();
@@ -255,6 +258,8 @@ public class RestControllerProcessor extends AbstractProcessor {
 
         sb.append("            ").append(controllerVarName).append(".").append(method.getSimpleName()).append("(")
                 .append(String.join(", ", args)).append(").onSuccess(it -> {\n");
+        sb.append(
+                "                LogUtils.removeContextInfo();\n");
         if (method.getReturnType().toString().equals("io.vertx.core.Future<java.lang.Void>")) {
             sb.append(
                     "                handleResponse(ctx, gson, new CommonResponse());\n");
@@ -262,10 +267,12 @@ public class RestControllerProcessor extends AbstractProcessor {
             sb.append("                handleResponse(ctx, gson, it);\n");
         }
         sb.append("            }).onFailure(err -> {\n");
+        sb.append("                LogUtils.removeContextInfo();\n");
         sb.append("                handleError(ctx, gson, err);\n");
         sb.append("            });\n");
 
         sb.append("        } catch (Throwable t) {\n");
+        sb.append("            LogUtils.removeContextInfo();\n");
         sb.append("            handleError(ctx, gson, t);\n");
         sb.append("        }\n");
         sb.append("    }\n\n");
