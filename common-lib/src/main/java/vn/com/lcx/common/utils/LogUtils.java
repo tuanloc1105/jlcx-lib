@@ -1,5 +1,6 @@
 package vn.com.lcx.common.utils;
 
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -138,12 +139,15 @@ public final class LogUtils {
             context.data().forEach((key, value) ->
                     {
                         if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
+                            Vertx.currentContext().put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                         }
                         if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
+                            Vertx.currentContext().put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                         }
                         if (String.valueOf(key).startsWith("log-key")) {
+                            Vertx.currentContext().put(key, value + CommonConstant.EMPTY_STRING);
                             MDC.put(key, value + CommonConstant.EMPTY_STRING);
                             logKeyList.add(key);
                         }
@@ -152,10 +156,13 @@ public final class LogUtils {
             writeLog2(level, message, messageParameter);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            Vertx.currentContext().remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            Vertx.currentContext().remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
             if (!logKeyList.isEmpty()) {
                 for (String key : logKeyList) {
                     MDC.remove(key);
+                    Vertx.currentContext().remove(key);
                 }
             }
         }
@@ -167,12 +174,15 @@ public final class LogUtils {
             context.data().forEach((key, value) ->
                     {
                         if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
+                            Vertx.currentContext().put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                             MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                         }
                         if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
+                            Vertx.currentContext().put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                             MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
                         }
                         if (String.valueOf(key).startsWith("log-key")) {
+                            Vertx.currentContext().put(key, value + CommonConstant.EMPTY_STRING);
                             MDC.put(key, value + CommonConstant.EMPTY_STRING);
                             logKeyList.add(key);
                         }
@@ -181,10 +191,13 @@ public final class LogUtils {
             writeLog2(message, throwable, level);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            Vertx.currentContext().remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            Vertx.currentContext().remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
             if (!logKeyList.isEmpty()) {
                 for (String key : logKeyList) {
                     MDC.remove(key);
+                    Vertx.currentContext().remove(key);
                 }
             }
         }
@@ -198,6 +211,16 @@ public final class LogUtils {
                 simpleClassName,
                 lineNumber
         );
+    }
+
+    public void intiContextInfo(RoutingContext context) {
+        Vertx.currentContext().put(CommonConstant.TRACE_ID_MDC_KEY_NAME, context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME) + CommonConstant.EMPTY_STRING);
+        Vertx.currentContext().put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME) + CommonConstant.EMPTY_STRING);
+    }
+
+    public void removeContextInfo(RoutingContext context) {
+        Vertx.currentContext().remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+        Vertx.currentContext().remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
     }
 
     public enum Level {
