@@ -77,7 +77,7 @@ public final class ShellCommandRunningUtils {
                 stdOut.addAll(stdOutStreamGobbler.getResult());
             }
         } catch (Exception e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(ShellCommandRunningUtils.class, e.getMessage(), e);
             exitCode = -999;
             stdErr.add(ExceptionUtils.getStackTrace(e));
         } finally {

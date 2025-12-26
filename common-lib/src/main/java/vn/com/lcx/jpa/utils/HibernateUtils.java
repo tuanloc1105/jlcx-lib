@@ -220,7 +220,7 @@ public final class HibernateUtils {
                 }
                 rows.add(row);
             }
-            LogUtils.writeLog(LogUtils.Level.INFO, String.format("Processing %d rows with %d columns", rows.size(), columnCount));
+            LogUtils.writeLog(HibernateUtils.class, LogUtils.Level.INFO, String.format("Processing %d rows with %d columns", rows.size(), columnCount));
             return rows;
         } catch (Throwable t) {
             return new ArrayList<>();
@@ -271,7 +271,7 @@ public final class HibernateUtils {
                         return clob.getSubString(1, (int) clobLength);
                     }
                 } catch (Exception e) {
-                    LogUtils.writeLog(LogUtils.Level.WARN, "Failed to read CLOB content, trying character stream", e);
+                    LogUtils.writeLog(HibernateUtils.class, LogUtils.Level.WARN, "Failed to read CLOB content, trying character stream", e);
                     // Fallback to character stream
                     try (Reader reader = clob.getCharacterStream()) {
                         StringBuilder sb = new StringBuilder();
@@ -288,7 +288,7 @@ public final class HibernateUtils {
             // For other types, use toString()
             return value.toString();
         } catch (Exception e) {
-            LogUtils.writeLog(LogUtils.Level.WARN, "Failed to convert object to string: " + value.getClass().getName(), e);
+            LogUtils.writeLog(HibernateUtils.class, LogUtils.Level.WARN, "Failed to convert object to string: " + value.getClass().getName(), e);
             return value.toString();
         }
     }

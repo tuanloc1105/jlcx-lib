@@ -165,7 +165,7 @@ public final class SelectStatementBuilder {
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (Exception e) {
-                LogUtils.writeLog(e.getMessage(), e);
+                LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             }
         }
     }

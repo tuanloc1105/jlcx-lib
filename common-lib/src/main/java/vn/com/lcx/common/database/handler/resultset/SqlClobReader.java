@@ -27,7 +27,7 @@ public final class SqlClobReader {
                 clobString.append(line);
             }
         } catch (Throwable e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(SqlClobReader.class, e.getMessage(), e);
             return CommonConstant.EMPTY_STRING;
         }
         return clobString.toString();
@@ -45,7 +45,7 @@ public final class SqlClobReader {
             clob = connection.createClob();
             clob.setString(1, clobString);
         } catch (Throwable e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(SqlClobReader.class, e.getMessage(), e);
         }
         return clob;
     }

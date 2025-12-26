@@ -36,10 +36,10 @@ public final class ThreadUtils {
      */
     public static void logAllThreadsRunning() {
         Map<Thread, StackTraceElement[]> allThreads = getAllThreadStackTraces();
-        LogUtils.writeLog(LogUtils.Level.INFO, "Found {} running threads", allThreads.size());
+        LogUtils.writeLog(ThreadUtils.class, LogUtils.Level.INFO, "Found {} running threads", allThreads.size());
 
         for (Thread thread : allThreads.keySet()) {
-            LogUtils.writeLog(LogUtils.Level.INFO,
+            LogUtils.writeLog(ThreadUtils.class, LogUtils.Level.INFO,
                     "Thread name: {} | State: {} | Priority: {}",
                     thread.getName(),
                     thread.getState(),
@@ -68,7 +68,7 @@ public final class ThreadUtils {
         for (Thread thread : allThreads.keySet()) {
             if (threadName.equals(thread.getName())) {
                 thread.interrupt();
-                LogUtils.writeLog(LogUtils.Level.INFO,
+                LogUtils.writeLog(ThreadUtils.class, LogUtils.Level.INFO,
                         "Thread '{}' (State: {}) has been interrupted",
                         thread.getName(),
                         thread.getState());
@@ -76,7 +76,7 @@ public final class ThreadUtils {
             }
         }
 
-        LogUtils.writeLog(LogUtils.Level.WARN, "No thread found with name: {}", threadName);
+        LogUtils.writeLog(ThreadUtils.class, LogUtils.Level.WARN, "No thread found with name: {}", threadName);
         return false;
     }
 

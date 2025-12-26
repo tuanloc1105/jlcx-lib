@@ -189,13 +189,13 @@ public class HibernateConfiguration {
                     schemaUpdate.execute(EnumSet.of(TargetType.SCRIPT), metadata);
                 }
             } catch (Exception ddlException) {
-                LogUtils.writeLog("An error occurred while exporting DDL script: " + ddlException.getMessage(), ddlException);
+                LogUtils.writeLog(HibernateConfiguration.class, "An error occurred while exporting DDL script: " + ddlException.getMessage(), ddlException);
             }
         } catch (Exception e) {
             if (registry != null) {
                 StandardServiceRegistryBuilder.destroy(registry);
             }
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(HibernateConfiguration.class, e.getMessage(), e);
             throw new ExceptionInInitializerError("Failed to initialize Hibernate SessionFactory");
         }
         final StandardServiceRegistry finalRegistry = registry;

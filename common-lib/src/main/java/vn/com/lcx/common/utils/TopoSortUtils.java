@@ -185,20 +185,20 @@ public final class TopoSortUtils {
     public static void printCircularDependencies(Map<String, List<String>> classDependencies) {
         List<String> circularPath = findCircularDependency(classDependencies);
         if (circularPath != null) {
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "Circular dependency detected:");
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "Path: " + String.join(" -> ", circularPath) + " -> " + circularPath.get(0));
+            LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Circular dependency detected:");
+            LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Path: " + String.join(" -> ", circularPath) + " -> " + circularPath.get(0));
 
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "Detailed dependency information:");
+            LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Detailed dependency information:");
             for (int i = 0; i < circularPath.size(); i++) {
                 String currentClass = circularPath.get(i);
                 String nextClass = circularPath.get((i + 1) % circularPath.size());
                 List<String> dependencies = classDependencies.get(currentClass);
 
-                LogUtils.writeLog(LogUtils.Level.DEBUG, "  " + currentClass + " depends on: " + (dependencies != null ? dependencies.toString() : "[]"));
-                LogUtils.writeLog(LogUtils.Level.DEBUG, "    -> Specifically depends on: " + nextClass);
+                LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "  " + currentClass + " depends on: " + (dependencies != null ? dependencies.toString() : "[]"));
+                LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "    -> Specifically depends on: " + nextClass);
             }
         } else {
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "No circular dependencies found.");
+            LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "No circular dependencies found.");
         }
     }
 
@@ -247,20 +247,20 @@ public final class TopoSortUtils {
             return new ArrayList<>();
         }
 
-        LogUtils.writeLog(LogUtils.Level.DEBUG, "Input classes: " + classDependencies.keySet());
-        LogUtils.writeLog(LogUtils.Level.DEBUG, "Total input classes: " + classDependencies.size());
+        LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Input classes: " + classDependencies.keySet());
+        LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Total input classes: " + classDependencies.size());
 
         List<String> result = topologicalSort(classDependencies);
 
-        LogUtils.writeLog(LogUtils.Level.DEBUG, "Output classes: " + result);
-        LogUtils.writeLog(LogUtils.Level.DEBUG, "Total output classes: " + result.size());
+        LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Output classes: " + result);
+        LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Total output classes: " + result.size());
 
         if (result.size() != classDependencies.size()) {
             Set<String> inputClasses = new HashSet<>(classDependencies.keySet());
             Set<String> outputClasses = new HashSet<>(result);
             Set<String> missingClasses = new HashSet<>(inputClasses);
             missingClasses.removeAll(outputClasses);
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "Missing classes: " + missingClasses);
+            LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Missing classes: " + missingClasses);
         }
 
         return result;
@@ -294,9 +294,9 @@ public final class TopoSortUtils {
             }
         }
 
-        LogUtils.writeLog(LogUtils.Level.DEBUG, "Dependency Analysis:");
-        LogUtils.writeLog(LogUtils.Level.DEBUG, "Total unique dependencies: " + allDependencies.size());
-        LogUtils.writeLog(LogUtils.Level.DEBUG, "Internal dependencies (in input map): " + internalDependencies);
-        LogUtils.writeLog(LogUtils.Level.DEBUG, "External dependencies (ignored): " + externalDependencies);
+        LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Dependency Analysis:");
+        LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Total unique dependencies: " + allDependencies.size());
+        LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "Internal dependencies (in input map): " + internalDependencies);
+        LogUtils.writeLog(vn.com.lcx.common.utils.TopoSortUtils.class, LogUtils.Level.DEBUG, "External dependencies (ignored): " + externalDependencies);
     }
 }

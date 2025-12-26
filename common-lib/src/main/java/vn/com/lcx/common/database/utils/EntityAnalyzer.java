@@ -69,7 +69,7 @@ public class EntityAnalyzer {
         String fileName = buildFileName();
         final var exportSuccess = writeContentToFile(FileUtils.pathJoining(context.getFolderPath(), fileName), sqlContent);
         if (exportSuccess) {
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "Exported sql script at path {}", fileName);
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.DEBUG, "Exported sql script at path {}", fileName);
         }
     }
 

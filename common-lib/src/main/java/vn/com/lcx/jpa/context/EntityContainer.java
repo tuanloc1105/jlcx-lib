@@ -27,7 +27,7 @@ public class EntityContainer {
      */
     public static void addEntityManager(ArrayList<String> entities, SessionFactory sessionFactory) {
         if (CollectionUtils.isEmpty(entities) || sessionFactory == null) {
-            LogUtils.writeLog(LogUtils.Level.WARN, "`entities` or `sessionFactory` is empty");
+            LogUtils.writeLog(EntityContainer.class, LogUtils.Level.WARN, "`entities` or `sessionFactory` is empty");
             return;
         }
         UUID uuid = UUID.randomUUID();

@@ -99,7 +99,7 @@ public class ClassPool {
                 if (componentAnnotation != null) {
                     final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
                     if (fieldsOfComponent.isEmpty()) {
-                        LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
+                        LogUtils.writeLog(ClassPool.class, LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor().newInstance();
                         if (!checkProxy(instance)) {
                             setInstance(instance);
@@ -140,7 +140,7 @@ public class ClassPool {
                             .map(ClassPool::getInstanceOfField)
                             .toArray(Object[]::new);
                     if (Arrays.stream(args).noneMatch(Objects::isNull)) {
-                        LogUtils.writeLog(LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
+                        LogUtils.writeLog(ClassPool.class, LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor(constructorParams).newInstance(args);
                         createInstancesAndHandlePostConstructMethod(aClass, instance);
                         if (!checkProxy(instance)) {

@@ -87,7 +87,7 @@ public class MyVertxDeployment {
         try (InputStream input = MyVertxDeployment.class.getClassLoader().getResourceAsStream("logback.xml")) {
             if (input == null && System.getProperty("logback.configurationFile") == null) {
                 LogbackConfig.configure();
-                LogUtils.writeLog(LogUtils.Level.INFO, "Using default logback configuration");
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Using default logback configuration");
             }
         } catch (Exception ignore) {
         }
@@ -168,7 +168,7 @@ public class MyVertxDeployment {
             final var major = Runtime.version().feature();
             final DeploymentOptions options;
             if (major >= 21 && CommonConstant.applicationConfig.<Boolean>getProperty_("server.enable-virtual-thread") == Boolean.TRUE) {
-                LogUtils.writeLog(LogUtils.Level.DEBUG, "Using virtual thread deployment option");
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.DEBUG, "Using virtual thread deployment option");
                 options = new DeploymentOptions()
                         .setThreadingModel(ThreadingModel.VIRTUAL_THREAD);
             } else {

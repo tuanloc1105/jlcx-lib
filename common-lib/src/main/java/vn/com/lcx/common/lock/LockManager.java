@@ -89,7 +89,7 @@ public class LockManager implements AutoCloseable {
             }
             this.lock = this.channel.tryLock();
             if (this.lock != null) {
-                LogUtils.writeLog(LogUtils.Level.INFO, "File locked successfully");
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "File locked successfully");
             } else {
                 throw new LockException("Failed to lock file, it may be locked by another process");
             }
@@ -139,7 +139,7 @@ public class LockManager implements AutoCloseable {
      */
     public boolean isLocked() {
         if (this.lock == null) {
-            LogUtils.writeLog(LogUtils.Level.INFO, "Process is not being locked");
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Process is not being locked");
             return false;
         }
         final var lockIsValid = this.lock.isValid();
@@ -169,18 +169,18 @@ public class LockManager implements AutoCloseable {
      */
     public synchronized void releaseLock() {
         if (this.lock == null) {
-            LogUtils.writeLog(LogUtils.Level.INFO, "Process is not being locked");
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Process is not being locked");
             return;
         }
         try {
             this.lock.release();
             closeResources();
-            LogUtils.writeLog(LogUtils.Level.INFO, "Lock released successfully");
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Lock released successfully");
             final boolean deletedSuccessfully = this.file.delete();
             if (deletedSuccessfully) {
-                LogUtils.writeLog(LogUtils.Level.INFO, "Lock file deleted successfully");
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Lock file deleted successfully");
             } else {
-                LogUtils.writeLog(LogUtils.Level.INFO, "Cannot delete lock file");
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Cannot delete lock file");
             }
         } catch (IOException e) {
             throw new LockException("Error releasing lock", e);
@@ -202,7 +202,7 @@ public class LockManager implements AutoCloseable {
                 this.channel = null;
             }
         } catch (IOException e) {
-            LogUtils.writeLog(LogUtils.Level.ERROR, "Error closing resources: {}", e.getMessage());
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.ERROR, "Error closing resources: {}", e.getMessage());
         }
     }
 

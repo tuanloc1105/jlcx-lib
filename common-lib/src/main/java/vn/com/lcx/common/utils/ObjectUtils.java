@@ -92,7 +92,7 @@ public final class ObjectUtils {
                     }
                 }
             } catch (Exception e) {
-                LogUtils.writeLog(e.getMessage(), e);
+                LogUtils.writeLog(ObjectUtils.class, e.getMessage(), e);
             }
         });
         return result;

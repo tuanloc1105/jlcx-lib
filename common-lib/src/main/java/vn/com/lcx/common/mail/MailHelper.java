@@ -135,11 +135,11 @@ public final class MailHelper {
                             final var bodyPart = new MimeBodyPart();
                             final var file = new File(imagePath);
                             if (!file.exists()) {
-                                LogUtils.writeLog(LogUtils.Level.WARN, "File {} does not exist", file.getAbsolutePath());
+                                LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "File {} does not exist", file.getAbsolutePath());
                                 return;
                             }
                             if (file.isDirectory()) {
-                                LogUtils.writeLog(LogUtils.Level.WARN, "File {} is a directory", file.getAbsolutePath());
+                                LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "File {} is a directory", file.getAbsolutePath());
                                 return;
                             }
                             final var fds = new FileDataSource(file);
@@ -148,7 +148,7 @@ public final class MailHelper {
                                 bodyPart.setHeader("Content-ID", "<" + imageId + ">");
                                 multipart.addBodyPart(bodyPart);
                             } catch (Exception e) {
-                                LogUtils.writeLog(e.getMessage(), e);
+                                LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
                             }
                         });
                     }
@@ -158,7 +158,7 @@ public final class MailHelper {
                             try {
                                 final var imageStream = MailHelper.class.getClassLoader().getResourceAsStream(imagePath);
                                 if (imageStream == null) {
-                                    LogUtils.writeLog(LogUtils.Level.WARN, "File {} not found", imagePath);
+                                    LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "File {} not found", imagePath);
                                     return;
                                 }
                                 ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -176,7 +176,7 @@ public final class MailHelper {
                                 imageBodyPart.setHeader("Content-ID", "<" + imageId + ">");
                                 multipart.addBodyPart(imageBodyPart);
                             } catch (Exception e) {
-                                LogUtils.writeLog(e.getMessage(), e);
+                                LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
                             }
                         });
                     }
@@ -188,7 +188,7 @@ public final class MailHelper {
                                 fileMimeBodyPart.attachFile(new File(filePath));
                                 multipart.addBodyPart(fileMimeBodyPart);
                             } catch (Exception e) {
-                                LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage());
+                                LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, e.getMessage());
                             }
                         }
                     }
@@ -231,7 +231,7 @@ public final class MailHelper {
             transport.close();
         } catch (Throwable e) {
             // throw new MailSendingError(e);
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
         }
         return resultMap;
     }
@@ -259,7 +259,7 @@ public final class MailHelper {
             // Set a default hostname verifier to trust any host
             HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
         } catch (Exception e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
         }
     }
 

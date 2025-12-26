@@ -58,7 +58,7 @@ public class DefaultConfiguration {
                     ((AutoCloseable) service).close();
                 }
             } catch (Exception e) {
-                LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage(), e);
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.WARN, e.getMessage(), e);
             }
         }));
 
