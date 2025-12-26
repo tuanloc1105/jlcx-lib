@@ -196,6 +196,7 @@ public final class MailHelper {
                     message.setContent(multipart);
                     message.saveChanges();
                     LogUtils.writeLog(
+                            MailHelper.class,
                             LogUtils.Level.INFO,
                             String.format(
                                     "Start to send email with information:\n" +

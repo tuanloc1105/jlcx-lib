@@ -131,7 +131,7 @@ public interface ReactiveRepository<T> {
                         {
                             final List<U> result = mappingResult(outputClazz, rowSet);
                             final double duration = ((double) System.currentTimeMillis()) - startingTime;
-                            LogUtils.writeLog(context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
+                            LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
                             countStartingTime.setVal((double) System.currentTimeMillis());
                             return result;
                         }
@@ -153,7 +153,7 @@ public interface ReactiveRepository<T> {
                                         break;
                                     }
                                     final double duration = ((double) System.currentTimeMillis()) - countStartingTime.getVal();
-                                    LogUtils.writeLog(context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
+                                    LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
                                     return Page.create(rs, countRs, pageable.getPageNumber(), pageable.getPageSize());
                                 })
                 );
@@ -192,7 +192,7 @@ public interface ReactiveRepository<T> {
                         {
                             final List<U> result = mappingResult(outputClazz, rowSet);
                             final double duration = ((double) System.currentTimeMillis()) - startingTime;
-                            LogUtils.writeLog(context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
+                            LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
                             return result;
                         }
                 );
@@ -237,17 +237,17 @@ public interface ReactiveRepository<T> {
                         {
                             if (rowSet.size() == 0) {
                                 final double duration = ((double) System.currentTimeMillis()) - startingTime;
-                                LogUtils.writeLog(context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
+                                LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
                                 return Optional.empty();
                             }
                             if (rowSet.size() > 1) {
                                 final double duration = ((double) System.currentTimeMillis()) - startingTime;
-                                LogUtils.writeLog(context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
+                                LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
                                 throw new NonUniqueQueryResult();
                             }
                             final List<U> result = mappingResult(outputClazz, rowSet);
                             final double duration = ((double) System.currentTimeMillis()) - startingTime;
-                            LogUtils.writeLog(context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
+                            LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
                             return Optional.of(result.get(0));
                         }
                 );
@@ -288,12 +288,12 @@ public interface ReactiveRepository<T> {
                         {
                             if (rowSet.size() == 0) {
                                 final double duration = ((double) System.currentTimeMillis()) - startingTime;
-                                LogUtils.writeLog(context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
+                                LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
                                 return Optional.empty();
                             }
                             final List<U> result = mappingResult(outputClazz, rowSet);
                             final double duration = ((double) System.currentTimeMillis()) - startingTime;
-                            LogUtils.writeLog(context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
+                            LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, "Executed SQL in {} ms", duration);
                             return Optional.of(result.get(0));
                         }
                 );

@@ -18,7 +18,7 @@ public final class ExecutionTimeMeasureUtils {
                 {
                     final var endingTime = (double) System.currentTimeMillis();
                     final var duration = endingTime - startTime;
-                    LogUtils.writeLog(context, LogUtils.Level.DEBUG, "Executed in {} ms", duration);
+                    LogUtils.writeLog(ExecutionTimeMeasureUtils.class, context, LogUtils.Level.DEBUG, "Executed in {} ms", duration);
                 }
         );
     }

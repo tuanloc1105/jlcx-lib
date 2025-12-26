@@ -398,7 +398,7 @@ public final class MyStringUtils {
             byte[] utf8Bytes = utf8String.getBytes(StandardCharsets.UTF_8);
             return new String(utf8Bytes, StandardCharsets.ISO_8859_1);
         } catch (Exception e) {
-            LogUtils.writeLog("Convert error", e, LogUtils.Level.WARN);
+            LogUtils.writeLog(MyStringUtils.class, "Convert error", e, LogUtils.Level.WARN);
             return null;
         }
     }
@@ -418,7 +418,7 @@ public final class MyStringUtils {
             byte[] asciiBytes = asciiString.getBytes(StandardCharsets.ISO_8859_1);
             return new String(asciiBytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            LogUtils.writeLog("Convert error", e, LogUtils.Level.WARN);
+            LogUtils.writeLog(MyStringUtils.class, "Convert error", e, LogUtils.Level.WARN);
             return null;
         }
     }

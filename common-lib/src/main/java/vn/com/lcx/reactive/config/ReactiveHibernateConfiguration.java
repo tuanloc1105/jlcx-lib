@@ -61,7 +61,7 @@ public class ReactiveHibernateConfiguration {
         @SuppressWarnings("resource") Stage.SessionFactory factory = metadata.getSessionFactoryBuilder().build().unwrap(Stage.SessionFactory.class);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Thread.currentThread().setName("hreactive-shutdown-hook");
-            LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down SessionFactory");
+            LogUtils.writeLog(ReactiveHibernateConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down SessionFactory");
             factory.close();
             // LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Shutting down EntityManagerFactory");
             // emf.close();

@@ -63,6 +63,7 @@ public class LockManager implements AutoCloseable {
      */
     public synchronized void lock() {
         LogUtils.writeLog(
+                LockManager.class,
                 LogUtils.Level.INFO,
                 "creating file for locking:\n    - file name: {}",
                 this.file.getAbsolutePath()
@@ -71,6 +72,7 @@ public class LockManager implements AutoCloseable {
         if (fileIsNotExist) {
             try {
                 LogUtils.writeLog(
+                        LockManager.class,
                         LogUtils.Level.INFO,
                         this.file.createNewFile() ?
                                 "named file does not exist and was successfully created" :
@@ -144,6 +146,7 @@ public class LockManager implements AutoCloseable {
         }
         final var lockIsValid = this.lock.isValid();
         LogUtils.writeLog(
+                LockManager.class,
                 LogUtils.Level.INFO,
                 lockIsValid ?
                         "Process is being locked" : "Process is not being locked"

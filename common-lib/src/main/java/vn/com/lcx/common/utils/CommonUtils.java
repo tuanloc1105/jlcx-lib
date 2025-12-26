@@ -51,7 +51,7 @@ public final class CommonUtils {
                 bannerContent.append(text);
             }
         } catch (IOException ex) {
-            LogUtils.writeLog(ex.getMessage(), ex);
+            LogUtils.writeLog(CommonUtils.class, ex.getMessage(), ex);
         }
         try (
                 InputStream input = classLoader.getResourceAsStream("git.log")
@@ -63,7 +63,7 @@ public final class CommonUtils {
                 bannerContent.append(text);
             }
         } catch (IOException ex) {
-            LogUtils.writeLog(ex.getMessage(), ex);
+            LogUtils.writeLog(CommonUtils.class, ex.getMessage(), ex);
         }
         LoggerFactory.getLogger("BANNER").info("{}{}", System.lineSeparator(), bannerContent);
         bannerLogged = !bannerLogged;

@@ -46,6 +46,7 @@ public class RedisPoolImpl implements RedisPool {
                 return success;
             }
             LogUtils.writeLog(
+                    RedisPoolImpl.class,
                     LogUtils.Level.INFO,
                     "Save data into redis:\n    - Key name: {}\n    - Value: {}",
                     key,
@@ -58,6 +59,7 @@ public class RedisPoolImpl implements RedisPool {
                     LogUtils.writeLog(this.getClass(), LogUtils.Level.WARN, "Cannot set expire time for key {}", key);
                 } else {
                     LogUtils.writeLog(
+                            RedisPoolImpl.class,
                             LogUtils.Level.INFO,
                             "Key {} will expire after {} second(s)",
                             key,

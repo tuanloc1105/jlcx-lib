@@ -110,7 +110,7 @@ public final class ReactiveRetryUtils {
                 .onFailure(e ->
                         {
                             if (retriesLeft > 1) {
-                                LogUtils.writeLog(context,
+                                LogUtils.writeLog(ReactiveRetryUtils.class, context,
                                         "Retrying... attempts left: " + (retriesLeft - 1),
                                         e, LogUtils.Level.WARN);
 
@@ -118,7 +118,7 @@ public final class ReactiveRetryUtils {
                                         executeWithRetry(vertx, context, function, retriesLeft - 1, delayMs, promise));
                             } else {
                                 String msg = "All retry attempts failed.";
-                                LogUtils.writeLog(context, msg, e, LogUtils.Level.ERROR);
+                                LogUtils.writeLog(ReactiveRetryUtils.class, context, msg, e, LogUtils.Level.ERROR);
                                 promise.fail(e != null ? e : new RuntimeException(msg));
                             }
                         }

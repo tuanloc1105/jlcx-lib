@@ -86,7 +86,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                 }
             }
         }
-        LogUtils.writeLog(context, LogUtils.Level.TRACE, parametersLog.toString());
+        LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, parametersLog.toString());
         return actualTuple;
     }
 

@@ -421,6 +421,7 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
 
         // Write log with SLF4J-style placeholders
         LogUtils.writeLog(
+                "response",
                 context,
                 LogUtils.Level.INFO,
                 logMessage,

@@ -40,7 +40,8 @@ public class SocketUtils {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = endingTime - startingTime;
             result = reader.readLine();
-            LogUtils.writeLog2(
+            LogUtils.writeLog(
+                    this.getClass(),
                     LogUtils.Level.INFO,
                     """
                             Connected to the socket server {}:{}
@@ -55,7 +56,7 @@ public class SocketUtils {
             );
 
         } catch (IOException ex) {
-            LogUtils.writeLog2(ex.getMessage(), ex);
+            LogUtils.writeLog(this.getClass(), ex.getMessage(), ex);
         }
         return result;
     }

@@ -57,6 +57,7 @@ public final class JVMSystemInfo {
         long used = total - free;
         long max = rt.maxMemory();
         LogUtils.writeLog(
+                "sys-info",
                 EmptyRoutingContext.init(),
                 LogUtils.Level.TRACE,
                 "Memory monitoring:\n" +

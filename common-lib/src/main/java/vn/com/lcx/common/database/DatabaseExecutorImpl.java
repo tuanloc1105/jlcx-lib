@@ -48,13 +48,13 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             }
             // finalQueryString = MyStringUtils.minifyString(finalQueryString);
             statement = connection.prepareStatement(finalQueryString);
-            LogUtils.writeLog2(LogUtils.Level.INFO,
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO,
                     "\n" + finalQueryString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             var parameterIsNotNullAndNotEmpty = parameter != null && !parameter.isEmpty();
             if (parameterIsNotNullAndNotEmpty) {
                 StringBuilder parametersLog = new StringBuilder("parameters:");
                 this.handleInputParameters(statement, parameter, parametersLog);
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, parametersLog.toString());
             }
             final var startingTime = (double) System.currentTimeMillis();
 
@@ -64,7 +64,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
 
-            LogUtils.writeLog2(
+            LogUtils.writeLog(this.getClass(),
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             var count = 0;
@@ -72,9 +72,9 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 result.add(handler.handle(resultSet));
                 count++;
             }
-            LogUtils.writeLog2(LogUtils.Level.INFO, "Fetched {} row(s)", count);
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Fetched {} row(s)", count);
         } catch (SQLException e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             result = null;
         } finally {
             this.closeStatementAndResultSet(statement, resultSet);
@@ -100,12 +100,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
 
-            LogUtils.writeLog2(
+            LogUtils.writeLog(this.getClass(),
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             result = new ArrayList<>(handler.handle(statement));
         } catch (SQLException e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             result = null;
         } finally {
             this.closeStatementAndResultSet(statement, null);
@@ -131,10 +131,10 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
 
             handler.handle(statement);
 
-            LogUtils.writeLog2(
+            LogUtils.writeLog(this.getClass(),
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
         } catch (SQLException e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
         } finally {
             this.closeStatementAndResultSet(statement, null);
         }
@@ -171,7 +171,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                     storeProcedureName,
                     parameterString);
             statement = connection.prepareCall(sqlCallingSPStatement);
-            LogUtils.writeLog2(LogUtils.Level.INFO,
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO,
                     "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             for (Map<Integer, Object> inParameters : inParameterMaps) {
                 var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
@@ -179,7 +179,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                     StringBuilder parametersLog = new StringBuilder("input parameters:");
                     this.handleInputParameters(statement, inParameters, parametersLog);
                     statement.addBatch();
-                    LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+                    LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, parametersLog.toString());
                 }
             }
             var success = 0;
@@ -192,7 +192,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
 
-            LogUtils.writeLog2(
+            LogUtils.writeLog(this.getClass(),
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             if (result.length > 0) {
@@ -205,7 +205,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                         executeFailed++;
                     }
                 }
-                LogUtils.writeLog2(
+                LogUtils.writeLog(this.getClass(),
                         LogUtils.Level.INFO,
                         "Executed batch, result:" +
                                 "\n    - Success: {}" +
@@ -219,7 +219,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             batchExecutionResult.put(SUCCESS_BUT_NO_INFO_KEY_NAME, successNoInfo);
             batchExecutionResult.put(FAILED_KEY_NAME, executeFailed);
         } catch (SQLException e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             return null;
         } finally {
             this.closeStatementAndResultSet(statement, null);
@@ -237,11 +237,11 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
 
         try {
             if (connection.getAutoCommit()) {
-                LogUtils.writeLog2(LogUtils.Level.INFO, "Connection must be disabled auto-commit mode");
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Connection must be disabled auto-commit mode");
                 return null;
             }
         } catch (SQLException e) {
-            LogUtils.writeLog2("Cannot check auto-commit status of connection", e);
+            LogUtils.writeLog(this.getClass(), "Cannot check auto-commit status of connection", e);
             return null;
         }
 
@@ -270,13 +270,13 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                     storeProcedureName,
                     parameterString);
             statement = connection.prepareCall(sqlCallingSPStatement);
-            LogUtils.writeLog2(LogUtils.Level.INFO,
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO,
                     "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
             if (inParameterIsNotNullAndNotEmpty) {
                 StringBuilder parametersLog = new StringBuilder("input parameters:");
                 this.handleInputParameters(statement, inParameters, parametersLog);
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, parametersLog.toString());
             }
             var outParameterIsNotNullAndNotEmpty = outParameters != null && !outParameters.isEmpty();
             if (outParameterIsNotNullAndNotEmpty) {
@@ -289,7 +289,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                                     String.format("%-3d", i),
                                     outParameters.get(i).name()));
                 }
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, parametersLog.toString());
             }
             final var startingTime = (double) System.currentTimeMillis();
 
@@ -298,12 +298,12 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
 
-            LogUtils.writeLog2(
+            LogUtils.writeLog(this.getClass(),
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             result = new ArrayList<>(handler.handle(statement));
         } catch (SQLException e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             result = null;
         } finally {
             this.closeStatementAndResultSet(statement, null);
@@ -321,13 +321,13 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
         try {
             // sqlString = MyStringUtils.minifyString(sqlString);
             statement = connection.prepareStatement(sqlString);
-            LogUtils.writeLog2(LogUtils.Level.INFO,
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO,
                     "\n" + sqlString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             var parameterIsNotNullAndNotEmpty = parameter != null && !parameter.isEmpty();
             if (parameterIsNotNullAndNotEmpty) {
                 StringBuilder parametersLog = new StringBuilder("parameters:");
                 this.handleInputParameters(statement, parameter, parametersLog);
-                LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, parametersLog.toString());
             }
             final var startingTime = (double) System.currentTimeMillis();
 
@@ -336,15 +336,15 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
 
-            LogUtils.writeLog2(
+            LogUtils.writeLog(this.getClass(),
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
         } catch (SQLException e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
         } finally {
             this.closeStatementAndResultSet(statement, null);
         }
-        LogUtils.writeLog2(LogUtils.Level.INFO, "Modified {} row(s)", rowAffected);
+        LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Modified {} row(s)", rowAffected);
         return rowAffected;
     }
 
@@ -357,7 +357,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
         PreparedStatement statement = null;
         try {
             statement = connection.prepareStatement(sqlString);
-            LogUtils.writeLog2(LogUtils.Level.INFO,
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO,
                     "\n" + sqlString.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
             final var parameterMapListIsNotNullAndNotEmpty = parameterMapList != null && !parameterMapList.isEmpty();
             if (parameterMapListIsNotNullAndNotEmpty) {
@@ -366,7 +366,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                     if (parameterIsNotNullAndNotEmpty) {
                         StringBuilder parametersLog = new StringBuilder("parameters:");
                         this.handleInputParameters(statement, parameter, parametersLog);
-                        LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+                        LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, parametersLog.toString());
                         statement.addBatch();
                     }
                 }
@@ -381,7 +381,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
 
-            LogUtils.writeLog2(
+            LogUtils.writeLog(this.getClass(),
                     LogUtils.Level.INFO, String.format("Executed SQL statement take %.2f second(s)", duration));
 
             if (result.length > 0) {
@@ -394,7 +394,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                         executeFailed++;
                     }
                 }
-                LogUtils.writeLog2(
+                LogUtils.writeLog(this.getClass(),
                         LogUtils.Level.INFO,
                         "Executed batch, result:" +
                                 "\n    - Success: {}" +
@@ -408,7 +408,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 batchExecutionResult.put(FAILED_KEY_NAME, executeFailed);
             }
         } catch (SQLException e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             return null;
         } finally {
             this.closeStatementAndResultSet(statement, null);
@@ -417,7 +417,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
     }
 
     public void closeStatementAndResultSet(PreparedStatement statement, ResultSet resultSet) {
-        LogUtils.writeLog2(LogUtils.Level.INFO, "Closing result set and statement");
+        LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Closing result set and statement");
         try {
             if (resultSet != null && !resultSet.isClosed()) {
                 resultSet.close();
@@ -428,7 +428,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 // LogUtils.writeLogForDBExecutor(LogUtils.Level.INFO, "Statement closed");
             }
         } catch (SQLException e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -458,13 +458,13 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                 storeProcedureName,
                 parameterString);
         CallableStatement statement = connection.prepareCall(sqlCallingSPStatement);
-        LogUtils.writeLog2(LogUtils.Level.INFO,
+        LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO,
                 "\n" + sqlCallingSPStatement.replaceAll("^\\n+|\\n+$", CommonConstant.EMPTY_STRING));
         var inParameterIsNotNullAndNotEmpty = inParameters != null && !inParameters.isEmpty();
         if (inParameterIsNotNullAndNotEmpty) {
             StringBuilder parametersLog = new StringBuilder("input parameters:");
             this.handleInputParameters(statement, inParameters, parametersLog);
-            LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, parametersLog.toString());
         }
         var outParameterIsNotNullAndNotEmpty = outParameters != null && !outParameters.isEmpty();
         if (outParameterIsNotNullAndNotEmpty) {
@@ -477,7 +477,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor {
                                 String.format("%-3d", i),
                                 outParameters.get(i).name()));
             }
-            LogUtils.writeLog2(LogUtils.Level.INFO, parametersLog.toString());
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, parametersLog.toString());
         }
         return statement;
     }

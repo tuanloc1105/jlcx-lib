@@ -170,7 +170,6 @@ public class HttpUtils {
             httpLogMessage.append("\n")
                     .append(this.isBeautifyPrinting ? "" : "\t")
                     .append(this.isBeautifyPrinting ? this.formatJSON(stringBuilder.toString()) : stringBuilder.toString());
-            LogUtils.writeLog2(LogUtils.Level.INFO, httpLogMessage.toString());
             T result = null;
             if (MyStringUtils.stringIsJsonFormat(stringBuilder.toString())) {
                 result = this.gson.fromJson(stringBuilder.toString(), targetClass.getType());
@@ -186,7 +185,7 @@ public class HttpUtils {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = endingTime - startingTime;
             httpLogMessage.append("\n- Duration: ").append(duration).append("ms");
-            LogUtils.writeLog2(LogUtils.Level.INFO, httpLogMessage.toString());
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, httpLogMessage.toString());
         }
     }
 
@@ -244,7 +243,6 @@ public class HttpUtils {
             httpLogMessage.append("\n")
                     .append(this.isBeautifyPrinting ? "" : "\t")
                     .append(this.isBeautifyPrinting ? this.formatXML(stringBuilder.toString()) : stringBuilder.toString());
-            LogUtils.writeLog2(LogUtils.Level.INFO, httpLogMessage.toString());
             T result = this.xmlMapper.readValue(stringBuilder.toString(), targetClass);
             // http.disconnect();
             responseBuilder.code(http.getResponseCode())
@@ -256,7 +254,7 @@ public class HttpUtils {
         } finally {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
-            LogUtils.writeLog2(LogUtils.Level.INFO, "Took {} second(s) to made a HTTP request", duration);
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Took {} second(s) to made a HTTP request", duration);
         }
     }
 
@@ -317,7 +315,7 @@ public class HttpUtils {
             }
             httpLogMessage.append("\n- Response body: ");
             httpLogMessage.append("\n\t").append(stringBuilder);
-            LogUtils.writeLog2(LogUtils.Level.INFO, httpLogMessage.toString());
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, httpLogMessage.toString());
             T result = null;
             if (MyStringUtils.stringIsJsonFormat(stringBuilder.toString())) {
                 result = this.gson.fromJson(stringBuilder.toString(), targetClass.getType());
@@ -332,7 +330,7 @@ public class HttpUtils {
         } finally {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = (endingTime - startingTime) / 1000D;
-            LogUtils.writeLog2(LogUtils.Level.INFO, "Took {} second(s) to made a HTTP request", duration);
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Took {} second(s) to made a HTTP request", duration);
         }
     }
 
@@ -354,7 +352,7 @@ public class HttpUtils {
 
             return writer.toString();
         } catch (Exception e) {
-            LogUtils.writeLog2(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             return CommonConstant.EMPTY_STRING;
         }
     }
