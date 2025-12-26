@@ -14,7 +14,7 @@
         <!--suppress CheckTagEmptyBody -->
         <main.class></main.class>
 
-        <logback-classic-ch.qos.logback.version>1.5.22</logback-classic-ch.qos.logback.version>
+        <logback-classic-ch.qos.logback.version>1.5.23</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.15.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.20.0</commons-lang3-org.apache.commons.version>
@@ -53,7 +53,7 @@
         <hibernate-core-org.hibernate.orm.version>7.2.0.Final</hibernate-core-org.hibernate.orm.version>
         <hibernate-tools-orm-org.hibernate.tool.version>7.2.0.Final</hibernate-tools-orm-org.hibernate.tool.version>
         <hibernate-jcache-org.hibernate.orm.version>7.2.0.Final</hibernate-jcache-org.hibernate.orm.version>
-        <hibernate-reactive-core-org.hibernate.reactive.version>4.2.0.Final
+        <hibernate-reactive-core-org.hibernate.reactive.version>4.2.1.Final
         </hibernate-reactive-core-org.hibernate.reactive.version>
         <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
@@ -77,9 +77,9 @@
         <vertx-reactive-streams-io.vertx.version>5.0.6</vertx-reactive-streams-io.vertx.version>
         <jakarta.annotation-api-jakarta.annotation.version>3.0.0</jakarta.annotation-api-jakarta.annotation.version>
         <javax.annotation-api-javax.annotation.version>1.3.2</javax.annotation-api-javax.annotation.version>
-        <grpc-netty-shaded-io.grpc.version>1.77.0</grpc-netty-shaded-io.grpc.version>
-        <grpc-protobuf-io.grpc.version>1.77.0</grpc-protobuf-io.grpc.version>
-        <grpc-stub-io.grpc.version>1.77.0</grpc-stub-io.grpc.version>
+        <grpc-netty-shaded-io.grpc.version>1.78.0</grpc-netty-shaded-io.grpc.version>
+        <grpc-protobuf-io.grpc.version>1.78.0</grpc-protobuf-io.grpc.version>
+        <grpc-stub-io.grpc.version>1.78.0</grpc-stub-io.grpc.version>
         <protobuf-java-com.google.protobuf.version>4.33.2</protobuf-java-com.google.protobuf.version>
         <protobuf-java-util-com.google.protobuf.version>4.33.2</protobuf-java-util-com.google.protobuf.version>
         <junit-jupiter-api-org.junit.jupiter.version>6.0.1</junit-jupiter-api-org.junit.jupiter.version>
