@@ -115,7 +115,7 @@ public final class SimpleCipherHandler {
             }
             out = data2hex(b);
         } catch (Exception ex) {
-            LogUtils.writeLog(ex.getMessage(), ex);
+            LogUtils.writeLog(SimpleCipherHandler.class, ex.getMessage(), ex);
         }
         return out;
 
@@ -160,7 +160,7 @@ public final class SimpleCipherHandler {
             }
             out = sb.toString();
         } catch (Exception ex) {
-            LogUtils.writeLog(ex.getMessage(), ex);
+            LogUtils.writeLog(SimpleCipherHandler.class, ex.getMessage(), ex);
         }
         return out;
     }

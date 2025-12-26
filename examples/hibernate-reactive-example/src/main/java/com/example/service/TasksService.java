@@ -64,7 +64,7 @@ public class TasksService {
                                     final var future = tasksRepository.save(session, entity)
                                             .onFailure(e ->
                                                     {
-                                                        LogUtils.writeLog(context, e.getMessage(), e);
+                                                        LogUtils.writeLog(this.getClass(), context, e.getMessage(), e);
                                                         transaction.markForRollback();
                                                     }
                                             );

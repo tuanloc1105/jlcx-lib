@@ -17,7 +17,7 @@ public class MyTaskRetrying<I, O> {
         try {
             output = taskHandler.doTask(input);
         } catch (Throwable e) {
-            LogUtils.writeLog("An exception has been occurred, retrying", e);
+            LogUtils.writeLog(MyTaskRetrying.class, "An exception has been occurred, retrying", e);
             exception = e;
         }
         var timeRetried = 0;
@@ -27,7 +27,7 @@ public class MyTaskRetrying<I, O> {
                 output = taskHandler.doTask(input);
                 exception = null;
             } catch (Throwable e) {
-                LogUtils.writeLog("An exception has been occurred, retrying", e);
+                LogUtils.writeLog(MyTaskRetrying.class, "An exception has been occurred, retrying", e);
                 exception = e;
             }
             timeRetried++;

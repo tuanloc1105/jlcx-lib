@@ -162,7 +162,7 @@ public class VertxWebClientHttpUtils {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = endingTime - startingTime;
             httpLogMessage.append("\n- Duration: ").append(duration).append(" ms");
-            LogUtils.writeLog(context, LogUtils.Level.INFO, httpLogMessage.toString());
+            LogUtils.writeLog(this.getClass(), context, LogUtils.Level.INFO, httpLogMessage.toString());
             responseBuilder.code(responseStatusCode)
                     .responseHeaders(headerMap)
                     .errorResponse(responseStatusCode == 200 ? null : responseBodyAsString)

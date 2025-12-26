@@ -38,6 +38,7 @@ public final class ShellCommandRunningUtils {
             }
             if (showLog) {
                 LogUtils.writeLog(
+                        ShellCommandRunningUtils.class,
                         LogUtils.Level.INFO,
                         "executing a command:\n    - command: {}\n    - directory: {}",
                         cmd,

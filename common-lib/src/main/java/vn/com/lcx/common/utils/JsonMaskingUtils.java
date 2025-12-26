@@ -60,7 +60,7 @@ public class JsonMaskingUtils {
                 return objectMapper.writeValueAsString(jsonMap);
             }
         } catch (Exception e) {
-            LogUtils.writeLog("Error masking JSON fields: " + e.getMessage(), e, LogUtils.Level.WARN);
+            LogUtils.writeLog("json-masking", "Error masking JSON fields: " + e.getMessage(), e, LogUtils.Level.WARN);
             return inputJsonString;
         }
     }

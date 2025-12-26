@@ -342,6 +342,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     @Deprecated
     public List<T> executeTasks() {
         LogUtils.writeLog(
+                SimpleExecutor.class,
                 LogUtils.Level.INFO,
                 "Execution info:\n" +
                         "    - Task list: {}\n" +
@@ -413,6 +414,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     @Override
     public void executeTasksWithCountDownLatch() {
         LogUtils.writeLog(
+                SimpleExecutor.class,
                 LogUtils.Level.INFO,
                 "Execution info:\n" +
                         "    - Task list: {}\n" +
@@ -439,6 +441,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                     tCallable.call();
                 } catch (Exception e) {
                     LogUtils.writeLog(
+                            SimpleExecutor.class,
                             LogUtils.Level.ERROR,
                             "Task [{}] failed with error: {}",
                             taskIndex,

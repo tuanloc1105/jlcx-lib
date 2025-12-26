@@ -15,72 +15,6 @@ public final class LogUtils {
     private LogUtils() {
     }
 
-    @Deprecated(forRemoval = true)
-    public static void writeLog(Level level, String message, Object... messageParameter) {
-        final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
-        final var classNameArray = fullClassName.split("\\.");
-        final var simpleClassName = classNameArray[classNameArray.length - 1];
-        final var methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        final var lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
-        final var stepName = buildStepNameLogMessage(fullClassName, methodName, simpleClassName, lineNumber);
-        final var logToWrite = String.format(
-                buildLogTemplate(methodName, stepName),
-                MyStringUtils.getLastChars(methodName, 40),
-                MyStringUtils.getLastChars(stepName, 50)
-        ) + System.lineSeparator() + message;
-        switch (level) {
-            case INFO:
-                LoggerFactory.getLogger(fullClassName).info(logToWrite, messageParameter);
-                break;
-            case WARN:
-                LoggerFactory.getLogger(fullClassName).warn(logToWrite, messageParameter);
-                break;
-            case ERROR:
-                LoggerFactory.getLogger(fullClassName).error(logToWrite, messageParameter);
-                break;
-            case DEBUG:
-                LoggerFactory.getLogger(fullClassName).debug(logToWrite, messageParameter);
-                break;
-            case TRACE:
-                LoggerFactory.getLogger(fullClassName).trace(logToWrite, messageParameter);
-                break;
-        }
-    }
-
-    @Deprecated(forRemoval = true)
-    public static void writeLog(String message, Throwable throwable, Level... level) {
-        final var fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
-        final var classNameArray = fullClassName.split("\\.");
-        final var simpleClassName = classNameArray[classNameArray.length - 1];
-        final var methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        final var lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
-        final var stepName = buildStepNameLogMessage(fullClassName, methodName, simpleClassName, lineNumber);
-        final var logToWrite = String.format(
-                buildLogTemplate(methodName, stepName),
-                MyStringUtils.getLastChars(methodName, 40),
-                MyStringUtils.getLastChars(stepName, 50)
-        ) + System.lineSeparator() + message;
-        if (level.length == 0) {
-            LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
-        } else {
-            switch (level[0]) {
-                case INFO:
-                    throw new IllegalArgumentException("Exception logging do not accept level INFO");
-                case WARN:
-                    LoggerFactory.getLogger(fullClassName).warn(logToWrite, throwable);
-                    break;
-                case ERROR:
-                    LoggerFactory.getLogger(fullClassName).error(logToWrite, throwable);
-                    break;
-                case DEBUG:
-                    LoggerFactory.getLogger(fullClassName).debug(logToWrite, throwable);
-                case TRACE:
-                    LoggerFactory.getLogger(fullClassName).trace(logToWrite, throwable);
-            }
-
-        }
-    }
-
     public static void writeLog(Class<?> clazz, Level level, String message, Object... messageParameter) {
         switch (level) {
             case INFO:
@@ -123,48 +57,43 @@ public final class LogUtils {
         }
     }
 
-    @Deprecated(forRemoval = true)
-    public static void writeLog2(Level level, String message, Object... messageParameter) {
-        final var fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
-
+    public static void writeLog(String name, Level level, String message, Object... messageParameter) {
         switch (level) {
             case INFO:
-                LoggerFactory.getLogger(fullClassName).info(message, messageParameter);
+                LoggerFactory.getLogger(name).info(message, messageParameter);
                 break;
             case WARN:
-                LoggerFactory.getLogger(fullClassName).warn(message, messageParameter);
+                LoggerFactory.getLogger(name).warn(message, messageParameter);
                 break;
             case ERROR:
-                LoggerFactory.getLogger(fullClassName).error(message, messageParameter);
+                LoggerFactory.getLogger(name).error(message, messageParameter);
                 break;
             case DEBUG:
-                LoggerFactory.getLogger(fullClassName).debug(message, messageParameter);
+                LoggerFactory.getLogger(name).debug(message, messageParameter);
                 break;
             case TRACE:
-                LoggerFactory.getLogger(fullClassName).trace(message, messageParameter);
+                LoggerFactory.getLogger(name).trace(message, messageParameter);
                 break;
         }
     }
 
-    @Deprecated(forRemoval = true)
-    public static void writeLog2(String message, Throwable throwable, Level... level) {
-        final var fullClassName = Thread.currentThread().getStackTrace()[3].getClassName();
+    public static void writeLog(String name, String message, Throwable throwable, Level... level) {
         if (level.length == 0) {
-            LoggerFactory.getLogger(fullClassName).error(message, throwable);
+            LoggerFactory.getLogger(name).error(message, throwable);
         } else {
             switch (level[0]) {
                 case INFO:
                     throw new IllegalArgumentException("Exception logging do not accept level INFO");
                 case WARN:
-                    LoggerFactory.getLogger(fullClassName).warn(message, throwable);
+                    LoggerFactory.getLogger(name).warn(message, throwable);
                     break;
                 case ERROR:
-                    LoggerFactory.getLogger(fullClassName).error(message, throwable);
+                    LoggerFactory.getLogger(name).error(message, throwable);
                     break;
                 case DEBUG:
-                    LoggerFactory.getLogger(fullClassName).debug(message, throwable);
+                    LoggerFactory.getLogger(name).debug(message, throwable);
                 case TRACE:
-                    LoggerFactory.getLogger(fullClassName).trace(message, throwable);
+                    LoggerFactory.getLogger(name).trace(message, throwable);
             }
 
         }
@@ -177,104 +106,6 @@ public final class LogUtils {
         return methodNamePart + " " +
                 stepNamePart + " " +
                 ">>>>>>>> ";
-    }
-
-    @Deprecated(forRemoval = true)
-    public static void writeLog(RoutingContext context, Level level, String message, Object... messageParameter) {
-        final var logKeyList = new ArrayList<String>();
-        final var vertxCurrentContext = Vertx.currentContext();
-        try {
-            context.data().forEach((key, value) ->
-                    {
-                        if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
-                            if (vertxCurrentContext != null) {
-                                vertxCurrentContext.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
-                            }
-                            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
-                        }
-                        if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
-                            if (vertxCurrentContext != null) {
-                                vertxCurrentContext.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
-                            }
-                            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
-                        }
-                        if (String.valueOf(key).startsWith("log-key")) {
-                            if (vertxCurrentContext != null) {
-                                vertxCurrentContext.put(key, value + CommonConstant.EMPTY_STRING);
-                            }
-                            MDC.put(key, value + CommonConstant.EMPTY_STRING);
-                            logKeyList.add(key);
-                        }
-                    }
-            );
-            writeLog2(level, message, messageParameter);
-        } finally {
-            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            if (vertxCurrentContext != null) {
-                vertxCurrentContext.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            }
-            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            if (vertxCurrentContext != null) {
-                vertxCurrentContext.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            }
-            if (!logKeyList.isEmpty()) {
-                for (String key : logKeyList) {
-                    MDC.remove(key);
-                    if (vertxCurrentContext != null) {
-                        vertxCurrentContext.remove(key);
-                    }
-                }
-            }
-        }
-    }
-
-    @Deprecated(forRemoval = true)
-    public static void writeLog(RoutingContext context, String message, Throwable throwable, Level... level) {
-        final var logKeyList = new ArrayList<String>();
-        final var vertxCurrentContext = Vertx.currentContext();
-        try {
-            context.data().forEach((key, value) ->
-                    {
-                        if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
-                            if (vertxCurrentContext != null) {
-                                vertxCurrentContext.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
-                            }
-                            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
-                        }
-                        if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
-                            if (vertxCurrentContext != null) {
-                                vertxCurrentContext.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
-                            }
-                            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
-                        }
-                        if (String.valueOf(key).startsWith("log-key")) {
-                            if (vertxCurrentContext != null) {
-                                vertxCurrentContext.put(key, value + CommonConstant.EMPTY_STRING);
-                            }
-                            MDC.put(key, value + CommonConstant.EMPTY_STRING);
-                            logKeyList.add(key);
-                        }
-                    }
-            );
-            writeLog2(message, throwable, level);
-        } finally {
-            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            if (vertxCurrentContext != null) {
-                vertxCurrentContext.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-            }
-            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            if (vertxCurrentContext != null) {
-                vertxCurrentContext.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
-            }
-            if (!logKeyList.isEmpty()) {
-                for (String key : logKeyList) {
-                    MDC.remove(key);
-                    if (vertxCurrentContext != null) {
-                        vertxCurrentContext.remove(key);
-                    }
-                }
-            }
-        }
     }
 
     public static void writeLog(Class<?> clazz, RoutingContext context, Level level, String message, Object... messageParameter) {
@@ -353,6 +184,102 @@ public final class LogUtils {
                     }
             );
             writeLog(clazz, message, throwable, level);
+        } finally {
+            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            if (vertxCurrentContext != null) {
+                vertxCurrentContext.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            }
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            if (vertxCurrentContext != null) {
+                vertxCurrentContext.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            }
+            if (!logKeyList.isEmpty()) {
+                for (String key : logKeyList) {
+                    MDC.remove(key);
+                    if (vertxCurrentContext != null) {
+                        vertxCurrentContext.remove(key);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void writeLog(String name, RoutingContext context, Level level, String message, Object... messageParameter) {
+        final var logKeyList = new ArrayList<String>();
+        final var vertxCurrentContext = Vertx.currentContext();
+        try {
+            context.data().forEach((key, value) ->
+                    {
+                        if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            }
+                            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                        }
+                        if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            }
+                            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                        }
+                        if (String.valueOf(key).startsWith("log-key")) {
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(key, value + CommonConstant.EMPTY_STRING);
+                            }
+                            MDC.put(key, value + CommonConstant.EMPTY_STRING);
+                            logKeyList.add(key);
+                        }
+                    }
+            );
+            writeLog(name, level, message, messageParameter);
+        } finally {
+            MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            if (vertxCurrentContext != null) {
+                vertxCurrentContext.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            }
+            MDC.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            if (vertxCurrentContext != null) {
+                vertxCurrentContext.remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+            }
+            if (!logKeyList.isEmpty()) {
+                for (String key : logKeyList) {
+                    MDC.remove(key);
+                    if (vertxCurrentContext != null) {
+                        vertxCurrentContext.remove(key);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void writeLog(String name, RoutingContext context, String message, Throwable throwable, Level... level) {
+        final var logKeyList = new ArrayList<String>();
+        final var vertxCurrentContext = Vertx.currentContext();
+        try {
+            context.data().forEach((key, value) ->
+                    {
+                        if (CommonConstant.TRACE_ID_MDC_KEY_NAME.equals(key)) {
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            }
+                            MDC.put(CommonConstant.TRACE_ID_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                        }
+                        if (CommonConstant.OPERATION_NAME_MDC_KEY_NAME.equals(key)) {
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                            }
+                            MDC.put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, value + CommonConstant.EMPTY_STRING);
+                        }
+                        if (String.valueOf(key).startsWith("log-key")) {
+                            if (vertxCurrentContext != null) {
+                                vertxCurrentContext.put(key, value + CommonConstant.EMPTY_STRING);
+                            }
+                            MDC.put(key, value + CommonConstant.EMPTY_STRING);
+                            logKeyList.add(key);
+                        }
+                    }
+            );
+            writeLog(name, message, throwable, level);
         } finally {
             MDC.remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
             if (vertxCurrentContext != null) {

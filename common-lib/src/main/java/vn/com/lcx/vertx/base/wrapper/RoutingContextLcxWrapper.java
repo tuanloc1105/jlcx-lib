@@ -77,7 +77,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
                     return bodyStr;
                 })
                 .orElse(CommonConstant.EMPTY_STRING);
-        LogUtils.writeLog(ctx,
+        LogUtils.writeLog("request", ctx,
                 LogUtils.Level.INFO,
                 "Request info:\n" +
                         "    => Url: {}\n" +
@@ -359,7 +359,7 @@ public class RoutingContextLcxWrapper implements RoutingContext {
         }
 
         LogUtils.writeLog(
-                this,
+                "response",
                 LogUtils.Level.INFO,
                 "Response Payload ({}ms):\n{}",
                 apiProcessDuration == 0D ? "unknown duration" : apiProcessDuration,

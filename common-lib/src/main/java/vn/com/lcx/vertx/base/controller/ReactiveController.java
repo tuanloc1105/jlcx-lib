@@ -166,10 +166,10 @@ public abstract class ReactiveController {
 
     public void handleError(RoutingContext ctx, Object jsonHandler, Throwable e) {
         if (ctx.response().ended()) {
-            LogUtils.writeLog(ctx, LogUtils.Level.DEBUG, "Cannot write response due to response has been ended");
+            LogUtils.writeLog(this.getClass(), ctx, LogUtils.Level.DEBUG, "Cannot write response due to response has been ended");
             return;
         }
-        LogUtils.writeLog(ctx, e.getMessage(), e);
+        LogUtils.writeLog(this.getClass(), ctx, e.getMessage(), e);
         CommonResponse response;
         int httpCode = 500;
         if (e instanceof InternalServiceException internalServiceException) {
@@ -201,13 +201,13 @@ public abstract class ReactiveController {
 
     public void handleResponse(RoutingContext ctx, Object jsonHandler, Object resp) {
         if (ctx.response().ended()) {
-            LogUtils.writeLog(ctx, LogUtils.Level.DEBUG, "Cannot write response due to response has been ended");
+            LogUtils.writeLog(this.getClass(), ctx, LogUtils.Level.DEBUG, "Cannot write response due to response has been ended");
             return;
         }
         try {
             handleResponse(ctx, jsonHandler, resp, 200);
         } catch (Throwable t) {
-            LogUtils.writeLog(ctx, t.getMessage(), t);
+            LogUtils.writeLog(this.getClass(), ctx, t.getMessage(), t);
             ctx.response().setStatusCode(500)
                     .putHeader(VertxBaseConstant.CONTENT_TYPE_HEADER_NAME,
                             VertxBaseConstant.CONTENT_TYPE_APPLICATION_JSON)
@@ -296,6 +296,7 @@ public abstract class ReactiveController {
         response.sendFile(fileEntity.getFilePath())
                 .onSuccess(v -> deleteFileIfNeeded(ctx, fileEntity))
                 .onFailure(throwable -> LogUtils.writeLog(
+                        ReactiveController.class,
                         ctx,
                         String.format("Failed to send file: %s", fileEntity.getFilePath()),
                         throwable,
@@ -310,6 +311,7 @@ public abstract class ReactiveController {
             Files.deleteIfExists(Paths.get(fileEntity.getFilePath()));
             return null;
         }).onFailure(e -> LogUtils.writeLog(
+                ReactiveController.class,
                 ctx,
                 String.format("Failed to delete file after sending: %s", fileEntity.getFilePath()),
                 e,
