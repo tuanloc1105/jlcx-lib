@@ -39,14 +39,14 @@
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             currentSessionInContext.persist(entity);
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 currentSessionInContext.persist(entity);
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -93,7 +93,7 @@
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             ${entity-class} managed = currentSessionInContext.merge(entity);
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             return managed;
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
@@ -101,7 +101,7 @@
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 ${entity-class} managed = currentSessionInContext.merge(entity);
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
                 return managed;
             }
@@ -149,14 +149,14 @@
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             currentSessionInContext.remove(entity);
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 currentSessionInContext.remove(entity);
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -226,7 +226,7 @@
                     50
             );
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -256,7 +256,7 @@
                         50
                 );
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -322,7 +322,7 @@
                     50
             );
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -348,7 +348,7 @@
                         50
                 );
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -414,7 +414,7 @@
                     50
             );
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -440,7 +440,7 @@
                         50
                 );
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
@@ -498,7 +498,7 @@
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             result.addAll(query.getResultList());
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
@@ -514,7 +514,7 @@
                 org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
                 result.addAll(query.getResultList());
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             }
         }
         return result;
@@ -572,7 +572,7 @@
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             result = java.util.Optional.ofNullable(query.uniqueResult());
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
@@ -588,7 +588,7 @@
                 org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
                 result = java.util.Optional.ofNullable(query.uniqueResult());
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             }
         }
         return result;
@@ -666,7 +666,7 @@
             }
             Long totalItems = currentSessionInContext.createQuery(countQuery).getSingleResult();
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             result.set(
                     vn.com.lcx.common.database.pageable.Page.<${entity-class}>create(
                             queryResult,
@@ -710,7 +710,7 @@
                 }
                 Long totalItems = currentSessionInContext.createQuery(countQuery).getSingleResult();
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 result.set(
                         vn.com.lcx.common.database.pageable.Page.<${entity-class}>create(
                                 queryResult,
