@@ -326,7 +326,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("                    " + entityTypeMirror + "Utils.idRowExtract(row, model);");
         codeLines.add("                }");
         codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
@@ -344,7 +344,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("            .map(rowSet -> {");
         codeLines.add("                " + entityTypeMirror + "Utils.mySqlIdRowExtract(rowSet, model);");
         codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
@@ -362,7 +362,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("            .map(rowSet -> {");
         codeLines.add("                " + entityTypeMirror + "Utils.idRowExtract(rowSet.iterator().next(), model);");
         codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
@@ -381,7 +381,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.add("                io.vertx.sqlclient.Row row = rowSet.property(io.vertx.oracleclient.OracleClient.GENERATED_KEYS);");
         codeLines.add("                " + entityTypeMirror + "Utils.idRowExtract(row, model);");
         codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
         codeLines.add("                return model;");
         codeLines.add("            });");
         codeLines.add(
@@ -466,7 +466,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "    final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
         );
         codeLines.add(
-                "    vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                "    vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
         );
         codeLines.add(
                 "    return it;"
@@ -547,7 +547,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 "    final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
         );
         codeLines.add(
-                "    vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                "    vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
         );
         codeLines.add(
                 "    return it;"
@@ -693,7 +693,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
             );
             codeLines.add(
-                    "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                    "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
             );
             codeLines.add(
                     "            return result;"
@@ -779,7 +779,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
                         );
                         codeLines.add(
-                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                         );
                         codeLines.add(
                                 "            return (long) rowSet.rowCount();"
@@ -801,7 +801,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
                         );
                         codeLines.add(
-                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                         );
                         codeLines.add(
                                 "            return result;"
@@ -816,7 +816,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
                         );
                         codeLines.add(
-                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                         );
                         codeLines.add(
                                 "            return rowSet.rowCount();"
@@ -838,7 +838,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                                 "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
                         );
                         codeLines.add(
-                                "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                                "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                         );
                         codeLines.add(
                                 "            return result;"
@@ -868,7 +868,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
                     );
                     codeLines.add(
-                            "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                            "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                     );
                     codeLines.add(
                             "            return objects.toArray(java.lang.Object[]::new);"
@@ -883,7 +883,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
                     );
                     codeLines.add(
-                            "                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                            "                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                     );
 
                     if (isOptional) {
@@ -905,7 +905,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
                     );
                     codeLines.add(
-                            "                vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                            "                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                     );
                     codeLines.add(
                             "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
@@ -929,7 +929,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                             "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
                     );
                     codeLines.add(
-                            "            vn.com.lcx.common.utils.LogUtils.writeLog(" + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
+                            "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
                     );
                     if (isOptional) {
                         codeLines.add(
