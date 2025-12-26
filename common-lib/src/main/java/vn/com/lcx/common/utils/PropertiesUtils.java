@@ -30,7 +30,7 @@ public final class PropertiesUtils {
                 // noinspection RedundantTypeArguments
                 return new LCXProperties(new YamlProperties(yaml.<Map<String, Object>>load(inputStream)));
             } catch (Exception e) {
-                LogUtils.writeLog(e.getMessage(), e);
+                LogUtils.writeLog(PropertiesUtils.class, e.getMessage(), e);
             }
         }
         return new LCXProperties();
@@ -47,7 +47,7 @@ public final class PropertiesUtils {
                 }
                 return new LCXProperties(new YamlProperties(yaml.<Map<String, Object>>load(inputStream)));
             } catch (Exception e) {
-                LogUtils.writeLog(e.getMessage(), e);
+                LogUtils.writeLog(PropertiesUtils.class, e.getMessage(), e);
             }
         }
         return new LCXProperties();

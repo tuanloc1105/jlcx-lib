@@ -81,7 +81,7 @@ public final class FileUtils {
             writer.write(content + System.lineSeparator());
             return true;
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
+            LogUtils.writeLog(FileUtils.class, e.getMessage(), e, LogUtils.Level.DEBUG);
             return false;
         }
     }
@@ -108,7 +108,7 @@ public final class FileUtils {
             writer.write(content + System.lineSeparator());
             return true;
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
+            LogUtils.writeLog(FileUtils.class, e.getMessage(), e, LogUtils.Level.DEBUG);
             return false;
         }
     }
@@ -135,7 +135,7 @@ public final class FileUtils {
                 contentBuilder.append(line).append("\n");
             }
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
+            LogUtils.writeLog(FileUtils.class, e.getMessage(), e, LogUtils.Level.DEBUG);
         }
 
         String result = contentBuilder.toString();
@@ -168,7 +168,7 @@ public final class FileUtils {
                 }
             }
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
+            LogUtils.writeLog(FileUtils.class, e.getMessage(), e, LogUtils.Level.DEBUG);
         }
         return result;
     }
@@ -242,14 +242,14 @@ public final class FileUtils {
         if (!folder.exists()) {
             // Attempt to create the folder
             if (folder.mkdirs()) {
-                LogUtils.writeLog(LogUtils.Level.DEBUG, "Folder created successfully: {}", folderPath);
+                LogUtils.writeLog(FileUtils.class, LogUtils.Level.DEBUG, "Folder created successfully: {}", folderPath);
                 return true;
             } else {
-                LogUtils.writeLog(LogUtils.Level.DEBUG, "Failed to create the folder: {}", folderPath);
+                LogUtils.writeLog(FileUtils.class, LogUtils.Level.DEBUG, "Failed to create the folder: {}", folderPath);
                 return false;
             }
         } else {
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "Folder already exists: {}", folderPath);
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.DEBUG, "Folder already exists: {}", folderPath);
             return true;
         }
     }
@@ -278,7 +278,7 @@ public final class FileUtils {
         }
         final var folderDeleteSuccessfully = folder.delete();
         if (folder.isDirectory() && folderDeleteSuccessfully) {
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "Deleted: {}", folder.getAbsolutePath());
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.DEBUG, "Deleted: {}", folder.getAbsolutePath());
         }
     }
 
@@ -369,7 +369,7 @@ public final class FileUtils {
 
         Path path = Paths.get(filePath);
         if (!Files.exists(path)) {
-            LogUtils.writeLog(LogUtils.Level.WARN, "File does not exist: {}", filePath);
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.WARN, "File does not exist: {}", filePath);
             return false;
         }
 
@@ -382,7 +382,7 @@ public final class FileUtils {
                 return changeBasicFilePermissions(path, ownerPermission, groupPermission, otherUserPermission);
             }
         } catch (IOException e) {
-            LogUtils.writeLog(LogUtils.Level.ERROR, "Failed to change file permissions for {}: {}", filePath, e.getMessage());
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.ERROR, "Failed to change file permissions for {}: {}", filePath, e.getMessage());
             return false;
         }
     }
@@ -406,10 +406,10 @@ public final class FileUtils {
             );
 
             Files.setPosixFilePermissions(path, permissions);
-            LogUtils.writeLog(LogUtils.Level.DEBUG, "Successfully changed POSIX permissions for: {}", path);
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.DEBUG, "Successfully changed POSIX permissions for: {}", path);
             return true;
         } catch (IOException e) {
-            LogUtils.writeLog(LogUtils.Level.ERROR, "Failed to set POSIX permissions for {}: {}", path, e.getMessage());
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.ERROR, "Failed to set POSIX permissions for {}: {}", path, e.getMessage());
             return false;
         }
     }
@@ -436,16 +436,16 @@ public final class FileUtils {
             // Set read-only attribute (inverse of writable)
             if (!isWritable) {
                 path.toFile().setReadOnly();
-                LogUtils.writeLog(LogUtils.Level.DEBUG, "Set file as read-only: {}", path);
+                LogUtils.writeLog(FileUtils.class, LogUtils.Level.DEBUG, "Set file as read-only: {}", path);
             } else {
                 // Make writable if it was read-only
                 path.toFile().setWritable(true);
-                LogUtils.writeLog(LogUtils.Level.DEBUG, "Set file as writable: {}", path);
+                LogUtils.writeLog(FileUtils.class, LogUtils.Level.DEBUG, "Set file as writable: {}", path);
             }
 
             return true;
         } catch (Exception e) {
-            LogUtils.writeLog(LogUtils.Level.ERROR, "Failed to set basic permissions for {}: {}", path, e.getMessage());
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.ERROR, "Failed to set basic permissions for {}: {}", path, e.getMessage());
             return false;
         }
     }
@@ -504,7 +504,7 @@ public final class FileUtils {
 
         Path path = Paths.get(dirPath);
         if (!Files.exists(path) || !Files.isDirectory(path)) {
-            LogUtils.writeLog(LogUtils.Level.WARN, "Directory does not exist or is not a directory: {}", dirPath);
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.WARN, "Directory does not exist or is not a directory: {}", dirPath);
             return false;
         }
 
@@ -516,7 +516,7 @@ public final class FileUtils {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     if (!changeFilePermission(file.toString(), ownerPermission, groupPermission, otherUserPermission)) {
                         success[0] = false;
-                        LogUtils.writeLog(LogUtils.Level.ERROR, "Failed to change permissions for file: {}", file);
+                        LogUtils.writeLog(FileUtils.class, LogUtils.Level.ERROR, "Failed to change permissions for file: {}", file);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -525,7 +525,7 @@ public final class FileUtils {
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                     if (!changeFilePermission(dir.toString(), ownerPermission, groupPermission, otherUserPermission)) {
                         success[0] = false;
-                        LogUtils.writeLog(LogUtils.Level.ERROR, "Failed to change permissions for directory: {}", dir);
+                        LogUtils.writeLog(FileUtils.class, LogUtils.Level.ERROR, "Failed to change permissions for directory: {}", dir);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -533,7 +533,7 @@ public final class FileUtils {
 
             return success[0];
         } catch (IOException e) {
-            LogUtils.writeLog(LogUtils.Level.ERROR, "Failed to change directory permissions recursively for {}: {}", dirPath, e.getMessage());
+            LogUtils.writeLog(FileUtils.class, LogUtils.Level.ERROR, "Failed to change directory permissions recursively for {}: {}", dirPath, e.getMessage());
             return false;
         }
     }
@@ -961,7 +961,7 @@ public final class FileUtils {
             buffer.close();
             return result;
         } catch (IOException e) {
-            LogUtils.writeLog(e.getMessage(), e, LogUtils.Level.DEBUG);
+            LogUtils.writeLog(FileUtils.class, e.getMessage(), e, LogUtils.Level.DEBUG);
             return null;
         }
     }

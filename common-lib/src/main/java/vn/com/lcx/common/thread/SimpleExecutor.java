@@ -372,7 +372,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                 try {
                     result.add(future.get());
                 } catch (Throwable e) {
-                    LogUtils.writeLog(e.getMessage(), e);
+                    LogUtils.writeLog(this.getClass(), e.getMessage(), e);
                     future.cancel(true);
                     futures.forEach(this::cancelFutureTasks);
                     // throw new RuntimeException("Task failed due to " + e, e);
@@ -455,23 +455,23 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         try {
             finishedInTime = latch.await(this.timeout, this.unit);
             if (finishedInTime) {
-                LogUtils.writeLog(LogUtils.Level.INFO, "All tasks finished in time");
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "All tasks finished in time");
             } else {
-                LogUtils.writeLog(LogUtils.Level.WARN, "Some task has not been done");
+                LogUtils.writeLog(this.getClass(), LogUtils.Level.WARN, "Some task has not been done");
             }
         } catch (InterruptedException e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(this.getClass(), e.getMessage(), e);
             Thread.currentThread().interrupt();
             throw new RuntimeException("Interrupted while waiting for tasks", e);
         } finally {
             taskList.clear();
             try {
                 if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                    LogUtils.writeLog(LogUtils.Level.WARN, "Executor did not terminate in time, forcing shutdown...");
+                    LogUtils.writeLog(this.getClass(), LogUtils.Level.WARN, "Executor did not terminate in time, forcing shutdown...");
                     executor.shutdownNow();
 
                     if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                        LogUtils.writeLog(LogUtils.Level.ERROR, "Executor did not terminate even after forced shutdown");
+                        LogUtils.writeLog(this.getClass(), LogUtils.Level.ERROR, "Executor did not terminate even after forced shutdown");
                     }
                 }
             } catch (InterruptedException e) {

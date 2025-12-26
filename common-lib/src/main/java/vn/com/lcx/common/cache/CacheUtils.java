@@ -169,7 +169,7 @@ public class CacheUtils<K, V> {
 
         final ScheduledFuture<SoftReference<V>> schedule = scheduler.schedule(
                 () -> {
-                    LogUtils.writeLog(LogUtils.Level.DEBUG, "Removing key {} from cache", key);
+                    LogUtils.writeLog(this.getClass(), LogUtils.Level.DEBUG, "Removing key {} from cache", key);
                     removeExpiredKeyTasks.remove(key);
                     SoftReference<V> removed = cache.remove(key);
                     if (removed != null) {

@@ -33,7 +33,7 @@ public class RedisPoolImpl implements RedisPool {
     public void ping() {
         try (Jedis jedis = jedisPool.getResource()) {
             final var redisPingResult = jedis.ping();
-            LogUtils.writeLog(LogUtils.Level.INFO, redisPingResult);
+            LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, redisPingResult);
         }
     }
 
@@ -55,7 +55,7 @@ public class RedisPoolImpl implements RedisPool {
             if (expireSecond > 0) {
                 final var setExpireResult = jedis.expire(key, expireSecond);
                 if (setExpireResult == 0) {
-                    LogUtils.writeLog(LogUtils.Level.WARN, "Cannot set expire time for key {}", key);
+                    LogUtils.writeLog(this.getClass(), LogUtils.Level.WARN, "Cannot set expire time for key {}", key);
                 } else {
                     LogUtils.writeLog(
                             LogUtils.Level.INFO,

@@ -41,7 +41,7 @@ public final class DisableSsl {
             // All hosts will be valid
             HttpsURLConnection.setDefaultHostnameVerifier(validHosts);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(DisableSsl.class, e.getMessage(), e);
         }
     }
 }

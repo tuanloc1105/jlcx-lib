@@ -232,7 +232,7 @@ public final class MyStringUtils {
             JsonParser.parseString(input);
             return true;
         } catch (Exception e) {
-            // LogUtils.writeLog(LogUtils.Level.WARN, e.getMessage());
+            // LogUtils.writeLogMyStringUtils.class, LogUtils.Level.WARN, e.getMessage());
             return false;
         }
     }
@@ -458,7 +458,7 @@ public final class MyStringUtils {
             StringReader reader = new StringReader(xml);
             return clz.cast(unmarshaller.unmarshal(reader));
         } catch (Exception e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(MyStringUtils.class, e.getMessage(), e);
             return null;
         }
     }
@@ -480,7 +480,7 @@ public final class MyStringUtils {
             marshaller.marshal(input, sw);
             return sw.toString();
         } catch (Exception e) {
-            LogUtils.writeLog(e.getMessage(), e);
+            LogUtils.writeLog(MyStringUtils.class, e.getMessage(), e);
             return CommonConstant.EMPTY_STRING;
         }
     }
