@@ -311,13 +311,17 @@ public final class LogUtils {
     }
 
     public static void initContextInfo(RoutingContext context) {
-        Vertx.currentContext().put(CommonConstant.TRACE_ID_MDC_KEY_NAME, context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME) + CommonConstant.EMPTY_STRING);
-        Vertx.currentContext().put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME) + CommonConstant.EMPTY_STRING);
+        if (Vertx.currentContext() != null) {
+            Vertx.currentContext().put(CommonConstant.TRACE_ID_MDC_KEY_NAME, context.get(CommonConstant.TRACE_ID_MDC_KEY_NAME) + CommonConstant.EMPTY_STRING);
+            Vertx.currentContext().put(CommonConstant.OPERATION_NAME_MDC_KEY_NAME, context.get(CommonConstant.OPERATION_NAME_MDC_KEY_NAME) + CommonConstant.EMPTY_STRING);
+        }
     }
 
     public static void removeContextInfo() {
-        Vertx.currentContext().remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
-        Vertx.currentContext().remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        if (Vertx.currentContext() != null) {
+            Vertx.currentContext().remove(CommonConstant.TRACE_ID_MDC_KEY_NAME);
+            Vertx.currentContext().remove(CommonConstant.OPERATION_NAME_MDC_KEY_NAME);
+        }
     }
 
     public enum Level {
