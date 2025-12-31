@@ -75,7 +75,8 @@ public final class MailHelper {
                     final var message = new MimeMessage(session);
                     if (StringUtils.isNotBlank(mailProperties.getDisplayName())) {
                         final var internetAddress = new InternetAddress(
-                                mailProperties.getUsername(),
+                                StringUtils.isBlank(mailProperties.getFromAddress()) ? mailProperties.getUsername() :
+                                        mailProperties.getFromAddress(),
                                 mailProperties.getDisplayName(),
                                 CommonConstant.UTF_8_STANDARD_CHARSET
                         );

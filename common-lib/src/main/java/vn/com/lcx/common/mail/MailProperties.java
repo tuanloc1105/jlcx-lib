@@ -6,9 +6,14 @@ public class MailProperties {
     private String host;
     private String port;
     private String displayName;
+    private String fromAddress;
     private String username;
     private String password;
     private List<EmailInfo> emailInfos;
+
+    public static MailPropertiesBuilder builder() {
+        return new MailPropertiesBuilder();
+    }
 
     public MailProperties() {
     }
@@ -16,19 +21,17 @@ public class MailProperties {
     public MailProperties(String host,
                           String port,
                           String displayName,
+                          String fromAddress,
                           String username,
                           String password,
                           List<EmailInfo> emailInfos) {
         this.host = host;
         this.port = port;
         this.displayName = displayName;
+        this.fromAddress = fromAddress;
         this.username = username;
         this.password = password;
         this.emailInfos = emailInfos;
-    }
-
-    public static MailPropertiesBuilder builder() {
-        return new MailPropertiesBuilder();
     }
 
     public String getHost() {
@@ -53,6 +56,14 @@ public class MailProperties {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getFromAddress() {
+        return fromAddress;
+    }
+
+    public void setFromAddress(String fromAddress) {
+        this.fromAddress = fromAddress;
     }
 
     public String getUsername() {
@@ -83,6 +94,7 @@ public class MailProperties {
         private String host;
         private String port;
         private String displayName;
+        private String fromAddress;
         private String username;
         private String password;
         private List<EmailInfo> emailInfos;
@@ -102,6 +114,11 @@ public class MailProperties {
             return this;
         }
 
+        public MailPropertiesBuilder fromAddress(String fromAddress) {
+            this.fromAddress = fromAddress;
+            return this;
+        }
+
         public MailPropertiesBuilder username(String username) {
             this.username = username;
             return this;
@@ -118,7 +135,7 @@ public class MailProperties {
         }
 
         public MailProperties build() {
-            return new MailProperties(host, port, displayName, username, password, emailInfos);
+            return new MailProperties(host, port, displayName, fromAddress, username, password, emailInfos);
         }
 
     }
