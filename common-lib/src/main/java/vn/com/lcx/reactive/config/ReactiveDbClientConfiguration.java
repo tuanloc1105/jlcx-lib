@@ -64,13 +64,13 @@ public class ReactiveDbClientConfiguration {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             final var threadName = "vertx-pg-sql-client-shutdown-hook";
             Thread.currentThread().setName(threadName);
-            LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
             final var f = pool.close()
                     .onSuccess(it -> {
                         Thread.currentThread().setName(threadName);
-                        LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                        LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
-                    .onFailure(err -> LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), err.getMessage(), err));
+                    .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
             // noinspection StatementWithEmptyBody
             while (!f.isComplete()) {
                 // wait
@@ -106,13 +106,13 @@ public class ReactiveDbClientConfiguration {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             final var threadName = "vertx-mysql-sql-client-shutdown-hook";
             Thread.currentThread().setName(threadName);
-            LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
             final var f = pool.close()
                     .onSuccess(it -> {
                         Thread.currentThread().setName(threadName);
-                        LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                        LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
-                    .onFailure(err -> LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), err.getMessage(), err));
+                    .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
             // noinspection StatementWithEmptyBody
             while (!f.isComplete()) {
                 // wait
@@ -148,13 +148,13 @@ public class ReactiveDbClientConfiguration {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             final var threadName = "vertx-mssql-sql-client-shutdown-hook";
             Thread.currentThread().setName(threadName);
-            LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
             final var f = pool.close()
                     .onSuccess(it -> {
                         Thread.currentThread().setName(threadName);
-                        LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                        LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
-                    .onFailure(err -> LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), err.getMessage(), err));
+                    .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
             // noinspection StatementWithEmptyBody
             while (!f.isComplete()) {
                 // wait
@@ -190,13 +190,13 @@ public class ReactiveDbClientConfiguration {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             final var threadName = "vertx-oracle-sql-client-shutdown-hook";
             Thread.currentThread().setName(threadName);
-            LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
             final var f = pool.close()
                     .onSuccess(it -> {
                         Thread.currentThread().setName(threadName);
-                        LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                        LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
-                    .onFailure(err -> LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), err.getMessage(), err));
+                    .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
             // noinspection StatementWithEmptyBody
             while (!f.isComplete()) {
                 // wait
@@ -228,13 +228,13 @@ public class ReactiveDbClientConfiguration {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             final var threadName = "vertx-mssql-sql-client-shutdown-hook";
             Thread.currentThread().setName(threadName);
-            LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
+            LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Trying to close pool!");
             final var f = pool.close()
                     .onSuccess(it -> {
                         Thread.currentThread().setName(threadName);
-                        LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
+                        LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
-                    .onFailure(err -> LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), err.getMessage(), err));
+                    .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
             // noinspection StatementWithEmptyBody
             while (!f.isComplete()) {
                 // wait
@@ -247,7 +247,7 @@ public class ReactiveDbClientConfiguration {
         final var future = pool.withConnection(conn -> showDbVersion(conn, type))
                 .onSuccess(
                         result -> {
-                            LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, result);
+                            LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, result);
                             refreshConnection(
                                     () ->
                                             pool.withConnection(connection ->
@@ -260,7 +260,7 @@ public class ReactiveDbClientConfiguration {
                 )
                 .onFailure(
                         err -> {
-                            LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(), "An error occurred in initialization stage of reactive database pool", err);
+                            LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), "An error occurred in initialization stage of reactive database pool", err);
                         }
                 );
         // noinspection StatementWithEmptyBody
@@ -349,14 +349,14 @@ public class ReactiveDbClientConfiguration {
                                 vertx.setPeriodic(period, pid -> {
                                     handler.get()
                                             .onFailure(e ->
-                                                    LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(),
+                                                    LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(),
                                                             "Connection invalid",
                                                             e)
                                             );
                                 })
                         )
                         .onFailure(e ->
-                                LogUtils.writeLog(ReactiveDbClientConfiguration.class, EmptyRoutingContext.init(),
+                                LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(),
                                         "Connection invalid",
                                         e)
                         )

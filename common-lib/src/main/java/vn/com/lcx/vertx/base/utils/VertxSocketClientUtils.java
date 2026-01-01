@@ -7,6 +7,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetSocket;
 import io.vertx.ext.web.RoutingContext;
+import vn.com.lcx.common.ref.Ref;
+import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.LogUtils;
 
 import java.nio.charset.Charset;
@@ -70,6 +72,7 @@ public class VertxSocketClientUtils {
      * or failed if the connection or communication fails
      */
     public Future<String> sendAndReceive(RoutingContext context, String socketHost, int socketPort, String inputMessage) {
+        Ref<NetSocket> netSocketRef = Ref.init();
         Promise<String> promise = Promise.promise();
         final long startTime = System.currentTimeMillis();
         final var connectFuture = client.connect(socketPort, socketHost);
@@ -84,33 +87,42 @@ public class VertxSocketClientUtils {
         // Timeout handler
         final long timerId = vertx.setTimer(timeoutMillis, tid -> {
             if (!promise.future().isComplete()) {
-                LogUtils.writeLog(this.getClass(), context, LogUtils.Level.INFO, "Socket operation timed out after {} ms", timeoutMillis);
+                if (netSocketRef.getVal() != null) {
+                    final var nSocket = netSocketRef.getVal();
+                    nSocket.close()
+                            .onSuccess(v ->
+                                    LogUtils.writeLog("Reactive-Tcp-Client", context, LogUtils.Level.INFO, "Socket close due to timeout after {} ms", timeoutMillis))
+                            .onFailure(e ->
+                                    LogUtils.writeLog("Reactive-Tcp-Client", context, LogUtils.Level.ERROR, "Cannot close socket client: {}", ExceptionUtils.getStackTrace(e)));
+                }
+                LogUtils.writeLog("Reactive-Tcp-Client", context, LogUtils.Level.INFO, "Socket operation timed out after {} ms", timeoutMillis);
                 promise.tryFail(new RuntimeException("Socket operation timed out after " + timeoutMillis + " ms"));
             }
         });
 
         connectFuture.onSuccess(socket -> {
             try {
+                netSocketRef.setVal(socket);
                 socket.write(inputMessage);
                 socket.handler(buffer -> handleBuffer(context, socket, buffer, promise, startTime, logMessage));
                 socket.exceptionHandler(ex -> {
-                    LogUtils.writeLog(this.getClass(), context, "Socket exception: ", ex);
+                    LogUtils.writeLog("Reactive-Tcp-Client", context, "Socket exception: ", ex);
                     promise.tryFail(ex);
                     closeSocket(socket);
                 });
                 socket.closeHandler(v -> {
                     if (!promise.future().isComplete()) {
-                        LogUtils.writeLog(this.getClass(), context, LogUtils.Level.ERROR, "Socket closed before response received");
+                        LogUtils.writeLog("Reactive-Tcp-Client", context, LogUtils.Level.ERROR, "Socket closed before response received");
                         promise.tryFail(new RuntimeException("Socket closed before response received"));
                     }
                 });
             } catch (Exception ex) {
-                LogUtils.writeLog(this.getClass(), context, "Error during socket operation: ", ex);
+                LogUtils.writeLog("Reactive-Tcp-Client", context, "Error during socket operation: ", ex);
                 promise.tryFail(ex);
                 closeSocket(socket);
             }
         }).onFailure(ex -> {
-            LogUtils.writeLog(this.getClass(), context, "Failed to connect: ", ex);
+            LogUtils.writeLog("Reactive-Tcp-Client", context, "Failed to connect: ", ex);
             promise.tryFail(ex);
         });
 
@@ -127,7 +139,7 @@ public class VertxSocketClientUtils {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = endingTime - startTime;
             logMessage.append("\n- Duration: ").append(duration).append(" ms");
-            LogUtils.writeLog(this.getClass(), context, LogUtils.Level.INFO, logMessage.toString());
+            LogUtils.writeLog("Reactive-Tcp-Client", context, LogUtils.Level.INFO, logMessage.toString());
             promise.tryComplete(response);
             closeSocket(socket);
         }
