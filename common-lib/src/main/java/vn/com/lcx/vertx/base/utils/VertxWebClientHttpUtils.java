@@ -20,6 +20,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import vn.com.lcx.common.constant.CommonConstant;
 import vn.com.lcx.common.dto.Response;
+import vn.com.lcx.common.utils.ExceptionUtils;
 import vn.com.lcx.common.utils.JsonMaskingUtils;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
@@ -39,12 +40,16 @@ public class VertxWebClientHttpUtils {
     private final Object jsonHandler;
 
     public VertxWebClientHttpUtils(Vertx vertx, Object jsonHandler) {
+        this(vertx, jsonHandler, 5000); // Timeout 5s
+    }
+
+    public VertxWebClientHttpUtils(Vertx vertx, Object jsonHandler, int timeoutMilliseconds) {
         if (!(jsonHandler instanceof Gson) && !(jsonHandler instanceof ObjectMapper)) {
             throw new UnsupportedOperationException("Unknown json handler. Only support `Gson` and `Jackson`");
         }
         this.client = WebClient.create(vertx, new WebClientOptions()
                 .setKeepAlive(true)
-                .setConnectTimeout(5000) // Timeout 5s
+                .setConnectTimeout(timeoutMilliseconds)
         );
         this.jsonHandler = jsonHandler;
     }
@@ -162,13 +167,18 @@ public class VertxWebClientHttpUtils {
             final var endingTime = (double) System.currentTimeMillis();
             final var duration = endingTime - startingTime;
             httpLogMessage.append("\n- Duration: ").append(duration).append(" ms");
-            LogUtils.writeLog(this.getClass(), context, LogUtils.Level.INFO, httpLogMessage.toString());
+            LogUtils.writeLog("Reactive-Http-Client-Info", context, LogUtils.Level.INFO, httpLogMessage.toString());
             responseBuilder.code(responseStatusCode)
                     .responseHeaders(headerMap)
                     .errorResponse(responseStatusCode == 200 ? null : responseBodyAsString)
                     .response(responseBodyAsString == null ? null : readJson(responseBodyAsString, responseType));
             return Future.succeededFuture(responseBuilder.build());
-        });
+        }).onFailure(e ->
+                {
+                    httpLogMessage.append("\n- Error: ").append(ExceptionUtils.getStackTrace(e));
+                    LogUtils.writeLog("Reactive-Http-Client-Error", context, LogUtils.Level.ERROR, httpLogMessage.toString());
+                }
+        );
     }
 
     private <T> T readJson(String responseBodyAsString, TypeToken<T> responseType) {

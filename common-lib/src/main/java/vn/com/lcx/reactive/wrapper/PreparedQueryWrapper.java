@@ -55,8 +55,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                 actualTuple.addValue(null);
                 continue;
             }
-            if (value instanceof List) {
-                final var listVal = (List<?>) value;
+            if (value instanceof List<?> listVal) {
                 for (Object o : listVal) {
                     parametersLog.append(
                             String.format(
@@ -86,7 +85,7 @@ public class PreparedQueryWrapper<T> implements PreparedQuery<T> {
                 }
             }
         }
-        LogUtils.writeLog(this.getClass(), context, LogUtils.Level.TRACE, parametersLog.toString());
+        LogUtils.writeLog("Parameter-Binding", context, LogUtils.Level.TRACE, parametersLog.toString());
         return actualTuple;
     }
 
