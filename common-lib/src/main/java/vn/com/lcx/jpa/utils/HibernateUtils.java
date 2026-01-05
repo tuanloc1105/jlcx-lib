@@ -69,7 +69,7 @@ public final class HibernateUtils {
     public static void streamQuery(
             Session session,
             String sql,
-            Map<String, Object> params,
+            List<Object> params,
             int batchSize,
             BatchCallback callback
     ) {
@@ -87,8 +87,8 @@ public final class HibernateUtils {
                 // Bind parameters
                 if (params != null) {
                     int index = 1;
-                    for (Map.Entry<String, Object> e : params.entrySet()) {
-                        ps.setObject(index++, e.getValue());
+                    for (Object param : params) {
+                        ps.setObject(index++, param);
                     }
                 }
 
@@ -132,7 +132,7 @@ public final class HibernateUtils {
     public static <T> void streamQueryWithMapper(
             Session session,
             String sql,
-            Map<String, Object> params,
+            List<Object> params,
             int batchSize,
             RowMapper<T> mapper,
             ResultBatchCallback<T> callback
@@ -147,9 +147,9 @@ public final class HibernateUtils {
 
                 // Bind parameters
                 if (params != null) {
-                    int i = 1;
-                    for (Map.Entry<String, Object> entry : params.entrySet()) {
-                        ps.setObject(i++, entry.getValue());
+                    int index = 1;
+                    for (Object param : params) {
+                        ps.setObject(index++, param);
                     }
                 }
 
