@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public final class MailHelper {
@@ -51,13 +53,17 @@ public final class MailHelper {
             throw new MailPropertiesEmptyError("Mail properties empty" + (mailProperties != null ? mailProperties.toString() : ""));
         }
         final var resultMap = new HashMap<String, String>();
-        final var properties = System.getProperties();
+        final var properties = new Properties();
         properties.setProperty("mail.smtp.host", mailProperties.getHost());
         properties.setProperty("mail.smtp.auth", "true");
         properties.setProperty("mail.smtp.starttls.enable", "true");
         properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         properties.setProperty("mail.smtp.port", mailProperties.getPort());
         properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
+        final String timeoutMs = "10000";
+        properties.setProperty("mail.smtp.connectiontimeout", timeoutMs);
+        properties.setProperty("mail.smtp.timeout", timeoutMs);
+        properties.setProperty("mail.smtp.writetimeout", timeoutMs);
         final var session = Session.getInstance(
                 properties,
                 new Authenticator() {
@@ -70,7 +76,8 @@ public final class MailHelper {
             Transport transport = session.getTransport("smtp");
             transport.connect();
             final var mailInfos = mailProperties.getEmailInfos();
-            for (var mailInfo : mailInfos) {
+            for (int index = 0; index < mailInfos.size(); index++) {
+                final var mailInfo = mailInfos.get(index);
                 try {
                     final var message = new MimeMessage(session);
                     if (StringUtils.isNotBlank(mailProperties.getDisplayName())) {
@@ -200,14 +207,16 @@ public final class MailHelper {
                             MailHelper.class,
                             LogUtils.Level.INFO,
                             String.format(
-                                    "Start to send email with information:\n" +
-                                            "    - from email: %s\n" +
-                                            "    - to email: %s\n" +
-                                            "    - cc email: %s\n" +
-                                            "    - bcc email: %s\n" +
-                                            "    - subject: %s\n" +
-                                            "    - file(s): %s",
-                                    mailProperties.getUsername(),
+                                    """
+                                            Start to send email with information:
+                                                - from email: %s
+                                                - to email: %s
+                                                - cc email: %s
+                                                - bcc email: %s
+                                                - subject: %s
+                                                - file(s): %s""",
+                                    StringUtils.isBlank(mailProperties.getFromAddress()) ? mailProperties.getUsername() :
+                                            mailProperties.getFromAddress(),
                                     String.join(", ", toUsers),
                                     String.join(", ", ccUsers),
                                     String.join(", ", bccUsers),
@@ -219,6 +228,15 @@ public final class MailHelper {
                     );
                     transport.sendMessage(message, message.getAllRecipients());
                     resultMap.put(mailInfo.getId(), "SUCCESS");
+
+                    if (index < mailInfos.size() - 1) {
+                        try {
+                            TimeUnit.MILLISECONDS.sleep(500);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt(); // Restore interrupted status
+                        }
+                    }
+
                 } catch (Throwable e) {
                     final var stackTrace = ExceptionUtils.getStackTrace(e);
                     resultMap.put(
