@@ -26,15 +26,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public final class MailHelper {
 
@@ -66,7 +63,7 @@ public final class MailHelper {
 
                     // Sleep to avoid rate limiting if not last email
                     if (mailInfos.indexOf(mailInfo) < mailInfos.size() - 1) {
-                         TimeUnit.MILLISECONDS.sleep(500);
+                        TimeUnit.MILLISECONDS.sleep(500);
                     }
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
@@ -219,19 +216,19 @@ public final class MailHelper {
 
                 final var imageBodyPart = new MimeBodyPart();
                 try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-                   byte[] buffer = new byte[4096];
-                   int bytesRead;
-                   while ((bytesRead = imageStream.read(buffer)) != -1) {
-                       output.write(buffer, 0, bytesRead);
-                   }
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = imageStream.read(buffer)) != -1) {
+                        output.write(buffer, 0, bytesRead);
+                    }
 
-                   ByteArrayDataSource bds = new ByteArrayDataSource(output.toByteArray(), getContentTypeFromFileName(imagePath));
-                   imageBodyPart.setDataHandler(new DataHandler(bds));
-                   imageBodyPart.setHeader("Content-ID", "<" + imageId + ">");
-                   multipart.addBodyPart(imageBodyPart);
+                    ByteArrayDataSource bds = new ByteArrayDataSource(output.toByteArray(), getContentTypeFromFileName(imagePath));
+                    imageBodyPart.setDataHandler(new DataHandler(bds));
+                    imageBodyPart.setHeader("Content-ID", "<" + imageId + ">");
+                    multipart.addBodyPart(imageBodyPart);
                 }
             } catch (Exception e) {
-                 LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
+                LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
             }
         });
     }
@@ -261,13 +258,13 @@ public final class MailHelper {
         String from = StringUtils.isBlank(mailProperties.getFromAddress()) ? mailProperties.getUsername() : mailProperties.getFromAddress();
         return String.format(
                 """
-                Start to send email with information:
-                    - from email: %s
-                    - to email: %s
-                    - cc email: %s
-                    - bcc email: %s
-                    - subject: %s
-                    - file(s): %s""",
+                        Start to send email with information:
+                            - from email: %s
+                            - to email: %s
+                            - cc email: %s
+                            - bcc email: %s
+                            - subject: %s
+                            - file(s): %s""",
                 from,
                 listToString(mailInfo.getToUsers()),
                 listToString(mailInfo.getCcUsers()),
