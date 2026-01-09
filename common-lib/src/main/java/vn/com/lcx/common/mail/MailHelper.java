@@ -42,17 +42,56 @@ public final class MailHelper {
     }
 
     public static Map<String, String> sendHTMLEmail(final MailProperties mailProperties) {
-        if (
-                mailProperties == null ||
-                        StringUtils.isBlank(mailProperties.getHost()) ||
-                        StringUtils.isBlank(mailProperties.getPort()) ||
-                        StringUtils.isBlank(mailProperties.getUsername()) ||
-                        StringUtils.isBlank(mailProperties.getPassword()) ||
-                        CollectionUtils.isEmpty(mailProperties.getEmailInfos())
-        ) {
+        validateMailProperties(mailProperties);
+
+        final var resultMap = new HashMap<String, String>();
+        final var session = createSession(mailProperties);
+
+        try (Transport transport = session.getTransport("smtp")) {
+            transport.connect();
+            final var mailInfos = mailProperties.getEmailInfos();
+
+            for (final var mailInfo : mailInfos) {
+                try {
+                    final var message = createMimeMessage(session, mailProperties, mailInfo);
+
+                    LogUtils.writeLog(
+                            MailHelper.class,
+                            LogUtils.Level.INFO,
+                            buildLogMessage(mailProperties, mailInfo)
+                    );
+
+                    transport.sendMessage(message, message.getAllRecipients());
+                    resultMap.put(mailInfo.getId(), "SUCCESS");
+
+                    // Sleep to avoid rate limiting if not last email
+                    if (mailInfos.indexOf(mailInfo) < mailInfos.size() - 1) {
+                         TimeUnit.MILLISECONDS.sleep(500);
+                    }
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                } catch (Throwable e) {
+                    handleMailError(resultMap, mailInfo, e);
+                }
+            }
+        } catch (Exception e) {
+            LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
+        }
+        return resultMap;
+    }
+
+    private static void validateMailProperties(MailProperties mailProperties) {
+        if (mailProperties == null ||
+                StringUtils.isBlank(mailProperties.getHost()) ||
+                StringUtils.isBlank(mailProperties.getPort()) ||
+                StringUtils.isBlank(mailProperties.getUsername()) ||
+                StringUtils.isBlank(mailProperties.getPassword()) ||
+                CollectionUtils.isEmpty(mailProperties.getEmailInfos())) {
             throw new MailPropertiesEmptyError("Mail properties empty" + (mailProperties != null ? mailProperties.toString() : ""));
         }
-        final var resultMap = new HashMap<String, String>();
+    }
+
+    private static Session createSession(MailProperties mailProperties) {
         final var properties = new Properties();
         properties.setProperty("mail.smtp.host", mailProperties.getHost());
         properties.setProperty("mail.smtp.auth", "true");
@@ -60,200 +99,190 @@ public final class MailHelper {
         properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         properties.setProperty("mail.smtp.port", mailProperties.getPort());
         properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2");
+
         final String timeoutMs = "10000";
         properties.setProperty("mail.smtp.connectiontimeout", timeoutMs);
         properties.setProperty("mail.smtp.timeout", timeoutMs);
         properties.setProperty("mail.smtp.writetimeout", timeoutMs);
-        final var session = Session.getInstance(
-                properties,
-                new Authenticator() {
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(mailProperties.getUsername(), mailProperties.getPassword());
-                    }
-                }
-        );
-        try {
-            Transport transport = session.getTransport("smtp");
-            transport.connect();
-            final var mailInfos = mailProperties.getEmailInfos();
-            for (int index = 0; index < mailInfos.size(); index++) {
-                final var mailInfo = mailInfos.get(index);
-                try {
-                    final var message = new MimeMessage(session);
-                    if (StringUtils.isNotBlank(mailProperties.getDisplayName())) {
-                        final var internetAddress = new InternetAddress(
-                                StringUtils.isBlank(mailProperties.getFromAddress()) ? mailProperties.getUsername() :
-                                        mailProperties.getFromAddress(),
-                                mailProperties.getDisplayName(),
-                                CommonConstant.UTF_8_STANDARD_CHARSET
-                        );
-                        message.setFrom(internetAddress);
-                    } else {
-                        message.setFrom(mailProperties.getUsername());
-                    }
 
-                    final var toAddresses = new InternetAddress[mailInfo.getToUsers().size()];
-                    List<String> toUsers = mailInfo.getToUsers();
-                    for (int i = 0; i < toUsers.size(); i++) {
-                        String toUser = toUsers.get(i);
-                        toAddresses[i] = new InternetAddress(toUser);
-                    }
-
-                    message.setRecipients(Message.RecipientType.TO, toAddresses);
-                    List<String> ccUsers = new ArrayList<>();
-                    if (CollectionUtils.isNotEmpty(mailInfo.getCcUsers())) {
-                        final var ccAddresses = new InternetAddress[mailInfo.getCcUsers().size()];
-                        ccUsers.addAll(mailInfo.getCcUsers());
-                        for (int i = 0; i < ccUsers.size(); i++) {
-                            String ccUser = ccUsers.get(i);
-                            ccAddresses[i] = new InternetAddress(ccUser);
-                        }
-                        message.setRecipients(Message.RecipientType.CC, ccAddresses);
-                    }
-                    List<String> bccUsers = new ArrayList<>();
-                    if (CollectionUtils.isNotEmpty(mailInfo.getBccUser())) {
-                        final var bccAddresses = new InternetAddress[mailInfo.getBccUser().size()];
-                        bccUsers.addAll(mailInfo.getBccUser());
-                        for (int i = 0; i < bccUsers.size(); i++) {
-                            String bccUser = bccUsers.get(i);
-                            bccAddresses[i] = new InternetAddress(bccUser);
-                        }
-                        message.setRecipients(Message.RecipientType.CC, bccAddresses);
-                    }
-
-                    message.setSentDate(new Date());
-
-                    message.setSubject(mailInfo.getSubject(), CommonConstant.UTF_8_STANDARD_CHARSET);
-
-                    final var multipart = new MimeMultipart("related");
-                    final var mimeBodyPart = new MimeBodyPart();
-                    mimeBodyPart.setDataHandler(
-                            new DataHandler(
-                                    new ByteArrayDataSource(
-                                            mailInfo.getBody(),
-                                            "text/html; charset=utf-8"
-                                    )
-                            )
-                    );
-
-                    multipart.addBodyPart(mimeBodyPart);
-
-                    if (Optional.ofNullable(mailInfo.getImagesMap()).filter(it -> !it.isEmpty()).isPresent()) {
-                        mailInfo.getImagesMap().forEach((imageId, imagePath) -> {
-                            final var bodyPart = new MimeBodyPart();
-                            final var file = new File(imagePath);
-                            if (!file.exists()) {
-                                LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "File {} does not exist", file.getAbsolutePath());
-                                return;
-                            }
-                            if (file.isDirectory()) {
-                                LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "File {} is a directory", file.getAbsolutePath());
-                                return;
-                            }
-                            final var fds = new FileDataSource(file);
-                            try {
-                                bodyPart.setDataHandler(new DataHandler(fds));
-                                bodyPart.setHeader("Content-ID", "<" + imageId + ">");
-                                multipart.addBodyPart(bodyPart);
-                            } catch (Exception e) {
-                                LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
-                            }
-                        });
-                    }
-
-                    if (Optional.ofNullable(mailInfo.getResourceImagesMap()).filter(it -> !it.isEmpty()).isPresent()) {
-                        mailInfo.getResourceImagesMap().forEach((imageId, imagePath) -> {
-                            try {
-                                final var imageStream = MailHelper.class.getClassLoader().getResourceAsStream(imagePath);
-                                if (imageStream == null) {
-                                    LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "File {} not found", imagePath);
-                                    return;
-                                }
-                                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                                byte[] buffer = new byte[4096];
-                                int bytesRead;
-                                while ((bytesRead = imageStream.read(buffer)) != -1) {
-                                    output.write(buffer, 0, bytesRead);
-                                }
-                                byte[] imageBytes = output.toByteArray();
-                                imageStream.close();
-                                output.close();
-                                ByteArrayDataSource bds = new ByteArrayDataSource(imageBytes, getContentTypeFromFileName(imagePath));
-                                final var imageBodyPart = new MimeBodyPart();
-                                imageBodyPart.setDataHandler(new DataHandler(bds));
-                                imageBodyPart.setHeader("Content-ID", "<" + imageId + ">");
-                                multipart.addBodyPart(imageBodyPart);
-                            } catch (Exception e) {
-                                LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
-                            }
-                        });
-                    }
-
-                    if (Optional.ofNullable(mailInfo.getFileAttachments()).filter(CollectionUtils::isNotEmpty).isPresent()) {
-                        for (String filePath : mailInfo.getFileAttachments()) {
-                            final var fileMimeBodyPart = new MimeBodyPart();
-                            try {
-                                fileMimeBodyPart.attachFile(new File(filePath));
-                                multipart.addBodyPart(fileMimeBodyPart);
-                            } catch (Exception e) {
-                                LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, e.getMessage());
-                            }
-                        }
-                    }
-
-                    message.setContent(multipart);
-                    message.saveChanges();
-                    LogUtils.writeLog(
-                            MailHelper.class,
-                            LogUtils.Level.INFO,
-                            String.format(
-                                    """
-                                            Start to send email with information:
-                                                - from email: %s
-                                                - to email: %s
-                                                - cc email: %s
-                                                - bcc email: %s
-                                                - subject: %s
-                                                - file(s): %s""",
-                                    StringUtils.isBlank(mailProperties.getFromAddress()) ? mailProperties.getUsername() :
-                                            mailProperties.getFromAddress(),
-                                    String.join(", ", toUsers),
-                                    String.join(", ", ccUsers),
-                                    String.join(", ", bccUsers),
-                                    mailInfo.getSubject(),
-                                    mailInfo.getFileAttachments()
-                                            .stream()
-                                            .collect(Collectors.joining(", ", "[", "]"))
-                            )
-                    );
-                    transport.sendMessage(message, message.getAllRecipients());
-                    resultMap.put(mailInfo.getId(), "SUCCESS");
-
-                    if (index < mailInfos.size() - 1) {
-                        try {
-                            TimeUnit.MILLISECONDS.sleep(500);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt(); // Restore interrupted status
-                        }
-                    }
-
-                } catch (Throwable e) {
-                    final var stackTrace = ExceptionUtils.getStackTrace(e);
-                    resultMap.put(
-                            mailInfo.getId(),
-                            StringUtils.isBlank(stackTrace) ?
-                                    "Error" :
-                                    stackTrace.length() > 3500 ?
-                                            stackTrace.substring(0, 3500) : stackTrace
-                    );
-                }
+        return Session.getInstance(properties, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(mailProperties.getUsername(), mailProperties.getPassword());
             }
-            transport.close();
-        } catch (Throwable e) {
-            // throw new MailSendingError(e);
-            LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
+        });
+    }
+
+    private static MimeMessage createMimeMessage(Session session, MailProperties mailProperties, EmailInfo mailInfo) throws Exception {
+        final var message = new MimeMessage(session);
+        setFromAddress(message, mailProperties);
+        setRecipients(message, mailInfo);
+
+        message.setSentDate(new Date());
+        message.setSubject(mailInfo.getSubject(), CommonConstant.UTF_8_STANDARD_CHARSET);
+
+        message.setContent(createMultipartContent(mailInfo));
+        message.saveChanges();
+        return message;
+    }
+
+    private static void setFromAddress(MimeMessage message, MailProperties mailProperties) throws Exception {
+        if (StringUtils.isNotBlank(mailProperties.getDisplayName())) {
+            final var internetAddress = new InternetAddress(
+                    StringUtils.isBlank(mailProperties.getFromAddress()) ? mailProperties.getUsername() : mailProperties.getFromAddress(),
+                    mailProperties.getDisplayName(),
+                    CommonConstant.UTF_8_STANDARD_CHARSET
+            );
+            message.setFrom(internetAddress);
+        } else {
+            message.setFrom(mailProperties.getUsername());
         }
-        return resultMap;
+    }
+
+    private static void setRecipients(MimeMessage message, EmailInfo mailInfo) throws Exception {
+        // TO
+        if (CollectionUtils.isNotEmpty(mailInfo.getToUsers())) {
+            message.setRecipients(Message.RecipientType.TO, toInternetAddresses(mailInfo.getToUsers()));
+        }
+
+        // CC
+        if (CollectionUtils.isNotEmpty(mailInfo.getCcUsers())) {
+            message.setRecipients(Message.RecipientType.CC, toInternetAddresses(mailInfo.getCcUsers()));
+        }
+
+        // BCC
+        if (CollectionUtils.isNotEmpty(mailInfo.getBccUser())) {
+            message.setRecipients(Message.RecipientType.BCC, toInternetAddresses(mailInfo.getBccUser()));
+        }
+    }
+
+    private static InternetAddress[] toInternetAddresses(List<String> emails) throws Exception {
+        InternetAddress[] addresses = new InternetAddress[emails.size()];
+        for (int i = 0; i < emails.size(); i++) {
+            addresses[i] = new InternetAddress(emails.get(i));
+        }
+        return addresses;
+    }
+
+    private static MimeMultipart createMultipartContent(EmailInfo mailInfo) throws Exception {
+        final var multipart = new MimeMultipart("related");
+
+        // HTML Body
+        final var mimeBodyPart = new MimeBodyPart();
+        mimeBodyPart.setDataHandler(new DataHandler(new ByteArrayDataSource(mailInfo.getBody(), "text/html; charset=utf-8")));
+        multipart.addBodyPart(mimeBodyPart);
+
+        // Images from filesystem
+        if (mapIsNotEmpty(mailInfo.getImagesMap())) {
+            addImages(multipart, mailInfo.getImagesMap());
+        }
+
+        // Images from classpath resources
+        if (mapIsNotEmpty(mailInfo.getResourceImagesMap())) {
+            addResourceImages(multipart, mailInfo.getResourceImagesMap());
+        }
+
+        // File attachments
+        if (CollectionUtils.isNotEmpty(mailInfo.getFileAttachments())) {
+            addAttachments(multipart, mailInfo.getFileAttachments());
+        }
+
+        return multipart;
+    }
+
+    private static void addImages(MimeMultipart multipart, Map<String, String> imagesMap) {
+        imagesMap.forEach((imageId, imagePath) -> {
+            File file = new File(imagePath);
+            if (!file.exists() || file.isDirectory()) {
+                LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "File {} issue: exists={}, isDirectory={}", file.getAbsolutePath(), file.exists(), file.isDirectory());
+                return;
+            }
+
+            try {
+                final var bodyPart = new MimeBodyPart();
+                bodyPart.setDataHandler(new DataHandler(new FileDataSource(file)));
+                bodyPart.setHeader("Content-ID", "<" + imageId + ">");
+                multipart.addBodyPart(bodyPart);
+            } catch (Exception e) {
+                LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
+            }
+        });
+    }
+
+    private static void addResourceImages(MimeMultipart multipart, Map<String, String> imagesMap) {
+        imagesMap.forEach((imageId, imagePath) -> {
+            try (var imageStream = MailHelper.class.getClassLoader().getResourceAsStream(imagePath)) {
+                if (imageStream == null) {
+                    LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "Resource file {} not found", imagePath);
+                    return;
+                }
+
+                final var imageBodyPart = new MimeBodyPart();
+                try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                   byte[] buffer = new byte[4096];
+                   int bytesRead;
+                   while ((bytesRead = imageStream.read(buffer)) != -1) {
+                       output.write(buffer, 0, bytesRead);
+                   }
+
+                   ByteArrayDataSource bds = new ByteArrayDataSource(output.toByteArray(), getContentTypeFromFileName(imagePath));
+                   imageBodyPart.setDataHandler(new DataHandler(bds));
+                   imageBodyPart.setHeader("Content-ID", "<" + imageId + ">");
+                   multipart.addBodyPart(imageBodyPart);
+                }
+            } catch (Exception e) {
+                 LogUtils.writeLog(MailHelper.class, e.getMessage(), e);
+            }
+        });
+    }
+
+    private static void addAttachments(MimeMultipart multipart, List<String> filePaths) {
+        for (String filePath : filePaths) {
+            try {
+                final var fileMimeBodyPart = new MimeBodyPart();
+                fileMimeBodyPart.attachFile(new File(filePath));
+                multipart.addBodyPart(fileMimeBodyPart);
+            } catch (Exception e) {
+                LogUtils.writeLog(MailHelper.class, LogUtils.Level.WARN, "Error attaching file {}: {}", filePath, e.getMessage());
+            }
+        }
+    }
+
+    private static void handleMailError(Map<String, String> resultMap, EmailInfo mailInfo, Throwable e) {
+        final var stackTrace = ExceptionUtils.getStackTrace(e);
+        resultMap.put(
+                mailInfo.getId(),
+                StringUtils.isBlank(stackTrace) ? "Error" :
+                        stackTrace.length() > 3500 ? stackTrace.substring(0, 3500) : stackTrace
+        );
+    }
+
+    private static String buildLogMessage(MailProperties mailProperties, EmailInfo mailInfo) {
+        String from = StringUtils.isBlank(mailProperties.getFromAddress()) ? mailProperties.getUsername() : mailProperties.getFromAddress();
+        return String.format(
+                """
+                Start to send email with information:
+                    - from email: %s
+                    - to email: %s
+                    - cc email: %s
+                    - bcc email: %s
+                    - subject: %s
+                    - file(s): %s""",
+                from,
+                listToString(mailInfo.getToUsers()),
+                listToString(mailInfo.getCcUsers()),
+                listToString(mailInfo.getBccUser()),
+                mailInfo.getSubject(),
+                listToString(mailInfo.getFileAttachments())
+        );
+    }
+
+    private static String listToString(List<String> list) {
+        return CollectionUtils.isEmpty(list) ? "[]" : String.join(", ", list);
+    }
+
+    private static boolean mapIsNotEmpty(Map<?, ?> map) {
+        return map != null && !map.isEmpty();
     }
 
     private static void disableSslVerification() {
