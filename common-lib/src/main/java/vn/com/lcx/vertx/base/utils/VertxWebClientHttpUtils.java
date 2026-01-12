@@ -54,6 +54,14 @@ public class VertxWebClientHttpUtils {
         this.jsonHandler = jsonHandler;
     }
 
+    public VertxWebClientHttpUtils(Vertx vertx, Object jsonHandler, WebClientOptions options) {
+        if (!(jsonHandler instanceof Gson) && !(jsonHandler instanceof ObjectMapper)) {
+            throw new UnsupportedOperationException("Unknown json handler. Only support `Gson` and `Jackson`");
+        }
+        this.client = WebClient.create(vertx, options);
+        this.jsonHandler = jsonHandler;
+    }
+
     /**
      * Sends an HTTP request and returns a Future containing the response.
      *

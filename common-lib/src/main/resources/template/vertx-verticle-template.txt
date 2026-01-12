@@ -48,23 +48,32 @@ ${constructor}
             } else {
                 port = 8080;
             }
-
-            final boolean enableHttp2 = Boolean.parseBoolean(vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.enable-http-2") + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING);
             io.vertx.core.Future<io.vertx.core.http.HttpServer> future;
-            if (enableHttp2) {
-                future = vertx.createHttpServer(vn.com.lcx.vertx.base.config.HttpOption.configureHttp2H2C(port))
+            io.vertx.core.http.HttpServerOptions serverOptions = vn.com.lcx.common.config.ClassPool.getInstance(io.vertx.core.http.HttpServerOptions.class);
+            if (serverOptions != null) {
+                future = vertx.createHttpServer(serverOptions)
                         .requestHandler(router)
                         .listen()
                         .onSuccess(server -> {
-                            logger.info("HTTP2 server started on port " + port);
+                            logger.info("Server started on port " + port + " with custom options");
                         });
             } else {
-                future = vertx.createHttpServer()
-                        .requestHandler(router)
-                        .listen(port)
-                        .onSuccess(server -> {
-                            logger.info("HTTP server started on port " + port);
-                        });
+                final boolean enableHttp2 = Boolean.parseBoolean(vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.enable-http-2") + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING);
+                if (enableHttp2) {
+                    future = vertx.createHttpServer(vn.com.lcx.vertx.base.config.HttpOption.configureHttp2H2C(port))
+                            .requestHandler(router)
+                            .listen()
+                            .onSuccess(server -> {
+                                logger.info("HTTP2 server started on port " + port);
+                            });
+                } else {
+                    future = vertx.createHttpServer()
+                            .requestHandler(router)
+                            .listen(port)
+                            .onSuccess(server -> {
+                                logger.info("HTTP server started on port " + port);
+                            });
+                }
             }
             return future;
         } catch (Throwable e) {
