@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class VertxWebClientHttpUtils {
 
@@ -50,6 +51,8 @@ public class VertxWebClientHttpUtils {
         this.client = WebClient.create(vertx, new WebClientOptions()
                 .setKeepAlive(true)
                 .setConnectTimeout(timeoutMilliseconds)
+                .setIdleTimeout(timeoutMilliseconds)
+                .setIdleTimeoutUnit(TimeUnit.MILLISECONDS)
         );
         this.jsonHandler = jsonHandler;
     }
