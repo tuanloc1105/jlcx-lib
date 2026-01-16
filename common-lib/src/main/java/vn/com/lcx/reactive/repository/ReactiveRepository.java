@@ -10,7 +10,6 @@ import vn.com.lcx.common.database.pageable.Page;
 import vn.com.lcx.common.database.pageable.Pageable;
 import vn.com.lcx.common.ref.Ref;
 import vn.com.lcx.common.utils.LogUtils;
-import vn.com.lcx.jpa.exception.CodeGenError;
 import vn.com.lcx.reactive.context.EntityMappingContainer;
 import vn.com.lcx.reactive.exception.NonUniqueQueryResult;
 import vn.com.lcx.reactive.helper.SqlStatement;
@@ -21,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static vn.com.lcx.reactive.utils.ReactiveConnectionUtils.extractDatabasePlaceholder;
+import static vn.com.lcx.reactive.utils.ReactiveConnectionUtils.mappingResult;
+
 /**
  * Base interface for reactive repositories providing common CRUD operations.
  * All methods are asynchronous and return a {@link Future}.
@@ -28,35 +30,6 @@ import java.util.Optional;
  * @param <T> the entity type
  */
 public interface ReactiveRepository<T> {
-
-    private static String extractDatabasePlaceholder(SqlConnection connection) {
-        String databaseName = connection.databaseMetadata().productName();
-        String placeholder;
-        switch (databaseName) {
-            case "PostgreSQL":
-                placeholder = "$";
-                break;
-            case "Microsoft SQL Server":
-                placeholder = "@p";
-                break;
-            case "MySQL":
-            case "MariaDB":
-            case "Oracle":
-                placeholder = "?";
-                break;
-            default:
-                throw new CodeGenError("Unsupported database type");
-        }
-        return placeholder;
-    }
-
-    private static <U> List<U> mappingResult(Class<U> outputClazz, RowSet<Row> rowSet) {
-        final List<U> result = new ArrayList<>();
-        for (Row row : rowSet) {
-            result.add(EntityMappingContainer.<U>getMapping(outputClazz.getName()).vertxRowMapping(row));
-        }
-        return result;
-    }
 
     /**
      * Saves the given entity to the database.
