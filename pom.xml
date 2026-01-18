@@ -14,7 +14,7 @@
         <!--suppress CheckTagEmptyBody -->
         <main.class></main.class>
 
-        <logback-classic-ch.qos.logback.version>1.5.24</logback-classic-ch.qos.logback.version>
+        <logback-classic-ch.qos.logback.version>1.5.25</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.15.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.20.0</commons-lang3-org.apache.commons.version>
@@ -51,7 +51,7 @@
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.1.1</kafka-clients-org.apache.kafka.version>
         <hibernate-core-org.hibernate.orm.version>7.2.1.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>7.2.0.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>7.2.1.Final</hibernate-tools-orm-org.hibernate.tool.version>
         <hibernate-jcache-org.hibernate.orm.version>7.2.1.Final</hibernate-jcache-org.hibernate.orm.version>
         <hibernate-reactive-core-org.hibernate.reactive.version>4.2.1.Final
         </hibernate-reactive-core-org.hibernate.reactive.version>
