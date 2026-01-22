@@ -14,7 +14,7 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 apiClient.interceptors.response.use(
@@ -22,6 +22,14 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    // Handle 401 Unauthorized globally
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+      return Promise.reject(error);
+    }
+
     let message = "An unexpected error occurred.";
     if (error.response?.data?.errorDescription) {
       message = error.response.data.errorDescription;
@@ -33,11 +41,11 @@ apiClient.interceptors.response.use(
     window.dispatchEvent(
       new CustomEvent("api-error", {
         detail: { message },
-      })
+      }),
     );
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

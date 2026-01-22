@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ModeToggle } from "@/components/mode-toggle";
 import {
   Dialog,
   DialogContent,
@@ -123,12 +124,13 @@ export default function TodoListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b sticky top-0 z-10">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="bg-card border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">My Todo App</h1>
+          <h1 className="text-xl font-bold text-foreground">My Todo App</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-600 hidden sm:inline-block">
+            <ModeToggle />
+            <span className="text-sm font-medium text-muted-foreground hidden sm:inline-block">
               Welcome, {user?.fullName || user?.username}
             </span>
             <DropdownMenu>
@@ -156,10 +158,10 @@ export default function TodoListPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search tasks..."
-              className="pl-9 bg-white"
+              className="pl-9 bg-card"
               value={search}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setSearch(e.target.value)
@@ -171,10 +173,10 @@ export default function TodoListPage() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+        <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-slate-50">
+              <TableRow className="bg-muted/50">
                 <TableHead className="w-[80px]">ID</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead className="hidden md:table-cell">Detail</TableHead>
@@ -188,7 +190,7 @@ export default function TodoListPage() {
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="text-center h-32 text-slate-500"
+                    className="text-center h-32 text-muted-foreground"
                   >
                     No tasks found
                   </TableCell>
@@ -207,7 +209,7 @@ export default function TodoListPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       <div
-                        className="truncate max-w-[300px] text-slate-500"
+                        className="truncate max-w-[300px] text-muted-foreground"
                         title={task.taskDetail}
                       >
                         {task.taskDetail}
@@ -218,7 +220,7 @@ export default function TodoListPage() {
                         {task.finished ? "Finished" : "Pending"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500">
+                    <TableCell className="text-xs text-muted-foreground">
                       {new Date(task.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
@@ -228,7 +230,7 @@ export default function TodoListPage() {
                           size="icon"
                           onClick={() => handleEdit(task)}
                         >
-                          <Pencil className="h-4 w-4 text-blue-600" />
+                          <Pencil className="h-4 w-4 text-blue-500" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -307,7 +309,7 @@ export default function TodoListPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
