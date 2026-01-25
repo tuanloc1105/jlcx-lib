@@ -47,6 +47,23 @@ import static vn.com.lcx.common.utils.WordCaseUtils.convertCamelToConstant;
 @SupportedAnnotationTypes("vn.com.lcx.common.annotation.SQLMapping")
 public class SQLMappingProcessor extends AbstractProcessor {
 
+    // Error message constants
+    private static final String ERROR_TABLE_NAME_REQUIRED = "A `vn.com.lcx.common.annotation.TableName` should be defined";
+    private static final String ERROR_PRIMARY_KEY_REQUIRED = "A primary key should be defined";
+    private static final String ERROR_MULTIPLE_ID_COLUMNS = "More than one id column was defined";
+
+    // Helper method to add error code to multiple lists
+    @SafeVarargs
+    private static void addErrorToLists(String errorMessage, ArrayList<String>... lists) {
+        String code = String.format(
+                "throw new vn.com.lcx.jpa.exception.CodeGenError(\"%s\");",
+                errorMessage
+        );
+        for (ArrayList<String> list : lists) {
+            list.add(code);
+        }
+    }
+
     private static boolean isPrimitiveBoolean(Element element) {
         TypeMirror typeMirror = element.asType();
         return typeMirror.getKind() == TypeKind.BOOLEAN;
@@ -617,7 +634,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     !BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
                 resultSetMappingCodeLines.add(
                         String.format(
-                                "// ################# Unknow type to generate code for field `%s` - `%s` #################",
+                                "// ################# Unknown type to generate code for field `%s` - `%s` #################",
                                 element.getSimpleName().toString(),
                                 element.asType()
                         )
@@ -761,7 +778,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             if (!BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
                 vertxRowMappingCodeLines.add(
                         String.format(
-                                "// ################# Unknow type to generate code for field `%s` - `%s` #################",
+                                "// ################# Unknown type to generate code for field `%s` - `%s` #################",
                                 element.getSimpleName().toString(),
                                 element.asType()
                         )
@@ -831,7 +848,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
             if (!BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
                 vertxRowMappingCodeLines.add(
                         String.format(
-                                "// ################# Unknow type to generate code for field `%s` - `%s` #################",
+                                "// ################# Unknown type to generate code for field `%s` - `%s` #################",
                                 element.getSimpleName().toString(),
                                 element.asType()
                         )
@@ -907,18 +924,13 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 final ProcessorClassInfo processorClassInfo) {
         final String tableName = getTableName(processorClassInfo);
         if (StringUtils.isBlank(tableName)) {
-            insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            reactiveInsertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            reactiveUpdateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
-            deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"A `vn.com.lcx.common.annotation.TableName` should be defined\");");
+            addErrorToLists(ERROR_TABLE_NAME_REQUIRED,
+                    insertStatementCodeLines, reactiveInsertStatementCodeLines,
+                    insertJdbcParameterCodeLines, insertVertClientParameterCodeLines,
+                    updateStatementCodeLines, reactiveUpdateStatementCodeLines,
+                    updateJdbcParameterCodeLines, updateVertClientParameterCodeLines,
+                    deleteStatementCodeLines, reactiveDeleteStatementCodeLines,
+                    deleteJdbcParameterCodeLines, deleteVertClientParameterCodeLines);
             idColumnNameCodeLines.add("return null;");
             getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
@@ -932,35 +944,25 @@ public class SQLMappingProcessor extends AbstractProcessor {
                                 Optional.ofNullable(element.getAnnotation(IdColumn.class)).isPresent()
                 ).collect(Collectors.toCollection(ArrayList::new));
         if (idElements.isEmpty()) {
-            insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            reactiveInsertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            reactiveUpdateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
-            deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"An primary key should be defined\");");
+            addErrorToLists(ERROR_PRIMARY_KEY_REQUIRED,
+                    insertStatementCodeLines, reactiveInsertStatementCodeLines,
+                    insertJdbcParameterCodeLines, insertVertClientParameterCodeLines,
+                    updateStatementCodeLines, reactiveUpdateStatementCodeLines,
+                    updateJdbcParameterCodeLines, updateVertClientParameterCodeLines,
+                    deleteStatementCodeLines, reactiveDeleteStatementCodeLines,
+                    deleteJdbcParameterCodeLines, deleteVertClientParameterCodeLines);
             idColumnNameCodeLines.add("return null;");
             getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
         }
         if (idElements.size() > 1) {
-            insertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            reactiveInsertStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            insertJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            insertVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            updateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            reactiveUpdateStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            updateJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            updateVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            deleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            reactiveDeleteStatementCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            deleteJdbcParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
-            deleteVertClientParameterCodeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"More than one id column were defined\");");
+            addErrorToLists(ERROR_MULTIPLE_ID_COLUMNS,
+                    insertStatementCodeLines, reactiveInsertStatementCodeLines,
+                    insertJdbcParameterCodeLines, insertVertClientParameterCodeLines,
+                    updateStatementCodeLines, reactiveUpdateStatementCodeLines,
+                    updateJdbcParameterCodeLines, updateVertClientParameterCodeLines,
+                    deleteStatementCodeLines, reactiveDeleteStatementCodeLines,
+                    deleteJdbcParameterCodeLines, deleteVertClientParameterCodeLines);
             idColumnNameCodeLines.add("return null;");
             getColumnNameFromFieldNameCodeLine.add("return \"\";");
             return;
