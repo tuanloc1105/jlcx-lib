@@ -53,9 +53,36 @@ public class RepositoryProcessor extends AbstractProcessor {
             )
     );
 
-    private final static String NOT_IMPLEMENT_CODE_TEMPLATE = "    public ${return-type} ${method-name}(${list-of-parameters}) {\n" +
-            "        throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException(\"${error-message}\");\n" +
-            "    }\n";
+    // Template placeholders
+    private static final String PH_RETURN_TYPE = "${return-type}";
+    private static final String PH_METHOD_NAME = "${method-name}";
+    private static final String PH_METHOD_BODY_1 = "${method-body-1}";
+    private static final String PH_METHOD_BODY_2 = "${method-body-2}";
+    private static final String PH_LIST_OF_PARAMS = "${list-of-parameters}";
+    private static final String PH_ENTITY_CLASS = "${entity-class}";
+    private static final String PH_ERROR_MESSAGE = "${error-message}";
+    private static final String PH_PACKAGE_NAME = "${package-name}";
+    private static final String PH_PROXY_CLASS_NAME = "${proxy-class-name}";
+    private static final String PH_INTERFACE_CLASS_NAME = "${interface-class-name}";
+    private static final String PH_PRIMARY_KEY_TYPE = "${primary-key-type}";
+    private static final String PH_METHODS = "${methods}";
+
+    // Type checking strings
+    private static final String TYPE_JAVA_LIST = "java.util.List";
+    private static final String TYPE_JAVA_OPTIONAL = "java.util.Optional";
+    private static final String TYPE_PAGE = "vn.com.lcx.common.database.pageable.Page";
+    // private static final String TYPE_PAGEABLE = "vn.com.lcx.common.database.pageable.Pageable";
+
+    // Code snippets
+    private static final String TIMING_START = "final double startingTime = (double) java.lang.System.currentTimeMillis();";
+    private static final String TIMING_END_DURATION = "final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;";
+    private static final String TIMING_END_LOG = "vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);";
+
+    private final static String NOT_IMPLEMENT_CODE_TEMPLATE = """
+                public ${return-type} ${method-name}(${list-of-parameters}) {
+                    throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException("${error-message}");
+                }
+            """;
 
     private static void generateCodeForPageable(MethodInfo methodInfo, ArrayList<String> codeLines, String sql, String outputClass) {
         VariableElement pageableParameter = methodInfo.getInputParameters().get(methodInfo.getInputParameters().size() - 1);
@@ -153,8 +180,7 @@ public class RepositoryProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(Repository.class)) {
-            if (annotatedElement instanceof TypeElement) {
-                TypeElement typeElement = (TypeElement) annotatedElement;
+            if (annotatedElement instanceof TypeElement typeElement) {
                 try {
                     boolean classIsNotInterface = !(typeElement.getKind() == ElementKind.INTERFACE);
                     if (classIsNotInterface) {
@@ -166,13 +192,12 @@ public class RepositoryProcessor extends AbstractProcessor {
                             processingEnv.getElementUtils()
                     );
                     generateCode(processorClassInfo);
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     this.processingEnv.
                             getMessager().
                             printMessage(
                                     Diagnostic.Kind.ERROR,
                                     e.getMessage()
-                                    // ExceptionUtils.getStackTrace(e)
                             );
                 }
 
@@ -235,10 +260,10 @@ public class RepositoryProcessor extends AbstractProcessor {
         methodCodeBody.append(
                 jpaCriteriaHandlerTemplate
                         .replace(
-                                "${entity-class}",
+                                PH_ENTITY_CLASS,
                                 genericClasses.get(0).toString()
                         ).replace(
-                                "${primary-key-type}",
+                                PH_PRIMARY_KEY_TYPE,
                                 genericClasses.get(1).toString()
                         )
         );
@@ -251,22 +276,22 @@ public class RepositoryProcessor extends AbstractProcessor {
         );
         String doWorkMethod = jpaDoWorkMethodTemplate
                 .replace(
-                        "${return-type}",
+                        PH_RETURN_TYPE,
                         String.format(
                                 "java.util.Optional<%s>",
                                 genericClasses.get(0).toString()
                         )
                 )
                 .replace(
-                        "${method-name}",
+                        PH_METHOD_NAME,
                         "findById"
                 )
                 .replace(
-                        "${entity-class}",
+                        PH_ENTITY_CLASS,
                         genericClasses.get(0).toString()
                 )
                 .replace(
-                        "${list-of-parameters}",
+                        PH_LIST_OF_PARAMS,
                         String.format(
                                 "%s %s",
                                 genericClasses.get(1).toString(),
@@ -275,22 +300,22 @@ public class RepositoryProcessor extends AbstractProcessor {
                 );
         String findByIdMethod = jpaMethodTemplate
                 .replace(
-                        "${return-type}",
+                        PH_RETURN_TYPE,
                         String.format(
                                 "java.util.Optional<%s>",
                                 genericClasses.get(0).toString()
                         )
                 )
                 .replace(
-                        "${method-name}",
+                        PH_METHOD_NAME,
                         "findById"
                 )
                 .replace(
-                        "${entity-class}",
+                        PH_ENTITY_CLASS,
                         genericClasses.get(0).toString()
                 )
                 .replace(
-                        "${list-of-parameters}",
+                        PH_LIST_OF_PARAMS,
                         String.format(
                                 "%s %s",
                                 genericClasses.get(1).toString(),
@@ -300,11 +325,11 @@ public class RepositoryProcessor extends AbstractProcessor {
         if (StringUtils.isBlank(idFieldName)) {
             findByIdMethod = findByIdMethod
                     .replace(
-                            "${method-body-1}",
+                            PH_METHOD_BODY_1,
                             "throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException(\"This method is not implemented\");"
                     )
                     .replace(
-                            "${method-body-2}",
+                            PH_METHOD_BODY_2,
                             "throw new vn.com.lcx.jpa.exception.JpaMethodNotImplementException(\"This method is not implemented\");"
                     );
         } else {
@@ -321,11 +346,11 @@ public class RepositoryProcessor extends AbstractProcessor {
             );
             findByIdMethod = findByIdMethod
                     .replace(
-                            "${method-body-1}",
+                            PH_METHOD_BODY_1,
                             String.join("\n            ", codeLines)
                     )
                     .replace(
-                            "${method-body-2}",
+                            PH_METHOD_BODY_2,
                             String.join("\n                ", codeLines)
                     );
         }
@@ -337,9 +362,7 @@ public class RepositoryProcessor extends AbstractProcessor {
                 append("\n");
 
         processorClassInfo.getMethods().forEach((method, executableElement) -> {
-            if (SKIPABLE_METHOD_LIST.contains(method.getMethodName())) {
-                return;
-            } else {
+            if (!SKIPABLE_METHOD_LIST.contains(method.getMethodName())) {
                 handleCustomMethod(
                         genericClasses.get(0),
                         methodCodeBody,
@@ -352,27 +375,27 @@ public class RepositoryProcessor extends AbstractProcessor {
 
         final var code = template
                 .replace(
-                        "${package-name}",
+                        PH_PACKAGE_NAME,
                         packageName
                 )
                 .replace(
-                        "${proxy-class-name}",
+                        PH_PROXY_CLASS_NAME,
                         className
                 )
                 .replace(
-                        "${entity-class}",
+                        PH_ENTITY_CLASS,
                         genericClasses.get(0).toString()
                 )
                 .replace(
-                        "${interface-class-name}",
+                        PH_INTERFACE_CLASS_NAME,
                         processorClassInfo.getClazz().getQualifiedName()
                 )
                 .replace(
-                        "${primary-key-type}",
+                        PH_PRIMARY_KEY_TYPE,
                         genericClasses.get(1).toString()
                 )
                 .replace(
-                        "${methods}",
+                        PH_METHODS,
                         MyStringUtils.removeSuffixOfString(
                                 methodCodeBody.toString(),
                                 "\n"
@@ -405,7 +428,16 @@ public class RepositoryProcessor extends AbstractProcessor {
         }
         return idFieldOptional.get().getSimpleName().toString();
     }
-
+    /**
+     * Handle custom methods declared in the repository interface.
+     * Delegates to appropriate handler based on method annotations.
+     *
+     * @param genericEntityClass the entity class type
+     * @param methodCodeBody     the StringBuilder to append generated code
+     * @param jpaMethodTemplate  the JPA method template
+     * @param methodInfo         information about the method
+     * @param executableElement  the executable element representing the method
+     */
     public void handleCustomMethod(final TypeMirror genericEntityClass,
                                    final StringBuilder methodCodeBody,
                                    final String jpaMethodTemplate,
@@ -429,30 +461,36 @@ public class RepositoryProcessor extends AbstractProcessor {
                     methodInfo,
                     executableElement
             );
-            return;
         }
     }
 
+    /**
+     * Handle methods annotated with @Modifying.
+     * Generates code for INSERT, UPDATE, DELETE operations.
+     *
+     * @param genericEntityClass the entity class type
+     * @param methodCodeBody     the StringBuilder to append generated code
+     * @param jpaMethodTemplate  the JPA method template
+     * @param methodInfo         information about the method
+     * @param executableElement  the executable element representing the method
+     */
     public void handleModifyingMethod(final TypeMirror genericEntityClass,
                                       final StringBuilder methodCodeBody,
                                       final String jpaMethodTemplate,
                                       final MethodInfo methodInfo,
                                       final ExecutableElement executableElement) {
-        if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isEmpty()) {
+        final Query queryAnnotation = executableElement.getAnnotation(Query.class);
+        if (queryAnnotation == null) {
             var code = buildBaseCode(
                     NOT_IMPLEMENT_CODE_TEMPLATE,
                     genericEntityClass,
-                    methodCodeBody,
-                    jpaMethodTemplate,
-                    methodInfo,
-                    executableElement
-            ).replace("${error-message}", "A method annotated with `vn.com.lcx.jpa.annotation.Modifying` must be annotated with `vn.com.lcx.jpa.annotation.Query`");
+                    methodInfo
+            ).replace(PH_ERROR_MESSAGE, "A method annotated with `vn.com.lcx.jpa.annotation.Modifying` must be annotated with `vn.com.lcx.jpa.annotation.Query`");
             methodCodeBody.append(code).append("\n");
         } else {
-            final var queryAnnotation = executableElement.getAnnotation(Query.class);
             final var codeLines = new ArrayList<String>();
             final var codeLines2 = new ArrayList<String>();
-            codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
+            addTimingStart(codeLines);
             codeLines2.add("org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();");
             final var finalStatement = queryAnnotation.value().replace("\n", "\\n\" +\n                        \"");
             if (queryAnnotation.isNative()) {
@@ -474,59 +512,52 @@ public class RepositoryProcessor extends AbstractProcessor {
             codeLines2.addAll(codeLines);
             if (methodInfo.getOutputParameter().getKind().equals(TypeKind.VOID)) {
                 codeLines.add("query.executeUpdate();");
-                codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-                codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+                addTimingEnd(codeLines);
                 codeLines2.add("query.executeUpdate();");
-                codeLines2.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-                codeLines2.add("vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+                addTimingEnd(codeLines2);
                 codeLines2.add("transaction.commit();");
             } else {
                 codeLines.add("final int rowAffected = query.executeUpdate();");
-                codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-                codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+                addTimingEnd(codeLines);
                 codeLines.add("return rowAffected;");
                 codeLines2.add("final int rowAffected = query.executeUpdate();");
-                codeLines2.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-                codeLines2.add("vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+                addTimingEnd(codeLines2);
                 codeLines2.add("transaction.commit();");
                 codeLines2.add("return rowAffected;");
             }
             var code = buildBaseCode(
                     jpaMethodTemplate,
                     genericEntityClass,
-                    methodCodeBody,
-                    jpaMethodTemplate,
-                    methodInfo,
-                    executableElement
+                    methodInfo
             )
                     .replace(
-                            "${method-body-1}",
+                            PH_METHOD_BODY_1,
                             String.join("\n            ", codeLines)
                     )
                     .replace(
-                            "${method-body-2}",
+                            PH_METHOD_BODY_2,
                             String.join("\n                ", codeLines2)
                     );
             methodCodeBody.append(code).append("\n");
         }
     }
 
+    /**
+     * Handle methods annotated with @Query.
+     * Generates code for SELECT operations (List, Page, Optional, single result).
+     *
+     * @param genericEntityClass the entity class type
+     * @param methodCodeBody     the StringBuilder to append generated code
+     * @param jpaMethodTemplate  the JPA method template
+     * @param methodInfo         information about the method
+     * @param executableElement  the executable element representing the method
+     */
     public void handleQueryMethod(final TypeMirror genericEntityClass,
                                   final StringBuilder methodCodeBody,
                                   final String jpaMethodTemplate,
                                   final MethodInfo methodInfo,
                                   final ExecutableElement executableElement) {
         if (methodInfo.getOutputParameter().getKind().equals(TypeKind.VOID)) {
-            // var code = buildBaseCode(
-            //         NOT_IMPLEMENT_CODE_TEMPLATE,
-            //         genericEntityClass,
-            //         methodCodeBody,
-            //         jpaMethodTemplate,
-            //         methodInfo,
-            //         executableElement
-            // ).replace("${error-message}", "Should not be a void method");
-            // methodCodeBody.append(code).append("\n");
-            // return;
             throw new CodeGenError(
                     String.format(
                             "%s should not be a void method",
@@ -535,10 +566,13 @@ public class RepositoryProcessor extends AbstractProcessor {
             );
         }
         final String outputClass = getGenericTypeOfListOrPage(methodInfo.getOutputParameter().toString());
-        final var queryAnnotation = executableElement.getAnnotation(Query.class);
+        final Query queryAnnotation = java.util.Objects.requireNonNull(
+                executableElement.getAnnotation(Query.class),
+                "Method must be annotated with @Query"
+        );
         final var codeLines = new ArrayList<String>();
         final var queryStatement = queryAnnotation.value().replace("\n", "\\n\" +\n                        \"");
-        codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
+        addTimingStart(codeLines);
         if (queryAnnotation.isNative()) {
             if (lastParameterIsPageable(methodInfo)) {
                 generateCodeForPageableNative(
@@ -551,8 +585,8 @@ public class RepositoryProcessor extends AbstractProcessor {
                                 .orElse(null)
                 );
             } else {
-                if (Optional.ofNullable(executableElement.getAnnotation(ResultSetMapping.class)).isPresent()) {
-                    final var resultSetMappingAnnotation = executableElement.getAnnotation(ResultSetMapping.class);
+                ResultSetMapping resultSetMappingAnnotation = executableElement.getAnnotation(ResultSetMapping.class);
+                if (resultSetMappingAnnotation != null) {
                     codeLines.add(
                             String.format(
                                     "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createNativeQuery(\"%1$s\", \"%3$s\", %2$s.class);",
@@ -573,14 +607,6 @@ public class RepositoryProcessor extends AbstractProcessor {
             }
         } else {
             if (lastParameterIsPageable(methodInfo)) {
-                // processingEnv.getMessager().printMessage(
-                //         Diagnostic.Kind.NOTE,
-                //         vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
-                //                 String.format(
-                //                         "StringBuilder hsqlQuery = new StringBuilder(\"%s\");",
-                //                         queryStatement
-                //                 )
-                // );
                 generateCodeForPageable(methodInfo, codeLines, queryStatement, outputClass);
             } else {
                 codeLines.add(
@@ -593,12 +619,12 @@ public class RepositoryProcessor extends AbstractProcessor {
             }
         }
         setParameters(methodInfo, codeLines);
-        if (methodInfo.getOutputParameter().toString().contains("java.util.List")) {
+        String returnType = methodInfo.getOutputParameter().toString();
+        if (returnType.contains(TYPE_JAVA_LIST)) {
             codeLines.add("final java.util.List<" + outputClass + "> result = query.getResultList();");
-            codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-            codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+            addTimingEnd(codeLines);
             codeLines.add("return result;");
-        } else if (methodInfo.getOutputParameter().toString().contains("vn.com.lcx.common.database.pageable.Page")) {
+        } else if (returnType.contains(TYPE_PAGE)) {
             final var countHql = replaceSelectToCount(queryAnnotation.value());
             final var finalCountHql = countHql.replace("\n", "\\n\" +\n                        \"");
             if (queryAnnotation.isNative()) {
@@ -617,17 +643,14 @@ public class RepositoryProcessor extends AbstractProcessor {
                 );
             }
             setParametersForCount(methodInfo, codeLines);
-            codeLines.add(
-                    "long totalItems = countQuery.getSingleResult();"
-            );
+            codeLines.add("long totalItems = countQuery.getSingleResult();");
             codeLines.add(
                     String.format(
                             "final java.util.List<%1$s> queryResult = query.getResultList();",
                             outputClass
                     )
             );
-            codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-            codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+            addTimingEnd(codeLines);
             codeLines.add(
                     String.format(
                             "return vn.com.lcx.common.database.pageable.Page.<%s>create(",
@@ -639,48 +662,63 @@ public class RepositoryProcessor extends AbstractProcessor {
             codeLines.add("        pageimpl.getPageNumber(),");
             codeLines.add("        pageimpl.getPageSize()");
             codeLines.add(");");
-        } else if (methodInfo.getOutputParameter().toString().contains("java.util.Optional")) {
+        } else if (returnType.contains(TYPE_JAVA_OPTIONAL)) {
             codeLines.add("final java.util.Optional<" + outputClass + "> optional = java.util.Optional.ofNullable(query.uniqueResult());");
-            codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-            codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+            addTimingEnd(codeLines);
             codeLines.add("return optional;");
         } else {
             codeLines.add("final " + outputClass + " result = query.uniqueResult();");
-            codeLines.add("final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-            codeLines.add("vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
+            addTimingEnd(codeLines);
             codeLines.add("return result;");
         }
         var code = buildBaseCode(
                 jpaMethodTemplate,
                 genericEntityClass,
-                methodCodeBody,
-                jpaMethodTemplate,
-                methodInfo,
-                executableElement
+                methodInfo
         )
                 .replace(
-                        "${method-body-1}",
+                        PH_METHOD_BODY_1,
                         String.join("\n            ", codeLines)
                 )
                 .replace(
-                        "${method-body-2}",
+                        PH_METHOD_BODY_2,
                         String.join("\n                ", codeLines)
                 );
         methodCodeBody.append(code).append("\n");
     }
 
+    /**
+     * Add timing start code line.
+     */
+    private void addTimingStart(List<String> codeLines) {
+        codeLines.add(TIMING_START);
+    }
+
+    /**
+     * Add timing end code lines (duration calculation and logging).
+     */
+    private void addTimingEnd(List<String> codeLines) {
+        codeLines.add(TIMING_END_DURATION);
+        codeLines.add(TIMING_END_LOG);
+    }
+
+    /**
+     * Build base code from template with common replacements.
+     *
+     * @param template           the template to use
+     * @param genericEntityClass the entity class type
+     * @param methodInfo         the method info
+     * @return the processed template string
+     */
     private String buildBaseCode(final String template,
                                  final TypeMirror genericEntityClass,
-                                 final StringBuilder methodCodeBody,
-                                 final String jpaMethodTemplate,
-                                 final MethodInfo methodInfo,
-                                 final ExecutableElement executableElement) {
+                                 final MethodInfo methodInfo) {
         return template
-                .replace("${return-type}", methodInfo.getOutputParameter().toString())
-                .replace("${method-name}", methodInfo.getMethodName())
-                .replace("${entity-class}", genericEntityClass.toString())
+                .replace(PH_RETURN_TYPE, methodInfo.getOutputParameter().toString())
+                .replace(PH_METHOD_NAME, methodInfo.getMethodName())
+                .replace(PH_ENTITY_CLASS, genericEntityClass.toString())
                 .replace(
-                        "${list-of-parameters}",
+                        PH_LIST_OF_PARAMS,
                         methodInfo.getInputParameters()
                                 .stream()
                                 .map(
@@ -696,25 +734,21 @@ public class RepositoryProcessor extends AbstractProcessor {
     }
 
     private String getGenericTypeOfListOrPage(String listTypeName) {
-        if (!listTypeName.startsWith("java.util.List") &&
-                !listTypeName.startsWith("vn.com.lcx.common.database.pageable.Page") &&
-                !listTypeName.startsWith("java.util.Optional")) {
+        if (!listTypeName.startsWith(TYPE_JAVA_LIST) &&
+                !listTypeName.startsWith(TYPE_PAGE) &&
+                !listTypeName.startsWith(TYPE_JAVA_OPTIONAL)) {
             return listTypeName;
         }
-        if (
-                (
-                        listTypeName.startsWith("java.util.List") ||
-                                listTypeName.startsWith("vn.com.lcx.common.database.pageable.Page") ||
-                                listTypeName.startsWith("java.util.Optional")
-                ) &&
-                        !listTypeName.contains("<")
-        ) {
-            throw new CodeGenError("Unknow type " + listTypeName);
+        if ((listTypeName.startsWith(TYPE_JAVA_LIST) ||
+                listTypeName.startsWith(TYPE_PAGE) ||
+                listTypeName.startsWith(TYPE_JAVA_OPTIONAL)) &&
+                !listTypeName.contains("<")) {
+            throw new CodeGenError("Unknown type " + listTypeName);
         }
         return listTypeName
-                .replace("java.util.List<", CommonConstant.EMPTY_STRING)
-                .replace("vn.com.lcx.common.database.pageable.Page<", CommonConstant.EMPTY_STRING)
-                .replace("java.util.Optional<", CommonConstant.EMPTY_STRING)
+                .replace(TYPE_JAVA_LIST + "<", CommonConstant.EMPTY_STRING)
+                .replace(TYPE_PAGE + "<", CommonConstant.EMPTY_STRING)
+                .replace(TYPE_JAVA_OPTIONAL + "<", CommonConstant.EMPTY_STRING)
                 .replace(">", CommonConstant.EMPTY_STRING);
     }
 
@@ -734,11 +768,12 @@ public class RepositoryProcessor extends AbstractProcessor {
             ) {
                 continue;
             }
-            if (Optional.ofNullable(variableElement.getAnnotation(Param.class)).isPresent()) {
+            Param paramAnnotation = variableElement.getAnnotation(Param.class);
+            if (paramAnnotation != null) {
                 codeLines.add(
                         String.format(
                                 isCountQuery ? "countQuery.setParameter(\"%1$s\", %2$s);" : "query.setParameter(\"%1$s\", %2$s);",
-                                variableElement.getAnnotation(Param.class).value(),
+                                paramAnnotation.value(),
                                 variableElement.getSimpleName()
                         )
                 );
