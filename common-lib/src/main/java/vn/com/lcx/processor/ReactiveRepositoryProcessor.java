@@ -123,11 +123,17 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     private String generateMethodCode(MethodInfo methodInfo, ExecutableElement executableElement,
                                        TypeMirror entityTypeMirror, TypeElement entityTypeElement,
                                        String methodTemplate) {
+        // Skip default interface methods - they have implementation in ReactiveRepository interface
+        String methodName = methodInfo.getMethodName();
+        if (methodName.equals("find") || methodName.equals("findOne") || methodName.equals("findFirst")) {
+            return null;
+        }
+
         final String actualReturnType = resolveReturnType(methodInfo, entityTypeMirror);
         final var codeLines = new ArrayList<String>();
 
         if (!validateParameters(methodInfo, codeLines)) {
-            return buildMethodFromTemplate(methodTemplate, actualReturnType, methodInfo, codeLines);
+            return buildMethodFromTemplate(methodTemplate, actualReturnType, methodInfo, codeLines, entityTypeMirror);
         }
 
         final String futureOutputType = extractFutureOutputType(actualReturnType);
@@ -142,7 +148,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         generateMethodBody(methodInfo, executableElement, entityTypeMirror, entityTypeElement,
                 codeLines, futureOutputType, isReturningList, contextVariable, sqlConnectionVariable, actualParameters);
 
-        return buildMethodFromTemplate(methodTemplate, actualReturnType, methodInfo, codeLines);
+        return buildMethodFromTemplate(methodTemplate, actualReturnType, methodInfo, codeLines, entityTypeMirror);
     }
 
     private String resolveReturnType(MethodInfo methodInfo, TypeMirror entityTypeMirror) {
@@ -219,7 +225,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
             case "find":
             case "findOne":
             case "findFirst":
-                // Skip, not implemented
+                // These should be skipped earlier in generateMethodCode - this is a fallback
                 break;
             default:
                 if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
@@ -234,21 +240,21 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private String buildMethodFromTemplate(String methodTemplate, String actualReturnType,
-                                            MethodInfo methodInfo, List<String> codeLines) {
+                                            MethodInfo methodInfo, List<String> codeLines, TypeMirror entityTypeMirror) {
         return methodTemplate
                 .replace("${return-type}", actualReturnType)
                 .replace("${method-name}", methodInfo.getMethodName())
-                .replace("${list-of-parameters}", formatParameterList(methodInfo))
+                .replace("${list-of-parameters}", formatParameterList(methodInfo, entityTypeMirror))
                 .replace("${method-body}", formatCodeBody(codeLines));
     }
 
-    private String formatParameterList(MethodInfo methodInfo) {
+    private String formatParameterList(MethodInfo methodInfo, TypeMirror entityTypeMirror) {
         return methodInfo.getInputParameters().stream()
                 .map(variableElement -> {
                     if (!variableElement.asType().toString().equals("T")) {
                         return String.format("%s %s", variableElement.asType(), variableElement.getSimpleName());
                     } else {
-                        return "model";
+                        return entityTypeMirror.toString() + " model";
                     }
                 })
                 .collect(Collectors.joining(", "));
