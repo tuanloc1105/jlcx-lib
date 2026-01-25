@@ -8,6 +8,7 @@ import vn.com.lcx.common.utils.FileUtils;
 import vn.com.lcx.common.utils.MyStringUtils;
 import vn.com.lcx.processor.utility.MethodInfo;
 import vn.com.lcx.processor.utility.ProcessorClassInfo;
+import vn.com.lcx.processor.utility.ReactiveCodeGenHelper;
 import vn.com.lcx.processor.utility.TypeHierarchyAnalyzer;
 import vn.com.lcx.reactive.annotation.Query;
 import vn.com.lcx.reactive.annotation.RRepository;
@@ -27,39 +28,21 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @SupportedAnnotationTypes("vn.com.lcx.reactive.annotation.RRepository")
 public class ReactiveRepositoryProcessor extends AbstractProcessor {
 
-    /**
-     * Returns a sublist starting from the first element
-     * that contains the keyword (case-insensitive) until the end of the list.
-     *
-     * @param keywords the list of keywords to search in
-     * @param keyword  the keyword to search for (case-insensitive)
-     * @return a sublist of keywords from the found index to the end,
-     * or an empty list if no match is found
-     */
-    public static List<String> subListFromKeyword(List<String> keywords, String keyword) {
-        if (keywords == null || keyword == null) {
-            return Collections.emptyList();
-        }
+    // Error messages
+    private static final String ERROR_INVALID_PARAMETERS = "First parameter must be a `io.vertx.ext.web.RoutingContext` and the second one must be a `io.vertx.sqlclient.SqlConnection`";
+    private static final String ERROR_UNSUPPORTED_METHOD = "Unsupported method. The generator of this type of method were removed, please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement";
 
-        int index = IntStream.range(0, keywords.size())
-                .filter(i -> keywords.get(i).toLowerCase().contains(keyword.toLowerCase()))
-                .findFirst()
-                .orElse(-1);
-
-        return index != -1
-                ? keywords.subList(index, keywords.size())
-                : Collections.emptyList();
-    }
+    // Expected parameter types
+    private static final String ROUTING_CONTEXT_TYPE = "io.vertx.ext.web.RoutingContext";
+    private static final String SQL_CONNECTION_TYPE = "io.vertx.sqlclient.SqlConnection";
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -68,10 +51,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        // roundEnv.getRootElements()
         for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(RRepository.class)) {
-            if (annotatedElement instanceof TypeElement) {
-                TypeElement typeElement = (TypeElement) annotatedElement;
+            if (annotatedElement instanceof TypeElement typeElement) {
                 try {
                     ProcessorClassInfo processorClassInfo = ProcessorClassInfo.init(
                             typeElement,
@@ -80,12 +61,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     );
                     generateCode(processorClassInfo);
                 } catch (Exception e) {
-                    this.processingEnv.
-                            getMessager().
-                            printMessage(
-                                    Diagnostic.Kind.ERROR,
-                                    ExceptionUtils.getStackTrace(e)
-                            );
+                    this.processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.ERROR,
+                            ExceptionUtils.getStackTrace(e)
+                    );
                 }
             }
         }
@@ -93,194 +72,198 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     public void generateCode(ProcessorClassInfo processorClassInfo) throws IOException {
+        logProcessing(processorClassInfo);
+
+        List<TypeMirror> genericClasses = TypeHierarchyAnalyzer.getGenericTypeOfExtendingInterface(
+                processingEnv.getElementUtils(),
+                processingEnv.getTypeUtils(),
+                processorClassInfo.getClazz(),
+                ReactiveRepository.class.getName()
+        );
+
+        String repositoryTemplate = loadTemplate("template/repository-template.txt");
+        String methodTemplate = loadTemplate("template/method-template.txt");
+
+        final TypeMirror entityTypeMirror = genericClasses.get(0);
+        final var entityTypeElement = TypeHierarchyAnalyzer.getTypeElementFromClassName(
+                processingEnv.getElementUtils(),
+                entityTypeMirror.toString()
+        );
+
+        StringBuilder methodCodeBody = new StringBuilder("\n");
+
+        processorClassInfo.getMethods().forEach((methodInfo, executableElement) -> {
+            String methodCode = generateMethodCode(methodInfo, executableElement, entityTypeMirror, entityTypeElement, methodTemplate);
+            if (methodCode != null) {
+                methodCodeBody.append(methodCode).append("\n");
+            }
+        });
+
+        writeGeneratedClass(processorClassInfo, repositoryTemplate, methodCodeBody.toString());
+    }
+
+    private void logProcessing(ProcessorClassInfo processorClassInfo) {
         processingEnv.getMessager().printMessage(
                 Diagnostic.Kind.NOTE,
-                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
-                        String.format(
-                                "Generating code for reactive repository : %s",
-                                processorClassInfo.getClazz().getQualifiedName()
-                        )
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(
+                        vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()
+                ) + ": " + String.format(
+                        "Generating code for reactive repository : %s",
+                        processorClassInfo.getClazz().getQualifiedName()
+                )
         );
-        // get generic type of interface
-        List<TypeMirror> genericClasses =
-                TypeHierarchyAnalyzer.getGenericTypeOfExtendingInterface(
-                        processingEnv.getElementUtils(),
-                        processingEnv.getTypeUtils(),
-                        processorClassInfo.getClazz(),
-                        ReactiveRepository.class.getName()
-                );
-        String repositoryTemplate = FileUtils.readResourceFileAsText(
-                this.getClass().getClassLoader(),
-                "template/repository-template.txt"
+    }
+
+    private String loadTemplate(String templatePath) {
+        String template = FileUtils.readResourceFileAsText(this.getClass().getClassLoader(), templatePath);
+        assert StringUtils.isNotBlank(template);
+        return template;
+    }
+
+    private String generateMethodCode(MethodInfo methodInfo, ExecutableElement executableElement,
+                                       TypeMirror entityTypeMirror, TypeElement entityTypeElement,
+                                       String methodTemplate) {
+        final String actualReturnType = resolveReturnType(methodInfo, entityTypeMirror);
+        final var codeLines = new ArrayList<String>();
+
+        if (!validateParameters(methodInfo, codeLines)) {
+            return buildMethodFromTemplate(methodTemplate, actualReturnType, methodInfo, codeLines);
+        }
+
+        final String futureOutputType = extractFutureOutputType(actualReturnType);
+        final boolean isReturningList = futureOutputType.contains("java.util.List");
+        final VariableElement contextVariable = methodInfo.getInputParameters().get(0);
+        final VariableElement sqlConnectionVariable = methodInfo.getInputParameters().get(1);
+        final List<VariableElement> actualParameters = extractActualParameters(methodInfo);
+
+        codeLines.add(String.format("String databaseName = %s.databaseMetadata().productName();",
+                sqlConnectionVariable.getSimpleName()));
+
+        generateMethodBody(methodInfo, executableElement, entityTypeMirror, entityTypeElement,
+                codeLines, futureOutputType, isReturningList, contextVariable, sqlConnectionVariable, actualParameters);
+
+        return buildMethodFromTemplate(methodTemplate, actualReturnType, methodInfo, codeLines);
+    }
+
+    private String resolveReturnType(MethodInfo methodInfo, TypeMirror entityTypeMirror) {
+        String outputType = methodInfo.getOutputParameter().toString();
+        if (outputType.equals("T")) {
+            return entityTypeMirror.toString();
+        } else if (outputType.contains("<T>")) {
+            return outputType.replace("<T>", "<" + entityTypeMirror.toString() + ">");
+        }
+        return outputType;
+    }
+
+    private boolean validateParameters(MethodInfo methodInfo, List<String> codeLines) {
+        var params = methodInfo.getInputParameters();
+        if (params.isEmpty() || params.size() < 2) {
+            codeLines.add(String.format("throw new vn.com.lcx.jpa.exception.CodeGenError(\"%s\");", ERROR_INVALID_PARAMETERS));
+            return false;
+        }
+        if (!params.get(0).asType().toString().equals(ROUTING_CONTEXT_TYPE) ||
+                !params.get(1).asType().toString().equals(SQL_CONNECTION_TYPE)) {
+            codeLines.add(String.format("throw new vn.com.lcx.jpa.exception.CodeGenError(\"%s\");", ERROR_INVALID_PARAMETERS));
+            return false;
+        }
+        return true;
+    }
+
+    private String extractFutureOutputType(String actualReturnType) {
+        return MyStringUtils.removeSuffixOfString(
+                MyStringUtils.removePrefixOfString(actualReturnType, "io.vertx.core.Future<"),
+                ">"
         );
-        String methodTemplate = FileUtils.readResourceFileAsText(
-                this.getClass().getClassLoader(),
-                "template/method-template.txt"
-        );
-        assert StringUtils.isNotBlank(repositoryTemplate);
-        assert StringUtils.isNotBlank(methodTemplate);
-        final TypeMirror entityTypeMirror = genericClasses.get(0);
-        StringBuilder methodCodeBody = new StringBuilder();
-        methodCodeBody.append("\n");
-        final var entityTypeElement = TypeHierarchyAnalyzer.getTypeElementFromClassName(processingEnv.getElementUtils(), entityTypeMirror.toString());
-        processorClassInfo.getMethods().forEach(
-                (methodInfo, executableElement) -> {
-                    final String actualReturnType;
-                    if (methodInfo.getOutputParameter().toString().equals("T")) {
-                        actualReturnType = entityTypeMirror.toString();
-                    } else if (methodInfo.getOutputParameter().toString().contains("<T>")) {
-                        actualReturnType = methodInfo.getOutputParameter().toString().replace("<T>", "<" + entityTypeMirror.toString() + ">");
-                    } else {
-                        actualReturnType = methodInfo.getOutputParameter().toString();
-                    }
-                    final var codeLines = new ArrayList<String>();
-                    if (methodInfo.getInputParameters().isEmpty() || methodInfo.getInputParameters().size() < 2) {
-                        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"First parameter must be a `io.vertx.ext.web.RoutingContext` and the second one must be a `io.vertx.sqlclient.SqlConnection`\");");
-                        return;
-                    }
-                    if (!methodInfo.getInputParameters().get(0).asType().toString().equals("io.vertx.ext.web.RoutingContext") || !methodInfo.getInputParameters().get(1).asType().toString().equals("io.vertx.sqlclient.SqlConnection")) {
-                        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"First parameter must be a `io.vertx.ext.web.RoutingContext` and the second one must be a `io.vertx.sqlclient.SqlConnection`\");");
-                    } else {
-                        final String futureOutputType = MyStringUtils
-                                .removeSuffixOfString(
-                                        MyStringUtils.removePrefixOfString(
-                                                actualReturnType,
-                                                "io.vertx.core.Future<"
-                                        ),
-                                        ">"
-                                );
-                        codeLines.add(
-                                String.format(
-                                        "io.vertx.core.Future<%s> future;",
-                                        futureOutputType
-                                )
-                        );
-                        final boolean isReturningList = futureOutputType.contains("java.util.List");
-                        final VariableElement contextVariable = methodInfo.getInputParameters().get(0);
-                        final VariableElement sqlConnectionVariable = methodInfo.getInputParameters().get(1);
-                        final List<VariableElement> actualParameters = new ArrayList<>();
-                        for (int i = 2; i < methodInfo.getInputParameters().size(); i++) {
-                            actualParameters.add(methodInfo.getInputParameters().get(i));
-                        }
-                        codeLines.add(
-                                String.format(
-                                        "String databaseName = %s.databaseMetadata().productName();",
-                                        sqlConnectionVariable.getSimpleName().toString()
-                                )
-                        );
-                        switch (methodInfo.getMethodName()) {
-                            case "save":
-                                if (entityTypeElement.getAnnotation(ReadOnly.class) != null) {
-                                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
-                                } else {
-                                    buildSaveModelMethodCodeBody(
-                                            codeLines,
-                                            contextVariable,
-                                            sqlConnectionVariable,
-                                            entityTypeMirror
-                                    );
-                                }
-                                break;
-                            case "update":
-                                if (entityTypeElement.getAnnotation(ReadOnly.class) != null) {
-                                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
-                                } else {
-                                    buildUpdateModelMethodCodeBody(
-                                            codeLines,
-                                            contextVariable,
-                                            sqlConnectionVariable,
-                                            entityTypeMirror
-                                    );
-                                }
-                                break;
-                            case "delete":
-                                if (entityTypeElement.getAnnotation(ReadOnly.class) != null) {
-                                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
-                                } else {
-                                    buildDeleteModelMethodCodeBody(
-                                            codeLines,
-                                            contextVariable,
-                                            sqlConnectionVariable,
-                                            entityTypeMirror);
-                                }
-                                break;
-                            case "find":
-                            case "findOne":
-                            case "findFirst":
-                                return;
-                            default:
-                                if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
-                                    buildQueryMethodCodeBody(
-                                            executableElement,
-                                            codeLines,
-                                            contextVariable,
-                                            sqlConnectionVariable,
-                                            actualParameters,
-                                            isReturningList,
-                                            futureOutputType
-                                    );
-                                } else {
-                                    buildCustomQueryMethodCodeBody(
-                                            methodInfo,
-                                            executableElement,
-                                            codeLines,
-                                            contextVariable,
-                                            sqlConnectionVariable,
-                                            entityTypeMirror,
-                                            actualParameters,
-                                            isReturningList,
-                                            futureOutputType
-                                    );
-                                }
-                                break;
-                        }
-                    }
-                    methodCodeBody.append(
-                            methodTemplate
-                                    .replace(
-                                            "${return-type}",
-                                            actualReturnType
-                                    )
-                                    .replace(
-                                            "${method-name}",
-                                            methodInfo.getMethodName()
-                                    )
-                                    .replace(
-                                            "${list-of-parameters}",
-                                            methodInfo.getInputParameters()
-                                                    .stream()
-                                                    .map(
-                                                            variableElement -> {
-                                                                if (!variableElement.asType().toString().equals("T")) {
-                                                                    return String.format(
-                                                                            "%s %s",
-                                                                            variableElement.asType(),
-                                                                            variableElement.getSimpleName()
-                                                                    );
-                                                                } else {
-                                                                    return entityTypeMirror.toString() + " model";
-                                                                }
-                                                            }
-                                                    )
-                                                    .collect(Collectors.joining(", "))
-                                    )
-                                    .replace(
-                                            "${method-body}",
-                                            codeLines
-                                                    .stream()
-                                                    .collect(
-                                                            Collectors.joining(
-                                                                    "\n        ",
-                                                                    CommonConstant.EMPTY_STRING,
-                                                                    CommonConstant.EMPTY_STRING
-                                                            )
-                                                    )
-                                    )
-                    ).append("\n");
+    }
+
+    private List<VariableElement> extractActualParameters(MethodInfo methodInfo) {
+        List<VariableElement> actualParameters = new ArrayList<>();
+        for (int i = 2; i < methodInfo.getInputParameters().size(); i++) {
+            actualParameters.add(methodInfo.getInputParameters().get(i));
+        }
+        return actualParameters;
+    }
+
+    private void generateMethodBody(MethodInfo methodInfo, ExecutableElement executableElement,
+                                     TypeMirror entityTypeMirror, TypeElement entityTypeElement,
+                                     List<String> codeLines, String futureOutputType, boolean isReturningList,
+                                     VariableElement contextVariable, VariableElement sqlConnectionVariable,
+                                     List<VariableElement> actualParameters) {
+
+        codeLines.add(String.format("io.vertx.core.Future<%s> future;", futureOutputType));
+
+        boolean isReadOnly = entityTypeElement.getAnnotation(ReadOnly.class) != null;
+
+        switch (methodInfo.getMethodName()) {
+            case "save":
+                if (isReadOnly) {
+                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
+                } else {
+                    buildSaveMethodCodeBody(codeLines, contextVariable, sqlConnectionVariable, entityTypeMirror);
                 }
-        );
-        final var packageName = processingEnv
-                .getElementUtils()
+                break;
+            case "update":
+                if (isReadOnly) {
+                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
+                } else {
+                    buildUpdateMethodCodeBody(codeLines, contextVariable, sqlConnectionVariable, entityTypeMirror);
+                }
+                break;
+            case "delete":
+                if (isReadOnly) {
+                    codeLines.add("return io.vertx.core.Future.succeededFuture(null);");
+                } else {
+                    buildDeleteMethodCodeBody(codeLines, contextVariable, sqlConnectionVariable, entityTypeMirror);
+                }
+                break;
+            case "find":
+            case "findOne":
+            case "findFirst":
+                // Skip, not implemented
+                break;
+            default:
+                if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
+                    buildQueryMethodCodeBody(executableElement, codeLines, contextVariable, sqlConnectionVariable,
+                            actualParameters, isReturningList, futureOutputType);
+                } else {
+                    codeLines.clear();
+                    codeLines.add(String.format("throw new vn.com.lcx.jpa.exception.CodeGenError(\"%s\");", ERROR_UNSUPPORTED_METHOD));
+                }
+                break;
+        }
+    }
+
+    private String buildMethodFromTemplate(String methodTemplate, String actualReturnType,
+                                            MethodInfo methodInfo, List<String> codeLines) {
+        return methodTemplate
+                .replace("${return-type}", actualReturnType)
+                .replace("${method-name}", methodInfo.getMethodName())
+                .replace("${list-of-parameters}", formatParameterList(methodInfo))
+                .replace("${method-body}", formatCodeBody(codeLines));
+    }
+
+    private String formatParameterList(MethodInfo methodInfo) {
+        return methodInfo.getInputParameters().stream()
+                .map(variableElement -> {
+                    if (!variableElement.asType().toString().equals("T")) {
+                        return String.format("%s %s", variableElement.asType(), variableElement.getSimpleName());
+                    } else {
+                        return "model";
+                    }
+                })
+                .collect(Collectors.joining(", "));
+    }
+
+    private String formatCodeBody(List<String> codeLines) {
+        return codeLines.stream().collect(Collectors.joining(
+                "\n        ",
+                CommonConstant.EMPTY_STRING,
+                CommonConstant.EMPTY_STRING
+        ));
+    }
+
+    private void writeGeneratedClass(ProcessorClassInfo processorClassInfo, String repositoryTemplate, String methodsCode) throws IOException {
+        final var packageName = processingEnv.getElementUtils()
                 .getPackageOf(processorClassInfo.getClazz())
                 .getQualifiedName()
                 .toString();
@@ -289,680 +272,302 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 .replace("${package-name}", packageName)
                 .replace("${proxy-class-name}", className)
                 .replace("${interface-class-name}", processorClassInfo.getClazz().getSimpleName())
-                .replace("${methods}", MyStringUtils.removeSuffixOfString(methodCodeBody.toString(), "\n"));
+                .replace("${methods}", MyStringUtils.removeSuffixOfString(methodsCode, "\n"));
+
         String fullClassName = packageName + "." + className;
-        // processingEnv.getMessager().printMessage(
-        //         Diagnostic.Kind.NOTE,
-        //         vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": \n" +
-        //                 code
-        // );
         JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
         try (Writer writer = builderFile.openWriter()) {
             writer.write(code);
         }
     }
 
-    private void buildSaveModelMethodCodeBody(ArrayList<String> codeLines,
-                                              VariableElement contextVariable,
-                                              VariableElement sqlConnectionVariable,
-                                              TypeMirror entityTypeMirror) {
-        codeLines.add(
-                "final double startingTime = (double) java.lang.System.currentTimeMillis();"
-        );
-        codeLines.add(
-                "if (databaseName.equals(\"PostgreSQL\")) {"
-        );
-        codeLines.add(
-                String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"$\") + \" returning \" + %3$sUtils.idColumnName())",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror.toString())
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
-        );
-        codeLines.add("            .map(rowSet -> {");
-        codeLines.add("                for (io.vertx.sqlclient.Row row : rowSet) {");
-        codeLines.add("                    " + entityTypeMirror + "Utils.idRowExtract(row, model);");
-        codeLines.add("                }");
-        codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
-        codeLines.add("                return model;");
-        codeLines.add("            });");
-        codeLines.add(
-                "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
-        );
-        codeLines.add(
-                String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
-        );
-        codeLines.add("            .map(rowSet -> {");
-        codeLines.add("                " + entityTypeMirror + "Utils.mySqlIdRowExtract(rowSet, model);");
-        codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
-        codeLines.add("                return model;");
-        codeLines.add("            });");
-        codeLines.add(
-                "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
-        );
-        codeLines.add(
-                String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"@p\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
-        );
-        codeLines.add("            .map(rowSet -> {");
-        codeLines.add("                " + entityTypeMirror + "Utils.idRowExtract(rowSet.iterator().next(), model);");
-        codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
-        codeLines.add("                return model;");
-        codeLines.add("            });");
-        codeLines.add(
-                "} else if (databaseName.equals(\"Oracle\")) {"
-        );
-        codeLines.add(
-                String.format("    return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveInsertStatement(model, \"?\"), new io.vertx.oracleclient.OraclePrepareOptions().setAutoGeneratedKeysIndexes(new io.vertx.core.json.JsonArray().add(%3$sUtils.idColumnName())))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.insertTupleParam(model))", entityTypeMirror)
-        );
-        codeLines.add("            .map(rowSet -> {");
-        codeLines.add("                io.vertx.sqlclient.Row row = rowSet.property(io.vertx.oracleclient.OracleClient.GENERATED_KEYS);");
-        codeLines.add("                " + entityTypeMirror + "Utils.idRowExtract(row, model);");
-        codeLines.add("                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;");
-        codeLines.add("                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);");
-        codeLines.add("                return model;");
-        codeLines.add("            });");
-        codeLines.add(
-                "} else {"
-        );
-        codeLines.add(
-                "    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");"
-        );
-        codeLines.add(
-                "}"
-        );
+    // ========== CRUD Method Code Generation ==========
+
+    private void buildSaveMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
+                                          VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+        String contextVar = contextVariable.getSimpleName().toString();
+        String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
+        String entityType = entityTypeMirror.toString();
+
+        List<String> generatedCode = ReactiveCodeGenHelper.generateDatabaseSpecificCrudCode(
+                sqlConnVar, contextVar, entityType, ReactiveCodeGenHelper.CrudOperationType.INSERT);
+        codeLines.addAll(generatedCode);
     }
 
-    private void buildUpdateModelMethodCodeBody(ArrayList<String> codeLines,
-                                                VariableElement contextVariable,
-                                                VariableElement sqlConnectionVariable,
-                                                TypeMirror entityTypeMirror) {
-        codeLines.add(
-                "final double startingTime = (double) java.lang.System.currentTimeMillis();"
-        );
-        codeLines.add(
-                "if (databaseName.equals(\"PostgreSQL\")) {"
-        );
-        codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"$\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
-        );
-        codeLines.add(
-                "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
-        );
-        codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"?\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
-        );
-        codeLines.add(
-                "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
-        );
-        codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"@p\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
-        );
-        codeLines.add(
-                "} else if (databaseName.equals(\"Oracle\")) {"
-        );
-        codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveUpdateStatement(model, \"?\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.updateTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
-        );
-        codeLines.add(
-                "} else {"
-        );
-        codeLines.add(
-                "    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");"
-        );
-        codeLines.add(
-                "}"
-        );
-        codeLines.add(
-                "return future.map(it -> {"
-        );
-        codeLines.add(
-                "    final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-        );
-        codeLines.add(
-                "    vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-        );
-        codeLines.add(
-                "    return it;"
-        );
-        codeLines.add(
-                "});"
-        );
+    private void buildUpdateMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
+                                            VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+        String contextVar = contextVariable.getSimpleName().toString();
+        String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
+        String entityType = entityTypeMirror.toString();
+
+        List<String> generatedCode = ReactiveCodeGenHelper.generateDatabaseSpecificCrudCode(
+                sqlConnVar, contextVar, entityType, ReactiveCodeGenHelper.CrudOperationType.UPDATE);
+        codeLines.addAll(generatedCode);
     }
 
-    private void buildDeleteModelMethodCodeBody(ArrayList<String> codeLines,
-                                                VariableElement contextVariable,
-                                                VariableElement sqlConnectionVariable,
-                                                TypeMirror entityTypeMirror) {
-        codeLines.add(
-                "final double startingTime = (double) java.lang.System.currentTimeMillis();"
-        );
-        codeLines.add(
-                "if (databaseName.equals(\"PostgreSQL\")) {"
-        );
-        codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"$\") + \" returning \" + %3$sUtils.idColumnName())",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
-        );
-        codeLines.add(
-                "} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {"
-        );
-        codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"?\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
-        );
-        codeLines.add(
-                "} else if (databaseName.equals(\"Microsoft SQL Server\")) {"
-        );
-        codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"@p\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
-        );
-        codeLines.add(
-                "} else if (databaseName.equals(\"Oracle\")) {"
-        );
-        codeLines.add(
-                String.format("    future = vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(%3$sUtils.reactiveDeleteStatement(model, \"?\"))",
-                        sqlConnectionVariable.getSimpleName().toString(),
-                        contextVariable.getSimpleName().toString(),
-                        entityTypeMirror)
-        );
-        codeLines.add(
-                String.format("            .execute(%sUtils.deleteTupleParam(model)).map(io.vertx.sqlclient.SqlResult::rowCount);", entityTypeMirror)
-        );
-        codeLines.add(
-                "} else {"
-        );
-        codeLines.add(
-                "    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");"
-        );
-        codeLines.add(
-                "}"
-        );
-        codeLines.add(
-                "return future.map(it -> {"
-        );
-        codeLines.add(
-                "    final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-        );
-        codeLines.add(
-                "    vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-        );
-        codeLines.add(
-                "    return it;"
-        );
-        codeLines.add(
-                "});"
-        );
+    private void buildDeleteMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
+                                            VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+        String contextVar = contextVariable.getSimpleName().toString();
+        String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
+        String entityType = entityTypeMirror.toString();
+
+        List<String> generatedCode = ReactiveCodeGenHelper.generateDatabaseSpecificCrudCode(
+                sqlConnVar, contextVar, entityType, ReactiveCodeGenHelper.CrudOperationType.DELETE);
+        codeLines.addAll(generatedCode);
     }
 
-    private void buildQueryMethodCodeBody(ExecutableElement executableElement,
-                                          ArrayList<String> codeLines,
-                                          VariableElement contextVariable,
-                                          VariableElement sqlConnectionVariable,
-                                          List<VariableElement> actualParameters,
-                                          boolean isReturningList,
-                                          String futureOutputType) {
-        // final String queryStatement = executableElement.getAnnotation(Query.class).value().replace("\n", "\\n");
-        codeLines.add("final double startingTime = (double) java.lang.System.currentTimeMillis();");
+    // ========== Query Method Code Generation ==========
+
+    private void buildQueryMethodCodeBody(ExecutableElement executableElement, List<String> codeLines,
+                                           VariableElement contextVariable, VariableElement sqlConnectionVariable,
+                                           List<VariableElement> actualParameters, boolean isReturningList,
+                                           String futureOutputType) {
+        String contextVar = contextVariable.getSimpleName().toString();
+        String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
+
+        ReactiveCodeGenHelper.addStartingTimeCode(codeLines);
         codeLines.add("java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);");
-        codeLines.add("String placeholder;");
-        codeLines.add("if (databaseName.equals(\"PostgreSQL\")) {");
-        codeLines.add("    placeholder = \"$\";");
-        codeLines.add("} else if (databaseName.equals(\"MySQL\") || databaseName.equals(\"MariaDB\")) {");
-        codeLines.add("    placeholder = \"?\";");
-        codeLines.add("} else if (databaseName.equals(\"Microsoft SQL Server\")) {");
-        codeLines.add("    placeholder = \"@p\";");
-        codeLines.add("} else if (databaseName.equals(\"Oracle\")) {");
-        codeLines.add("    placeholder = \"?\";");
-        codeLines.add("} else {");
-        codeLines.add("    throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported database type\");");
-        codeLines.add("}");
+        ReactiveCodeGenHelper.addPlaceholderResolution(codeLines);
+
         if (lastParameterIsPageable(actualParameters)) {
-            codeLines.add("if (" + actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getEntityClass() == null) {");
-            codeLines.add("    " + actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".setEntityClass(${{class}}.class);");
+            String pageableParam = actualParameters.get(actualParameters.size() - 1).getSimpleName().toString();
+            codeLines.add(String.format("if (%s.getEntityClass() == null) {", pageableParam));
+            codeLines.add(String.format("    %s.setEntityClass(${{class}}.class);", pageableParam));
             codeLines.add("}");
         }
-        for (VariableElement actualParameter : actualParameters) {
-            if (actualParameter.asType().toString().contains("java.util.List")) {
-                codeLines.add("if (" + actualParameter.getSimpleName() + " == null || " + actualParameter.getSimpleName() + ".isEmpty()) {");
-                codeLines.add("    throw new java.lang.NullPointerException(\"" + actualParameter.getSimpleName() + "\");");
+
+        addParameterValidation(codeLines, actualParameters);
+
+        final var statement = executableElement.getAnnotation(Query.class);
+        final var finalStatementArray = processQueryStatement(statement.value(), actualParameters);
+        final String queryStatement = String.join(" ", finalStatementArray).replace("\n", "\\n\" +\n                        \"");
+
+        addQueryExecution(codeLines, sqlConnVar, contextVar, queryStatement, actualParameters);
+        addResultMapping(codeLines, contextVar, isReturningList, futureOutputType, finalStatementArray,
+                actualParameters, sqlConnVar);
+
+        codeLines.add("        });");
+    }
+
+    private void addParameterValidation(List<String> codeLines, List<VariableElement> actualParameters) {
+        for (VariableElement param : actualParameters) {
+            if (param.asType().toString().contains("java.util.List")) {
+                String paramName = param.getSimpleName().toString();
+                codeLines.add(String.format("if (%s == null || %s.isEmpty()) {", paramName, paramName));
+                codeLines.add(String.format("    throw new java.lang.NullPointerException(\"%s\");", paramName));
                 codeLines.add("}");
             }
         }
-        final var statement = executableElement.getAnnotation(Query.class);
-        final var statementArr = statement.value()
-                .replace(";", CommonConstant.EMPTY_STRING)
-                .split(" ");
+    }
+
+    private List<String> processQueryStatement(String statementValue, List<VariableElement> actualParameters) {
+        final var statementArr = statementValue.replace(";", CommonConstant.EMPTY_STRING).split(" ");
         var index = 0;
         final var finalStatementArray = new ArrayList<String>();
+
         for (int i = 0; i < statementArr.length; i++) {
             final var word = statementArr[i];
             if (word.startsWith("?")) {
-                if (statementArr[i - 1].equalsIgnoreCase("IN")) {
-                    finalStatementArray.add(
-                            word.replace(
-                                    "?",
-                                    String.format(
-                                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + " +
-                                                    "count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")",
-                                            actualParameters.get(index).getSimpleName()
-                                    )
-                            )
-                    );
+                if (i > 0 && statementArr[i - 1].equalsIgnoreCase("IN")) {
+                    finalStatementArray.add(word.replace("?", String.format(
+                            "(\" + %s.stream().map(it -> placeholder.equals(\"?\") ? \"?\" : placeholder + " +
+                                    "count.incrementAndGet()).collect(java.util.stream.Collectors.joining(\", \")) + \")",
+                            actualParameters.get(index).getSimpleName()
+                    )));
                 } else {
-                    finalStatementArray.add(
-                            word.replace("?", "\" + placeholder + (placeholder.equals(\"?\") ? \"\" : count.incrementAndGet()) + \"")
-                    );
+                    finalStatementArray.add(word.replace("?", "\" + placeholder + (placeholder.equals(\"?\") ? \"\" : count.incrementAndGet()) + \""));
                 }
-                index = index + 1;
+                index++;
             } else {
                 finalStatementArray.add(word);
             }
         }
-        final String queryStatement = String.join(" ", finalStatementArray).replace("\n", "\\n\" +\n                        \"");
+        return finalStatementArray;
+    }
+
+    private void addQueryExecution(List<String> codeLines, String sqlConnVar, String contextVar,
+                                    String queryStatement, List<VariableElement> actualParameters) {
         if (lastParameterIsPageable(actualParameters)) {
-            codeLines.add(
-                    String.format("return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\" + %4$s)",
-                            sqlConnectionVariable.getSimpleName().toString(),
-                            contextVariable.getSimpleName().toString(),
-                            queryStatement,
-                            actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".toSql()")
-            );
+            String pageableParam = actualParameters.get(actualParameters.size() - 1).getSimpleName().toString();
+            codeLines.add(String.format(
+                    "return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%s, %s).preparedQuery(\"%s\" + %s)",
+                    sqlConnVar, contextVar, queryStatement, pageableParam + ".toSql()"));
         } else {
-            codeLines.add(
-                    String.format("return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\")",
-                            sqlConnectionVariable.getSimpleName().toString(),
-                            contextVariable.getSimpleName().toString(),
-                            queryStatement)
-            );
+            codeLines.add(String.format(
+                    "return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%s, %s).preparedQuery(\"%s\")",
+                    sqlConnVar, contextVar, queryStatement));
         }
-        if (actualParameters.isEmpty()) {
-            codeLines.add(
-                    "        .execute()"
-            );
+
+        if (actualParameters.isEmpty() || (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1)) {
+            codeLines.add("        .execute()");
         } else {
-            if (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1) {
-                codeLines.add(
-                        "        .execute()"
-                );
-            } else {
-                codeLines.add(
-                        String.format(
-                                "        .execute(io.vertx.sqlclient.Tuple.of(%s))",
-                                actualParameters.stream().filter(it -> !isPageable(it)).map(
-                                        VariableElement::getSimpleName
-                                ).collect(Collectors.joining(", "))
-                        )
-                );
-            }
+            String paramList = actualParameters.stream()
+                    .filter(it -> !isPageable(it))
+                    .map(VariableElement::getSimpleName)
+                    .collect(Collectors.joining(", "));
+            codeLines.add(String.format("        .execute(io.vertx.sqlclient.Tuple.of(%s))", paramList));
         }
-        codeLines.add(
-                "        .map(rowSet -> {"
-        );
+
+        codeLines.add("        .map(rowSet -> {");
+    }
+
+    private void addResultMapping(List<String> codeLines, String contextVar, boolean isReturningList,
+                                   String futureOutputType, List<String> finalStatementArray,
+                                   List<VariableElement> actualParameters, String sqlConnVar) {
         if (isReturningList || lastParameterIsPageable(actualParameters)) {
-            String genericTypeOfList;
-            if (isReturningList) {
-                genericTypeOfList = MyStringUtils
-                        .removeSuffixOfString(
-                                MyStringUtils.removePrefixOfString(futureOutputType, "java.util.List<"),
-                                ">"
-                        );
-            } else {
-                genericTypeOfList = MyStringUtils
-                        .removeSuffixOfString(
-                                MyStringUtils.removePrefixOfString(futureOutputType, "vn.com.lcx.common.database.pageable.Page<"),
-                                ">"
-                        );
-            }
-            codeLines.replaceAll(s -> s.replace("${{class}}", genericTypeOfList));
-            codeLines.add(
-                    "            final java.util.List<" + genericTypeOfList + "> result = new java.util.ArrayList<>();"
-            );
-            codeLines.add(
-                    "            for (io.vertx.sqlclient.Row row : rowSet) {"
-            );
-            codeLines.add(
-                    "                result.add(" + genericTypeOfList + "Utils.vertxRowMapping(row));"
-            );
-            codeLines.add(
-                    "            }"
-            );
-            codeLines.add(
-                    "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-            );
-            codeLines.add(
-                    "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-            );
-            codeLines.add(
-                    "            return result;"
-            );
-            if (lastParameterIsPageable(actualParameters) && !isReturningList) {
-                final var countStatementArray = new ArrayList<String>();
-                final var subListFromKeyword = subListFromKeyword(
-                        finalStatementArray,
-                        "from"
-                );
-                subListFromKeyword.set(0, "FROM");
-                countStatementArray.add("SELECT COUNT(1)");
-                countStatementArray.addAll(subListFromKeyword);
-                final String countStatement = String.join(" ", countStatementArray).replace("\n", "\\n\" +\n                        \"");
-                codeLines.add(
-                        "        }).compose(rs -> {"
-                );
-                codeLines.add(
-                        String.format("            return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%1$s, %2$s).preparedQuery(\"%3$s\")",
-                                sqlConnectionVariable.getSimpleName().toString(),
-                                contextVariable.getSimpleName().toString(),
-                                countStatement)
-                );
-                if (actualParameters.isEmpty() || (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1)) {
-                    codeLines.add(
-                            "                    .execute()"
-                    );
-                } else {
-                    codeLines.add(
-                            String.format(
-                                    "                    .execute(io.vertx.sqlclient.Tuple.of(%s))",
-                                    actualParameters.stream().filter(it -> !isPageable(it)).map(
-                                            VariableElement::getSimpleName
-                                    ).collect(Collectors.joining(", "))
-                            )
-                    );
-                }
-                codeLines.add(
-                        "                    .map(rowSet -> {"
-                );
-                codeLines.add(
-                        "                        long countRs = 0L;"
-                );
-                codeLines.add(
-                        "                        for (io.vertx.sqlclient.Row row : rowSet) {"
-                );
-                codeLines.add(
-                        "                            countRs = countRs + row.getLong(0);"
-                );
-                codeLines.add(
-                        "                            break;"
-                );
-                codeLines.add(
-                        "                        }"
-                );
-                codeLines.add(
-                        "                        return vn.com.lcx.common.database.pageable.Page.create(rs, countRs, " +
-                                actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getPageNumber(), " +
-                                actualParameters.get(actualParameters.size() - 1).getSimpleName() + ".getPageSize());"
-                );
-                codeLines.add(
-                        "                    });"
-                );
-            }
+            addListResultMapping(codeLines, contextVar, isReturningList, futureOutputType,
+                    finalStatementArray, actualParameters, sqlConnVar);
         } else {
-            final boolean isOptional = futureOutputType.startsWith("java.util.Optional");
-            final String genericType;
-            if (isOptional) {
-                genericType = MyStringUtils
-                        .removeSuffixOfString(
-                                MyStringUtils.removePrefixOfString(futureOutputType, "java.util.Optional<"),
-                                ">"
-                        );
-            } else {
-                genericType = futureOutputType;
-            }
-            switch (genericType) {
-                case "java.lang.Long":
-                    if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
-                            finalStatementArray.get(0).toLowerCase().startsWith("insert") ||
-                            finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
-                        codeLines.add(
-                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                        );
-                        codeLines.add(
-                                "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-                        );
-                        codeLines.add(
-                                "            return (long) rowSet.rowCount();"
-                        );
-                    } else {
-                        codeLines.add(
-                                "            long result = 0;"
-                        );
-                        codeLines.add(
-                                "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                        );
-                        codeLines.add(
-                                "                result += row.getLong(0);"
-                        );
-                        codeLines.add(
-                                "            }"
-                        );
-                        codeLines.add(
-                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                        );
-                        codeLines.add(
-                                "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-                        );
-                        codeLines.add(
-                                "            return result;"
-                        );
-                    }
-                    break;
-                case "java.lang.Integer":
-                    if (finalStatementArray.get(0).toLowerCase().startsWith("update") ||
-                            finalStatementArray.get(0).toLowerCase().startsWith("insert") ||
-                            finalStatementArray.get(0).toLowerCase().startsWith("delete")) {
-                        codeLines.add(
-                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                        );
-                        codeLines.add(
-                                "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-                        );
-                        codeLines.add(
-                                "            return rowSet.rowCount();"
-                        );
-                    } else {
-                        codeLines.add(
-                                "            int result = 0;"
-                        );
-                        codeLines.add(
-                                "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                        );
-                        codeLines.add(
-                                "                result += row.getInteger(0);"
-                        );
-                        codeLines.add(
-                                "            }"
-                        );
-                        codeLines.add(
-                                "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                        );
-                        codeLines.add(
-                                "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-                        );
-                        codeLines.add(
-                                "            return result;"
-                        );
-                    }
-                    break;
-                case "java.lang.Object[]":
-                    codeLines.add(
-                            "            java.util.List<java.lang.Object> objects = new java.util.ArrayList<>();"
-                    );
-                    codeLines.add(
-                            "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                    );
-                    codeLines.add(
-                            "                for (int i = 0; i < row.size(); i++) {"
-                    );
-                    codeLines.add(
-                            "                    objects.add(row.getValue(i));"
-                    );
-                    codeLines.add(
-                            "                }"
-                    );
-                    codeLines.add(
-                            "            }"
-                    );
-                    codeLines.add(
-                            "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                    );
-                    codeLines.add(
-                            "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-                    );
-                    codeLines.add(
-                            "            return objects.toArray(java.lang.Object[]::new);"
-                    );
-                    break;
-                default:
-                    codeLines.replaceAll(s -> s.replace("${{class}}", genericType));
-                    codeLines.add(
-                            "            if (rowSet.size() == 0) {"
-                    );
-                    codeLines.add(
-                            "                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                    );
-                    codeLines.add(
-                            "                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-                    );
-
-                    if (isOptional) {
-                        codeLines.add(
-                                "                return java.util.Optional.empty();"
-                        );
-                    } else {
-                        codeLines.add(
-                                "                return null;"
-                        );
-                    }
-                    codeLines.add(
-                            "            }"
-                    );
-                    codeLines.add(
-                            "            if (rowSet.size() > 1) {"
-                    );
-                    codeLines.add(
-                            "                final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                    );
-                    codeLines.add(
-                            "                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-                    );
-                    codeLines.add(
-                            "                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();"
-                    );
-                    codeLines.add(
-                            "            }"
-                    );
-                    codeLines.add(
-                            "            final java.util.List<" + genericType + "> result = new java.util.ArrayList<>();"
-                    );
-                    codeLines.add(
-                            "            for (io.vertx.sqlclient.Row row : rowSet) {"
-                    );
-                    codeLines.add(
-                            "                result.add(" + genericType + "Utils.vertxRowMapping(row));"
-                    );
-                    codeLines.add(
-                            "            }"
-                    );
-                    codeLines.add(
-                            "            final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;"
-                    );
-                    codeLines.add(
-                            "            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), " + contextVariable.getSimpleName() + ", vn.com.lcx.common.utils.LogUtils.Level.TRACE, \"Executed SQL in {} ms\", duration);"
-                    );
-                    if (isOptional) {
-                        codeLines.add(
-                                "            return java.util.Optional.of(result.get(0));"
-                        );
-                    } else {
-                        codeLines.add(
-                                "            return result.isEmpty() ? null : result.get(0);"
-                        );
-                    }
-                    break;
-            }
+            addSingleResultMapping(codeLines, contextVar, futureOutputType, finalStatementArray);
         }
-        codeLines.add(
-                "        });"
-        );
     }
 
-    @SuppressWarnings("ALL")
-    private void buildCustomQueryMethodCodeBody(MethodInfo methodInfo,
-                                                ExecutableElement executableElement,
-                                                ArrayList<String> codeLines,
-                                                VariableElement contextVariable,
-                                                VariableElement sqlConnectionVariable,
-                                                TypeMirror entityTypeMirror,
-                                                List<VariableElement> actualParameters,
-                                                boolean isReturningList,
-                                                String futureOutputType) {
-        codeLines.clear();
-        codeLines.add("throw new vn.com.lcx.jpa.exception.CodeGenError(\"Unsupported method. " +
-                "The generator of this type of method were removed, " +
-                "please define method with @vn.com.lcx.reactive.annotation.Query and provide a SQL statement\");");
+    private void addListResultMapping(List<String> codeLines, String contextVar, boolean isReturningList,
+                                       String futureOutputType, List<String> finalStatementArray,
+                                       List<VariableElement> actualParameters, String sqlConnVar) {
+        String genericTypeOfList;
+        if (isReturningList) {
+            genericTypeOfList = MyStringUtils.removeSuffixOfString(
+                    MyStringUtils.removePrefixOfString(futureOutputType, "java.util.List<"), ">");
+        } else {
+            genericTypeOfList = MyStringUtils.removeSuffixOfString(
+                    MyStringUtils.removePrefixOfString(futureOutputType, "vn.com.lcx.common.database.pageable.Page<"), ">");
+        }
+
+        codeLines.replaceAll(s -> s.replace("${{class}}", genericTypeOfList));
+        codeLines.add(String.format("            final java.util.List<%s> result = new java.util.ArrayList<>();", genericTypeOfList));
+        codeLines.add("            for (io.vertx.sqlclient.Row row : rowSet) {");
+        codeLines.add(String.format("                result.add(%sUtils.vertxRowMapping(row));", genericTypeOfList));
+        codeLines.add("            }");
+        ReactiveCodeGenHelper.addDurationLogging(codeLines, contextVar, 12);
+        codeLines.add("            return result;");
+
+        if (lastParameterIsPageable(actualParameters) && !isReturningList) {
+            addPageableCountQuery(codeLines, sqlConnVar, contextVar, finalStatementArray, actualParameters);
+        }
     }
+
+    private void addPageableCountQuery(List<String> codeLines, String sqlConnVar, String contextVar,
+                                        List<String> finalStatementArray, List<VariableElement> actualParameters) {
+        final var countStatementArray = new ArrayList<String>();
+        final var subListFromKeyword = ReactiveCodeGenHelper.subListFromKeyword(finalStatementArray, "from");
+        if (!subListFromKeyword.isEmpty()) {
+            subListFromKeyword.set(0, "FROM");
+        }
+        countStatementArray.add("SELECT COUNT(1)");
+        countStatementArray.addAll(subListFromKeyword);
+        final String countStatement = String.join(" ", countStatementArray).replace("\n", "\\n\" +\n                        \"");
+
+        String pageableParam = actualParameters.get(actualParameters.size() - 1).getSimpleName().toString();
+
+        codeLines.add("        }).compose(rs -> {");
+        codeLines.add(String.format(
+                "            return vn.com.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%s, %s).preparedQuery(\"%s\")",
+                sqlConnVar, contextVar, countStatement));
+
+        if (actualParameters.isEmpty() || (lastParameterIsPageable(actualParameters) && actualParameters.size() == 1)) {
+            codeLines.add("                    .execute()");
+        } else {
+            String paramList = actualParameters.stream()
+                    .filter(it -> !isPageable(it))
+                    .map(VariableElement::getSimpleName)
+                    .collect(Collectors.joining(", "));
+            codeLines.add(String.format("                    .execute(io.vertx.sqlclient.Tuple.of(%s))", paramList));
+        }
+
+        codeLines.add("                    .map(rowSet -> {");
+        codeLines.add("                        long countRs = 0L;");
+        codeLines.add("                        for (io.vertx.sqlclient.Row row : rowSet) {");
+        codeLines.add("                            countRs = countRs + row.getLong(0);");
+        codeLines.add("                            break;");
+        codeLines.add("                        }");
+        codeLines.add(String.format(
+                "                        return vn.com.lcx.common.database.pageable.Page.create(rs, countRs, %s.getPageNumber(), %s.getPageSize());",
+                pageableParam, pageableParam));
+        codeLines.add("                    });");
+    }
+
+    private void addSingleResultMapping(List<String> codeLines, String contextVar,
+                                         String futureOutputType, List<String> finalStatementArray) {
+        final boolean isOptional = futureOutputType.startsWith("java.util.Optional");
+        final String genericType = isOptional
+                ? MyStringUtils.removeSuffixOfString(MyStringUtils.removePrefixOfString(futureOutputType, "java.util.Optional<"), ">")
+                : futureOutputType;
+
+        switch (genericType) {
+            case "java.lang.Long":
+                addNumericResultMapping(codeLines, contextVar, finalStatementArray, "Long", "(long) rowSet.rowCount()");
+                break;
+            case "java.lang.Integer":
+                addNumericResultMapping(codeLines, contextVar, finalStatementArray, "Integer", "rowSet.rowCount()");
+                break;
+            case "java.lang.Object[]":
+                addObjectArrayResultMapping(codeLines, contextVar);
+                break;
+            default:
+                addEntityResultMapping(codeLines, contextVar, genericType, isOptional);
+                break;
+        }
+    }
+
+    private void addNumericResultMapping(List<String> codeLines, String contextVar,
+                                          List<String> finalStatementArray, String type, String rowCountExpr) {
+        if (isModifyingQuery(finalStatementArray)) {
+            ReactiveCodeGenHelper.addDurationLogging(codeLines, contextVar, 12);
+            codeLines.add(String.format("            return %s;", rowCountExpr));
+        } else {
+            String resultType = type.equals("Long") ? "long" : "int";
+            String getMethod = type.equals("Long") ? "getLong" : "getInteger";
+            codeLines.add(String.format("            %s result = 0;", resultType));
+            codeLines.add("            for (io.vertx.sqlclient.Row row : rowSet) {");
+            codeLines.add(String.format("                result += row.%s(0);", getMethod));
+            codeLines.add("            }");
+            ReactiveCodeGenHelper.addDurationLogging(codeLines, contextVar, 12);
+            codeLines.add("            return result;");
+        }
+    }
+
+    private boolean isModifyingQuery(List<String> statementArray) {
+        if (statementArray.isEmpty()) return false;
+        String firstWord = statementArray.get(0).toLowerCase();
+        return firstWord.startsWith("update") || firstWord.startsWith("insert") || firstWord.startsWith("delete");
+    }
+
+    private void addObjectArrayResultMapping(List<String> codeLines, String contextVar) {
+        codeLines.add("            java.util.List<java.lang.Object> objects = new java.util.ArrayList<>();");
+        codeLines.add("            for (io.vertx.sqlclient.Row row : rowSet) {");
+        codeLines.add("                for (int i = 0; i < row.size(); i++) {");
+        codeLines.add("                    objects.add(row.getValue(i));");
+        codeLines.add("                }");
+        codeLines.add("            }");
+        ReactiveCodeGenHelper.addDurationLogging(codeLines, contextVar, 12);
+        codeLines.add("            return objects.toArray(java.lang.Object[]::new);");
+    }
+
+    private void addEntityResultMapping(List<String> codeLines, String contextVar, String genericType, boolean isOptional) {
+        codeLines.replaceAll(s -> s.replace("${{class}}", genericType));
+
+        codeLines.add("            if (rowSet.size() == 0) {");
+        ReactiveCodeGenHelper.addDurationLogging(codeLines, contextVar, 16);
+        codeLines.add(isOptional ? "                return java.util.Optional.empty();" : "                return null;");
+        codeLines.add("            }");
+
+        codeLines.add("            if (rowSet.size() > 1) {");
+        ReactiveCodeGenHelper.addDurationLogging(codeLines, contextVar, 16);
+        codeLines.add("                throw new vn.com.lcx.reactive.exception.NonUniqueQueryResult();");
+        codeLines.add("            }");
+
+        codeLines.add(String.format("            final java.util.List<%s> result = new java.util.ArrayList<>();", genericType));
+        codeLines.add("            for (io.vertx.sqlclient.Row row : rowSet) {");
+        codeLines.add(String.format("                result.add(%sUtils.vertxRowMapping(row));", genericType));
+        codeLines.add("            }");
+        ReactiveCodeGenHelper.addDurationLogging(codeLines, contextVar, 12);
+        codeLines.add(isOptional
+                ? "            return java.util.Optional.of(result.get(0));"
+                : "            return result.isEmpty() ? null : result.get(0);");
+    }
+
+    // ========== Utility Methods ==========
 
     public boolean lastParameterIsPageable(List<VariableElement> actualParameters) {
         return !actualParameters.isEmpty() && isPageable(actualParameters.get(actualParameters.size() - 1));
@@ -977,5 +582,4 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                 ).asType()
         );
     }
-
 }
