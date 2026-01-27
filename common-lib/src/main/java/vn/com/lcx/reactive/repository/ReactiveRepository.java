@@ -62,6 +62,37 @@ public interface ReactiveRepository<T> {
     Future<Integer> delete(RoutingContext context, SqlConnection connection, T entity);
 
     /**
+     * Saves a list of entities to the database.
+     * Uses sequential execution to ensure each entity gets its generated ID.
+     *
+     * @param context    the Vert.x routing context, typically used for request-scoped data
+     * @param connection the SQL connection to use for the operation
+     * @param entities   the list of entities to save
+     * @return a {@link Future} that, when completed, contains the list of saved entities with generated IDs
+     */
+    Future<List<T>> saveAll(RoutingContext context, SqlConnection connection, List<T> entities);
+
+    /**
+     * Updates a list of entities in the database using batch execution.
+     *
+     * @param context    the Vert.x routing context, typically used for request-scoped data
+     * @param connection the SQL connection to use for the operation
+     * @param entities   the list of entities to update
+     * @return a {@link Future} that, when completed, contains the total number of rows updated
+     */
+    Future<Integer> updateAll(RoutingContext context, SqlConnection connection, List<T> entities);
+
+    /**
+     * Deletes a list of entities from the database using batch execution.
+     *
+     * @param context    the Vert.x routing context, typically used for request-scoped data
+     * @param connection the SQL connection to use for the operation
+     * @param entities   the list of entities to delete
+     * @return a {@link Future} that, when completed, contains the total number of rows deleted
+     */
+    Future<Integer> deleteAll(RoutingContext context, SqlConnection connection, List<T> entities);
+
+    /**
      * Executes a paginated SQL SELECT query and returns a {@link Page} of results.
      * <p>
      * The method:
