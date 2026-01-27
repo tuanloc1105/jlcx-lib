@@ -121,8 +121,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private String generateMethodCode(MethodInfo methodInfo, ExecutableElement executableElement,
-                                       TypeMirror entityTypeMirror, TypeElement entityTypeElement,
-                                       String methodTemplate) {
+                                      TypeMirror entityTypeMirror, TypeElement entityTypeElement,
+                                      String methodTemplate) {
         // Skip default interface methods - they have implementation in ReactiveRepository interface
         String methodName = methodInfo.getMethodName();
         if (methodName.equals("find") || methodName.equals("findOne") || methodName.equals("findFirst")) {
@@ -191,10 +191,10 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void generateMethodBody(MethodInfo methodInfo, ExecutableElement executableElement,
-                                     TypeMirror entityTypeMirror, TypeElement entityTypeElement,
-                                     List<String> codeLines, String futureOutputType, boolean isReturningList,
-                                     VariableElement contextVariable, VariableElement sqlConnectionVariable,
-                                     List<VariableElement> actualParameters) {
+                                    TypeMirror entityTypeMirror, TypeElement entityTypeElement,
+                                    List<String> codeLines, String futureOutputType, boolean isReturningList,
+                                    VariableElement contextVariable, VariableElement sqlConnectionVariable,
+                                    List<VariableElement> actualParameters) {
 
         codeLines.add(String.format("io.vertx.core.Future<%s> future;", futureOutputType));
 
@@ -222,6 +222,27 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
                     buildDeleteMethodCodeBody(codeLines, contextVariable, sqlConnectionVariable, entityTypeMirror);
                 }
                 break;
+            case "saveAll":
+                if (isReadOnly) {
+                    codeLines.add("return io.vertx.core.Future.succeededFuture(java.util.Collections.emptyList());");
+                } else {
+                    buildBatchSaveMethodCodeBody(codeLines, contextVariable, sqlConnectionVariable, entityTypeMirror);
+                }
+                break;
+            case "updateAll":
+                if (isReadOnly) {
+                    codeLines.add("return io.vertx.core.Future.succeededFuture(0);");
+                } else {
+                    buildBatchUpdateMethodCodeBody(codeLines, contextVariable, sqlConnectionVariable, entityTypeMirror);
+                }
+                break;
+            case "deleteAll":
+                if (isReadOnly) {
+                    codeLines.add("return io.vertx.core.Future.succeededFuture(0);");
+                } else {
+                    buildBatchDeleteMethodCodeBody(codeLines, contextVariable, sqlConnectionVariable, entityTypeMirror);
+                }
+                break;
             case "find":
             case "findOne":
             case "findFirst":
@@ -240,7 +261,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private String buildMethodFromTemplate(String methodTemplate, String actualReturnType,
-                                            MethodInfo methodInfo, List<String> codeLines, TypeMirror entityTypeMirror) {
+                                           MethodInfo methodInfo, List<String> codeLines, TypeMirror entityTypeMirror) {
         return methodTemplate
                 .replace("${return-type}", actualReturnType)
                 .replace("${method-name}", methodInfo.getMethodName())
@@ -251,10 +272,13 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     private String formatParameterList(MethodInfo methodInfo, TypeMirror entityTypeMirror) {
         return methodInfo.getInputParameters().stream()
                 .map(variableElement -> {
-                    if (!variableElement.asType().toString().equals("T")) {
-                        return String.format("%s %s", variableElement.asType(), variableElement.getSimpleName());
-                    } else {
+                    String paramType = variableElement.asType().toString();
+                    if (paramType.equals("T")) {
                         return entityTypeMirror.toString() + " model";
+                    } else if (paramType.equals("java.util.List<T>")) {
+                        return "java.util.List<" + entityTypeMirror.toString() + "> entities";
+                    } else {
+                        return String.format("%s %s", paramType, variableElement.getSimpleName());
                     }
                 })
                 .collect(Collectors.joining(", "));
@@ -290,7 +314,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     // ========== CRUD Method Code Generation ==========
 
     private void buildSaveMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
-                                          VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+                                         VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
         String contextVar = contextVariable.getSimpleName().toString();
         String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
         String entityType = entityTypeMirror.toString();
@@ -301,7 +325,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void buildUpdateMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
-                                            VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+                                           VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
         String contextVar = contextVariable.getSimpleName().toString();
         String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
         String entityType = entityTypeMirror.toString();
@@ -312,7 +336,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void buildDeleteMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
-                                            VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+                                           VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
         String contextVar = contextVariable.getSimpleName().toString();
         String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
         String entityType = entityTypeMirror.toString();
@@ -322,12 +346,47 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         codeLines.addAll(generatedCode);
     }
 
+    // ========== Batch CRUD Method Code Generation ==========
+
+    private void buildBatchSaveMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
+                                              VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+        String contextVar = contextVariable.getSimpleName().toString();
+        String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
+        String entityType = entityTypeMirror.toString();
+
+        List<String> generatedCode = ReactiveCodeGenHelper.generateBatchCrudCode(
+                sqlConnVar, contextVar, entityType, ReactiveCodeGenHelper.CrudOperationType.BATCH_INSERT);
+        codeLines.addAll(generatedCode);
+    }
+
+    private void buildBatchUpdateMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
+                                                VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+        String contextVar = contextVariable.getSimpleName().toString();
+        String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
+        String entityType = entityTypeMirror.toString();
+
+        List<String> generatedCode = ReactiveCodeGenHelper.generateBatchCrudCode(
+                sqlConnVar, contextVar, entityType, ReactiveCodeGenHelper.CrudOperationType.BATCH_UPDATE);
+        codeLines.addAll(generatedCode);
+    }
+
+    private void buildBatchDeleteMethodCodeBody(List<String> codeLines, VariableElement contextVariable,
+                                                VariableElement sqlConnectionVariable, TypeMirror entityTypeMirror) {
+        String contextVar = contextVariable.getSimpleName().toString();
+        String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
+        String entityType = entityTypeMirror.toString();
+
+        List<String> generatedCode = ReactiveCodeGenHelper.generateBatchCrudCode(
+                sqlConnVar, contextVar, entityType, ReactiveCodeGenHelper.CrudOperationType.BATCH_DELETE);
+        codeLines.addAll(generatedCode);
+    }
+
     // ========== Query Method Code Generation ==========
 
     private void buildQueryMethodCodeBody(ExecutableElement executableElement, List<String> codeLines,
-                                           VariableElement contextVariable, VariableElement sqlConnectionVariable,
-                                           List<VariableElement> actualParameters, boolean isReturningList,
-                                           String futureOutputType) {
+                                          VariableElement contextVariable, VariableElement sqlConnectionVariable,
+                                          List<VariableElement> actualParameters, boolean isReturningList,
+                                          String futureOutputType) {
         String contextVar = contextVariable.getSimpleName().toString();
         String sqlConnVar = sqlConnectionVariable.getSimpleName().toString();
 
@@ -392,7 +451,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void addQueryExecution(List<String> codeLines, String sqlConnVar, String contextVar,
-                                    String queryStatement, List<VariableElement> actualParameters) {
+                                   String queryStatement, List<VariableElement> actualParameters) {
         if (lastParameterIsPageable(actualParameters)) {
             String pageableParam = actualParameters.get(actualParameters.size() - 1).getSimpleName().toString();
             codeLines.add(String.format(
@@ -418,8 +477,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void addResultMapping(List<String> codeLines, String contextVar, boolean isReturningList,
-                                   String futureOutputType, List<String> finalStatementArray,
-                                   List<VariableElement> actualParameters, String sqlConnVar) {
+                                  String futureOutputType, List<String> finalStatementArray,
+                                  List<VariableElement> actualParameters, String sqlConnVar) {
         if (isReturningList || lastParameterIsPageable(actualParameters)) {
             addListResultMapping(codeLines, contextVar, isReturningList, futureOutputType,
                     finalStatementArray, actualParameters, sqlConnVar);
@@ -429,8 +488,8 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void addListResultMapping(List<String> codeLines, String contextVar, boolean isReturningList,
-                                       String futureOutputType, List<String> finalStatementArray,
-                                       List<VariableElement> actualParameters, String sqlConnVar) {
+                                      String futureOutputType, List<String> finalStatementArray,
+                                      List<VariableElement> actualParameters, String sqlConnVar) {
         String genericTypeOfList;
         if (isReturningList) {
             genericTypeOfList = MyStringUtils.removeSuffixOfString(
@@ -454,7 +513,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void addPageableCountQuery(List<String> codeLines, String sqlConnVar, String contextVar,
-                                        List<String> finalStatementArray, List<VariableElement> actualParameters) {
+                                       List<String> finalStatementArray, List<VariableElement> actualParameters) {
         final var countStatementArray = new ArrayList<String>();
         final var subListFromKeyword = ReactiveCodeGenHelper.subListFromKeyword(finalStatementArray, "from");
         if (!subListFromKeyword.isEmpty()) {
@@ -494,7 +553,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void addSingleResultMapping(List<String> codeLines, String contextVar,
-                                         String futureOutputType, List<String> finalStatementArray) {
+                                        String futureOutputType, List<String> finalStatementArray) {
         final boolean isOptional = futureOutputType.startsWith("java.util.Optional");
         final String genericType = isOptional
                 ? MyStringUtils.removeSuffixOfString(MyStringUtils.removePrefixOfString(futureOutputType, "java.util.Optional<"), ">")
@@ -517,7 +576,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     }
 
     private void addNumericResultMapping(List<String> codeLines, String contextVar,
-                                          List<String> finalStatementArray, String type, String rowCountExpr) {
+                                         List<String> finalStatementArray, String type, String rowCountExpr) {
         if (isModifyingQuery(finalStatementArray)) {
             ReactiveCodeGenHelper.addDurationLogging(codeLines, contextVar, 12);
             codeLines.add(String.format("            return %s;", rowCountExpr));
