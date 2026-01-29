@@ -30,15 +30,37 @@ jlcx-lib is an opinionated toolkit for building reactive Java services on Vert.x
 - Maven 3.9 or newer
 - (Optional) Node.js for the web assets in `examples/todo-app-example/web`
 
-## Quick start
+## Installation
 
-Clone the repository and build all modules:
+To use `jlcx-lib`, you need to pull the source code and build it locally.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/tuanloc1105/jlcx-lib.git
+cd jlcx-lib
+```
+
+### 2. Build and Install
+
+Build the project to install the artifacts into your local Maven repository:
 
 ```bash
 mvn clean install
 ```
 
-Helper scripts are available if you prefer: `./build.sh`, `./clean.sh` (or the PowerShell equivalents on Windows). Scripts assume `JAVA_HOME` and `MAVEN_HOME` under `$HOME/dev-kit` on Bash, or `DEV_KIT_LOCATION` on PowerShell; override those variables if your tooling lives elsewhere.
+Alternatively, you can use the provided helper scripts:
+
+- **Linux/macOS:**
+  ```bash
+  ./build.sh
+  ```
+- **Windows (PowerShell):**
+  ```powershell
+  .\build.ps1
+  ```
+
+> **Note:** The helper scripts assume `JAVA_HOME` and `MAVEN_HOME` are located under `$HOME/dev-kit` (Bash) or define `DEV_KIT_LOCATION` (PowerShell). Override these variables in the scripts if your environment differs.
 
 ## Use in your Maven project
 
