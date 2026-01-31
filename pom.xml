@@ -14,7 +14,7 @@
         <!--suppress CheckTagEmptyBody -->
         <main.class></main.class>
 
-        <logback-classic-ch.qos.logback.version>1.5.26</logback-classic-ch.qos.logback.version>
+        <logback-classic-ch.qos.logback.version>1.5.27</logback-classic-ch.qos.logback.version>
         <slf4j-api-org.slf4j.version>2.0.17</slf4j-api-org.slf4j.version>
         <commons-text-org.apache.commons.version>1.15.0</commons-text-org.apache.commons.version>
         <commons-lang3-org.apache.commons.version>3.20.0</commons-lang3-org.apache.commons.version>
@@ -22,7 +22,7 @@
         <lombok-org.projectlombok.version>1.18.42</lombok-org.projectlombok.version>
         <ojdbc11-com.oracle.database.jdbc.version>23.26.0.0.0</ojdbc11-com.oracle.database.jdbc.version>
         <postgresql-org.postgresql.version>42.7.9</postgresql-org.postgresql.version>
-        <mysql-connector-j-com.mysql.version>9.5.0</mysql-connector-j-com.mysql.version>
+        <mysql-connector-j-com.mysql.version>9.6.0</mysql-connector-j-com.mysql.version>
         <mssql-jdbc-com.microsoft.sqlserver.version>13.2.1.jre11</mssql-jdbc-com.microsoft.sqlserver.version>
         <gson-com.google.code.gson.version>2.13.2</gson-com.google.code.gson.version>
         <jakarta.xml.bind-api-jakarta.xml.bind.version>4.0.4</jakarta.xml.bind-api-jakarta.xml.bind.version>
@@ -80,8 +80,8 @@
         <grpc-netty-shaded-io.grpc.version>1.78.0</grpc-netty-shaded-io.grpc.version>
         <grpc-protobuf-io.grpc.version>1.78.0</grpc-protobuf-io.grpc.version>
         <grpc-stub-io.grpc.version>1.78.0</grpc-stub-io.grpc.version>
-        <protobuf-java-com.google.protobuf.version>4.33.4</protobuf-java-com.google.protobuf.version>
-        <protobuf-java-util-com.google.protobuf.version>4.33.4</protobuf-java-util-com.google.protobuf.version>
+        <protobuf-java-com.google.protobuf.version>4.33.5</protobuf-java-com.google.protobuf.version>
+        <protobuf-java-util-com.google.protobuf.version>4.33.5</protobuf-java-util-com.google.protobuf.version>
         <junit-jupiter-api-org.junit.jupiter.version>6.0.2</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>6.0.2</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>6.0.2</junit-jupiter-params-org.junit.jupiter.version>
