@@ -29,6 +29,7 @@ public final class BuildObjectMapper {
             {
                 findAndRegisterModules();
                 configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                disable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
                 setDefaultPropertyInclusion(JsonInclude.Include.ALWAYS);
             }
         };
