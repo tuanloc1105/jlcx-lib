@@ -330,22 +330,12 @@ public class ReactiveDbClientConfiguration {
         ) {
             return null;
         }
-        Pool pool = null;
-        switch (type) {
-            case POSTGRESQL:
-                pool = createPg(port, host, name, username, password, maxPoolSize, type);
-                break;
-            case MYSQL:
-                pool = createMySql(port, host, name, username, password, maxPoolSize, type);
-                break;
-            case MSSQL:
-                pool = createMssql(port, host, name, username, password, maxPoolSize, type);
-                break;
-            case ORACLE:
-                pool = createOracle(port, host, name, username, password, maxPoolSize, type);
-                break;
-        }
-        return pool;
+        return switch (type) {
+            case POSTGRESQL -> createPg(port, host, name, username, password, maxPoolSize, type);
+            case MYSQL -> createMySql(port, host, name, username, password, maxPoolSize, type);
+            case MSSQL -> createMssql(port, host, name, username, password, maxPoolSize, type);
+            case ORACLE -> createOracle(port, host, name, username, password, maxPoolSize, type);
+        };
     }
 
     public void refreshConnection(Supplier<Future<Void>> handler) {
