@@ -139,7 +139,7 @@ public class HibernateConfiguration {
             registry = registryBuilder.build();
             MetadataSources sources = new MetadataSources(registry);
             if (StringUtils.isBlank(entityPackage)) {
-                for (Class<?> entity : ClassPool.ENTITIES) {
+                for (Class<?> entity : ClassPool.getEntities()) {
                     sources.addAnnotatedClass(entity);
                     entitiesClassNames.add(entity.getName());
                 }

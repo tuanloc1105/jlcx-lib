@@ -51,7 +51,7 @@ public class ReactiveHibernateConfiguration {
         registryBuilder.applySettings(settings);
         registryBuilder.addService(VertxInstance.class, (VertxInstance) () -> vertx);
         MetadataSources metadataSources = new MetadataSources(registryBuilder.build());
-        for (Class<?> entity : ClassPool.ENTITIES) {
+        for (Class<?> entity : ClassPool.getEntities()) {
             metadataSources.addAnnotatedClass(entity);
         }
         Metadata metadata = metadataSources.buildMetadata();

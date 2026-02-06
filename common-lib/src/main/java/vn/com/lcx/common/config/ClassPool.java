@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -42,17 +43,23 @@ import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 
 public class ClassPool {
 
-    public static final List<Class<?>> ENTITIES = new ArrayList<>();
+    private static final List<Class<?>> ENTITIES = new ArrayList<>();
     private static final ConcurrentHashMap<String, Object> CLASS_POOL = new ConcurrentHashMap<>();
 
+    public static List<Class<?>> getEntities() {
+        return Collections.unmodifiableList(ENTITIES);
+    }
+
     public static void init(final List<String> packagesToScan, final List<Class<?>> verticleClass) {
-        packagesToScan.add("vn.com.lcx");
+        final var allPackagesToScan = new ArrayList<>(packagesToScan);
+        allPackagesToScan.add("vn.com.lcx");
         try {
             final List<Class<?>> listOfClassInPackage = new ArrayList<>();
-            packagesToScan.forEach(packageName -> {
+            allPackagesToScan.forEach(packageName -> {
                 try {
                     listOfClassInPackage.addAll(PackageScanner.findClasses(packageName));
-                } catch (Exception ignore) {
+                } catch (Exception e) {
+                    LogUtils.writeLog(ClassPool.class, LogUtils.Level.WARN, "Failed to scan package: {}", packageName);
                 }
             });
 
@@ -97,7 +104,7 @@ public class ClassPool {
                 }
                 final var componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
-                    final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
+                    final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).toList();
                     if (fieldsOfComponent.isEmpty()) {
                         LogUtils.writeLog(ClassPool.class, LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor().newInstance();
@@ -111,15 +118,11 @@ public class ClassPool {
                 }
             }
 
-            var count = 0;
-            final var limit = 1;
-            while (postHandleComponent.size() != handledPostHandleComponent.size()) {
-                if (limit == count) {
-                    break;
-                }
-                boolean aClassHasNotBeenAddedToPool = true;
+            boolean progress = true;
+            while (progress && postHandleComponent.size() != handledPostHandleComponent.size()) {
+                progress = false;
                 for (Class<?> aClass : postHandleComponent) {
-                    if (handledPostHandleComponent.stream().anyMatch(c -> c.isAssignableFrom(aClass))) {
+                    if (handledPostHandleComponent.contains(aClass)) {
                         continue;
                     }
                     if (aClass.getDeclaredConstructors().length > 1) {
@@ -131,10 +134,9 @@ public class ClassPool {
                             .collect(Collectors.toCollection(ArrayList::new));
                     final var fields = new ArrayList<Field>();
                     getFieldsOfClass(fields, aClass);
-                    // final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
                     final var fieldsOfComponent = fields.stream()
                             .filter(f -> constructorParamsList.contains(f.getType().getName()))
-                            .collect(Collectors.toList());
+                            .toList();
                     final Object[] args = fieldsOfComponent
                             .stream()
                             .map(ClassPool::getInstanceOfField)
@@ -147,22 +149,17 @@ public class ClassPool {
                             setInstance(instance);
                         }
                         handledPostHandleComponent.add(aClass);
-                        aClassHasNotBeenAddedToPool = false;
+                        progress = true;
                     }
                 }
-                if (aClassHasNotBeenAddedToPool) {
-                    ++count;
-                } else {
-                    --count;
-                }
             }
-            if (limit == count && postHandleComponent.size() != handledPostHandleComponent.size()) {
+            if (postHandleComponent.size() != handledPostHandleComponent.size()) {
                 final var message = new StringBuilder("[");
                 for (Class<?> aClass : postHandleComponent) {
-                    if (handledPostHandleComponent.stream().noneMatch(handledClass -> handledClass.isAssignableFrom(aClass))) {
+                    if (!handledPostHandleComponent.contains(aClass)) {
                         final var fields = new ArrayList<Field>();
                         getFieldsOfClass(fields, aClass);
-                        final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+                        final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).toList();
                         final var fieldNotCreated = fieldsOfComponent.stream()
                                 .filter(
                                         field ->
@@ -191,7 +188,7 @@ public class ClassPool {
     public static void createInstancesAndHandlePostConstructMethod(Class<?> aClass, Object instance) throws Exception {
         final var methodsOfInstance = Arrays.stream(
                 aClass.getDeclaredMethods()
-        ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
+        ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).toList();
         if (!methodsOfInstance.isEmpty()) {
             for (Method method : methodsOfInstance) {
                 final var instanceMethodResult = method.invoke(instance);
@@ -213,7 +210,7 @@ public class ClassPool {
         final var postConstructMethods = Arrays
                 .stream(aClass.getDeclaredMethods())
                 .filter(m -> m.getAnnotation(PostConstruct.class) != null)
-                .collect(Collectors.toList());
+                .toList();
         final var hasMoreThanOnePostConstructMethod = postConstructMethods.size() > 1;
         if (hasMoreThanOnePostConstructMethod) {
             throw new RuntimeException(
@@ -297,15 +294,13 @@ public class ClassPool {
     }
 
     private static void set(String name, Object instance) {
-        if (CLASS_POOL.get(name) == null) {
-            CLASS_POOL.put(name, instance);
+        if (CLASS_POOL.putIfAbsent(name, instance) == null) {
             return;
         }
         int count = 1;
-        while (CLASS_POOL.get(name + count) != null) {
+        while (CLASS_POOL.putIfAbsent(name + count, instance) != null) {
             count++;
         }
-        CLASS_POOL.put(name + count, instance);
     }
 
     public static void loadProperties() {
@@ -330,8 +325,11 @@ public class ClassPool {
             Object proxyInstance = proxyClass.getDeclaredConstructor(instance.getClass()).newInstance(instance);
             setInstance(proxyInstance);
             return true;
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException ignore) {
+        } catch (ClassNotFoundException ignore) {
+            // Expected - no proxy class exists
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            LogUtils.writeLog(ClassPool.class, LogUtils.Level.WARN, "Failed to create proxy for: {}", instance.getClass().getName());
         }
         return false;
     }
