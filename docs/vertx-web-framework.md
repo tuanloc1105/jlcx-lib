@@ -395,27 +395,136 @@ PageableResponse<TaskDTO> response = PageableResponse.create(
 
 ### ResponseEntity\<T\>
 
-Override HTTP status code:
+A generic response wrapper that lets you override the HTTP status code alongside any response
+payload. When `ReactiveController.handleResponse()` detects the return value is a
+`ResponseEntity`, it extracts the status and body before serialization — so the status you set
+here becomes the actual HTTP status code of the response.
+
+**Class structure:**
 
 ```java
+public class ResponseEntity<T> {
+    private int status;
+    private T response;
+}
+```
+
+**Constructors:**
+
+```java
+new ResponseEntity<>(201, dto)
+```
+
+**Static factory methods:**
+
+| Method                              | Status | Description                         |
+|-------------------------------------|--------|-------------------------------------|
+| `ResponseEntity.of(int, T)`        | custom | Create with any status and payload  |
+| `ResponseEntity.ok(T)`             | 200    | Shorthand for success               |
+| `ResponseEntity.badRequest(String)` | 400    | Bad request with error message      |
+| `ResponseEntity.internalServerError(String)` | 500 | Server error with message      |
+
+**How it works in the response pipeline:**
+
+In `ReactiveController.handleResponse()`, when the response object is a `ResponseEntity<?>`:
+
+1. The `status` field overrides the default HTTP status code
+2. The `response` field becomes the actual body to serialize
+3. If the inner `response` is a `CommonResponse`, the framework still populates `trace`,
+   `errorCode`, `errorDescription`, and `httpCode` automatically
+4. The resolved body is then serialized to JSON (via Gson or Jackson) and sent
+
+```java
+// Example: return 201 Created with a DTO body
 @Post(path = "/create")
 public Future<ResponseEntity<TaskDTO>> create(RoutingContext ctx, @RequestBody CreateTaskRequest req) {
     return taskService.create(req)
         .map(dto -> ResponseEntity.of(201, dto));
 }
-```
 
-Static factories: `ok(T)`, `badRequest(String)`, `internalServerError(String)`.
+// Example: return 200 OK shorthand
+@Get(path = "/:id")
+public Future<ResponseEntity<TaskDTO>> getById(RoutingContext ctx, @PathVariable String id) {
+    return taskService.findById(id)
+        .map(ResponseEntity::ok);
+}
+
+// Example: return 400 Bad Request
+@Post(path = "/validate")
+public Future<ResponseEntity<String>> validate(RoutingContext ctx, @RequestBody SomeRequest req) {
+    if (!isValid(req)) {
+        return Future.succeededFuture(ResponseEntity.badRequest("Invalid input"));
+    }
+    return Future.succeededFuture(ResponseEntity.ok("Valid"));
+}
+```
 
 ### FileEntity
 
-Stream a file as the response:
+Represents a file that should be streamed as the HTTP response instead of being serialized to
+JSON. When `ReactiveController` detects the response object is a `FileEntity`, it uses Vert.x's
+`sendFile()` to stream the file directly, bypassing JSON serialization entirely.
+
+**Class structure:**
 
 ```java
+public class FileEntity {
+    private final String filePath;        // absolute path to the file
+    private final boolean deleteAfterSend; // remove file after streaming completes
+}
+```
+
+**Constructors:**
+
+```java
+new FileEntity("/path/to/file.pdf")                // deleteAfterSend = false
+new FileEntity("/path/to/file.pdf", true)           // deleteAfterSend = true
+```
+
+**Builder pattern:**
+
+```java
+FileEntity file = FileEntity.builder()
+    .filePath("/tmp/report.pdf")
+    .deleteAfterSend(true)
+    .build();
+```
+
+**How it works in the response pipeline:**
+
+In `ReactiveController.returnResponse()`, when the response object is a `FileEntity`:
+
+1. Sets the HTTP status code, `Processed-Time`, and `Trace` headers
+2. Sets `Content-Type` to `application/octet-stream` if no `Content-Type` header was already set
+3. Streams the file using `response.sendFile(filePath)`
+4. On success, if `deleteAfterSend` is `true`, the file is deleted asynchronously using
+   `Files.deleteIfExists()` inside a Vert.x blocking executor
+5. On failure, an error is logged (level `ERROR`)
+
+**Response headers for file responses:**
+
+| Header          | Value                                          |
+|-----------------|------------------------------------------------|
+| `Content-Type`  | `application/octet-stream` (if not already set)|
+| `Processed-Time`| Current date-time (`yyyy-MM-dd HH:mm:ss.SSS`) |
+| `Trace`         | Trace ID from routing context                  |
+
+```java
+// Example: download a file
 @Get(path = "/download/:fileId")
 public Future<FileEntity> download(RoutingContext ctx, @PathVariable String fileId) {
     return fileService.resolve(fileId)
-        .map(path -> new FileEntity(path, true)); // deleteAfterSend=true
+        .map(path -> new FileEntity(path, true)); // auto-delete after send
+}
+
+// Example: using the builder
+@Get(path = "/export")
+public Future<FileEntity> export(RoutingContext ctx) {
+    return reportService.generateReport()
+        .map(path -> FileEntity.builder()
+            .filePath(path)
+            .deleteAfterSend(true)
+            .build());
 }
 ```
 
