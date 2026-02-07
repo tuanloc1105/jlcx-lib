@@ -327,6 +327,10 @@ ALTER TABLE public.tasks ADD CONSTRAINT FK_tasks_STATUS
 
 ## Compile-Time Code Generation (@SQLMapping)
 
+**Processor:** `vn.com.lcx.processor.SQLMappingProcessor`
+**Triggers on:** `@SQLMapping`
+**Generates:** `{ClassName}Utils` (static methods) and `{ClassName}MappingImpl` (instance methods)
+
 The `SQLMappingProcessor` generates two classes per entity annotated with `@SQLMapping`:
 
 ### \<Entity\>Utils (static methods)
@@ -386,6 +390,202 @@ methods. Registered in `EntityMappingContainer` for runtime lookup.
 | SQL Server  | `@pN`       | `INSERT INTO t (a) VALUES (@p1)`     |
 
 MSSQL also generates `OUTPUT INSERTED.<idColumn>` for reactive insert statements.
+
+---
+
+## Service Proxy Generation (@Service)
+
+**Processor:** `vn.com.lcx.processor.ServiceProcessor`
+**Triggers on:** `@Service`
+**Generates:** `{ClassName}Proxy` (e.g., `UserService` → `UserServiceProxy`)
+
+For each `@Service`-annotated class, generates a proxy class that wraps every public non-final,
+non-static, non-abstract method with JPA context management and transaction boundaries.
+
+**Generated proxy behavior per method:**
+
+```
+1. Check if this is the root call (JpaContext is empty)
+2. If root → open JpaContext
+3. If @Transactional → set transaction open, isolation level, mode
+4. Try:
+     Call actual.methodName(args)
+     If root → commit
+5. Catch specific @Transactional(onRollback = {...}) exceptions:
+     If root → rollback
+     Re-throw
+6. Catch other exceptions:
+     Re-throw InternalServiceException directly
+     Wrap others in RuntimeException
+7. Finally:
+     If root → commit, close, clearAll
+```
+
+**`@Transactional` attributes:**
+
+| Attribute    | Type       | Description                                              |
+|--------------|------------|----------------------------------------------------------|
+| `isolation`  | `int`      | Transaction isolation level                              |
+| `mode`       | `int`      | Transaction mode                                         |
+| `onRollback` | `Class[]`  | Exception types that trigger rollback                    |
+
+**Example:**
+
+```java
+@Service
+public class UserService {
+
+    @Transactional(onRollback = {InternalServiceException.class})
+    public UserDTO createUser(CreateUserRequest req) {
+        // Business logic — proxy handles transaction boundaries
+    }
+}
+```
+
+The DI container registers the proxy (`UserServiceProxy`) instead of the original class,
+so all callers automatically get transaction management.
+
+---
+
+## Repository Proxy Generation (@Repository)
+
+**Processor:** `vn.com.lcx.processor.RepositoryProcessor`
+**Triggers on:** `@Repository` (interface only, must extend `JpaRepository<E, ID>`)
+**Generates:** `{InterfaceName}Proxy` (e.g., `UserRepository` → `UserRepositoryProxy`)
+
+Generates concrete implementations for blocking JPA repository interfaces.
+
+**Built-in methods (auto-generated):**
+
+- `findById(ID)` — uses Hibernate `createQuery("FROM Entity WHERE idField = ?")`, returns
+  `Optional<E>`. The ID field is detected via `@Id` annotation on the entity.
+- `save`, `update`, `delete`, `find`, `findOne` — inherited from `JpaRepository` base
+  implementation
+
+**Custom method support:**
+
+Methods annotated with `@Query` get generated implementations:
+
+```java
+@Repository
+public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
+
+    @Query("FROM TaskEntity t WHERE t.status = ?1 AND t.priority > ?2")
+    List<TaskEntity> findByStatusAndPriority(@Param("status") String status,
+                                              @Param("priority") int priority);
+
+    @Query(value = "SELECT * FROM tasks WHERE category = ?1", isNative = true)
+    @ResultSetMapping(name = "TaskEntityMapping")
+    List<TaskEntity> findByCategory(String category);
+
+    @Modifying
+    @Query("UPDATE TaskEntity t SET t.status = ?2 WHERE t.id = ?1")
+    int updateStatus(Long id, String status);
+
+    @Query("FROM TaskEntity t WHERE t.userId = ?1")
+    Page<TaskEntity> findByUser(Long userId, Pageable pageable);
+}
+```
+
+**Generated code features:**
+
+- **HQL queries** — `session.createQuery(hql, Entity.class)`
+- **Native queries** — `session.createNativeQuery(sql, Entity.class)`
+- **`@Modifying`** — uses `createMutationQuery` / `createNativeMutationQuery`, returns row count
+- **`@Param`** — named parameter binding (`query.setParameter("name", value)`)
+- **Positional binding** — `query.setParameter(1, value)` when `@Param` is not present
+- **`Pageable`** — adds `setFirstResult(offset)` + `setMaxResults(pageSize)`, generates automatic
+  count query by replacing `SELECT ... FROM` with `SELECT COUNT(1) FROM`
+- **`@ResultSetMapping`** — uses named result set mapping for native queries
+- **Timing** — logs SQL execution duration at TRACE level
+- **Session management** — each method tries `JpaContext` first; if not available, uses
+  `doWork()` with a new session from `EntityContainer`
+
+---
+
+## Reactive Repository Processors
+
+### ReactiveRepositoryProcessor
+
+**Processor:** `vn.com.lcx.processor.ReactiveRepositoryProcessor`
+**Triggers on:** `@RRepository` (interface only, must extend `ReactiveRepository<E>`)
+**Generates:** `{InterfaceName}Impl`
+
+Generates implementations for Vert.x reactive SQL client repositories.
+
+**Built-in CRUD methods (auto-generated):**
+
+| Method      | Description                                                           |
+|-------------|-----------------------------------------------------------------------|
+| `save`      | INSERT using generated `{Entity}Utils.reactiveInsertStatement()`      |
+| `update`    | UPDATE using generated `{Entity}Utils.reactiveUpdateStatement()`      |
+| `delete`    | DELETE using generated `{Entity}Utils.reactiveDeleteStatement()`      |
+| `saveAll`   | Batch INSERT for a list of entities                                   |
+| `updateAll` | Batch UPDATE for a list of entities                                   |
+| `deleteAll` | Batch DELETE for a list of entities                                   |
+
+**Key generated code behaviors:**
+
+- **Database-specific placeholders** — detects database type via
+  `connection.databaseMetadata().productName()` and selects `?` (MySQL/Oracle), `$N`
+  (PostgreSQL), or `@pN` (MSSQL)
+- **`@ReadOnly` entities** — CRUD operations return no-op futures
+  (`Future.succeededFuture(null)`)
+- **`@Query` methods** — generates `preparedQuery(sql).execute(Tuple.of(params))` with row
+  mapping via `{Entity}Utils.vertxRowMapping(row)`
+- **Return type handling:**
+  - `Future<List<T>>` → collects all rows
+  - `Future<Optional<T>>` → returns `Optional.empty()` if 0 rows, throws
+    `NonUniqueQueryResult` if >1 row
+  - `Future<Long/Integer>` → returns `rowSet.rowCount()` for modifying queries, or extracts
+    value from first row for SELECT queries
+- **Pageable support** — appends `pageable.toSql()` to query, generates count query by extracting
+  `FROM` clause
+- **Execution timing** — logs SQL duration at DEBUG level
+
+### HRRepositoryProcessor
+
+**Processor:** `vn.com.lcx.processor.HRRepositoryProcessor`
+**Triggers on:** `@HRRepository` (interface only, must extend `HReactiveRepository<E>`)
+**Generates:** `{InterfaceName}Impl`
+
+Generates implementations for Hibernate Reactive repositories using `Stage.Session`.
+
+**Built-in CRUD methods:**
+
+| Method           | Implementation                                                    |
+|------------------|-------------------------------------------------------------------|
+| `save(entity)`   | `session.merge(entity)` — handles both insert and update          |
+| `save(list)`     | Sequential merge with `flush()` + `clear()` every 50 items       |
+| `delete(entity)` | `session.remove(entity)`                                          |
+| `delete(list)`   | Sequential remove with `flush()` + `clear()` every 50 items      |
+| `find(handler)`  | JPA Criteria query with `CriteriaHandler` predicate               |
+| `findOne(handler)` | JPA Criteria query, wraps with `Optional.ofNullable()`          |
+| `find(handler, pageable)` | Criteria query + count query, returns `Page<T>`          |
+
+**`@Query` method support:**
+
+```java
+@HRRepository
+public interface TasksRepository extends HReactiveRepository<TasksEntity> {
+
+    @Query("FROM TasksEntity t WHERE t.user = ?1 AND t.status = ?2")
+    Future<List<TasksEntity>> findByUserAndStatus(
+            Stage.Session session, UsersEntity user, String status);
+
+    @Modifying
+    @Query(value = "UPDATE tasks SET status = ?2 WHERE id = ?1", isNative = true)
+    Future<Integer> updateStatus(Stage.Session session, Long id, String status);
+}
+```
+
+- **Parameter binding** — uses `@Param` for named parameters, positional (`?1`, `?2`) otherwise
+- **`@Modifying`** — uses `createMutationQuery` or `createNativeQuery`, returns
+  `Future<Integer>` with affected row count
+- **`@ResultSetMapping`** — supported for native queries
+- **Pageable** — generates a data query with `setFirstResult/setMaxResults` followed by a
+  `SELECT COUNT(*)` query, returns `Page<T>`
+- All results are wrapped: `Future.fromCompletionStage(session.createQuery(...).getResultList())`
 
 ---
 

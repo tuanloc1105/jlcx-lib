@@ -665,6 +665,151 @@ public class ServerConfig {
 
 ---
 
+## Annotation Processors (Compile-Time Code Generation)
+
+The framework relies heavily on Java annotation processors (`javax.annotation.processing`) to
+generate boilerplate code at compile time. All processors are in package `vn.com.lcx.processor`.
+
+### ControllerProcessor
+
+**Triggers on:** `@Controller`, `@VertxApplication`, `@ContextHandler`
+**Generates:** `vn.com.lcx.vertx.verticle.ApplicationVerticle`
+
+This is the core processor for the web framework. It scans all `@Controller` classes, collects
+their route methods (`@Get`, `@Post`, `@Put`, `@Delete`), and generates a single
+`ApplicationVerticle` class that wires everything together.
+
+**What it generates:**
+
+1. **Constructor** — accepts all controllers, context handler filters, and optionally `JWTAuth`
+   as parameters (injected by the DI container at runtime)
+2. **Route registration** — for each controller method, generates a `router.get/post/put/delete`
+   call with the concatenated path (`controller.path + method.path`)
+3. **Handler chain** — for each route, assembles the handler chain:
+   - `JWTAuthHandler` (if `@Auth` is present on the method)
+   - `validateApiKey` (if `@APIKey` is present — reads `x-api-key` header, validates against
+     `server.api-key` config)
+   - `createUUIDHandler` (always — generates trace ID)
+   - Context handler filters (sorted by `@ContextHandler.order`)
+   - Controller method invocation (wrapped in `RoutingContextLcxWrapper` for logging)
+4. **Static resources** — if `@VertxApplication(staticResource = true)`, serves files from
+   `webroot/` and falls back to `webroot/index.html` for SPA routing
+
+**Generated handler chain per route:**
+
+```
+router.get("/api/v1/users/list")
+    .handler(authHandler)                    // if @Auth
+    .handler(this::validateApiKey)           // if @APIKey
+    .handler(this::createUUIDHandler)        // always
+    .handler(filterCorsFilter100::handle)    // @ContextHandler filters by order
+    .handler(ctx -> this.controller1.listUsers(
+            RoutingContextLcxWrapper.init(ctx)));
+```
+
+### RestControllerProcessor
+
+**Triggers on:** `@RestController`
+**Generates:** `Reactive{OriginalClassName}` (e.g., `TaskController` → `ReactiveTaskController`)
+
+For each `@RestController` class, generates a wrapper class annotated with `@Component` and
+`@Controller` that extends `ReactiveController`. This wrapper bridges the declarative
+`@RestController` style (returning `Future<T>`) to the imperative `RoutingContext` handler model
+expected by `ControllerProcessor`.
+
+**What it generates for each method:**
+
+1. **Parameter extraction** — based on annotations:
+   - `@RequestBody` → calls `handleRequest(ctx, gson, TypeToken)` for JSON deserialization +
+     validation, or `ctx.body().asString("UTF-8")` for `String` type
+   - `@PathVariable` → calls `getPathParam(ctx, "name")`
+   - `@RequestParam(required=true)` → calls `getRequestQueryParam(ctx, "name")`
+   - `@RequestParam(required=false)` → calls `getNoneRequiringRequestQueryParam(ctx, "name")`
+     with optional default value fallback
+   - `@RequestHeader(required=true)` → calls `getRequestHeaderParam(ctx, "name")`
+   - `@RequestHeader(required=false)` → calls `getNoneRequiringRequestHeaderParam(ctx, "name")`
+   - `@RequestForm` → calls `getFormParam(ctx, "name")`
+   - `@RequestFile` → calls `getFileParam(ctx, "name")`
+   - `RoutingContext` (no annotation) → passes `ctx` directly
+2. **Method invocation** — calls the original controller method with extracted parameters
+3. **Response handling:**
+   - `Future<Void>` → calls `handleResponse(ctx, gson, new CommonResponse())`
+   - `Future<T>` → calls `handleResponse(ctx, gson, result)`
+4. **Error handling** — wraps everything in try-catch, calls `handleError(ctx, gson, error)`
+5. **MDC logging** — `LogUtils.initContextInfo(ctx)` before, `LogUtils.removeContextInfo()`
+   after
+
+**Example: source vs generated code:**
+
+```java
+// Source: TaskController.java
+@RestController(path = "/api/v2/tasks")
+@Component
+public class TaskController {
+    @Post(path = "/create")
+    @Auth
+    public Future<CommonResponse> create(
+            RoutingContext ctx,
+            @RequestBody CreateTaskRequest req) {
+        return taskService.create(ctx, req).map(v -> new CommonResponse());
+    }
+}
+```
+
+```java
+// Generated: ReactiveTaskController.java
+@Component
+@Controller(path = "/api/v2/tasks")
+public class ReactiveTaskController extends ReactiveController {
+
+    private final TaskController taskController;
+    private final Gson gson;
+
+    public ReactiveTaskController(TaskController taskController, Gson gson) {
+        this.taskController = taskController;
+        this.gson = gson;
+    }
+
+    @Post(path = "/create")
+    @Auth
+    public void create(RoutingContext ctx) {
+        LogUtils.initContextInfo(ctx);
+        try {
+            CreateTaskRequest req = handleRequest(ctx, gson, new TypeToken<>() {});
+            taskController.create(ctx, req).onSuccess(it -> {
+                LogUtils.removeContextInfo();
+                handleResponse(ctx, gson, it);
+            }).onFailure(err -> {
+                LogUtils.removeContextInfo();
+                handleError(ctx, gson, err);
+            });
+        } catch (Throwable t) {
+            LogUtils.removeContextInfo();
+            handleError(ctx, gson, t);
+        }
+    }
+}
+```
+
+The generated `ReactiveTaskController` is then picked up by `ControllerProcessor` (since it has
+`@Controller`) and wired into the `ApplicationVerticle`.
+
+### Other Processors
+
+The remaining annotation processors are documented in their respective domain docs:
+
+| Processor                    | Annotation        | Output Class                         | Documentation                                            |
+|------------------------------|-------------------|--------------------------------------|----------------------------------------------------------|
+| `DIScanner`                  | `@Component`      | `META-INF/class-index-*.json`        | [classpool-di-container.md](classpool-di-container.md)   |
+| `ServiceProcessor`           | `@Service`        | `{Name}Proxy`                        | [database-layer.md](database-layer.md)                   |
+| `RepositoryProcessor`        | `@Repository`     | `{Name}Proxy`                        | [database-layer.md](database-layer.md)                   |
+| `ReactiveRepositoryProcessor`| `@RRepository`    | `{Name}Impl`                         | [database-layer.md](database-layer.md)                   |
+| `HRRepositoryProcessor`      | `@HRRepository`   | `{Name}Impl`                         | [database-layer.md](database-layer.md)                   |
+| `SQLMappingProcessor`        | `@SQLMapping`     | `{Name}Utils` + `{Name}MappingImpl`  | [database-layer.md](database-layer.md)                   |
+| `MapperClassProcessor`       | `@MapperClass`    | `{Name}Impl`                         | [utilities.md](utilities.md)                             |
+
+---
+
 ## Key Source Files
 
 | File                                          | Description                          |

@@ -494,6 +494,61 @@ Each entry reports:
 
 ---
 
+## Compile-Time: DIScanner (Experimental - Not ready for use)
+
+**Processor:** `vn.com.lcx.processor.DIScanner`
+**Triggers on:** all classes (`@SupportedAnnotationTypes("*")`)
+**Generates:** `META-INF/class-index-{UUID}.json` resource files
+
+At compile time, `DIScanner` scans every `@Component`-annotated class and writes its metadata
+to JSON resource files under `META-INF/`. Each file contains a list of `ClassInfo` objects:
+
+```json
+[
+  {
+    "fullQualifiedClassName": "com.example.UserService",
+    "superClassesFullName": ["com.example.BaseService", "java.lang.Object"],
+    "fields": [
+      { "fieldName": "repo", "fieldType": "com.example.UserRepository" }
+    ],
+    "constructor": {
+      "parameterTypes": ["com.example.UserRepository"]
+    },
+    "postConstruct": {
+      "methodName": "init",
+      "returnDataType": "void"
+    },
+    "createInstanceMethods": [
+      { "methodName": "jwtAuth", "returnDataType": "io.vertx.ext.auth.jwt.JWTAuth" }
+    ]
+  }
+]
+```
+
+**Collected metadata per class:**
+
+| Field                    | Description                                                |
+|--------------------------|------------------------------------------------------------|
+| `fullQualifiedClassName` | Fully qualified class name                                 |
+| `superClassesFullName`   | All super classes and implemented interfaces               |
+| `fields`                 | All fields with name and type                              |
+| `constructor`            | First constructor's parameter types                        |
+| `postConstruct`          | Method annotated with `@PostConstruct` (if any)            |
+| `createInstanceMethods`  | Methods annotated with `@Instance` (factory methods)       |
+
+**How ClassPool uses these files at runtime:**
+
+1. At startup, `ClassPool` loads all `META-INF/class-index-*.json` files from the classpath
+2. Merges them into a single component registry
+3. Uses the metadata for dependency resolution — constructor parameter types determine injection
+   order, `@Instance` methods are detected for factory bean registration
+4. This avoids expensive runtime reflection-based classpath scanning
+
+**Why UUID in filename:** Each compilation unit (module/JAR) generates its own JSON file with a
+random UUID suffix. When multiple JARs are on the classpath, all files are discovered and merged.
+
+---
+
 ## Key Source Files
 
 | File | Description |

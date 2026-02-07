@@ -389,48 +389,82 @@ All exceptions extend `RuntimeException`.
 The `processor` module registers 9 annotation processors via
 `META-INF/services/javax.annotation.processing.Processor`.
 
-### SQLMappingProcessor
-
-Generates entity utility classes from `@SQLMapping`-annotated entities. Produces both static
-utility methods (`<Entity>Utils`) and `EntityMapping` implementations (`<Entity>MappingImpl`).
-
-See [database-layer.md](database-layer.md) for details.
-
 ### MapperClassProcessor
 
-Generates mapper implementations from `@MapperClass` annotations. Supports field-level
-mapping with `@Mapping`, `@Mappings`, and `@Merging` annotations.
+**Processor:** `vn.com.lcx.processor.MapperClassProcessor`
+**Triggers on:** `@MapperClass` (interface only)
+**Generates:** `{InterfaceName}Impl`
 
-### ServiceProcessor
+Generates implementations for object mapper interfaces. Each method in the interface maps or
+merges objects based on annotations and field name matching.
 
-Generates service proxy implementations with transaction management. Detects `@Transactional`
-annotations for automatic transaction boundaries.
+**`@Mapping` — field-level mapping between different types:**
 
-### RepositoryProcessor
+```java
+@MapperClass
+public interface TaskMapper {
 
-Generates JDBC repository implementations from repository interface definitions.
+    @Mapping(fromField = "taskName", toField = "name")
+    @Mapping(toField = "status", code = "\"ACTIVE\"")
+    @Mapping(toField = "internalId", skip = true)
+    TaskDTO toDTO(TaskEntity entity);
+}
+```
 
-### HRRepositoryProcessor
+| `@Mapping` Attribute | Description                                              |
+|----------------------|----------------------------------------------------------|
+| `fromField`          | Source field name (defaults to same as `toField`)        |
+| `toField`            | Target field name                                        |
+| `code`               | Custom Java expression (used instead of getter)          |
+| `skip`               | Skip this target field entirely                          |
 
-Generates Hibernate Reactive repository implementations.
+**Automatic field matching:** Fields not covered by explicit `@Mapping` annotations are
+matched automatically by name and type — if both source and target have a field with the same
+name and type, a `instance.setX(source.getX())` line is generated.
 
-### ReactiveRepositoryProcessor
+**`@Merging` — merge two instances of the same type:**
 
-Generates Vert.x reactive repository implementations.
+```java
+@MapperClass
+public interface TaskMapper {
 
-### ControllerProcessor
+    @Merging(mergeNonNullField = true)
+    TaskEntity merge(TaskEntity target, TaskEntity source);
+}
+```
 
-Generates `ApplicationVerticle` from `@Controller`, `@VertxApplication`, and
-`@ContextHandler` annotations. See [vertx-web-framework.md](vertx-web-framework.md).
+When `mergeNonNullField = true`, only non-null fields from `source` overwrite `target`.
+Both parameters must be the same type. Return type can be `void` or the entity type.
 
-### RestControllerProcessor
+**Generated code example:**
 
-Generates reactive controller wrappers from `@RestController` annotations with automatic
-JSON handling and validation.
+```java
+// For: TaskDTO toDTO(TaskEntity entity)
+public TaskDTO toDTO(TaskEntity entity) {
+    if (entity == null) return null;
+    TaskDTO instance = new TaskDTO();
+    instance.setName(entity.getTaskName());       // @Mapping(fromField="taskName", toField="name")
+    instance.setStatus("ACTIVE");                  // @Mapping(toField="status", code="\"ACTIVE\"")
+    // internalId skipped                          // @Mapping(toField="internalId", skip=true)
+    instance.setPriority(entity.getPriority());    // auto-matched by name+type
+    return instance;
+}
+```
 
-### DIScanner
+### Other Processors (Cross-References)
 
-Generates component scanning helpers for the dependency injection container.
+The remaining processors are documented in their respective domain docs:
+
+| Processor                    | Annotation        | Documentation                                            |
+|------------------------------|-------------------|----------------------------------------------------------|
+| `SQLMappingProcessor`        | `@SQLMapping`     | [database-layer.md](database-layer.md)                   |
+| `ServiceProcessor`           | `@Service`        | [database-layer.md](database-layer.md)                   |
+| `RepositoryProcessor`        | `@Repository`     | [database-layer.md](database-layer.md)                   |
+| `HRRepositoryProcessor`      | `@HRRepository`   | [database-layer.md](database-layer.md)                   |
+| `ReactiveRepositoryProcessor`| `@RRepository`    | [database-layer.md](database-layer.md)                   |
+| `ControllerProcessor`        | `@Controller`     | [vertx-web-framework.md](vertx-web-framework.md)        |
+| `RestControllerProcessor`    | `@RestController` | [vertx-web-framework.md](vertx-web-framework.md)        |
+| `DIScanner`                  | `@Component`      | [classpool-di-container.md](classpool-di-container.md)   |
 
 ---
 
