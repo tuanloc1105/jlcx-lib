@@ -5,6 +5,7 @@ import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
+import vn.com.lcx.common.annotation.DependsOn;
 import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.common.annotation.Qualifier;
@@ -23,6 +24,7 @@ import vn.com.lcx.reactive.context.EntityMappingContainer;
 import vn.com.lcx.reactive.entity.EntityMapping;
 
 import java.io.File;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -170,7 +172,7 @@ public class ClassPool {
                 final var componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
                     final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).toList();
-                    if (fieldsOfComponent.isEmpty()) {
+                    if (fieldsOfComponent.isEmpty() && areDependsOnBeansSatisfied(aClass)) {
                         LogUtils.writeLog(ClassPool.class, LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor().newInstance();
                         if (!checkProxy(instance)) {
@@ -188,6 +190,9 @@ public class ClassPool {
                 progress = false;
                 for (Class<?> aClass : postHandleComponent) {
                     if (handledPostHandleComponent.contains(aClass)) {
+                        continue;
+                    }
+                    if (!areDependsOnBeansSatisfied(aClass)) {
                         continue;
                     }
                     if (aClass.getDeclaredConstructors().length > 1) {
@@ -212,6 +217,9 @@ public class ClassPool {
                     if (handledDeferredMethods.contains(deferred)) {
                         continue;
                     }
+                    if (!areDependsOnBeansSatisfied(deferred.method())) {
+                        continue;
+                    }
                     final Object[] args = Arrays.stream(deferred.method().getParameters())
                             .map(ClassPool::getInstanceOfParameter)
                             .toArray(Object[]::new);
@@ -226,6 +234,10 @@ public class ClassPool {
                 final var message = new StringBuilder("[");
                 for (Class<?> aClass : postHandleComponent) {
                     if (!handledPostHandleComponent.contains(aClass)) {
+                        final var reasons = new ArrayList<String>();
+                        if (!areDependsOnBeansSatisfied(aClass)) {
+                            reasons.add("unsatisfied @DependsOn: " + getMissingDependsOnDescription(aClass));
+                        }
                         final var fields = new ArrayList<Field>();
                         getFieldsOfClass(fields, aClass);
                         final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).toList();
@@ -236,27 +248,37 @@ public class ClassPool {
                                                         !CLASS_POOL.containsKey(field.getName())
                                 ).map(f -> f.getName() + ": " + f.getType().getName())
                                 .collect(Collectors.toCollection(ArrayList::new));
+                        if (!fieldNotCreated.isEmpty()) {
+                            reasons.add("missing fields: " + String.join(", ", fieldNotCreated));
+                        }
                         message.append(
                                 String.format(
-                                        "Cannot found instance of fields (%s) of class %s",
-                                        String.join(", ", fieldNotCreated),
-                                        aClass.getName()
+                                        "Cannot create instance of class %s [%s]",
+                                        aClass.getName(),
+                                        String.join("; ", reasons)
                                 )
                         ).append(",\n");
                     }
                 }
                 for (DeferredInstanceMethod deferred : deferredInstanceMethods) {
                     if (!handledDeferredMethods.contains(deferred)) {
+                        final var reasons = new ArrayList<String>();
+                        if (!areDependsOnBeansSatisfied(deferred.method())) {
+                            reasons.add("unsatisfied @DependsOn: " + getMissingDependsOnDescription(deferred.method()));
+                        }
                         final var unresolvedParams = Arrays.stream(deferred.method().getParameters())
                                 .filter(p -> getInstanceOfParameter(p) == null)
                                 .map(p -> p.getName() + ": " + p.getType().getName())
                                 .collect(Collectors.joining(", "));
+                        if (!unresolvedParams.isEmpty()) {
+                            reasons.add("unresolved parameters: " + unresolvedParams);
+                        }
                         message.append(
                                 String.format(
-                                        "Cannot resolve parameters (%s) of @Instance method `%s` in class %s",
-                                        unresolvedParams,
+                                        "Cannot resolve @Instance method `%s` in class %s [%s]",
                                         deferred.method().getName(),
-                                        deferred.method().getDeclaringClass().getName()
+                                        deferred.method().getDeclaringClass().getName(),
+                                        String.join("; ", reasons)
                                 )
                         ).append(",\n");
                     }
@@ -295,7 +317,9 @@ public class ClassPool {
         ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).toList();
         if (!methodsOfInstance.isEmpty()) {
             for (Method method : methodsOfInstance) {
-                if (method.getParameterCount() == 0) {
+                if (!areDependsOnBeansSatisfied(method)) {
+                    deferredMethods.add(new DeferredInstanceMethod(instance, method));
+                } else if (method.getParameterCount() == 0) {
                     invokeAndRegisterInstanceMethod(instance, method);
                 } else {
                     final Object[] args = Arrays.stream(method.getParameters())
@@ -478,6 +502,31 @@ public class ClassPool {
             LogUtils.writeLog(ClassPool.class, LogUtils.Level.WARN, "Failed to create proxy for: {}", instance.getClass().getName());
         }
         return false;
+    }
+
+    private static String getMissingDependsOnDescription(AnnotatedElement element) {
+        DependsOn dependsOn = element.getAnnotation(DependsOn.class);
+        if (dependsOn == null) return "";
+        final var missing = new ArrayList<String>();
+        for (String name : dependsOn.value()) {
+            if (getInstance(name) == null) missing.add("\"" + name + "\"");
+        }
+        for (Class<?> clazz : dependsOn.classes()) {
+            if (getInstance(clazz) == null) missing.add(clazz.getName());
+        }
+        return String.join(", ", missing);
+    }
+
+    private static boolean areDependsOnBeansSatisfied(AnnotatedElement element) {
+        DependsOn dependsOn = element.getAnnotation(DependsOn.class);
+        if (dependsOn == null) return true;
+        for (String name : dependsOn.value()) {
+            if (getInstance(name) == null) return false;
+        }
+        for (Class<?> clazz : dependsOn.classes()) {
+            if (getInstance(clazz) == null) return false;
+        }
+        return true;
     }
 
     private static Object[] resolveConstructorArgs(Constructor<?> constructor, Class<?> componentClass) {
