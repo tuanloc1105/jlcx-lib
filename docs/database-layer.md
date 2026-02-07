@@ -532,19 +532,205 @@ Conditions are combined with `and()` / `or()`.
 
 ---
 
-## Reactive Database Support (EntityMapping)
+## Reactive Database Support
 
-The `EntityMapping<T>` interface bridges JDBC and Vert.x SQL client APIs:
+The framework offers two reactive database access strategies:
 
-**JDBC methods:**
-- `T resultSetMapping(ResultSet resultSet)`
-- `Map<Integer, Object> insertJDBCParams(T model)`
-- `String insertStatement(T model)`
+1. **Hibernate Reactive** (`@HRRepository`) - Uses Hibernate Reactive Stage API with JPA
+   Criteria queries. Higher-level abstraction with entity lifecycle management.
+2. **Vert.x SQL Client** (`@RRepository`) - Uses Vert.x reactive SQL clients directly.
+   Lower-level with raw SQL control.
 
-**Vert.x Reactive methods:**
-- `T vertxRowMapping(Row row)` - Map `io.vertx.sqlclient.Row` to entity
-- `String reactiveInsertStatement(T model, String placeHolder)` - SQL with `$1` or `@p1`
-- `Tuple insertTupleParam(T model)` - `io.vertx.sqlclient.Tuple` for binding
+Both generate implementation classes at compile time via annotation processors.
+
+---
+
+### Reactive Annotations
+
+#### @HRRepository (SOURCE retention)
+
+Marks an interface as a Hibernate Reactive repository. Must extend `HReactiveRepository<T>`.
+
+```java
+@HRRepository
+public interface UsersRepository extends HReactiveRepository<UsersEntity> {
+}
+```
+
+#### @RRepository (SOURCE retention)
+
+Marks an interface as a Vert.x reactive SQL client repository. Must extend
+`ReactiveRepository<T>`. All methods must return `Future<T>`.
+
+```java
+@RRepository
+public interface TaskRepository extends ReactiveRepository<TaskEntity> {
+}
+```
+
+#### @Query (SOURCE retention, METHOD target)
+
+Defines a native or JPQL query on a repository method.
+
+| Attribute  | Type      | Default | Description              |
+|------------|-----------|---------|--------------------------|
+| `value`    | `String`  | —       | SQL or JPQL query string |
+| `isNative` | `boolean` | `true`  | Native SQL vs JPQL       |
+
+Parameters use positional binding: `?1`, `?2`, etc.
+
+```java
+@HRRepository
+public interface TasksRepository extends HReactiveRepository<TasksEntity> {
+
+    @Query("from TasksEntity t where t.user = ?1 and t.id = ?2")
+    Future<Optional<TasksEntity>> findTaskDetail(
+            Stage.Session session,
+            UsersEntity user,
+            Long id);
+}
+```
+
+---
+
+### HReactiveRepository\<T\> (Hibernate Reactive)
+
+Base interface for Hibernate Reactive repositories. All methods take a `Stage.Session`
+parameter from Hibernate Reactive.
+
+```java
+public interface HReactiveRepository<T> {
+
+    // Single entity CRUD
+    Future<T> save(Stage.Session session, T entity);
+    Future<Void> delete(Stage.Session session, T entity);
+
+    // Batch operations (flushes every 50 items)
+    Future<List<T>> save(Stage.Session session, List<T> entity);
+    Future<Void> delete(Stage.Session session, List<T> entity);
+
+    // Criteria queries
+    Future<List<T>> find(Stage.Session session, CriteriaHandler<T> criteriaHandler);
+    Future<Optional<T>> findOne(Stage.Session session, CriteriaHandler<T> handler);
+    Future<Page<T>> find(Stage.Session session, CriteriaHandler<T> handler, Pageable pageable);
+}
+```
+
+**Usage example:**
+
+```java
+@Component
+@RequiredArgsConstructor
+public class UsersService {
+    private final Stage.SessionFactory sessionFactory;
+    private final UsersRepository usersRepository;
+
+    public Future<Void> createUser(CreateUserRequest request) {
+        var cs = sessionFactory.withSession(session -> {
+            CriteriaHandler<UsersEntity> handler = (cb, cq, root) ->
+                cb.equal(root.get("username"), request.getUsername());
+
+            return usersRepository.findOne(session, handler)
+                .map(opt -> {
+                    if (opt.isPresent()) {
+                        throw new InternalServiceException(AppError.USER_EXISTED);
+                    }
+                    return CommonConstant.VOID;
+                })
+                .compose(v -> {
+                    UsersEntity user = new UsersEntity();
+                    user.setUsername(request.getUsername());
+                    user.setPassword(BCryptUtils.hashPassword(request.getPassword()));
+                    return usersRepository.save(session, user)
+                        .compose(saved -> Future.fromCompletionStage(session.flush()));
+                })
+                .toCompletionStage();
+        });
+        return Future.fromCompletionStage(cs);
+    }
+}
+```
+
+**Generated code behavior:**
+- `save()` uses `Session.merge()` — handles both insert and update
+- Batch operations flush and clear every 50 items to prevent memory issues
+- `find()` builds JPA Criteria queries from `CriteriaHandler`
+- `findOne()` wraps result with `Optional.ofNullable()`
+- Paginated `find()` executes a data query and a count query
+
+---
+
+### ReactiveRepository\<T\> (Vert.x SQL Client)
+
+Base interface for Vert.x reactive SQL client repositories. All methods take
+`RoutingContext context` and `SqlConnection connection`.
+
+```java
+public interface ReactiveRepository<T> {
+
+    // CRUD
+    Future<T> save(RoutingContext context, SqlConnection connection, T entity);
+    Future<Integer> update(RoutingContext context, SqlConnection connection, T entity);
+    Future<Integer> delete(RoutingContext context, SqlConnection connection, T entity);
+
+    // Batch
+    Future<List<T>> saveAll(RoutingContext context, SqlConnection connection, List<T> entities);
+    Future<Integer> updateAll(RoutingContext context, SqlConnection connection, List<T> entities);
+    Future<Integer> deleteAll(RoutingContext context, SqlConnection connection, List<T> entities);
+
+    // Query (default methods)
+    default <U> Future<Page<U>> find(RoutingContext context, SqlConnection connection,
+            SqlStatement statement, ArrayList<Object> parameters,
+            Pageable pageable, Class<U> outputClazz);
+
+    default <U> Future<List<U>> find(RoutingContext context, SqlConnection connection,
+            SqlStatement statement, ArrayList<Object> parameters, Class<U> outputClazz);
+
+    default <U> Future<Optional<U>> findOne(RoutingContext context, SqlConnection connection,
+            SqlStatement statement, ArrayList<Object> parameters, Class<U> outputClazz);
+
+    default <U> Future<Optional<U>> findFirst(RoutingContext context, SqlConnection connection,
+            SqlStatement statement, ArrayList<Object> parameters, Class<U> outputClazz);
+}
+```
+
+**Key differences from HReactiveRepository:**
+- Uses raw SQL statements instead of JPA Criteria
+- `findOne()` throws `NonUniqueQueryResult` if more than one row
+- `findFirst()` returns only the first row without uniqueness check
+- Entity mapping uses `EntityMappingContainer` for row conversion
+- Database-specific placeholder detection is automatic
+
+---
+
+### EntityMapping\<T\>
+
+Bridges JDBC and Vert.x SQL client APIs for a single entity type:
+
+```java
+public interface EntityMapping<T> {
+    // JDBC
+    T resultSetMapping(ResultSet resultSet);
+    Map<Integer, Object> insertJDBCParams(T model);
+    Map<Integer, Object> updateJDBCParams(T model);
+    Map<Integer, Object> deleteJDBCParams(T model);
+    String insertStatement(T model);
+    String updateStatement(T model);
+    String deleteStatement(T model);
+
+    // Vert.x Reactive
+    T vertxRowMapping(Row row);
+    Tuple insertTupleParam(T model);
+    Tuple updateTupleParam(T model);
+    Tuple deleteTupleParam(T model);
+    String reactiveInsertStatement(T model, String placeHolder);
+    String reactiveUpdateStatement(T model, String placeHolder);
+    String reactiveDeleteStatement(T model, String placeHolder);
+
+    // Field mapping
+    String getColumnNameFromFieldName(String fieldName);
+}
+```
 
 ### EntityMappingContainer
 
@@ -561,7 +747,196 @@ TaskEntity entity = mapping.vertxRowMapping(row);
 
 ---
 
+### SqlStatement - Fluent SQL Builder
+
+Builds SELECT and COUNT queries for `ReactiveRepository` usage:
+
+```java
+SqlStatement stmt = SqlStatement.init()
+    .select("t.id", "t.name", "t.status")
+    .from("tasks t")
+    .where("t.deleted_at IS NULL")
+    .and("t.status = #")
+    .and("t.name LIKE #")
+    .order("t.created_at DESC");
+
+ArrayList<Object> params = new ArrayList<>(List.of("ACTIVE", "%search%"));
+
+// For paginated query
+String sql = stmt.finalizeQueryStatement(pageable);  // SELECT ... LIMIT ... OFFSET ...
+String countSql = stmt.finalizeCountStatement();      // SELECT COUNT(1) FROM ...
+```
+
+- Use `#` as placeholder (converted to `?`, `$1`, or `@p1` at runtime)
+- Supports optional L1 caching via `SqlStatement.initWithCache("key")`
+- `where()` must be called before `and()` / `or()`
+- ORDER BY only applies to SELECT, not COUNT
+
+---
+
+### Transaction Management
+
+`TransactionUtils` provides reactive transaction boundaries:
+
+```java
+Future<TaskEntity> result = TransactionUtils.executeInTransaction(pool, connection -> {
+    return taskRepository.save(context, connection, entity)
+        .compose(saved -> taskRepository.update(context, connection, anotherEntity))
+        .map(v -> saved);
+});
+```
+
+**Flow:**
+1. Get connection from pool
+2. Begin transaction
+3. Execute function within transaction context
+4. On success → commit
+5. On failure → rollback (exception propagated, rollback exception suppressed)
+6. Always close connection
+
+---
+
+### Reactive Configuration
+
+#### ReactiveHibernateConfiguration (@Component)
+
+Creates `Stage.SessionFactory` for Hibernate Reactive:
+
+```java
+@Instance
+public Stage.SessionFactory sessionFactory() { ... }
+```
+
+Properties:
+- `server.hreactive.database.host/port/name/username/password/type/max_pool_size`
+
+Uses `ReactivePersistenceProvider` and registers entity classes from `ClassPool.getEntities()`.
+
+#### ReactiveDbClientConfiguration (@Component)
+
+Creates Vert.x SQL client `Pool` for direct reactive access:
+
+```java
+@Instance
+public Pool pool() { ... }
+```
+
+Properties:
+- `server.reactive.database.host/port/name/username/password/type/max_pool_size`
+
+Supports PostgreSQL (`PgBuilder`), MySQL (`MySQLBuilder`), MSSQL (`MSSQLBuilder`),
+Oracle (`OracleBuilder`), and generic JDBC (`JDBCPool`).
+
+Pool options: `idleTimeout=30s`, configurable `maxSize`.
+
+---
+
+### Database Placeholder Detection
+
+The framework automatically detects the database type from the connection and selects the
+correct parameter placeholder:
+
+| Database        | Placeholder | Example                      |
+|-----------------|-------------|------------------------------|
+| PostgreSQL      | `$N`        | `WHERE id = $1 AND name = $2` |
+| SQL Server      | `@pN`       | `WHERE id = @p1 AND name = @p2` |
+| MySQL / Oracle  | `?`         | `WHERE id = ? AND name = ?`  |
+
+Detection uses `connection.databaseMetadata().productName()`.
+
+---
+
+### Hibernate Reactive Entities
+
+Entities used with `@HRRepository` use standard JPA annotations (`@Entity`, `@Table`,
+`@Column`, `@Id`, `@GeneratedValue`, etc.):
+
+```java
+@Entity
+@Table(name = "tasks", schema = "todo")
+public class TasksEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tasks_seq")
+    @SequenceGenerator(name = "tasks_seq", sequenceName = "tasks_seq",
+                       schema = "todo", allocationSize = 1)
+    private Long id;
+
+    @Column(nullable = false)
+    private String title;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private UsersEntity user;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = DateTimeUtils.generateCurrentTimeDefault();
+    }
+}
+```
+
+---
+
+### SqlConnectionLcxWrapper
+
+Decorator for `SqlConnection` with SQL logging:
+
+```java
+SqlConnectionLcxWrapper.init(connection, context)
+    .preparedQuery("SELECT * FROM tasks WHERE id = $1")
+    .execute(Tuple.of(taskId))
+    .map(rowSet -> { ... });
+```
+
+Logs all SQL statements at DEBUG level with execution timing.
+
+---
+
 ## Key Source Files
+
+| File                                      | Description                                |
+|-------------------------------------------|--------------------------------------------|
+| `common/database/DatabaseExecutor.java`   | JDBC execution interface                   |
+| `common/database/DatabaseExecutorImpl.java` | JDBC execution implementation            |
+| `common/database/DatabaseProperty.java`   | Connection configuration                   |
+| `common/database/type/DBTypeEnum.java`    | Database type definitions                  |
+| `common/database/DatabaseStrategy.java`   | DDL generation interface                   |
+| `common/database/OracleStrategy.java`     | Oracle DDL strategy                        |
+| `common/database/PostgreSQLStrategy.java` | PostgreSQL DDL strategy                    |
+| `common/database/MySQLStrategy.java`      | MySQL DDL strategy                         |
+| `common/database/MSSQLStrategy.java`      | SQL Server DDL strategy                    |
+| `common/database/reflect/EntityAnalyzer.java` | Entity analysis orchestrator           |
+| `common/database/reflect/FieldProcessor.java` | Field-level DDL processing             |
+| `common/database/reflect/SqlGenerator.java`   | SQL file generation                    |
+| `common/database/pageable/Pageable.java`  | Pagination interface                       |
+| `common/database/pageable/Page.java`      | Page result wrapper                        |
+| `common/database/specification/Specification.java` | Fluent query builder              |
+| `common/database/handler/resultset/ResultSetHandler.java` | Row mapper interface       |
+| `common/database/handler/statement/*.java` | Type-specific parameter handlers          |
+| `common/annotation/mapper/TableName.java` | `@TableName` annotation                    |
+| `common/annotation/mapper/ColumnName.java`| `@ColumnName` annotation                   |
+| `common/annotation/mapper/IdColumn.java`  | `@IdColumn` annotation                     |
+| `common/annotation/mapper/ForeignKey.java`| `@ForeignKey` annotation                   |
+| `jpa/repository/JpaRepository.java`       | JPA repository interface                   |
+| `reactive/repository/HReactiveRepository.java` | Hibernate Reactive repository interface |
+| `reactive/repository/ReactiveRepository.java`  | Vert.x SQL client repository interface |
+| `reactive/annotation/HRRepository.java`   | Hibernate Reactive repo annotation         |
+| `reactive/annotation/RRepository.java`    | Vert.x reactive repo annotation            |
+| `reactive/annotation/Query.java`          | Native/JPQL query annotation               |
+| `reactive/entity/EntityMapping.java`      | Entity mapping interface (JDBC + reactive) |
+| `reactive/context/EntityMappingContainer.java` | Entity mapping registry               |
+| `reactive/helper/SqlStatement.java`       | Fluent SQL builder                         |
+| `reactive/utils/TransactionUtils.java`    | Reactive transaction management            |
+| `reactive/config/ReactiveHibernateConfiguration.java` | SessionFactory config        |
+| `reactive/config/ReactiveDbClientConfiguration.java`  | Vert.x Pool config           |
+| `reactive/wrapper/SqlConnectionLcxWrapper.java` | SQL connection with logging          |
+| `processor/HRRepositoryProcessor.java`    | Hibernate Reactive repo code generator     |
+| `processor/ReactiveRepositoryProcessor.java` | Vert.x reactive repo code generator    |
+| `processor/SQLMappingProcessor.java`      | Entity utils code generator                |
 
 | File                                      | Description                                |
 |-------------------------------------------|--------------------------------------------|
