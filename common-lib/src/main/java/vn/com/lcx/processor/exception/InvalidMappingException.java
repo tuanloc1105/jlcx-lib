@@ -65,4 +65,24 @@ public class InvalidMappingException extends MapperProcessingException {
                 methodName
         );
     }
+
+    /**
+     * Creates exception when @Mapping references a parameter name that does not exist in the method signature
+     */
+    public static InvalidMappingException unknownFromParameter(String methodName, String fromParameter, java.util.List<String> availableParams) {
+        return new InvalidMappingException(
+                String.format("@Mapping references parameter '%s' but method only has parameters: %s", fromParameter, availableParams),
+                methodName
+        );
+    }
+
+    /**
+     * Creates exception when a mapping method has no parameters
+     */
+    public static InvalidMappingException noParameters(String methodName) {
+        return new InvalidMappingException(
+                "Mapping method must have at least one parameter",
+                methodName
+        );
+    }
 }

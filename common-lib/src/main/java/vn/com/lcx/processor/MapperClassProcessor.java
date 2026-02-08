@@ -9,6 +9,7 @@ import vn.com.lcx.common.utils.WordCaseUtils;
 import vn.com.lcx.processor.exception.InvalidMappingException;
 import vn.com.lcx.processor.exception.MapperProcessingException;
 import vn.com.lcx.processor.model.FieldMappingInfo;
+import vn.com.lcx.processor.model.SourceParameterInfo;
 import vn.com.lcx.processor.service.FieldMappingResolver;
 import vn.com.lcx.processor.service.MappingCodeGenerator;
 import vn.com.lcx.processor.template.CodeTemplates;
@@ -151,8 +152,18 @@ public class MapperClassProcessor extends AbstractProcessor {
                     secondParamType, secondParamName,
                     merging.mergeNonNullField()
             );
-        } else {
+        } else if (parameters.size() == 1) {
             return buildMappingCode(method, methodName, returnType, firstParamType, firstParamName);
+        } else {
+            List<SourceParameterInfo> sourceParams = new ArrayList<>();
+            for (VariableElement param : parameters) {
+                String paramType = param.asType().toString();
+                String paramName = param.getSimpleName().toString();
+                TypeElement paramTypeElement = processingEnv.getElementUtils().getTypeElement(paramType);
+                List<Element> fields = getValidFields(paramTypeElement);
+                sourceParams.add(new SourceParameterInfo(paramName, paramType, fields));
+            }
+            return buildMultiParamMappingCode(method, methodName, returnType, sourceParams);
         }
     }
 
@@ -160,8 +171,8 @@ public class MapperClassProcessor extends AbstractProcessor {
      * Validates method parameters count
      */
     private void validateParameters(String methodName, List<? extends VariableElement> parameters) {
-        if (parameters.isEmpty() || parameters.size() > 2) {
-            throw InvalidMappingException.invalidParameterCount(methodName, 1, parameters.size());
+        if (parameters.isEmpty()) {
+            throw InvalidMappingException.noParameters(methodName);
         }
     }
 
@@ -252,6 +263,138 @@ public class MapperClassProcessor extends AbstractProcessor {
                 returnType, returnType,
                 String.join("", mappingLines)
         );
+    }
+
+    /**
+     * Builds mapping method implementation code for methods with multiple source parameters
+     */
+    private String buildMultiParamMappingCode(ExecutableElement method,
+                                               String methodName,
+                                               String returnType,
+                                               List<SourceParameterInfo> sourceParams) {
+
+        List<Mapping> mappingAnnotations = new ArrayList<>(Arrays.asList(method.getAnnotationsByType(Mapping.class)));
+
+        TypeElement targetTypeElement = processingEnv.getElementUtils().getTypeElement(returnType);
+        List<Element> targetFields = getValidFields(targetTypeElement);
+
+        // Validate all fromParameter references
+        Set<String> paramNames = sourceParams.stream()
+                .map(SourceParameterInfo::getParamName)
+                .collect(Collectors.toSet());
+        for (Mapping mapping : mappingAnnotations) {
+            String fp = mapping.fromParameter();
+            if (!fp.isEmpty() && !paramNames.contains(fp)) {
+                throw InvalidMappingException.unknownFromParameter(
+                        methodName, fp, sourceParams.stream()
+                                .map(SourceParameterInfo::getParamName).toList()
+                );
+            }
+        }
+
+        List<String> mappingLines = buildMultiParamMappingLines(
+                mappingAnnotations, sourceParams, targetFields
+        );
+
+        String returnTypeSimple = CodeTemplates.getSimpleClassName(returnType);
+
+        String javadocParams = sourceParams.stream()
+                .map(sp -> String.format("             * @param %s source %s",
+                        sp.getParamName(), CodeTemplates.getSimpleClassName(sp.getParamType())))
+                .collect(Collectors.joining("\n"));
+
+        String paramSignature = sourceParams.stream()
+                .map(sp -> sp.getParamType() + " " + sp.getParamName())
+                .collect(Collectors.joining(", "));
+
+        String nullChecks = sourceParams.stream()
+                .map(sp -> sp.getParamName() + " == null")
+                .collect(Collectors.joining(" || "));
+
+        return String.format(CodeTemplates.MULTI_PARAM_MAPPING_METHOD_TEMPLATE,
+                returnTypeSimple,
+                javadocParams,
+                returnTypeSimple,
+                returnType, methodName, paramSignature,
+                nullChecks,
+                returnType, returnType,
+                String.join("", mappingLines)
+        );
+    }
+
+    /**
+     * Builds mapping code lines for multi-parameter methods.
+     * Processes explicit @Mapping annotations first, then auto-matches
+     * remaining target fields across all source parameters (first param has priority).
+     */
+    private List<String> buildMultiParamMappingLines(List<Mapping> annotations,
+                                                      List<SourceParameterInfo> sourceParams,
+                                                      List<Element> targetFields) {
+
+        List<String> mappingLines = new ArrayList<>();
+        Set<String> handledFields = new HashSet<>();
+
+        // Phase 1: Process explicit @Mapping annotations
+        for (Mapping mapping : annotations) {
+            String toField = toPascalCase(mapping.toField());
+
+            if (mapping.skip()) {
+                handledFields.add(toField);
+                continue;
+            }
+
+            if (StringUtils.isNotBlank(mapping.code())) {
+                String code = String.format("\n        instance.set%s(%s);", toField, mapping.code());
+                mappingLines.add(code);
+                handledFields.add(toField);
+                continue;
+            }
+
+            String fromField = toPascalCase(mapping.fromField());
+            String sourceParamName;
+
+            if (StringUtils.isNotBlank(mapping.fromParameter())) {
+                sourceParamName = mapping.fromParameter();
+            } else {
+                sourceParamName = sourceParams.get(0).getParamName();
+            }
+
+            String code = String.format(CodeTemplates.SETTER_LINE, toField, sourceParamName, fromField);
+            mappingLines.add(code);
+            handledFields.add(toField);
+        }
+
+        // Phase 2: Auto-match remaining target fields across source parameters (first param has priority)
+        for (Element targetField : targetFields) {
+            String targetFieldName = toPascalCase(targetField.getSimpleName().toString());
+
+            if (handledFields.contains(targetFieldName)) {
+                continue;
+            }
+
+            String targetFieldType = targetField.asType().toString();
+
+            for (SourceParameterInfo sp : sourceParams) {
+                Element sourceField = findMatchingSourceField(
+                        sp.getFields(),
+                        targetField.getSimpleName().toString(),
+                        targetFieldType
+                );
+
+                if (sourceField != null) {
+                    String sourceFieldName = toPascalCase(sourceField.getSimpleName().toString());
+                    if (sourceFieldName.equals(targetFieldName)) {
+                        String code = String.format(CodeTemplates.SETTER_LINE,
+                                targetFieldName, sp.getParamName(), sourceFieldName);
+                        mappingLines.add(code);
+                        handledFields.add(targetFieldName);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return mappingLines;
     }
 
     /**

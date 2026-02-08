@@ -48,4 +48,12 @@ public @interface Mapping {
      * The target field will only be set if the source value is not null.
      */
     boolean nullSafe() default false;
+
+    /**
+     * Name of the source parameter this mapping reads from.
+     * Must match the parameter name declared in the mapper method signature.
+     * When empty (default), the processor uses the first parameter for explicit mappings,
+     * or auto-matches by field name and type across all parameters (first parameter has priority).
+     */
+    String fromParameter() default "";
 }

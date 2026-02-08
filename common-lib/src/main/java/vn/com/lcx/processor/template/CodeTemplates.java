@@ -125,6 +125,32 @@ public final class CodeTemplates {
                     }""";
 
     /**
+     * Template for multi-parameter mapping method.
+     * Parameters: returnTypeSimple, javadocParamLines, returnTypeSimple,
+     *             returnType, methodName, parameterSignature,
+     *             nullChecks,
+     *             returnType, returnType,
+     *             mappingLines
+     */
+    public static final String MULTI_PARAM_MAPPING_METHOD_TEMPLATE = """
+
+                /**
+                 * Maps multiple sources to {@link %s}
+%s
+                 * @return mapped instance of %s, or null if any source is null
+                 */
+                @Override
+                public %s %s(%s) {
+                    if (%s) {
+                        return null;
+                    }
+                    %s instance = new %s();
+                    %s
+                    return instance;
+                }
+            """;
+
+    /**
      * Template for null-safe simple setter
      * Parameters: sourceParam, sourceField, targetField, sourceParam, sourceField
      */
