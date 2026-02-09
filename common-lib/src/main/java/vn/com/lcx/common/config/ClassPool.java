@@ -588,11 +588,11 @@ public class ClassPool {
     }
 
     private static void getFieldsOfClass(final ArrayList<Field> fields, Class<?> aClass) {
+        fields.addAll(Arrays.asList(aClass.getDeclaredFields()));
         if (aClass.getSuperclass() != null) {
             List<Field> superClassField = Arrays.asList(aClass.getSuperclass().getDeclaredFields());
             fields.addAll(superClassField);
         }
-        fields.addAll(Arrays.asList(aClass.getDeclaredFields()));
     }
 
     private static Class<?>[] getConstructorParameters(Constructor<?> constructor) {
