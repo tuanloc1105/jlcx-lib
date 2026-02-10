@@ -549,13 +549,17 @@ public class ClassPool {
                     && nonStaticFields.get(i).getAnnotation(Qualifier.class) != null) {
                 args[i] = getInstance(nonStaticFields.get(i).getAnnotation(Qualifier.class).value());
             }
-            // 3. Parameter name -> type fallback
+            // 3. Parameter name
             if (args[i] == null) {
-                args[i] = getInstanceOfParameter(params[i]);
+                args[i] = getInstance(params[i].getName());
             }
-            // 4. Field name -> type fallback
+            // 4. Field name
             if (args[i] == null && hasMatchingField) {
-                args[i] = getInstanceOfField(nonStaticFields.get(i));
+                args[i] = getInstance(nonStaticFields.get(i).getName());
+            }
+            // 5. Type (last resort)
+            if (args[i] == null) {
+                args[i] = getInstance(params[i].getType().getName());
             }
         }
         return args;
