@@ -538,8 +538,23 @@ public class ClassPool {
                 .toList();
         final Object[] args = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
-            args[i] = getInstanceOfParameter(params[i]);
-            if (args[i] == null && i < nonStaticFields.size() && nonStaticFields.get(i).getType().equals(params[i].getType())) {
+            final boolean hasMatchingField = i < nonStaticFields.size()
+                    && nonStaticFields.get(i).getType().equals(params[i].getType());
+            // 1. @Qualifier on parameter
+            if (params[i].getAnnotation(Qualifier.class) != null) {
+                args[i] = getInstance(params[i].getAnnotation(Qualifier.class).value());
+            }
+            // 2. @Qualifier on corresponding field (Lombok compatibility)
+            if (args[i] == null && hasMatchingField
+                    && nonStaticFields.get(i).getAnnotation(Qualifier.class) != null) {
+                args[i] = getInstance(nonStaticFields.get(i).getAnnotation(Qualifier.class).value());
+            }
+            // 3. Parameter name -> type fallback
+            if (args[i] == null) {
+                args[i] = getInstanceOfParameter(params[i]);
+            }
+            // 4. Field name -> type fallback
+            if (args[i] == null && hasMatchingField) {
                 args[i] = getInstanceOfField(nonStaticFields.get(i));
             }
         }
