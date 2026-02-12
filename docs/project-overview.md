@@ -87,13 +87,13 @@ compile scope. The nine registered processors are:
 | Technology            | Version   | Purpose                                      |
 |-----------------------|-----------|----------------------------------------------|
 | Vert.x                | 5.0.7     | Async event loop, HTTP server, SQL clients   |
-| Hibernate ORM         | 7.2.3     | JPA persistence (sync)                       |
+| Hibernate ORM         | 7.2.4     | JPA persistence (sync)                       |
 | Hibernate Reactive    | 4.2.2     | Non-blocking persistence                     |
 | HikariCP              | 7.0.2     | JDBC connection pooling                      |
 | Gson                  | 2.13.2    | JSON serialization/deserialization           |
 | Jackson               | 2.21.0    | JSON/XML data binding (5 modules)            |
 | SnakeYAML             | 2.5       | YAML configuration loading                   |
-| SLF4J + Logback       | 2.0.17 / 1.5.28 | Logging                               |
+| SLF4J + Logback       | 2.0.17 / 1.5.29 | Logging                               |
 | Javassist             | 3.30.2    | Bytecode manipulation                        |
 | Lombok                | 1.18.42   | Boilerplate reduction                        |
 
@@ -102,7 +102,7 @@ compile scope. The nine registered processors are:
 | Database              | Driver Version  |
 |-----------------------|-----------------|
 | Oracle                | ojdbc11 23.26.1 |
-| PostgreSQL            | 42.7.9          |
+| PostgreSQL            | 42.7.10         |
 | MySQL                 | 9.6.0           |
 | SQL Server            | 13.2.1          |
 
@@ -125,8 +125,8 @@ compile scope. The nine registered processors are:
 
 | Technology                    | Version   |
 |-------------------------------|-----------|
-| Micrometer Core               | 1.16.2    |
-| Micrometer Prometheus Registry| 1.16.2    |
+| Micrometer Core               | 1.16.3    |
+| Micrometer Prometheus Registry| 1.16.3    |
 | Dropwizard Metrics            | 4.2.38    |
 
 ### Security
@@ -143,7 +143,7 @@ compile scope. The nine registered processors are:
 |-----------------------|-----------|
 | JUnit Jupiter         | 6.0.2     |
 | Mockito               | 5.21.0    |
-| DataFaker             | 2.5.3     |
+| DataFaker             | 2.5.4     |
 | H2 Database           | 2.4.240   |
 
 ---
