@@ -163,10 +163,11 @@ Marks the primary key field. Exactly one per entity.
 
 Used within `@TableName(indexes = ...)` for composite indexes.
 
-| Attribute  | Type       | Description        |
-|------------|------------|--------------------|
-| `name`     | `String`   | Index name         |
-| `columns`  | `String[]` | Column names       |
+| Attribute  | Type       | Default | Description                 |
+|------------|------------|---------|-----------------------------|
+| `name`     | `String`   | —       | Index name                  |
+| `columns`  | `String[]` | —       | Column names                |
+| `unique`   | `boolean`  | `false` | Whether the index is unique |
 
 ### @ForeignKey (FIELD, RUNTIME)
 
@@ -235,8 +236,8 @@ Each database has its own strategy implementation for DDL generation:
 ```java
 public interface DatabaseStrategy {
     String generateIdColumnDefinition(String tableName, String columnName, String dataType);
-    String generateCreateIndex(String columnName, String tableName, boolean isUnique);
-    String generateDropIndex(String columnName, String tableName);
+    String generateCreateIndex(String indexName, String tableName, String columnExpression, boolean isUnique);
+    String generateDropIndex(String indexName, String tableName);
     String generateAddColumn(ColumnDefinition col, String tableName);
     String generateDropColumn(String columnName, String tableName);
     String generateModifyColumn(ColumnDefinition col, String tableName);

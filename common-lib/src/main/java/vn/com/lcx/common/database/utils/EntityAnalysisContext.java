@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +31,7 @@ public class EntityAnalysisContext {
     private final List<Field> entityFields;
     private final Field idField;
     private final Map<String, String> databaseDatatypeMap;
-    private final Map<String, List<String>> indexMap;
+    private final List<IndexInfo> tableIndexes;
     private final List<List<String>> columnDefinitionLines;
     private final List<String> createIndexList;
     private final List<String> dropIndexList;
@@ -56,10 +56,10 @@ public class EntityAnalysisContext {
         if (tableNameAnnotation == null) {
             throw new IllegalArgumentException("Entity class must have @TableName annotation: " + entityClass.getName());
         }
-        this.indexMap = new HashMap<>();
+        this.tableIndexes = new ArrayList<>();
         final var indexes = this.tableNameAnnotation.indexes();
         for (Index index : indexes) {
-            indexMap.put(index.name(), List.of(index.columns()));
+            tableIndexes.add(new IndexInfo(index.name(), List.of(index.columns()), index.unique()));
         }
 
         this.finalTableName = buildFinalTableName();
@@ -153,8 +153,8 @@ public class EntityAnalysisContext {
         return databaseDatatypeMap;
     }
 
-    public Map<String, List<String>> getIndexMap() {
-        return indexMap;
+    public List<IndexInfo> getTableIndexes() {
+        return tableIndexes;
     }
 
     public List<List<String>> getColumnDefinitionLines() {

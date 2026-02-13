@@ -36,22 +36,20 @@ public class EntityAnalyzer {
             }
         }
         if (!generatedTableIndex) {
-            context.getIndexMap().forEach(
-                    (indexName, columnList) -> {
-                        final var columnListJoin = String.join(", ", columnList);
-                        String createIndexTable = databaseStrategy.generateCreateIndex(columnListJoin, context.getFinalTableName(), false);
-                        String dropIndexTable = databaseStrategy.generateDropIndex(indexName, context.getFinalTableName());
-                        if (StringUtils.isNotBlank(createIndexTable)) {
-                            context.getCreateIndexList().add(
-                                    createIndexTable
-                                            .replace(columnListJoin + "_INDEX", indexName + "_INDEX")
-                            );
-                        }
-                        if (StringUtils.isNotBlank(dropIndexTable)) {
-                            context.getDropIndexList().add(dropIndexTable);
-                        }
-                    }
-            );
+            for (IndexInfo indexInfo : context.getTableIndexes()) {
+                final var columnExpression = String.join(", ", indexInfo.getColumns());
+                final var fullIndexName = indexInfo.getName() + "_INDEX";
+                String createIndexTable = databaseStrategy.generateCreateIndex(
+                        fullIndexName, context.getFinalTableName(), columnExpression, indexInfo.isUnique());
+                String dropIndexTable = databaseStrategy.generateDropIndex(
+                        fullIndexName, context.getFinalTableName());
+                if (StringUtils.isNotBlank(createIndexTable)) {
+                    context.getCreateIndexList().add(createIndexTable);
+                }
+                if (StringUtils.isNotBlank(dropIndexTable)) {
+                    context.getDropIndexList().add(dropIndexTable);
+                }
+            }
             generatedTableIndex = true;
         }
     }
@@ -79,4 +77,4 @@ public class EntityAnalyzer {
         String prefix = StringUtils.isNotBlank(schema) ? schema.toLowerCase() + '-' : "";
         return prefix + tableName.toLowerCase() + ".sql";
     }
-} 
+}

@@ -13,13 +13,14 @@ public class MSSQLStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateCreateIndex(String columnName, String tableName, boolean isUnique) {
-        return String.format("CREATE INDEX %s_INDEX\nON %s (%s);\n", columnName, tableName, columnName);
+    public String generateCreateIndex(String indexName, String tableName, String columnExpression, boolean isUnique) {
+        String indexType = isUnique ? "UNIQUE INDEX" : "INDEX";
+        return String.format("CREATE %s %s\nON %s (%s);\n", indexType, indexName, tableName, columnExpression);
     }
 
     @Override
-    public String generateDropIndex(String columnName, String tableName) {
-        return String.format("DROP INDEX %s_INDEX ON %s;\n", columnName, tableName);
+    public String generateDropIndex(String indexName, String tableName) {
+        return String.format("DROP INDEX %s ON %s;\n", indexName, tableName);
     }
 
     @Override
@@ -30,11 +31,11 @@ public class MSSQLStrategy implements DatabaseStrategy {
     @Override
     public String generateAddColumn(ColumnDefinition columnDefinition, String tableName) {
         StringBuilder constraints = new StringBuilder();
-        if (!columnDefinition.isNullable()) {
-            constraints.append(" NOT NULL");
-        }
         if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
             constraints.append(" DEFAULT ").append(columnDefinition.getDefaultValue());
+        }
+        if (!columnDefinition.isNullable()) {
+            constraints.append(" NOT NULL");
         }
         if (columnDefinition.isUnique()) {
             constraints.append(" UNIQUE");
