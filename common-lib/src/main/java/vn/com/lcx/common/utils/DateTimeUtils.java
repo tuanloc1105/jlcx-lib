@@ -31,7 +31,7 @@ import java.util.Date;
  */
 public final class DateTimeUtils {
 
-    private static final ZoneId DEFAULT_ZONE_ID = ZoneId.of(ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
+    private static final ZoneId DEFAULT_ZONE_ID = TimezoneEnum.VST.getZoneId();
 
     /**
      * Private constructor to prevent instantiation.
@@ -253,7 +253,7 @@ public final class DateTimeUtils {
      *
      * <h3>Usage example:</h3>
      * <pre>{@code
-     * ZoneId zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
+     * ZoneId zoneId = TimezoneEnum.VST.getZoneId();
      * LocalDateTime localDateTime = LocalDateTime.now();
      * OffsetDateTime odt = localDateTime.atZone(zoneId).toOffsetDateTime();
      * }</pre>
