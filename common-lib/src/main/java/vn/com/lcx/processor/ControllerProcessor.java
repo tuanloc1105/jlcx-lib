@@ -197,7 +197,7 @@ public class ControllerProcessor extends AbstractProcessor {
             for (Map.Entry<TypeElement, List<ExecutableElement>> currentClass : classMap.entrySet()) {
                 processingEnv.getMessager().printMessage(
                         Diagnostic.Kind.NOTE,
-                        vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                        vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                                 String.format(
                                         "Configuring route for controller : %s",
                                         currentClass.getKey().getQualifiedName()

@@ -64,7 +64,7 @@ public class HRRepositoryProcessor extends AbstractProcessor {
         processingEnv.getMessager().printMessage(
                 Diagnostic.Kind.NOTE,
                 vn.com.lcx.common.utils.DateTimeUtils
-                        .toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                        .toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                         String.format(
                                 "Generating code for HRRepository : %s",
                                 processorClassInfo.getClazz().getQualifiedName()));

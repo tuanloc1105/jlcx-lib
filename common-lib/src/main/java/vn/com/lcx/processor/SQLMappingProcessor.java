@@ -102,7 +102,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
     private void generateBuilderClass(ProcessorClassInfo processorClassInfo) throws IOException {
         processingEnv.getMessager().printMessage(
                 Diagnostic.Kind.NOTE,
-                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                         String.format(
                                 "Generating code for model : %s",
                                 processorClassInfo.getClazz().getQualifiedName()
@@ -1017,7 +1017,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 if (!info.getInputParameters().isEmpty()) {
                     processingEnv.getMessager().printMessage(
                             Diagnostic.Kind.WARNING,
-                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                                     String.format(
                                             "Pre insert method name %s is invalid. The parameters must be empty",
                                             info.getMethodName()
@@ -1028,7 +1028,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 if (!info.getOutputParameter().getKind().equals(TypeKind.VOID)) {
                     processingEnv.getMessager().printMessage(
                             Diagnostic.Kind.WARNING,
-                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                                     String.format(
                                             "Pre insert method name %s is invalid. Must be a void method",
                                             info.getMethodName()
@@ -1042,7 +1042,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 if (!info.getInputParameters().isEmpty()) {
                     processingEnv.getMessager().printMessage(
                             Diagnostic.Kind.WARNING,
-                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                                     String.format(
                                             "Pre update method name %s is invalid. The parameters must be empty",
                                             info.getMethodName()
@@ -1053,7 +1053,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 if (!info.getOutputParameter().getKind().equals(TypeKind.VOID)) {
                     processingEnv.getMessager().printMessage(
                             Diagnostic.Kind.WARNING,
-                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                            vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                                     String.format(
                                             "Pre update method name %s is invalid. Must be a void method",
                                             info.getMethodName()

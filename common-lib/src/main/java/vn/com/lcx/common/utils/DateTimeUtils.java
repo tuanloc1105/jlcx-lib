@@ -10,7 +10,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
 /**
  * Utility class for date and time operations, including conversions between different time representations,
@@ -32,6 +31,8 @@ import java.util.TimeZone;
  */
 public final class DateTimeUtils {
 
+    private static final ZoneId DEFAULT_ZONE_ID = ZoneId.of(ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
+
     /**
      * Private constructor to prevent instantiation.
      */
@@ -39,15 +40,29 @@ public final class DateTimeUtils {
     }
 
     /**
-     * Converts a {@link LocalDateTime} to a Unix timestamp (seconds since epoch) in the specified or default time zone.
+     * Converts a {@link LocalDateTime} to a Unix timestamp in milliseconds using the default time zone (VST).
      *
-     * @param time     the LocalDateTime to convert
-     * @param timeZone optional short time zone ID (see {@link TimezoneEnum}); if not provided, defaults to VST
-     * @return the Unix timestamp in seconds
+     * @param time the LocalDateTime to convert (must not be null)
+     * @return the Unix timestamp in milliseconds
+     * @throws IllegalArgumentException if time is null
      */
-    private static long toUnix(LocalDateTime time, String... timeZone) {
-        final var zone = ZoneId.of(timeZone.length == 1 ? ZoneId.SHORT_IDS.get(timeZone[0]) : ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
-        return time.atZone(zone).toEpochSecond();
+    public static long toUnixMillis(LocalDateTime time) {
+        return toUnixMillis(time, TimezoneEnum.VST);
+    }
+
+    /**
+     * Converts a {@link LocalDateTime} to a Unix timestamp in milliseconds in the specified time zone.
+     *
+     * @param time     the LocalDateTime to convert (must not be null)
+     * @param timezone the target time zone
+     * @return the Unix timestamp in milliseconds
+     * @throws IllegalArgumentException if time is null
+     */
+    public static long toUnixMillis(LocalDateTime time, TimezoneEnum timezone) {
+        if (time == null) {
+            throw new IllegalArgumentException("time must not be null");
+        }
+        return time.atZone(timezone.getZoneId()).toInstant().toEpochMilli();
     }
 
     /**
@@ -56,22 +71,27 @@ public final class DateTimeUtils {
      * @param time     the LocalDateTime to convert
      * @param timeZone optional short time zone ID (see {@link TimezoneEnum}); if not provided, defaults to VST
      * @return the Unix timestamp in milliseconds
+     * @deprecated Use {@link #toUnixMillis(LocalDateTime)} or {@link #toUnixMillis(LocalDateTime, TimezoneEnum)} instead.
      */
+    @Deprecated(forRemoval = true)
     public static long toUnixMil(LocalDateTime time, String... timeZone) {
-        final var zone = ZoneId.of(timeZone.length == 1 ? ZoneId.SHORT_IDS.get(timeZone[0]) : ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()));
+        if (time == null) {
+            throw new IllegalArgumentException("time must not be null");
+        }
+        final var zone = timeZone.length == 1 ? ZoneId.of(ZoneId.SHORT_IDS.get(timeZone[0])) : DEFAULT_ZONE_ID;
         return time.atZone(zone).toInstant().toEpochMilli();
     }
 
     /**
-     * Converts a Unix timestamp in milliseconds to a {@link LocalDateTime} using the system default time zone.
+     * Converts a Unix timestamp in milliseconds to a {@link LocalDateTime} using the default time zone (VST).
      *
      * @param unix the Unix timestamp in milliseconds
-     * @return the corresponding LocalDateTime
+     * @return the corresponding LocalDateTime in VST
      */
     public static LocalDateTime unixToLocalDateTime(Long unix) {
         return LocalDateTime.ofInstant(
                 Instant.ofEpochMilli(unix),
-                TimeZone.getDefault().toZoneId()
+                DEFAULT_ZONE_ID
         );
     }
 
@@ -81,7 +101,7 @@ public final class DateTimeUtils {
      * @return the current LocalDateTime in VST
      */
     public static LocalDateTime generateCurrentTimeDefault() {
-        return ZonedDateTime.now(ZoneId.of(ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()))).toLocalDateTime();
+        return ZonedDateTime.now(DEFAULT_ZONE_ID).toLocalDateTime();
     }
 
     /**
@@ -94,7 +114,7 @@ public final class DateTimeUtils {
         if (timezone == null) {
             timezone = TimezoneEnum.VST;
         }
-        final ZoneId zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(timezone.name()));
+        final ZoneId zoneId = timezone.getZoneId();
         final ZonedDateTime zonedDateTime = ZonedDateTime.now(zoneId);
         return zonedDateTime.toOffsetDateTime();
     }
@@ -105,16 +125,16 @@ public final class DateTimeUtils {
      * @return the current LocalTime in VST
      */
     public static LocalTime generateCurrentLocalTimeDefault() {
-        return ZonedDateTime.now(ZoneId.of(ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()))).toLocalTime();
+        return ZonedDateTime.now(DEFAULT_ZONE_ID).toLocalTime();
     }
 
     /**
-     * Generates the current {@link LocalDate} in the system default time zone.
+     * Generates the current {@link LocalDate} in the default time zone (VST).
      *
-     * @return the current LocalDate
+     * @return the current LocalDate in VST
      */
     public static LocalDate generateCurrentLocalDateDefault() {
-        return ZonedDateTime.now().toLocalDate();
+        return ZonedDateTime.now(DEFAULT_ZONE_ID).toLocalDate();
     }
 
     /**
@@ -132,9 +152,7 @@ public final class DateTimeUtils {
 
         // Convert LocalDateTime to ZonedDateTime
         ZonedDateTime zonedDateTime = localDateTime.atZone(
-                timeZone.length == 1 ?
-                        ZoneId.of(ZoneId.SHORT_IDS.get(timeZone[0].name())) :
-                        ZoneId.of(ZoneId.SHORT_IDS.get(TimezoneEnum.VST.name()))
+                timeZone.length == 1 ? timeZone[0].getZoneId() : DEFAULT_ZONE_ID
         );
 
         // Convert ZonedDateTime to Date
@@ -178,13 +196,9 @@ public final class DateTimeUtils {
     /**
      * Converts a {@link LocalDateTime} to an {@link OffsetDateTime} using the provided {@link TimezoneEnum}.
      * <p>
-     * The method resolves the {@link ZoneId} based on the given timezone enum, determines the current
-     * {@link ZoneOffset} for that zone using {@link java.time.zone.ZoneRules}, and applies that offset to the given
-     * local date-time.
-     * </p>
-     * <p><b>Note:</b> Because the offset is determined based on the current {@link Instant}, the result
-     * may not always reflect the historical or future offset for the given {@code localDateTime} in
-     * zones that observe Daylight Saving Time (DST).
+     * The method resolves the {@link ZoneId} based on the given timezone enum, then uses
+     * {@link LocalDateTime#atZone(ZoneId)} to correctly determine the offset for the given
+     * local date-time, including proper handling of Daylight Saving Time (DST) transitions.
      * </p>
      *
      * @param localDateTime the {@code LocalDateTime} instance to be converted, must not be {@code null}
@@ -193,10 +207,7 @@ public final class DateTimeUtils {
      * corresponding to the given timezone
      */
     public static OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime, TimezoneEnum timezone) {
-        final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(timezone.name()));
-        Instant now = Instant.now();
-        ZoneOffset offset = zoneId.getRules().getOffset(now);
-        return localDateTime.atOffset(offset);
+        return localDateTime.atZone(timezone.getZoneId()).toOffsetDateTime();
     }
 
     /**
@@ -248,58 +259,42 @@ public final class DateTimeUtils {
      * }</pre>
      */
     public enum TimezoneEnum {
-        ACT("ACT"), // Australia/Darwin
-        AET("AET"), // Australia/Sydney
-        AGT("AGT"), // America/Argentina/Buenos_Aires
-        ART("ART"), // Africa/Cairo
-        AST("AST"), // America/Anchorage
-        BET("BET"), // America/Sao_Paulo
-        BST("BST"), // Asia/Dhaka
-        CAT("CAT"), // Africa/Harare
-        CNT("CNT"), // America/St_Johns
-        CST("CST"), // America/Chicago
-        CTT("CTT"), // Asia/Shanghai
-        EAT("EAT"), // Africa/Addis_Ababa
-        ECT("ECT"), // Europe/Paris
-        IET("IET"), // America/Indiana/Indianapolis
-        IST("IST"), // Asia/Kolkata
-        JST("JST"), // Asia/Tokyo
-        MIT("MIT"), // Pacific/Apia
-        NET("NET"), // Asia/Yerevan
-        NST("NST"), // Pacific/Auckland
-        PLT("PLT"), // Asia/Karachi
-        PNT("PNT"), // America/Phoenix
-        PRT("PRT"), // America/Puerto_Rico
-        PST("PST"), // America/Los_Angeles
-        SST("SST"), // Pacific/Guadalcanal
-        VST("VST"), // Asia/Ho_Chi_Minh
-        EST("EST"), // -05:00
-        MST("MST"), // -07:00
-        HST("HST"); // -10:00
-
-        private final String value;
+        ACT, // Australia/Darwin
+        AET, // Australia/Sydney
+        AGT, // America/Argentina/Buenos_Aires
+        ART, // Africa/Cairo
+        AST, // America/Anchorage
+        BET, // America/Sao_Paulo
+        BST, // Asia/Dhaka
+        CAT, // Africa/Harare
+        CNT, // America/St_Johns
+        CST, // America/Chicago
+        CTT, // Asia/Shanghai
+        EAT, // Africa/Addis_Ababa
+        ECT, // Europe/Paris
+        IET, // America/Indiana/Indianapolis
+        IST, // Asia/Kolkata
+        JST, // Asia/Tokyo
+        MIT, // Pacific/Apia
+        NET, // Asia/Yerevan
+        NST, // Pacific/Auckland
+        PLT, // Asia/Karachi
+        PNT, // America/Phoenix
+        PRT, // America/Puerto_Rico
+        PST, // America/Los_Angeles
+        SST, // Pacific/Guadalcanal
+        VST, // Asia/Ho_Chi_Minh
+        EST, // -05:00
+        MST, // -07:00
+        HST; // -10:00
 
         /**
-         * Constructs a new enum constant with the given short ID value.
+         * Resolves the {@link ZoneId} for this timezone using {@link ZoneId#SHORT_IDS}.
          *
-         * @param value the short ID string corresponding to this timezone
-         *              (e.g., "VST" for Asia/Ho_Chi_Minh, "JST" for Asia/Tokyo)
+         * @return the ZoneId corresponding to this timezone
          */
-        TimezoneEnum(String value) {
-            this.value = value;
-        }
-
-        /**
-         * Gets the short ID value for this time zone.
-         *
-         * <p>This value can be used with {@link ZoneId#of(String, java.util.Map)}
-         * in combination with {@link ZoneId#SHORT_IDS} to resolve a proper
-         * {@link ZoneId} instance.</p>
-         *
-         * @return the short ID string (e.g. "VST", "EST", "PST")
-         */
-        public String getValue() {
-            return value;
+        public ZoneId getZoneId() {
+            return ZoneId.of(ZoneId.SHORT_IDS.get(this.name()));
         }
 
         /**
@@ -312,8 +307,7 @@ public final class DateTimeUtils {
          * @return the current ZoneOffset for this timezone
          */
         public ZoneOffset getZoneOffset() {
-            final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(this.name()));
-            return zoneId.getRules().getOffset(Instant.now());
+            return getZoneId().getRules().getOffset(Instant.now());
         }
 
         /**
@@ -323,7 +317,7 @@ public final class DateTimeUtils {
          * @return the ZoneOffset valid at the given local date-time
          */
         public ZoneOffset getZoneOffset(LocalDateTime localDateTime) {
-            final var zoneId = ZoneId.of(ZoneId.SHORT_IDS.get(this.name()));
+            final var zoneId = getZoneId();
             return zoneId.getRules().getOffset(localDateTime.atZone(zoneId).toInstant());
         }
 

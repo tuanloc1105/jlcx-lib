@@ -512,7 +512,7 @@ public class MapperClassProcessor extends AbstractProcessor {
      * Logs a processing note with timestamp
      */
     private void logProcessingNote(TypeElement typeElement) {
-        String timestamp = String.valueOf(DateTimeUtils.toUnixMil(DateTimeUtils.generateCurrentTimeDefault()));
+        String timestamp = String.valueOf(DateTimeUtils.toUnixMillis(DateTimeUtils.generateCurrentTimeDefault()));
         String message = String.format("%s: Generating code for mapper class: %s",
                 timestamp, typeElement.getQualifiedName());
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, message);
