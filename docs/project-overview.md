@@ -86,14 +86,14 @@ compile scope. The nine registered processors are:
 
 | Technology            | Version   | Purpose                                      |
 |-----------------------|-----------|----------------------------------------------|
-| Vert.x                | 5.0.7     | Async event loop, HTTP server, SQL clients   |
+| Vert.x                | 5.0.8     | Async event loop, HTTP server, SQL clients   |
 | Hibernate ORM         | 7.2.4     | JPA persistence (sync)                       |
 | Hibernate Reactive    | 4.2.2     | Non-blocking persistence                     |
 | HikariCP              | 7.0.2     | JDBC connection pooling                      |
 | Gson                  | 2.13.2    | JSON serialization/deserialization           |
 | Jackson               | 2.21.0    | JSON/XML data binding (5 modules)            |
 | SnakeYAML             | 2.5       | YAML configuration loading                   |
-| SLF4J + Logback       | 2.0.17 / 1.5.29 | Logging                               |
+| SLF4J + Logback       | 2.0.17 / 1.5.32 | Logging                               |
 | Javassist             | 3.30.2    | Bytecode manipulation                        |
 | Lombok                | 1.18.42   | Boilerplate reduction                        |
 
@@ -110,8 +110,8 @@ compile scope. The nine registered processors are:
 
 | Technology            | Version   |
 |-----------------------|-----------|
-| Apache Kafka          | 4.1.1     |
-| Jedis (Redis)         | 7.2.1     |
+| Apache Kafka          | 4.2.0     |
+| Jedis (Redis)         | 7.3.0     |
 | Ehcache               | 3.11.1    |
 
 ### gRPC
@@ -133,7 +133,7 @@ compile scope. The nine registered processors are:
 
 | Technology            | Version   |
 |-----------------------|-----------|
-| Vert.x Auth JWT       | 5.0.7     |
+| Vert.x Auth JWT       | 5.0.8     |
 | jBCrypt               | 0.4       |
 | Jakarta Mail           | 2.0.5     |
 
@@ -141,7 +141,7 @@ compile scope. The nine registered processors are:
 
 | Technology            | Version   |
 |-----------------------|-----------|
-| JUnit Jupiter         | 6.0.2     |
+| JUnit Jupiter         | 6.0.3     |
 | Mockito               | 5.21.0    |
 | DataFaker             | 2.5.4     |
 | H2 Database           | 2.4.240   |
@@ -163,7 +163,7 @@ compile scope. The nine registered processors are:
     └──────┬──────┘ └────┬────┘ └─────┬──────┘
            │             │             │
     ┌──────▼─────────────▼─────────────▼──────┐
-    │            Vert.x Core 5.0.7             │
+    │            Vert.x Core 5.0.8             │
     │     Event Loop  │  Worker Pool           │
     └──────────────────┬───────────────────────┘
                        │
