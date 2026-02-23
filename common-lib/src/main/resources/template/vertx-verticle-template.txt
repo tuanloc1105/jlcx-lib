@@ -33,6 +33,20 @@ ${constructor}
                 logger.info("Create default body handler");
                 router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
             }
+            {
+                final String cookieAuthName = vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.cookie-auth-name");
+                if (vn.com.lcx.common.utils.MyStringUtils.isNotBlank(cookieAuthName)) {
+                    router.route().handler(ctx -> {
+                        if (ctx.request().headers().get("Authorization") == null) {
+                            io.vertx.core.http.Cookie cookie = ctx.request().getCookie(cookieAuthName);
+                            if (cookie != null && cookie.getValue() != null && !cookie.getValue().isEmpty()) {
+                                ctx.request().headers().set("Authorization", "Bearer " + cookie.getValue());
+                            }
+                        }
+                        ctx.next();
+                    });
+                }
+            }
 
             router.get("/health").handler(routingContext -> routingContext.response().end("OK"));
             router.get("/starting_probe").handler(routingContext -> {
