@@ -285,6 +285,8 @@ Every route has a handler chain assembled in this order:
 ```
 BodyHandler (parses request body)
   ↓
+Cookie-to-Auth handler   (if server.cookie-auth-name configured — copies named cookie to Authorization header)
+  ↓
 JWTAuthHandler           (if @Auth)
   ↓
 API Key Validator         (if @APIKey)
@@ -295,6 +297,12 @@ createUUIDHandler         (always — injects trace ID)
   ↓
 Controller method
 ```
+
+The Cookie-to-Auth handler is a global handler that enables cookie-based JWT authentication.
+When `server.cookie-auth-name` is set (e.g., `accessToken`), it reads the named cookie from the
+request and sets it as the `Authorization: Bearer <token>` header, allowing the existing
+`JWTAuthHandler` to validate it transparently. If an `Authorization` header is already present,
+the cookie is ignored (header takes precedence).
 
 The `createUUIDHandler` generates a UUIDv7 trace ID and stores it in the routing context
 under the key `trace_id`.
@@ -633,6 +641,7 @@ Properties in `application.yaml`:
 | `server.enable-metrics`        | `false` | Enable Prometheus `/metrics`        |
 | `server.enable-virtual-thread` | `false` | Use virtual threads (Java 21+)      |
 | `server.api-key`               | —       | Expected value for `@APIKey`        |
+| `server.cookie-auth-name`      | —       | Cookie name to bridge to `Authorization` header (enables cookie-based JWT auth) |
 
 ### Built-in Endpoints
 
@@ -685,14 +694,16 @@ their route methods (`@Get`, `@Post`, `@Put`, `@Delete`), and generates a single
    as parameters (injected by the DI container at runtime)
 2. **Route registration** — for each controller method, generates a `router.get/post/put/delete`
    call with the concatenated path (`controller.path + method.path`)
-3. **Handler chain** — for each route, assembles the handler chain:
+3. **Global handlers** — registers `BodyHandler` and optionally a cookie-to-auth handler
+   (if `server.cookie-auth-name` is configured) on `router.route()`
+4. **Handler chain** — for each route, assembles the handler chain:
    - `JWTAuthHandler` (if `@Auth` is present on the method)
    - `validateApiKey` (if `@APIKey` is present — reads `x-api-key` header, validates against
      `server.api-key` config)
    - `createUUIDHandler` (always — generates trace ID)
    - Context handler filters (sorted by `@ContextHandler.order`)
    - Controller method invocation (wrapped in `RoutingContextLcxWrapper` for logging)
-4. **Static resources** — if `@VertxApplication(staticResource = true)`, serves files from
+5. **Static resources** — if `@VertxApplication(staticResource = true)`, serves files from
    `webroot/` and falls back to `webroot/index.html` for SPA routing
 
 **Generated handler chain per route:**
