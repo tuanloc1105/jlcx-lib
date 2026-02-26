@@ -70,14 +70,14 @@ Add the core library and annotation processor to your project (adjust the versio
 <dependency>
   <groupId>vn.com.lcx</groupId>
   <artifactId>common-lib</artifactId>
-  <version>4.0.1.lcx</version>
+  <version>4.0.2.lcx-SNAPSHOT</version>
 </dependency>
 
 <!-- Annotation processor (compile-time) -->
 <dependency>
   <groupId>vn.com.lcx</groupId>
   <artifactId>processor</artifactId>
-  <version>4.0.1.lcx</version>
+  <version>4.0.2.lcx-SNAPSHOT</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -196,7 +196,7 @@ The annotation processor runs during compilation and generates sources based on 
       <path>
         <groupId>vn.com.lcx</groupId>
         <artifactId>processor</artifactId>
-        <version>4.0.1.lcx</version>
+        <version>4.0.2.lcx-SNAPSHOT</version>
       </path>
     </annotationProcessorPaths>
     <compilerArgs>

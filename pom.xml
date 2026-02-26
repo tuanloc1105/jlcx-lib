@@ -122,7 +122,7 @@
 
     <groupId>vn.com.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>4.0.1.lcx</version>
+    <version>4.0.2.lcx-SNAPSHOT</version>
 
     <dependencyManagement>
 
