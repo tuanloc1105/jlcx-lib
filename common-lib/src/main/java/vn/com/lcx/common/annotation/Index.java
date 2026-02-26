@@ -47,4 +47,12 @@ public @interface Index {
      * @return an array of column names
      */
     String[] columns();
+
+    /**
+     * Whether the index should enforce uniqueness.
+     * Defaults to {@code false} for backward compatibility.
+     *
+     * @return true if the index is unique
+     */
+    boolean unique() default false;
 }

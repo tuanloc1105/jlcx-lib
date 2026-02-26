@@ -14,14 +14,14 @@ public class OracleStrategy implements DatabaseStrategy {
     }
 
     @Override
-    public String generateCreateIndex(String columnName, String tableName, boolean isUnique) {
+    public String generateCreateIndex(String indexName, String tableName, String columnExpression, boolean isUnique) {
         String indexType = isUnique ? "UNIQUE INDEX" : "INDEX";
-        return String.format("CREATE %s %s_INDEX\nON %s (%s);\n", indexType, columnName, tableName, columnName);
+        return String.format("CREATE %s %s\nON %s (%s);\n", indexType, indexName, tableName, columnExpression);
     }
 
     @Override
-    public String generateDropIndex(String columnName, String tableName) {
-        return String.format("DROP INDEX %s_INDEX;\n", columnName);
+    public String generateDropIndex(String indexName, String tableName) {
+        return String.format("DROP INDEX %s;\n", indexName);
     }
 
     @Override
@@ -32,11 +32,11 @@ public class OracleStrategy implements DatabaseStrategy {
     @Override
     public String generateAddColumn(ColumnDefinition columnDefinition, String tableName) {
         StringBuilder constraints = new StringBuilder();
-        if (!columnDefinition.isNullable()) {
-            constraints.append(" NOT NULL");
-        }
         if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
             constraints.append(" DEFAULT ").append(columnDefinition.getDefaultValue());
+        }
+        if (!columnDefinition.isNullable()) {
+            constraints.append(" NOT NULL");
         }
 
         String result = String.format("ALTER TABLE %s\n  ADD (%s %s%s);\n",

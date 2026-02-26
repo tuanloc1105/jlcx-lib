@@ -75,7 +75,7 @@ public class ServiceProcessor extends AbstractProcessor {
     private void generateCode(ProcessorClassInfo processorClassInfo) throws Exception {
         processingEnv.getMessager().printMessage(
                 Diagnostic.Kind.NOTE,
-                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                         String.format(
                                 "Generating code for service : %s",
                                 processorClassInfo.getClazz().getQualifiedName()

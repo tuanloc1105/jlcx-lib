@@ -89,14 +89,13 @@ public class FieldProcessor {
         List<String> columnDefinitionList = new ArrayList<>();
         columnDefinitionList.add(columnName);
         columnDefinitionList.add(dataType);
+        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
+            columnDefinitionList.add("DEFAULT " + columnDefinition.getDefaultValue());
+        }
         if (!columnDefinition.isNullable())
             columnDefinitionList.add("NOT NULL");
         else
             columnDefinitionList.add("NULL");
-
-        if (columnDefinition.getDefaultValue() != null && !columnDefinition.getDefaultValue().isEmpty()) {
-            columnDefinitionList.add("DEFAULT " + columnDefinition.getDefaultValue());
-        }
         if (columnDefinition.isUnique())
             columnDefinitionList.add("UNIQUE");
 
@@ -128,8 +127,9 @@ public class FieldProcessor {
     }
 
     private void processIndex(String columnName, boolean isUnique) {
-        String createIndex = databaseStrategy.generateCreateIndex(columnName, context.getFinalTableName(), isUnique);
-        String dropIndex = databaseStrategy.generateDropIndex(columnName, context.getFinalTableName());
+        String indexName = columnName + "_INDEX";
+        String createIndex = databaseStrategy.generateCreateIndex(indexName, context.getFinalTableName(), columnName, isUnique);
+        String dropIndex = databaseStrategy.generateDropIndex(indexName, context.getFinalTableName());
 
         if (StringUtils.isNotBlank(createIndex)) {
             context.getCreateIndexList().add(createIndex);

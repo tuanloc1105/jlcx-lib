@@ -23,7 +23,9 @@ import vn.com.lcx.common.database.type.DBTypeEnum;
 import vn.com.lcx.common.utils.LogUtils;
 import vn.com.lcx.vertx.base.custom.EmptyRoutingContext;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 import static vn.com.lcx.common.constant.CommonConstant.applicationConfig;
@@ -71,9 +73,10 @@ public class ReactiveDbClientConfiguration {
                         LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
                     .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
-            // noinspection StatementWithEmptyBody
-            while (!f.isComplete()) {
-                // wait
+            try {
+                f.toCompletionStage().toCompletableFuture().get(30, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), "Failed to close pool within timeout", e);
             }
         }));
         return getDatabaseVersion(type, pool, "SELECT 1");
@@ -113,9 +116,10 @@ public class ReactiveDbClientConfiguration {
                         LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
                     .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
-            // noinspection StatementWithEmptyBody
-            while (!f.isComplete()) {
-                // wait
+            try {
+                f.toCompletionStage().toCompletableFuture().get(30, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), "Failed to close pool within timeout", e);
             }
         }));
         return getDatabaseVersion(type, pool, "SELECT 1");
@@ -155,9 +159,10 @@ public class ReactiveDbClientConfiguration {
                         LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
                     .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
-            // noinspection StatementWithEmptyBody
-            while (!f.isComplete()) {
-                // wait
+            try {
+                f.toCompletionStage().toCompletableFuture().get(30, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), "Failed to close pool within timeout", e);
             }
         }));
         return getDatabaseVersion(type, pool, "SELECT 1");
@@ -197,9 +202,10 @@ public class ReactiveDbClientConfiguration {
                         LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
                     .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
-            // noinspection StatementWithEmptyBody
-            while (!f.isComplete()) {
-                // wait
+            try {
+                f.toCompletionStage().toCompletableFuture().get(30, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), "Failed to close pool within timeout", e);
             }
         }));
         return getDatabaseVersion(type, pool, "SELECT 1 FROM dual");
@@ -235,9 +241,10 @@ public class ReactiveDbClientConfiguration {
                         LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), LogUtils.Level.INFO, "Released SQL client connection pool");
                     })
                     .onFailure(err -> LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), err.getMessage(), err));
-            // noinspection StatementWithEmptyBody
-            while (!f.isComplete()) {
-                // wait
+            try {
+                f.toCompletionStage().toCompletableFuture().get(30, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), "Failed to close pool within timeout", e);
             }
         }));
         return getDatabaseVersion(type, pool, "SELECT 1");
@@ -263,12 +270,15 @@ public class ReactiveDbClientConfiguration {
                             LogUtils.writeLog("Reactive-Pool-Configuration", EmptyRoutingContext.init(), "An error occurred in initialization stage of reactive database pool", err);
                         }
                 );
-        // noinspection StatementWithEmptyBody
-        while (!future.isComplete()) {
-            // wait
-        }
-        if (future.failed()) {
+        try {
+            future.toCompletionStage().toCompletableFuture().get(30, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            throw new ExceptionInInitializerError("Database connection timed out after 30 seconds");
+        } catch (ExecutionException e) {
             throw new ExceptionInInitializerError("Cannot create reactive database pool");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ExceptionInInitializerError("Database connection was interrupted");
         }
         return pool;
     }
@@ -320,22 +330,12 @@ public class ReactiveDbClientConfiguration {
         ) {
             return null;
         }
-        Pool pool = null;
-        switch (type) {
-            case POSTGRESQL:
-                pool = createPg(port, host, name, username, password, maxPoolSize, type);
-                break;
-            case MYSQL:
-                pool = createMySql(port, host, name, username, password, maxPoolSize, type);
-                break;
-            case MSSQL:
-                pool = createMssql(port, host, name, username, password, maxPoolSize, type);
-                break;
-            case ORACLE:
-                pool = createOracle(port, host, name, username, password, maxPoolSize, type);
-                break;
-        }
-        return pool;
+        return switch (type) {
+            case POSTGRESQL -> createPg(port, host, name, username, password, maxPoolSize, type);
+            case MYSQL -> createMySql(port, host, name, username, password, maxPoolSize, type);
+            case MSSQL -> createMssql(port, host, name, username, password, maxPoolSize, type);
+            case ORACLE -> createOracle(port, host, name, username, password, maxPoolSize, type);
+        };
     }
 
     public void refreshConnection(Supplier<Future<Void>> handler) {

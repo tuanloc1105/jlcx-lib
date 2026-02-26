@@ -56,8 +56,6 @@ import java.util.concurrent.TimeUnit;
  * }</pre>
  *
  * @param <T> the type of result returned by the tasks
- * @author LCX Team
- * @since 1.0
  */
 public class SimpleExecutor<T> implements BaseExecutor<T> {
 
@@ -96,9 +94,15 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
      */
     private ExecutorService executorService;
 
+    /**
+     * Flag to indicate whether to use Virtual Threads (JDK 21+)
+     */
+    private boolean useVirtualThread;
+
     public SimpleExecutor(List<Callable<T>> taskList, RejectedExecutionHandler rejectedExecutionHandler) {
         this.taskList = taskList;
         this.rejectedExecutionHandler = rejectedExecutionHandler;
+        this.useVirtualThread = false;
     }
 
     public SimpleExecutor(List<Callable<T>> taskList,
@@ -108,6 +112,17 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                           long timeout,
                           TimeUnit unit,
                           ExecutorService executorService) {
+        this(taskList, rejectedExecutionHandler, minThread, maxThread, timeout, unit, executorService, false);
+    }
+
+    public SimpleExecutor(List<Callable<T>> taskList,
+                          RejectedExecutionHandler rejectedExecutionHandler,
+                          int minThread,
+                          int maxThread,
+                          long timeout,
+                          TimeUnit unit,
+                          ExecutorService executorService,
+                          boolean useVirtualThread) {
         this.taskList = taskList;
         this.rejectedExecutionHandler = rejectedExecutionHandler;
         this.minThread = minThread;
@@ -115,6 +130,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         this.timeout = timeout;
         this.unit = unit;
         this.executorService = executorService;
+        this.useVirtualThread = useVirtualThread;
     }
 
     /**
@@ -173,6 +189,69 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         asd.setUnit(unit);
         asd.setTimeout(timeout);
         return asd;
+    }
+
+    /**
+     * Creates a new SimpleExecutor configured to use Virtual Threads.
+     *
+     * <p>Virtual Threads (Project Loom) are lightweight threads introduced in JDK 21.
+     * When running on JDK 21+, this executor will use Virtual Threads for task execution.
+     * When running on earlier JDK versions, it will automatically fallback to a cached
+     * thread pool.</p>
+     *
+     * <p>Virtual Threads are ideal for I/O-bound workloads with high concurrency,
+     * as they have minimal overhead compared to platform threads.</p>
+     *
+     * @param timeout the timeout duration for task execution
+     * @param unit    the time unit for the timeout
+     * @param <T>     the type of result returned by tasks
+     * @return a new SimpleExecutor instance configured for Virtual Threads
+     * @throws NullPointerException if unit is null
+     */
+    public static <T> SimpleExecutor<T> initWithVirtualThread(final long timeout,
+                                                               final TimeUnit unit) {
+        final var executor = new SimpleExecutor<T>(
+                new ArrayList<>(),
+                new ThreadPoolExecutor.AbortPolicy() // Default policy, not used for virtual threads
+        );
+        executor.setUnit(unit);
+        executor.setTimeout(timeout);
+        executor.setUseVirtualThread(true);
+        return executor;
+    }
+
+    /**
+     * Creates a new SimpleExecutor with full configuration and Virtual Thread support.
+     *
+     * <p>When {@code useVirtualThread} is true and running on JDK 21+, this executor
+     * will use Virtual Threads. The minThread, maxThread, and rejectedExecutionHandler
+     * parameters are ignored when using Virtual Threads.</p>
+     *
+     * @param minNumberOfThreads the minimum number of threads (ignored for Virtual Threads)
+     * @param maxNumberOfThreads the maximum number of threads (ignored for Virtual Threads)
+     * @param rejectMode         the rejection policy (ignored for Virtual Threads)
+     * @param timeout            the timeout duration for task execution
+     * @param unit               the time unit for the timeout
+     * @param useVirtualThread   whether to use Virtual Threads (requires JDK 21+)
+     * @param <T>                the type of result returned by tasks
+     * @return a new SimpleExecutor instance
+     */
+    public static <T> SimpleExecutor<T> init(int minNumberOfThreads,
+                                             int maxNumberOfThreads,
+                                             RejectMode rejectMode,
+                                             final long timeout,
+                                             final TimeUnit unit,
+                                             boolean useVirtualThread) {
+        return new SimpleExecutor<>(
+                new ArrayList<>(),
+                SimpleExecutor.getRejectHandlerClass(rejectMode),
+                minNumberOfThreads,
+                maxNumberOfThreads,
+                timeout,
+                unit,
+                null,
+                useVirtualThread
+        );
     }
 
     /**
@@ -259,6 +338,30 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     }
 
     /**
+     * Checks if this executor is configured to use Virtual Threads.
+     *
+     * @return true if Virtual Threads should be used, false otherwise
+     */
+    public boolean isUseVirtualThread() {
+        return useVirtualThread;
+    }
+
+    /**
+     * Sets whether this executor should use Virtual Threads.
+     *
+     * <p>When set to true and running on JDK 21+, the executor will use
+     * Virtual Threads for task execution. On earlier JDK versions, it will
+     * fallback to platform threads.</p>
+     *
+     * @param useVirtualThread true to use Virtual Threads, false for platform threads
+     * @return this executor instance for method chaining
+     */
+    public SimpleExecutor<T> setUseVirtualThread(boolean useVirtualThread) {
+        this.useVirtualThread = useVirtualThread;
+        return this;
+    }
+
+    /**
      * Adds a single task to the executor's task list.
      *
      * <p>The task will be executed when {@link #executeTasks()} or
@@ -303,6 +406,32 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
             return executorService;
         }
         final ExecutorService service;
+
+        // Try to use Virtual Threads if requested and supported
+        if (useVirtualThread) {
+            if (VirtualThreadSupport.isVirtualThreadSupported()) {
+                ExecutorService virtualExecutor = VirtualThreadSupport.newVirtualThreadPerTaskExecutor("lcx-virtual-worker");
+                if (virtualExecutor != null) {
+                    LogUtils.writeLog(
+                            SimpleExecutor.class,
+                            LogUtils.Level.INFO,
+                            "Using Virtual Thread executor (JDK {})",
+                            VirtualThreadSupport.getJdkMajorVersion()
+                    );
+                    executorService = virtualExecutor;
+                    return virtualExecutor;
+                }
+            } else {
+                LogUtils.writeLog(
+                        SimpleExecutor.class,
+                        LogUtils.Level.WARN,
+                        "Virtual Threads requested but not supported (JDK {} < 21). Falling back to platform threads.",
+                        VirtualThreadSupport.getJdkMajorVersion()
+                );
+            }
+        }
+
+        // Fallback to platform threads
         if (minThread == 0 || maxThread == 0) {
             service = Executors.newCachedThreadPool(
                     new LcxThreadFactory.MyThreadFactory("lcx-worker")

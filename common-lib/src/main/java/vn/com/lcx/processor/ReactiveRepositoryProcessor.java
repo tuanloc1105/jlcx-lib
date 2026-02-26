@@ -105,7 +105,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
     private void logProcessing(ProcessorClassInfo processorClassInfo) {
         processingEnv.getMessager().printMessage(
                 Diagnostic.Kind.NOTE,
-                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(
                         vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()
                 ) + ": " + String.format(
                         "Generating code for reactive repository : %s",

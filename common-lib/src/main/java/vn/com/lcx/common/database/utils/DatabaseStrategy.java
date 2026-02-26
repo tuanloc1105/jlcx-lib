@@ -19,21 +19,22 @@ public interface DatabaseStrategy {
     /**
      * Generate CREATE INDEX statement
      *
-     * @param columnName the column name
-     * @param tableName  the table name
-     * @param isUnique   whether the index should be unique
+     * @param indexName         the full index name (e.g. "COLUMN_INDEX" or "my_composite_INDEX")
+     * @param tableName         the fully-qualified table name
+     * @param columnExpression  the column(s) to index, comma-separated (e.g. "col1" or "col1, col2")
+     * @param isUnique          whether the index should be unique
      * @return the CREATE INDEX statement
      */
-    String generateCreateIndex(String columnName, String tableName, boolean isUnique);
+    String generateCreateIndex(String indexName, String tableName, String columnExpression, boolean isUnique);
 
     /**
      * Generate DROP INDEX statement
      *
-     * @param columnName the column name
-     * @param tableName  the table name
+     * @param indexName  the full index name
+     * @param tableName  the table name (needed by MySQL and MSSQL syntax)
      * @return the DROP INDEX statement
      */
-    String generateDropIndex(String columnName, String tableName);
+    String generateDropIndex(String indexName, String tableName);
 
     /**
      * Generate RENAME COLUMN statement

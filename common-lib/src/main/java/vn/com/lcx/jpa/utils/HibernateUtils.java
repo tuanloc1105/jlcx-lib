@@ -28,22 +28,87 @@ public final class HibernateUtils {
     }
 
     public static List<Map<String, Object>> queryToMap(Session session, String sql, Map<String, Object> params) {
+        final List<Map<String, Object>> results = new ArrayList<>();
+        final List<Object> paramList = params != null ? new ArrayList<>(params.values()) : null;
 
-        @SuppressWarnings("SqlSourceToSinkFlow") var query = session.createNativeQuery(sql, Object[].class);
+        session.doWork(connection -> {
+            try (PreparedStatement ps = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+                if (paramList != null) {
+                    int index = 1;
+                    for (Object param : paramList) {
+                        ps.setObject(index++, param);
+                    }
+                }
 
-        return getMaps(params, query);
+                try (ResultSet rs = ps.executeQuery()) {
+                    ResultSetMetaData meta = rs.getMetaData();
+                    int columnCount = meta.getColumnCount();
+                    String[] columnLabels = new String[columnCount];
+                    for (int i = 1; i <= columnCount; i++) {
+                        columnLabels[i - 1] = meta.getColumnLabel(i);
+                    }
+
+                    while (rs.next()) {
+                        Map<String, Object> row = new LinkedHashMap<>();
+                        for (int i = 1; i <= columnCount; i++) {
+                            row.put(columnLabels[i - 1], convertToString(rs.getObject(i)));
+                        }
+                        results.add(row);
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Error executing query", e);
+            }
+        });
+
+        return results;
     }
 
     public static List<Map<String, Object>> queryToMap(Session session, String sql, Map<String, Object> params, Pageable pageable) {
-
+        final List<Map<String, Object>> results = new ArrayList<>();
+        final List<Object> paramList = params != null ? new ArrayList<>(params.values()) : null;
         var pageimpl = (PageableImpl) pageable;
 
-        @SuppressWarnings("SqlSourceToSinkFlow") var query = session.createNativeQuery(sql, Object[].class);
+        session.doWork(connection -> {
+            try (PreparedStatement ps = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+                if (paramList != null) {
+                    int index = 1;
+                    for (Object param : paramList) {
+                        ps.setObject(index++, param);
+                    }
+                }
 
-        query.setFirstResult(pageimpl.getOffset());
-        query.setMaxResults(pageimpl.getPageSize());
+                ps.setFetchSize(pageimpl.getPageSize());
 
-        return getMaps(params, query);
+                try (ResultSet rs = ps.executeQuery()) {
+                    ResultSetMetaData meta = rs.getMetaData();
+                    int columnCount = meta.getColumnCount();
+                    String[] columnLabels = new String[columnCount];
+                    for (int i = 1; i <= columnCount; i++) {
+                        columnLabels[i - 1] = meta.getColumnLabel(i);
+                    }
+
+                    int rowNum = 0;
+                    int offset = pageimpl.getOffset();
+                    int limit = pageimpl.getPageSize();
+
+                    while (rs.next()) {
+                        if (rowNum >= offset && rowNum < offset + limit) {
+                            Map<String, Object> row = new LinkedHashMap<>();
+                            for (int i = 1; i <= columnCount; i++) {
+                                row.put(columnLabels[i - 1], convertToString(rs.getObject(i)));
+                            }
+                            results.add(row);
+                        }
+                        rowNum++;
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Error executing query", e);
+            }
+        });
+
+        return results;
     }
 
     public static List<Map<String, Object>> queryToMap2(Session session, String sql, Map<String, Object> params) {
@@ -180,30 +245,6 @@ public final class HibernateUtils {
                 throw new RuntimeException("Error while streaming with custom mapper", e);
             }
         });
-    }
-
-    private static List<Map<String, Object>> getMaps(Map<String, Object> params, NativeQuery<Object[]> query) {
-        // Bind parameters
-        if (params != null) {
-            params.forEach(query::setParameter);
-        }
-
-        // Apply transformer
-        NativeQuery<?> nativeQuery = query.unwrap(NativeQuery.class);
-
-        nativeQuery.setTupleTransformer((tuple, aliases) -> {
-            Map<String, Object> map = new LinkedHashMap<>();
-            for (int i = 0; i < aliases.length; i++) {
-                map.put(aliases[i], convertToString(tuple[i]));
-            }
-            return map;
-        });
-
-        // Hibernate returns List<Object> but each Object is actually Map<String, Object>
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> result = (List<Map<String, Object>>) nativeQuery.getResultList();
-
-        return result;
     }
 
     private static List<Map<String, Object>> getMaps(ResultSet rs) {

@@ -215,7 +215,7 @@ public class RepositoryProcessor extends AbstractProcessor {
     public void generateCode(ProcessorClassInfo processorClassInfo) throws Exception {
         processingEnv.getMessager().printMessage(
                 Diagnostic.Kind.NOTE,
-                vn.com.lcx.common.utils.DateTimeUtils.toUnixMil(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                vn.com.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.com.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
                         String.format(
                                 "Generating code for respository : %s",
                                 processorClassInfo.getClazz().getQualifiedName()

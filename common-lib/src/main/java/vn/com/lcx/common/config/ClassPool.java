@@ -5,6 +5,7 @@ import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import vn.com.lcx.common.annotation.Component;
+import vn.com.lcx.common.annotation.DependsOn;
 import vn.com.lcx.common.annotation.Instance;
 import vn.com.lcx.common.annotation.PostConstruct;
 import vn.com.lcx.common.annotation.Qualifier;
@@ -23,13 +24,16 @@ import vn.com.lcx.reactive.context.EntityMappingContainer;
 import vn.com.lcx.reactive.entity.EntityMapping;
 
 import java.io.File;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -40,19 +44,87 @@ import java.util.stream.Stream;
 
 import static vn.com.lcx.common.utils.FileUtils.createFolderIfNotExists;
 
+/**
+ * Lightweight, reflection-based dependency injection container.
+ *
+ * <p>Responsible for scanning packages, discovering {@link Component @Component} classes,
+ * and managing their lifecycle: instantiation, dependency resolution, and registration.</p>
+ *
+ * <h3>Initialization flow ({@link #init}):</h3>
+ * <ol>
+ *   <li><b>Package scanning</b> - discovers all classes via {@link vn.com.lcx.common.scanner.PackageScanner}.</li>
+ *   <li><b>Entity registration</b> - collects {@code @Entity}/{@code @Table} classes and
+ *       processes {@code @TableName} classes.</li>
+ *   <li><b>Phase 1</b> - instantiates simple {@code @Component} classes (no non-static fields)
+ *       via no-arg constructor.</li>
+ *   <li><b>Phase 2</b> - iteratively resolves dependent {@code @Component} classes via
+ *       constructor injection, and resolves deferred {@link Instance @Instance} methods
+ *       whose parameters were not yet available.</li>
+ *   <li><b>Error reporting</b> - throws {@link ExceptionInInitializerError} if any component
+ *       or {@code @Instance} method remains unresolved.</li>
+ * </ol>
+ *
+ * <h3>Instance registration:</h3>
+ * <p>Each instance is registered under multiple keys for polymorphic lookup:</p>
+ * <ul>
+ *   <li>Fully qualified class name and simple class name</li>
+ *   <li>All superclass names and interface names</li>
+ *   <li>Custom name via {@link Instance#value()} or method name</li>
+ * </ul>
+ * <p>Naming conflicts are resolved by appending numeric suffixes (e.g. {@code name1}, {@code name2}).</p>
+ *
+ * <h3>Dependency resolution order (constructor parameters / {@code @Instance} method parameters):</h3>
+ * <ol>
+ *   <li>{@link Qualifier @Qualifier} on the parameter itself</li>
+ *   <li>Fallback to matching field's {@code @Qualifier} (for constructor params, supports Lombok)</li>
+ *   <li>Parameter name</li>
+ *   <li>Parameter type name</li>
+ * </ol>
+ *
+ * @see Component
+ * @see Instance
+ * @see Qualifier
+ * @see PostConstruct
+ */
 public class ClassPool {
 
-    public static final List<Class<?>> ENTITIES = new ArrayList<>();
+    private record DeferredInstanceMethod(Object componentInstance, Method method) {}
+
+    private static final List<Class<?>> ENTITIES = new ArrayList<>();
     private static final ConcurrentHashMap<String, Object> CLASS_POOL = new ConcurrentHashMap<>();
 
+    /**
+     * Returns an unmodifiable list of all discovered entity classes
+     * (annotated with {@code @Entity} or {@code @Table}).
+     *
+     * @return unmodifiable list of entity classes
+     */
+    public static List<Class<?>> getEntities() {
+        return Collections.unmodifiableList(ENTITIES);
+    }
+
+    /**
+     * Scans the given packages (plus {@code vn.com.lcx}), discovers components, entities,
+     * and verticles, then instantiates and registers all {@link Component @Component} classes.
+     *
+     * <p>Components are created in two phases: simple components first, then dependent
+     * components via iterative constructor injection. Deferred {@link Instance @Instance}
+     * methods are also resolved in the iterative phase.</p>
+     *
+     * @param packagesToScan list of base packages to scan for classes
+     * @param verticleClass  mutable list that will be populated with discovered {@link Verticle @Verticle} classes
+     * @throws ExceptionInInitializerError if any component or {@code @Instance} method cannot be resolved
+     */
     public static void init(final List<String> packagesToScan, final List<Class<?>> verticleClass) {
-        packagesToScan.add("vn.com.lcx");
+        final var allPackagesToScan = new ArrayList<>(packagesToScan);
+        allPackagesToScan.add("vn.com.lcx");
         try {
             final List<Class<?>> listOfClassInPackage = new ArrayList<>();
-            packagesToScan.forEach(packageName -> {
+            allPackagesToScan.forEach(packageName -> {
                 try {
                     listOfClassInPackage.addAll(PackageScanner.findClasses(packageName));
-                } catch (Exception ignore) {
+                } catch (Exception e) {
+                    LogUtils.writeLog(ClassPool.class, LogUtils.Level.WARN, "Failed to scan package: {}", packageName);
                 }
             });
 
@@ -73,6 +145,8 @@ public class ClassPool {
             createFolderIfNotExists(folderPath);
             final var postHandleComponent = new ArrayList<Class<?>>();
             final var handledPostHandleComponent = new ArrayList<Class<?>>();
+            final var deferredInstanceMethods = new ArrayList<DeferredInstanceMethod>();
+            final var handledDeferredMethods = new ArrayList<DeferredInstanceMethod>();
             ENTITIES.addAll(
                     listOfClassInPackage.stream()
                             .filter(aClass -> aClass.getAnnotation(Entity.class) != null ||
@@ -97,72 +171,76 @@ public class ClassPool {
                 }
                 final var componentAnnotation = aClass.getAnnotation(Component.class);
                 if (componentAnnotation != null) {
-                    final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
-                    if (fieldsOfComponent.isEmpty()) {
+                    final var fieldsOfComponent = Arrays.stream(aClass.getDeclaredFields()).filter(f -> !Modifier.isStatic(f.getModifiers())).toList();
+                    if (fieldsOfComponent.isEmpty() && areDependsOnBeansSatisfied(aClass)) {
                         LogUtils.writeLog(ClassPool.class, LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
                         final var instance = aClass.getDeclaredConstructor().newInstance();
                         if (!checkProxy(instance)) {
                             setInstance(instance);
                         }
-                        createInstancesAndHandlePostConstructMethod(aClass, instance);
+                        createInstancesAndHandlePostConstructMethod(aClass, instance, deferredInstanceMethods);
                     } else {
                         postHandleComponent.add(aClass);
                     }
                 }
             }
 
-            var count = 0;
-            final var limit = 1;
-            while (postHandleComponent.size() != handledPostHandleComponent.size()) {
-                if (limit == count) {
-                    break;
-                }
-                boolean aClassHasNotBeenAddedToPool = true;
+            boolean progress = true;
+            while (progress && (postHandleComponent.size() != handledPostHandleComponent.size() || deferredInstanceMethods.size() != handledDeferredMethods.size())) {
+                progress = false;
                 for (Class<?> aClass : postHandleComponent) {
-                    if (handledPostHandleComponent.stream().anyMatch(c -> c.isAssignableFrom(aClass))) {
+                    if (handledPostHandleComponent.contains(aClass)) {
+                        continue;
+                    }
+                    if (!areDependsOnBeansSatisfied(aClass)) {
                         continue;
                     }
                     if (aClass.getDeclaredConstructors().length > 1) {
                         throw new ExceptionInInitializerError(String.format("Class `%s` must have only 1 constructor", aClass));
                     }
 
-                    final Class<?>[] constructorParams = getConstructorParameters(aClass.getDeclaredConstructors()[0]);
-                    final var constructorParamsList = Stream.of(constructorParams).map(Class::getName)
-                            .collect(Collectors.toCollection(ArrayList::new));
-                    final var fields = new ArrayList<Field>();
-                    getFieldsOfClass(fields, aClass);
-                    // final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
-                    final var fieldsOfComponent = fields.stream()
-                            .filter(f -> constructorParamsList.contains(f.getType().getName()))
-                            .collect(Collectors.toList());
-                    final Object[] args = fieldsOfComponent
-                            .stream()
-                            .map(ClassPool::getInstanceOfField)
-                            .toArray(Object[]::new);
+                    final var constructor = aClass.getDeclaredConstructors()[0];
+                    final Class<?>[] constructorParamTypes = getConstructorParameters(constructor);
+                    final Object[] args = resolveConstructorArgs(constructor, aClass);
                     if (Arrays.stream(args).noneMatch(Objects::isNull)) {
                         LogUtils.writeLog(ClassPool.class, LogUtils.Level.DEBUG, "Creating instance for {}", aClass);
-                        final var instance = aClass.getDeclaredConstructor(constructorParams).newInstance(args);
-                        createInstancesAndHandlePostConstructMethod(aClass, instance);
+                        final var instance = aClass.getDeclaredConstructor(constructorParamTypes).newInstance(args);
+                        createInstancesAndHandlePostConstructMethod(aClass, instance, deferredInstanceMethods);
                         if (!checkProxy(instance)) {
                             setInstance(instance);
                         }
                         handledPostHandleComponent.add(aClass);
-                        aClassHasNotBeenAddedToPool = false;
+                        progress = true;
                     }
                 }
-                if (aClassHasNotBeenAddedToPool) {
-                    ++count;
-                } else {
-                    --count;
+                for (DeferredInstanceMethod deferred : deferredInstanceMethods) {
+                    if (handledDeferredMethods.contains(deferred)) {
+                        continue;
+                    }
+                    if (!areDependsOnBeansSatisfied(deferred.method())) {
+                        continue;
+                    }
+                    final Object[] args = Arrays.stream(deferred.method().getParameters())
+                            .map(ClassPool::getInstanceOfParameter)
+                            .toArray(Object[]::new);
+                    if (Arrays.stream(args).noneMatch(Objects::isNull)) {
+                        invokeAndRegisterInstanceMethod(deferred.componentInstance(), deferred.method(), args);
+                        handledDeferredMethods.add(deferred);
+                        progress = true;
+                    }
                 }
             }
-            if (limit == count && postHandleComponent.size() != handledPostHandleComponent.size()) {
+            if (postHandleComponent.size() != handledPostHandleComponent.size() || deferredInstanceMethods.size() != handledDeferredMethods.size()) {
                 final var message = new StringBuilder("[");
                 for (Class<?> aClass : postHandleComponent) {
-                    if (handledPostHandleComponent.stream().noneMatch(handledClass -> handledClass.isAssignableFrom(aClass))) {
+                    if (!handledPostHandleComponent.contains(aClass)) {
+                        final var reasons = new ArrayList<String>();
+                        if (!areDependsOnBeansSatisfied(aClass)) {
+                            reasons.add("unsatisfied @DependsOn: " + getMissingDependsOnDescription(aClass));
+                        }
                         final var fields = new ArrayList<Field>();
                         getFieldsOfClass(fields, aClass);
-                        final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
+                        final var fieldsOfComponent = fields.stream().filter(f -> !Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())).toList();
                         final var fieldNotCreated = fieldsOfComponent.stream()
                                 .filter(
                                         field ->
@@ -170,11 +248,37 @@ public class ClassPool {
                                                         !CLASS_POOL.containsKey(field.getName())
                                 ).map(f -> f.getName() + ": " + f.getType().getName())
                                 .collect(Collectors.toCollection(ArrayList::new));
+                        if (!fieldNotCreated.isEmpty()) {
+                            reasons.add("missing fields: " + String.join(", ", fieldNotCreated));
+                        }
                         message.append(
                                 String.format(
-                                        "Cannot found instance of fields (%s) of class %s",
-                                        String.join(", ", fieldNotCreated),
-                                        aClass.getName()
+                                        "Cannot create instance of class %s [%s]",
+                                        aClass.getName(),
+                                        String.join("; ", reasons)
+                                )
+                        ).append(",\n");
+                    }
+                }
+                for (DeferredInstanceMethod deferred : deferredInstanceMethods) {
+                    if (!handledDeferredMethods.contains(deferred)) {
+                        final var reasons = new ArrayList<String>();
+                        if (!areDependsOnBeansSatisfied(deferred.method())) {
+                            reasons.add("unsatisfied @DependsOn: " + getMissingDependsOnDescription(deferred.method()));
+                        }
+                        final var unresolvedParams = Arrays.stream(deferred.method().getParameters())
+                                .filter(p -> getInstanceOfParameter(p) == null)
+                                .map(p -> p.getName() + ": " + p.getType().getName())
+                                .collect(Collectors.joining(", "));
+                        if (!unresolvedParams.isEmpty()) {
+                            reasons.add("unresolved parameters: " + unresolvedParams);
+                        }
+                        message.append(
+                                String.format(
+                                        "Cannot resolve @Instance method `%s` in class %s [%s]",
+                                        deferred.method().getName(),
+                                        deferred.method().getDeclaringClass().getName(),
+                                        String.join("; ", reasons)
                                 )
                         ).append(",\n");
                     }
@@ -188,24 +292,43 @@ public class ClassPool {
         }
     }
 
-    public static void createInstancesAndHandlePostConstructMethod(Class<?> aClass, Object instance) throws Exception {
+    /**
+     * Processes {@link Instance @Instance} factory methods and {@link PostConstruct @PostConstruct}
+     * methods on the given component instance.
+     *
+     * <p>For each {@code @Instance} method:</p>
+     * <ul>
+     *   <li>No parameters: invoked immediately and the result is registered in the pool.</li>
+     *   <li>Has parameters, all resolvable: invoked immediately with resolved beans.</li>
+     *   <li>Has parameters, some unresolvable: added to {@code deferredMethods} for later retry.</li>
+     * </ul>
+     *
+     * <p>After processing {@code @Instance} methods, the single {@code @PostConstruct} method
+     * (if present) is invoked.</p>
+     *
+     * @param aClass          the component class
+     * @param instance        the component instance
+     * @param deferredMethods mutable list to collect {@code @Instance} methods with unresolved parameters
+     * @throws Exception if method invocation fails or constraints are violated
+     */
+    public static void createInstancesAndHandlePostConstructMethod(Class<?> aClass, Object instance, List<DeferredInstanceMethod> deferredMethods) throws Exception {
         final var methodsOfInstance = Arrays.stream(
                 aClass.getDeclaredMethods()
-        ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).collect(Collectors.toList());
+        ).filter(m -> m.getReturnType() != Void.TYPE && m.getAnnotation(Instance.class) != null).toList();
         if (!methodsOfInstance.isEmpty()) {
             for (Method method : methodsOfInstance) {
-                final var instanceMethodResult = method.invoke(instance);
-                if (instanceMethodResult != null) {
-                    setInstance(instanceMethodResult);
-                    final var instanceName = Optional.ofNullable(method.getAnnotation(Instance.class))
-                            .filter(it ->
-                                    StringUtils.isNotBlank(it.value())
-                            ).map(Instance::value)
-                            .orElse(CommonConstant.EMPTY_STRING);
-                    if (StringUtils.isNotBlank(instanceName)) {
-                        setInstance(instanceName, instanceMethodResult);
+                if (!areDependsOnBeansSatisfied(method)) {
+                    deferredMethods.add(new DeferredInstanceMethod(instance, method));
+                } else if (method.getParameterCount() == 0) {
+                    invokeAndRegisterInstanceMethod(instance, method);
+                } else {
+                    final Object[] args = Arrays.stream(method.getParameters())
+                            .map(ClassPool::getInstanceOfParameter)
+                            .toArray(Object[]::new);
+                    if (Arrays.stream(args).noneMatch(Objects::isNull)) {
+                        invokeAndRegisterInstanceMethod(instance, method, args);
                     } else {
-                        setInstance(method.getName(), instanceMethodResult);
+                        deferredMethods.add(new DeferredInstanceMethod(instance, method));
                     }
                 }
             }
@@ -213,7 +336,7 @@ public class ClassPool {
         final var postConstructMethods = Arrays
                 .stream(aClass.getDeclaredMethods())
                 .filter(m -> m.getAnnotation(PostConstruct.class) != null)
-                .collect(Collectors.toList());
+                .toList();
         final var hasMoreThanOnePostConstructMethod = postConstructMethods.size() > 1;
         if (hasMoreThanOnePostConstructMethod) {
             throw new RuntimeException(
@@ -249,18 +372,50 @@ public class ClassPool {
         }
     }
 
+    /**
+     * Retrieves a registered instance by name.
+     *
+     * @param name the registered name (class name, simple name, or custom name)
+     * @return the instance, or {@code null} if not found
+     */
     public static Object getInstance(String name) {
         return CLASS_POOL.get(name);
     }
 
+    /**
+     * Retrieves a registered instance by name, cast to the specified type.
+     *
+     * @param name  the registered name
+     * @param clazz the expected type
+     * @param <T>   the type
+     * @return the instance cast to {@code T}, or {@code null} if not found
+     * @throws ClassCastException if the instance is not assignable to {@code clazz}
+     */
     public static <T> T getInstance(String name, Class<T> clazz) {
         return clazz.cast(CLASS_POOL.get(name));
     }
 
+    /**
+     * Retrieves a registered instance by its class type.
+     * Looks up using the fully qualified class name.
+     *
+     * @param clazz the class type to look up
+     * @param <T>   the type
+     * @return the instance cast to {@code T}, or {@code null} if not found
+     * @throws ClassCastException if the instance is not assignable to {@code clazz}
+     */
     public static <T> T getInstance(Class<T> clazz) {
         return clazz.cast(CLASS_POOL.get(clazz.getName()));
     }
 
+    /**
+     * Registers an instance under a specific name. Also registers under the type hierarchy
+     * via {@link #setInstance(Object)}.
+     *
+     * @param name     the name to register under
+     * @param instance the instance to register
+     * @throws DuplicateInstancesException if an instance with the same name already exists
+     */
     public static void setInstance(String name, Object instance) {
         final var existingInstance = CLASS_POOL.get(name);
         if (existingInstance != null) {
@@ -276,6 +431,13 @@ public class ClassPool {
         setInstance(instance);
     }
 
+    /**
+     * Registers an instance under its full type hierarchy: class name, simple name,
+     * superclass names, and interface names. If a key already exists, a numeric suffix
+     * is appended (e.g. {@code name1}, {@code name2}).
+     *
+     * @param instance the instance to register
+     */
     public static void setInstance(Object instance) {
         set(instance.getClass().getName(), instance);
         set(instance.getClass().getSimpleName(), instance);
@@ -297,17 +459,20 @@ public class ClassPool {
     }
 
     private static void set(String name, Object instance) {
-        if (CLASS_POOL.get(name) == null) {
-            CLASS_POOL.put(name, instance);
+        if (CLASS_POOL.putIfAbsent(name, instance) == null) {
             return;
         }
         int count = 1;
-        while (CLASS_POOL.get(name + count) != null) {
+        while (CLASS_POOL.putIfAbsent(name + count, instance) != null) {
             count++;
         }
-        CLASS_POOL.put(name + count, instance);
     }
 
+    /**
+     * Loads application configuration from {@code application.yaml} (or from the file specified
+     * by the {@code application_config.file} system property) and initializes JSON sensitive
+     * field masking.
+     */
     public static void loadProperties() {
         ClassLoader classLoader = ClassPool.class.getClassLoader();
         final String configFile = System.getProperty("application_config.file");
@@ -330,10 +495,103 @@ public class ClassPool {
             Object proxyInstance = proxyClass.getDeclaredConstructor(instance.getClass()).newInstance(instance);
             setInstance(proxyInstance);
             return true;
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException ignore) {
+        } catch (ClassNotFoundException ignore) {
+            // Expected - no proxy class exists
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            LogUtils.writeLog(ClassPool.class, LogUtils.Level.WARN, "Failed to create proxy for: {}", instance.getClass().getName());
         }
         return false;
+    }
+
+    private static String getMissingDependsOnDescription(AnnotatedElement element) {
+        DependsOn dependsOn = element.getAnnotation(DependsOn.class);
+        if (dependsOn == null) return "";
+        final var missing = new ArrayList<String>();
+        for (String name : dependsOn.value()) {
+            if (getInstance(name) == null) missing.add("\"" + name + "\"");
+        }
+        for (Class<?> clazz : dependsOn.classes()) {
+            if (getInstance(clazz) == null) missing.add(clazz.getName());
+        }
+        return String.join(", ", missing);
+    }
+
+    private static boolean areDependsOnBeansSatisfied(AnnotatedElement element) {
+        DependsOn dependsOn = element.getAnnotation(DependsOn.class);
+        if (dependsOn == null) return true;
+        for (String name : dependsOn.value()) {
+            if (getInstance(name) == null) return false;
+        }
+        for (Class<?> clazz : dependsOn.classes()) {
+            if (getInstance(clazz) == null) return false;
+        }
+        return true;
+    }
+
+    private static Object[] resolveConstructorArgs(Constructor<?> constructor, Class<?> componentClass) {
+        final var params = constructor.getParameters();
+        final var fields = new ArrayList<Field>();
+        getFieldsOfClass(fields, componentClass);
+        final var nonStaticFields = fields.stream()
+                .filter(f -> !Modifier.isStatic(f.getModifiers()))
+                .toList();
+        final Object[] args = new Object[params.length];
+        for (int i = 0; i < params.length; i++) {
+            final boolean hasMatchingField = i < nonStaticFields.size()
+                    && nonStaticFields.get(i).getType().equals(params[i].getType());
+            // 1. @Qualifier on parameter
+            if (params[i].getAnnotation(Qualifier.class) != null) {
+                args[i] = getInstance(params[i].getAnnotation(Qualifier.class).value());
+            }
+            // 2. @Qualifier on corresponding field (Lombok compatibility)
+            if (args[i] == null && hasMatchingField
+                    && nonStaticFields.get(i).getAnnotation(Qualifier.class) != null) {
+                args[i] = getInstance(nonStaticFields.get(i).getAnnotation(Qualifier.class).value());
+            }
+            // 3. Parameter name
+            if (args[i] == null) {
+                args[i] = getInstance(params[i].getName());
+            }
+            // 4. Field name
+            if (args[i] == null && hasMatchingField) {
+                args[i] = getInstance(nonStaticFields.get(i).getName());
+            }
+            // 5. Type (last resort)
+            if (args[i] == null) {
+                args[i] = getInstance(params[i].getType().getName());
+            }
+        }
+        return args;
+    }
+
+    private static Object getInstanceOfParameter(Parameter param) {
+        if (param.getAnnotation(Qualifier.class) != null) {
+            return getInstance(param.getAnnotation(Qualifier.class).value());
+        } else {
+            Object o1 = getInstance(param.getName());
+            if (o1 != null) {
+                return o1;
+            }
+            return getInstance(param.getType().getName());
+        }
+    }
+
+    private static void invokeAndRegisterInstanceMethod(Object instance, Method method, Object... args) throws Exception {
+        final var instanceMethodResult = method.invoke(instance, args);
+        if (instanceMethodResult != null) {
+            setInstance(instanceMethodResult);
+            final var instanceName = Optional.ofNullable(method.getAnnotation(Instance.class))
+                    .filter(it ->
+                            StringUtils.isNotBlank(it.value())
+                    ).map(Instance::value)
+                    .orElse(CommonConstant.EMPTY_STRING);
+            if (StringUtils.isNotBlank(instanceName)) {
+                setInstance(instanceName, instanceMethodResult);
+            } else {
+                setInstance(method.getName(), instanceMethodResult);
+            }
+        }
     }
 
     private static Object getInstanceOfField(Field field) {
@@ -349,11 +607,11 @@ public class ClassPool {
     }
 
     private static void getFieldsOfClass(final ArrayList<Field> fields, Class<?> aClass) {
+        fields.addAll(Arrays.asList(aClass.getDeclaredFields()));
         if (aClass.getSuperclass() != null) {
             List<Field> superClassField = Arrays.asList(aClass.getSuperclass().getDeclaredFields());
             fields.addAll(superClassField);
         }
-        fields.addAll(Arrays.asList(aClass.getDeclaredFields()));
     }
 
     private static Class<?>[] getConstructorParameters(Constructor<?> constructor) {
