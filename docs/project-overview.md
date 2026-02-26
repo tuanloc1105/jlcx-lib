@@ -87,11 +87,11 @@ compile scope. The nine registered processors are:
 | Technology            | Version   | Purpose                                      |
 |-----------------------|-----------|----------------------------------------------|
 | Vert.x                | 5.0.8     | Async event loop, HTTP server, SQL clients   |
-| Hibernate ORM         | 7.2.4     | JPA persistence (sync)                       |
-| Hibernate Reactive    | 4.2.2     | Non-blocking persistence                     |
+| Hibernate ORM         | 7.2.5     | JPA persistence (sync)                       |
+| Hibernate Reactive    | 4.2.4     | Non-blocking persistence                     |
 | HikariCP              | 7.0.2     | JDBC connection pooling                      |
 | Gson                  | 2.13.2    | JSON serialization/deserialization           |
-| Jackson               | 2.21.0    | JSON/XML data binding (5 modules)            |
+| Jackson               | 2.21.1    | JSON/XML data binding (5 modules)            |
 | SnakeYAML             | 2.5       | YAML configuration loading                   |
 | SLF4J + Logback       | 2.0.17 / 1.5.32 | Logging                               |
 | Javassist             | 3.30.2    | Bytecode manipulation                        |
