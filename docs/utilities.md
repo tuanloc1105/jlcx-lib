@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `vn.com.lcx.common` package provides 28+ utility classes, a package scanner, global
+The `vn.com.lcx.common` package provides 30+ utility classes, a package scanner, global
 constants, and custom exceptions. All utility classes are `final` with private constructors
 (static-only usage).
 
@@ -28,6 +28,76 @@ List<Class<?>> classes = PackageScanner.findClasses("com.example.app");
 - Uses `Thread.currentThread().getContextClassLoader()`
 - Silently ignores classes that fail to load (`ClassNotFoundException`)
 - Returns empty list on I/O errors
+
+---
+
+## Data Structures
+
+### LargeArray\<T\> - Chunked Large Collections
+
+**Location:** `vn.com.lcx.common.array.LargeArray`
+
+Memory-efficient array implementation for collections that exceed standard Java array limits.
+Breaks large arrays into chunks of `Integer.MAX_VALUE - 8` stored in a `List<T[]>`.
+
+```java
+LargeArray<byte[]> data = new LargeArray<>(3_000_000_000L);
+data.set(2_500_000_000L, value);
+byte[] val = data.get(2_500_000_000L);
+```
+
+| Method | Description |
+|--------|-------------|
+| `LargeArray(long size)` | Construct with size > `Integer.MAX_VALUE` |
+| `T get(long index)` | Access element at index |
+| `void set(long index, T value)` | Set element at index |
+| `List<T[]> getChunks()` | Get underlying chunk list |
+
+---
+
+### Ref\<T\> - Mutable Reference Wrapper
+
+**Location:** `vn.com.lcx.common.ref.Ref`
+
+Enables mutable pass-by-reference semantics where Java parameters are normally pass-by-value.
+
+```java
+Ref<NetSocket> socketRef = Ref.init();
+// ... later in async callback:
+socketRef.setVal(socket);
+// ... elsewhere:
+NetSocket socket = socketRef.getVal();
+```
+
+| Method | Description |
+|--------|-------------|
+| `static <T> Ref<T> init(T val)` | Create with initial value |
+| `static <T> Ref<T> init()` | Create with null value |
+| `T getVal()` | Retrieve current value |
+| `void setVal(T val)` | Update value |
+
+---
+
+## Context Management
+
+### AuthContext - ThreadLocal Authentication
+
+**Location:** `vn.com.lcx.common.context.AuthContext`
+
+ThreadLocal-based authentication context for storing/retrieving current user information.
+
+```java
+AuthContext.set(userPrincipal);
+MyUser user = AuthContext.get(MyUser.class);
+AuthContext.clear(); // cleanup after request
+```
+
+| Method | Description |
+|--------|-------------|
+| `static void set(Object obj)` | Store auth object (user principal) |
+| `static Object get()` | Retrieve raw auth object |
+| `static <T> T get(Class<T> clz)` | Type-safe retrieval with casting |
+| `static void clear()` | Clear for thread cleanup |
 
 ---
 
@@ -368,6 +438,18 @@ result extraction.
 
 ---
 
+## Apache Commons Libraries
+
+The project includes three Apache Commons libraries as dependencies:
+
+| Library | Version | Purpose |
+|---------|---------|---------|
+| `commons-text` | 1.15.0 | String interpolation, text manipulation |
+| `commons-lang3` | 3.20.0 | String utilities, exception handling, reflection |
+| `commons-collections4` | 4.5.0 | Advanced collection operations, transformers, predicates |
+
+---
+
 ## Custom Exceptions
 
 All exceptions extend `RuntimeException`.
@@ -395,6 +477,9 @@ annotation processors (MapperClassProcessor, SQLMappingProcessor, ServiceProcess
 
 | File | Description |
 |------|-------------|
+| `common/array/LargeArray.java` | Chunked large collections |
+| `common/ref/Ref.java` | Mutable reference wrapper |
+| `common/context/AuthContext.java` | ThreadLocal auth storage |
 | `common/scanner/PackageScanner.java` | Runtime class discovery |
 | `common/utils/BCryptUtils.java` | Password hashing |
 | `common/utils/RSAUtils.java` | RSA encryption |

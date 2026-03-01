@@ -225,6 +225,31 @@ Abstract base class with audit fields:
 | `createdBy` | `CREATED_BY`  | Set on insert, not updatable      |
 | `updatedBy` | `UPDATED_BY`  | Updated on each save              |
 
+### BaseEntityDTO
+
+DTO counterpart of `BaseEntity` with `LocalDateTime`-based audit fields:
+
+| Field       | Type            | Description                    |
+|-------------|-----------------|--------------------------------|
+| `createdAt` | `LocalDateTime` | Record creation timestamp      |
+| `updatedAt` | `LocalDateTime` | Last modification timestamp    |
+| `deletedAt` | `LocalDateTime` | Soft delete timestamp          |
+| `createdBy` | `String`        | User who created the record    |
+| `updatedBy` | `String`        | User who last modified         |
+
+### BaseUnixEntityDTO
+
+DTO with Unix timestamps (`BigInteger`) for audit fields:
+
+| Field       | Type            | Description                       |
+|-------------|-----------------|-----------------------------------|
+| `id`        | `Long`          | Primary key                       |
+| `createdAt` | `BigInteger`    | Creation timestamp (Unix ms)      |
+| `updatedAt` | `BigInteger`    | Update timestamp (Unix ms)        |
+| `deletedAt` | `BigInteger`    | Soft delete timestamp (Unix ms)   |
+| `createdBy` | `String`        | Creator user identifier           |
+| `updatedBy` | `String`        | Modifier user identifier          |
+
 ---
 
 ## DDL Generation (Strategy Pattern)
@@ -640,6 +665,26 @@ List<TaskEntity> tasks = taskRepository.find(
     )
 );
 ```
+
+### JPA Functional Interfaces
+
+| Interface                  | Signature                                      | Description                         |
+|----------------------------|-------------------------------------------------|-------------------------------------|
+| `RowMapper<T>`             | `T map(ResultSet rs)`                          | Single-row mapping from ResultSet   |
+| `BatchCallback`            | `void handle(List<Map<String, String>> batch)` | Batch of generic map results        |
+| `ResultBatchCallback<T>`   | `void handle(List<T> batch)`                   | Batch of typed results              |
+
+```java
+// RowMapper usage
+RowMapper<TaskEntity> mapper = rs -> {
+    TaskEntity task = new TaskEntity();
+    task.setId(rs.getLong("TASK_ID"));
+    task.setName(rs.getString("TASK_NAME"));
+    return task;
+};
+```
+
+---
 
 ### EntityContainer
 
@@ -1082,6 +1127,97 @@ public class TasksEntity {
 
 ---
 
+### RowBatchCallback\<T, U\> (Reactive Batch Processing)
+
+Async callback for reactive stream processing with stateful result chaining:
+
+```java
+public interface RowBatchCallback<T, U> {
+    Future<U> handle(List<T> batch, U previousResult);
+}
+```
+
+`previousResult` enables accumulating state across batch iterations.
+
+---
+
+### ReactiveRowStreamingUtils
+
+Cursor-based batch streaming for large datasets using Vert.x SQL client:
+
+```java
+ReactiveRowStreamingUtils.stream(
+    ctx, pool,
+    sqlStatement,
+    parameters,
+    500,                    // batch size
+    TaskEntity.class,
+    (batch, previousResult) -> {
+        // process batch of 500 rows
+        return Future.succeededFuture(accumulatedResult);
+    }
+);
+```
+
+**How it works:**
+1. Prepares SQL query with parameters
+2. Creates cursor from prepared query
+3. Fetches rows in configured batch sizes
+4. Invokes callback with mapped batch + previous result
+5. Recursively processes until cursor exhausted
+
+---
+
+### Reactive FileUtils
+
+Non-blocking file I/O using Vert.x FileSystem API. Located at
+`vn.com.lcx.reactive.utils.FileUtils` (distinct from the sync `vn.com.lcx.common.utils.FileUtils`).
+
+All methods return `Future<T>` for async composition.
+
+**Key methods (25+):**
+
+| Category | Methods |
+|----------|---------|
+| Create   | `createFile()`, `createEmptyFile()`, `createDirectory()` |
+| Read     | `readFileAsString()`, `readFileAsBuffer()` |
+| Write    | `appendToFile()`, `overwriteFile()` |
+| Delete   | `deleteFile()`, `deleteDirectory()` (recursive) |
+| Navigate | `move()`, `copyFile()`, `exists()`, `getFileProperties()`, `listDirectory()` |
+| Advanced | `openFile()`, `processFileLineByLine()`, `createSymbolicLink()`, `getRealPath()` |
+
+---
+
+### PreparedQueryWrapper\<T\>
+
+Decorator wrapping Vert.x `PreparedQuery` to log query parameters at TRACE level:
+
+- Parameter extraction with type-safe enum name conversion
+- Truncates values > 1000 chars to first 10 + "..." + last 10 chars
+- Supports `List<?>` values (flattened into multiple parameters)
+- Handles null values safely
+
+---
+
+### PoolLcxWrapper
+
+Decorator wrapping Vert.x SQL `Pool` with execution time measurement and `RoutingContext`
+integration:
+
+```java
+PoolLcxWrapper pool = new PoolLcxWrapper(vertxPool);
+
+// Get connection with timing
+pool.getConnection(ctx).onSuccess(conn -> { ... });
+
+// Execute within transaction with timing
+pool.withTransaction(ctx, conn -> {
+    return taskRepo.save(ctx, conn, entity);
+});
+```
+
+---
+
 ### SqlConnectionLcxWrapper
 
 Decorator for `SqlConnection` with SQL logging:
@@ -1138,29 +1274,13 @@ Logs all SQL statements at DEBUG level with execution timing.
 | `processor/HRRepositoryProcessor.java`    | Hibernate Reactive repo code generator     |
 | `processor/ReactiveRepositoryProcessor.java` | Vert.x reactive repo code generator    |
 | `processor/SQLMappingProcessor.java`      | Entity utils code generator                |
-
-| File                                      | Description                                |
-|-------------------------------------------|--------------------------------------------|
-| `common/database/DatabaseExecutor.java`   | JDBC execution interface                   |
-| `common/database/DatabaseExecutorImpl.java` | JDBC execution implementation            |
-| `common/database/DatabaseProperty.java`   | Connection configuration                   |
-| `common/database/type/DBTypeEnum.java`    | Database type definitions                  |
-| `common/database/DatabaseStrategy.java`   | DDL generation interface                   |
-| `common/database/OracleStrategy.java`     | Oracle DDL strategy                        |
-| `common/database/PostgreSQLStrategy.java` | PostgreSQL DDL strategy                    |
-| `common/database/MySQLStrategy.java`      | MySQL DDL strategy                         |
-| `common/database/MSSQLStrategy.java`      | SQL Server DDL strategy                    |
-| `common/database/reflect/EntityAnalyzer.java` | Entity analysis orchestrator           |
-| `common/database/reflect/FieldProcessor.java` | Field-level DDL processing             |
-| `common/database/reflect/SqlGenerator.java`   | SQL file generation                    |
-| `common/database/pageable/Pageable.java`  | Pagination interface                       |
-| `common/database/pageable/Page.java`      | Page result wrapper                        |
-| `common/database/specification/Specification.java` | Fluent query builder              |
-| `common/database/handler/resultset/ResultSetHandler.java` | Row mapper interface       |
-| `common/database/handler/statement/*.java` | Type-specific parameter handlers          |
-| `common/annotation/mapper/TableName.java` | `@TableName` annotation                    |
-| `common/annotation/mapper/ColumnName.java`| `@ColumnName` annotation                   |
-| `common/annotation/mapper/IdColumn.java`  | `@IdColumn` annotation                     |
-| `common/annotation/mapper/ForeignKey.java`| `@ForeignKey` annotation                   |
-| `jpa/repository/JpaRepository.java`       | JPA repository interface                   |
-| `processor/SQLMappingProcessor.java`      | Entity utils code generator                |
+| `jpa/dto/BaseEntityDTO.java`             | DTO with LocalDateTime audit fields         |
+| `jpa/dto/BaseUnixEntityDTO.java`         | DTO with Unix timestamp audit fields        |
+| `jpa/functional/RowMapper.java`          | Single-row ResultSet mapping interface      |
+| `jpa/functional/BatchCallback.java`      | Batch processing callback                   |
+| `jpa/functional/ResultBatchCallback.java`| Typed batch processing callback             |
+| `reactive/functional/RowBatchCallback.java` | Reactive stateful batch callback         |
+| `reactive/utils/ReactiveRowStreamingUtils.java` | Cursor-based row streaming           |
+| `reactive/utils/FileUtils.java`          | Non-blocking file I/O                       |
+| `reactive/wrapper/PreparedQueryWrapper.java` | Query parameter logging decorator       |
+| `reactive/wrapper/PoolLcxWrapper.java`   | Pool with timing and context integration    |

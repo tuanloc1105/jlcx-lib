@@ -42,7 +42,8 @@ The core module containing all runtime code:
 | `vn.com.lcx.common.config`     | `ClassPool` DI container, configuration        |
 | `vn.com.lcx.common.scanner`    | Runtime package scanning (`PackageScanner`)    |
 | `vn.com.lcx.common.database`   | JDBC execution, strategies, entity analysis    |
-| `vn.com.lcx.common.utils`      | 28+ utility classes                            |
+| `vn.com.lcx.common.database.context` | `ConnectionContext` (deprecated)          |
+| `vn.com.lcx.common.utils`      | 30+ utility classes                            |
 | `vn.com.lcx.common.constant`   | Global constants                               |
 | `vn.com.lcx.common.exception`  | Custom exceptions                              |
 | `vn.com.lcx.common.cache`      | Caching abstractions                           |
@@ -53,11 +54,19 @@ The core module containing all runtime code:
 | `vn.com.lcx.common.cron`       | Scheduled task / cron support                  |
 | `vn.com.lcx.common.logging`    | Logging configuration                          |
 | `vn.com.lcx.common.dto`        | Shared DTOs                                    |
-| `vn.com.lcx.common.context`    | Context management                             |
+| `vn.com.lcx.common.context`    | Context management (`AuthContext`)              |
+| `vn.com.lcx.common.array`      | `LargeArray<T>` - chunked large collections    |
+| `vn.com.lcx.common.ref`        | `Ref<T>` - mutable reference wrapper           |
 | `vn.com.lcx.common.javaassist` | Bytecode manipulation via Javassist            |
 | `vn.com.lcx.jpa`               | JPA/Hibernate ORM layer                        |
+| `vn.com.lcx.jpa.dto`           | `BaseEntityDTO`, `BaseUnixEntityDTO`           |
+| `vn.com.lcx.jpa.functional`    | `RowMapper`, `BatchCallback`, `ResultBatchCallback` |
 | `vn.com.lcx.reactive`          | Hibernate Reactive integration                 |
+| `vn.com.lcx.reactive.functional`| `RowBatchCallback<T,U>` async batch callback  |
+| `vn.com.lcx.reactive.wrapper`  | `PreparedQueryWrapper`, `PoolLcxWrapper`       |
+| `vn.com.lcx.reactive.utils`    | `ReactiveRowStreamingUtils`, reactive `FileUtils` |
 | `vn.com.lcx.vertx`             | Vert.x web framework base classes              |
+| `vn.com.lcx.vertx.base.utils`  | `VertxSocketClientUtils`, `VertxWebClientHttpUtils` |
 | `vn.com.lcx.processor`         | Annotation processor implementations           |
 
 ### processor
@@ -96,6 +105,12 @@ compile scope. The nine registered processors are:
 | SLF4J + Logback       | 2.0.17 / 1.5.32 | Logging                               |
 | Javassist             | 3.30.2    | Bytecode manipulation                        |
 | Lombok                | 1.18.42   | Boilerplate reduction                        |
+| Apache Commons Text   | 1.15.0    | Text manipulation and interpolation          |
+| Apache Commons Lang3  | 3.20.0    | String utilities, reflection helpers         |
+| Apache Commons Collections4 | 4.5.0 | Advanced collection operations             |
+| JAXB API + Runtime    | 4.0.5 / 4.0.6 | XML binding                             |
+| Jakarta Persistence API | 3.2.0   | JPA specification                            |
+| Jakarta Annotation API | 3.0.0    | Annotation processing                        |
 
 ### Database Drivers
 
@@ -127,7 +142,8 @@ compile scope. The nine registered processors are:
 |-------------------------------|-----------|
 | Micrometer Core               | 1.16.3    |
 | Micrometer Prometheus Registry| 1.16.3    |
-| Dropwizard Metrics            | 4.2.38    |
+| Dropwizard Metrics 4          | 4.2.38    |
+| Dropwizard Metrics 5          | 5.0.6     |
 
 ### Security
 
@@ -143,8 +159,10 @@ compile scope. The nine registered processors are:
 |-----------------------|-----------|
 | JUnit Jupiter         | 6.0.3     |
 | Mockito               | 5.21.0    |
+| Mockito Inline        | 5.2.0     |
 | DataFaker             | 2.5.4     |
 | H2 Database           | 2.4.240   |
+| Vert.x Unit           | 5.0.8     |
 
 ---
 
