@@ -8,18 +8,18 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProcessorClassInfo {
     private final Types typeUtils;
     private final Elements elementUtils;
-    private final HashSet<Element> fields;
+    private final LinkedHashSet<Element> fields;
     private final HashMap<MethodInfo, ExecutableElement> methods;
     private final TypeElement clazz;
 
-    public ProcessorClassInfo(Types typeUtils, Elements elementUtils, HashSet<Element> fields, HashMap<MethodInfo, ExecutableElement> methods, TypeElement clazz) {
+    public ProcessorClassInfo(Types typeUtils, Elements elementUtils, LinkedHashSet<Element> fields, HashMap<MethodInfo, ExecutableElement> methods, TypeElement clazz) {
         this.typeUtils = typeUtils;
         this.elementUtils = elementUtils;
         this.fields = fields;
@@ -73,7 +73,7 @@ public class ProcessorClassInfo {
         return elementUtils;
     }
 
-    public HashSet<Element> getFields() {
+    public LinkedHashSet<Element> getFields() {
         return fields;
     }
 

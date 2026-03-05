@@ -69,6 +69,20 @@ public class SQLMappingProcessor extends AbstractProcessor {
         return typeMirror.getKind() == TypeKind.BOOLEAN;
     }
 
+    private static boolean isPrimitiveType(Element element) {
+        return element.asType().getKind().isPrimitive();
+    }
+
+    private static String getGetterName(Element element, String fieldName) {
+        if (isPrimitiveBoolean(element)) {
+            if (fieldName.startsWith("is")) {
+                return fieldName;
+            }
+            return "is" + capitalize(fieldName);
+        }
+        return "get" + capitalize(fieldName);
+    }
+
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latest();
@@ -969,6 +983,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
         }
         final var idElement = idElements.get(0);
         final String idFieldName = idElement.getSimpleName().toString();
+        final String idGetterName = getGetterName(idElement, idFieldName);
         ColumnName idColumnNameAnnotation = idElement.getAnnotation(ColumnName.class);
         String idDatabaseColumnNameToBeGet = Optional
                 .ofNullable(idColumnNameAnnotation)
@@ -984,19 +999,19 @@ public class SQLMappingProcessor extends AbstractProcessor {
         getColumnNameFromFieldNameCodeLine.add("switch (fieldName) {");
         insertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         reactiveInsertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
-        updateStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
+        updateStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
         updateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
         updateStatementCodeLines.add("}");
         updateStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
-        reactiveUpdateStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
+        reactiveUpdateStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
         reactiveUpdateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
         reactiveUpdateStatementCodeLines.add("}");
         reactiveUpdateStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         reactiveUpdateStatementCodeLines.add("int count = 0;");
-        deleteStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
+        deleteStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
         deleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
         deleteStatementCodeLines.add("}");
-        reactiveDeleteStatementCodeLines.add(String.format(String.format("if (model.get%s() == null) {", capitalize(idElement.getSimpleName().toString()))));
+        reactiveDeleteStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
         reactiveDeleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
         reactiveDeleteStatementCodeLines.add("}");
         insertJdbcParameterCodeLines.add("java.util.Map<Integer, Object> map = new java.util.HashMap<>();");
@@ -1065,12 +1080,12 @@ public class SQLMappingProcessor extends AbstractProcessor {
             }
         });
 
-        if (StringUtils.isNotBlank(preInsertMethodName.get())) {
+        if (preInsertMethodName.get() != null && StringUtils.isNotBlank(preInsertMethodName.get())) {
             insertStatementCodeLines.add("model." + preInsertMethodName.get() + "();");
             reactiveInsertStatementCodeLines.add("model." + preInsertMethodName.get() + "();");
         }
 
-        if (StringUtils.isNotBlank(preUpdateMethodName.get())) {
+        if (preUpdateMethodName.get() != null && StringUtils.isNotBlank(preUpdateMethodName.get())) {
             updateStatementCodeLines.add("model." + preUpdateMethodName.get() + "();");
             reactiveUpdateStatementCodeLines.add("model." + preUpdateMethodName.get() + "();");
         }
@@ -1080,7 +1095,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
                 ).forEach(element -> {
                     final String fieldName = element.getSimpleName().toString();
-                    // final String fieldType = element.asType().toString();
+                    final String getterName = getGetterName(element, fieldName);
+                    final boolean primitive = isPrimitiveType(element);
+                    final String enumSuffix = TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING;
                     ColumnName columnNameAnnotation = element.getAnnotation(ColumnName.class);
                     String databaseColumnNameToBeGet = Optional
                             .ofNullable(columnNameAnnotation)
@@ -1102,26 +1119,33 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             .map(ColumnName::nullable)
                             .orElse(true);
                     if (insertable) {
-                        insertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        insertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
-                        insertStatementCodeLines.add("}");
-                        reactiveInsertStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        reactiveInsertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
-                        reactiveInsertStatementCodeLines.add("}");
-                        insertJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
-                        insertVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        insertVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
-                        if (!nullable) {
-                            insertJdbcParameterCodeLines.add("} else {");
-                            insertJdbcParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
-                            insertJdbcParameterCodeLines.add("}");
-                            insertVertClientParameterCodeLines.add("} else {");
-                            insertVertClientParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
-                            insertVertClientParameterCodeLines.add("}");
+                        if (primitive) {
+                            insertStatementCodeLines.add(String.format("cols.add(\"%s\");", databaseColumnNameToBeGet));
+                            reactiveInsertStatementCodeLines.add(String.format("cols.add(\"%s\");", databaseColumnNameToBeGet));
+                            insertJdbcParameterCodeLines.add(String.format("map.put(++startingPosition, model.%s());", getterName));
+                            insertVertClientParameterCodeLines.add(String.format("params.add(model.%s());", getterName));
                         } else {
-                            insertJdbcParameterCodeLines.add("}");
-                            insertVertClientParameterCodeLines.add("}");
+                            insertStatementCodeLines.add(String.format("if (model.%s() != null) {", getterName));
+                            insertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
+                            insertStatementCodeLines.add("}");
+                            reactiveInsertStatementCodeLines.add(String.format("if (model.%s() != null) {", getterName));
+                            reactiveInsertStatementCodeLines.add(String.format("    cols.add(\"%s\");", databaseColumnNameToBeGet));
+                            reactiveInsertStatementCodeLines.add("}");
+                            insertJdbcParameterCodeLines.add(String.format("if (model.%s() != null) {", getterName));
+                            insertJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.%s()%s);", getterName, enumSuffix));
+                            insertVertClientParameterCodeLines.add(String.format("if (model.%s() != null) {", getterName));
+                            insertVertClientParameterCodeLines.add(String.format("    params.add(model.%s()%s);", getterName, enumSuffix));
+                            if (!nullable) {
+                                insertJdbcParameterCodeLines.add("} else {");
+                                insertJdbcParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                                insertJdbcParameterCodeLines.add("}");
+                                insertVertClientParameterCodeLines.add("} else {");
+                                insertVertClientParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                                insertVertClientParameterCodeLines.add("}");
+                            } else {
+                                insertJdbcParameterCodeLines.add("}");
+                                insertVertClientParameterCodeLines.add("}");
+                            }
                         }
                     }
                     if (!insertable) {
@@ -1137,30 +1161,41 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         updateVertClientParameterCodeLines.add("// " + fieldName + " is marked as unable to update");
                     }
                     if (!fieldName.equals(idFieldName) && updatable) {
-                        updateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        updateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
-                        updateStatementCodeLines.add("}");
-                        reactiveUpdateStatementCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        reactiveUpdateStatementCodeLines.add("    if (placeHolder.equals(\"?\")) {");
-                        reactiveUpdateStatementCodeLines.add(String.format("        cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
-                        reactiveUpdateStatementCodeLines.add("    } else {");
-                        reactiveUpdateStatementCodeLines.add(String.format("        cols.add(\"%s = \" + placeHolder + (++count));", databaseColumnNameToBeGet));
-                        reactiveUpdateStatementCodeLines.add("    }");
-                        reactiveUpdateStatementCodeLines.add("}");
-                        updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
-                        updateVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(fieldName)));
-                        updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s()%s);", capitalize(fieldName), (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils()) ? ".name()" : CommonConstant.EMPTY_STRING)));
-                        if (!nullable) {
-                            updateJdbcParameterCodeLines.add("} else {");
-                            updateJdbcParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
-                            updateJdbcParameterCodeLines.add("}");
-                            updateVertClientParameterCodeLines.add("} else {");
-                            updateVertClientParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
-                            updateVertClientParameterCodeLines.add("}");
+                        if (primitive) {
+                            updateStatementCodeLines.add(String.format("cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
+                            reactiveUpdateStatementCodeLines.add("if (placeHolder.equals(\"?\")) {");
+                            reactiveUpdateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
+                            reactiveUpdateStatementCodeLines.add("} else {");
+                            reactiveUpdateStatementCodeLines.add(String.format("    cols.add(\"%s = \" + placeHolder + (++count));", databaseColumnNameToBeGet));
+                            reactiveUpdateStatementCodeLines.add("}");
+                            updateJdbcParameterCodeLines.add(String.format("map.put(++startingPosition, model.%s());", getterName));
+                            updateVertClientParameterCodeLines.add(String.format("params.add(model.%s());", getterName));
                         } else {
-                            updateJdbcParameterCodeLines.add("}");
-                            updateVertClientParameterCodeLines.add("}");
+                            updateStatementCodeLines.add(String.format("if (model.%s() != null) {", getterName));
+                            updateStatementCodeLines.add(String.format("    cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
+                            updateStatementCodeLines.add("}");
+                            reactiveUpdateStatementCodeLines.add(String.format("if (model.%s() != null) {", getterName));
+                            reactiveUpdateStatementCodeLines.add("    if (placeHolder.equals(\"?\")) {");
+                            reactiveUpdateStatementCodeLines.add(String.format("        cols.add(\"%s = ?\");", databaseColumnNameToBeGet));
+                            reactiveUpdateStatementCodeLines.add("    } else {");
+                            reactiveUpdateStatementCodeLines.add(String.format("        cols.add(\"%s = \" + placeHolder + (++count));", databaseColumnNameToBeGet));
+                            reactiveUpdateStatementCodeLines.add("    }");
+                            reactiveUpdateStatementCodeLines.add("}");
+                            updateJdbcParameterCodeLines.add(String.format("if (model.%s() != null) {", getterName));
+                            updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.%s()%s);", getterName, enumSuffix));
+                            updateVertClientParameterCodeLines.add(String.format("if (model.%s() != null) {", getterName));
+                            updateVertClientParameterCodeLines.add(String.format("    params.add(model.%s()%s);", getterName, enumSuffix));
+                            if (!nullable) {
+                                updateJdbcParameterCodeLines.add("} else {");
+                                updateJdbcParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                                updateJdbcParameterCodeLines.add("}");
+                                updateVertClientParameterCodeLines.add("} else {");
+                                updateVertClientParameterCodeLines.add("    throw new java.lang.NullPointerException(\"" + fieldName + " is marked as not nullable\");");
+                                updateVertClientParameterCodeLines.add("}");
+                            } else {
+                                updateJdbcParameterCodeLines.add("}");
+                                updateVertClientParameterCodeLines.add("}");
+                            }
                         }
                         // updateStatementCodeLines.addAll(codes);
                     }
@@ -1183,11 +1218,11 @@ public class SQLMappingProcessor extends AbstractProcessor {
         reactiveInsertStatementCodeLines.add("            (placeHolder.equals(\"@p\") ? \"OUTPUT INSERTED." + idDatabaseColumnNameToBeGet + " VALUES\" : \"VALUES\") +");
         reactiveInsertStatementCodeLines.add("            java.util.stream.IntStream.range(0, cols.size()).mapToObj(i -> placeHolder + (i + 1)).collect(java.util.stream.Collectors.joining(\", \", \" (\", \") \"));");
         reactiveInsertStatementCodeLines.add("}");
-        updateStatementCodeLines.add(String.format("return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
+        updateStatementCodeLines.add(String.format("return \"UPDATE %s SET \" + String.join(\", \", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveUpdateStatementCodeLines.add("if (placeHolder.equals(\"?\")) {");
-        reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
+        reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\", \", cols) + \" WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveUpdateStatementCodeLines.add("} else {");
-        reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\",\", cols) + \" WHERE %s = \" + placeHolder + (++count);", tableName, idDatabaseColumnNameToBeGet));
+        reactiveUpdateStatementCodeLines.add(String.format("    return \"UPDATE %s SET \" + String.join(\", \", cols) + \" WHERE %s = \" + placeHolder + (++count);", tableName, idDatabaseColumnNameToBeGet));
         reactiveUpdateStatementCodeLines.add("}");
         deleteStatementCodeLines.add(String.format("return \"DELETE FROM %s WHERE %s = ?\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveDeleteStatementCodeLines.add("if (placeHolder.equals(\"?\")) {");
@@ -1195,17 +1230,17 @@ public class SQLMappingProcessor extends AbstractProcessor {
         reactiveDeleteStatementCodeLines.add("} else {");
         reactiveDeleteStatementCodeLines.add(String.format("    return \"DELETE FROM %s WHERE %s = \" + placeHolder + \"1\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveDeleteStatementCodeLines.add("}");
-        deleteJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
-        deleteJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(idFieldName)));
+        deleteJdbcParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
+        deleteJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.%s());", idGetterName));
         deleteJdbcParameterCodeLines.add("}");
-        deleteVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
-        deleteVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(idFieldName)));
+        deleteVertClientParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
+        deleteVertClientParameterCodeLines.add(String.format("    params.add(model.%s());", idGetterName));
         deleteVertClientParameterCodeLines.add("}");
-        updateVertClientParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
-        updateVertClientParameterCodeLines.add(String.format("    params.add(model.get%s());", capitalize(idFieldName)));
+        updateVertClientParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
+        updateVertClientParameterCodeLines.add(String.format("    params.add(model.%s());", idGetterName));
         updateVertClientParameterCodeLines.add("}");
-        updateJdbcParameterCodeLines.add(String.format("if (model.get%s() != null) {", capitalize(idFieldName)));
-        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.get%s());", capitalize(idFieldName)));
+        updateJdbcParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
+        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.%s());", idGetterName));
         updateJdbcParameterCodeLines.add("}");
         insertJdbcParameterCodeLines.add("return map;");
         updateJdbcParameterCodeLines.add("return map;");

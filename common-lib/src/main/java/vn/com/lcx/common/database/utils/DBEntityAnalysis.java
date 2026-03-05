@@ -4,7 +4,7 @@ import vn.com.lcx.common.annotation.TableName;
 
 import javax.lang.model.element.Element;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
@@ -176,21 +176,21 @@ public final class DBEntityAnalysis {
         }
     };
 
-    private HashSet<Element> fieldsOfClass;
+    private LinkedHashSet<Element> fieldsOfClass;
     private String fullClassName;
     private TableName tableNameAnnotation;
 
-    public DBEntityAnalysis(HashSet<Element> fieldsOfClass, String fullClassName, TableName tableNameAnnotation) {
+    public DBEntityAnalysis(LinkedHashSet<Element> fieldsOfClass, String fullClassName, TableName tableNameAnnotation) {
         this.fieldsOfClass = fieldsOfClass;
         this.fullClassName = fullClassName;
         this.tableNameAnnotation = tableNameAnnotation;
     }
 
-    public HashSet<Element> getFieldsOfClass() {
+    public LinkedHashSet<Element> getFieldsOfClass() {
         return fieldsOfClass;
     }
 
-    public void setFieldsOfClass(HashSet<Element> fieldsOfClass) {
+    public void setFieldsOfClass(LinkedHashSet<Element> fieldsOfClass) {
         this.fieldsOfClass = fieldsOfClass;
     }
 

@@ -12,6 +12,7 @@ import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -115,9 +116,9 @@ public final class TypeHierarchyAnalyzer {
      * @param typeElement The type element to inspect
      * @return A set of {@link Element} representing all fields in the hierarchy
      */
-    public static HashSet<Element> getAllFields(final Types typeUtils,
-                                                final TypeElement typeElement) {
-        HashSet<Element> fields = new HashSet<>(ElementFilter.fieldsIn(typeElement.getEnclosedElements()));
+    public static LinkedHashSet<Element> getAllFields(final Types typeUtils,
+                                                      final TypeElement typeElement) {
+        LinkedHashSet<Element> fields = new LinkedHashSet<>(ElementFilter.fieldsIn(typeElement.getEnclosedElements()));
 
         TypeMirror superclass = typeElement.getSuperclass();
         if (superclass != null && !superclass.toString().equals(Object.class.getCanonicalName())) {
@@ -128,7 +129,7 @@ public final class TypeHierarchyAnalyzer {
         }
         return fields.stream()
                 .filter(element -> element.getKind().isField())
-                .collect(Collectors.toCollection(HashSet::new));
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
