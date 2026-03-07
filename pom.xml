@@ -104,6 +104,11 @@
         </sonar-maven-plugin-org.sonarsource.scanner.maven.version>
         <maven-source-plugin-org.apache.maven.plugins.version>3.4.0
         </maven-source-plugin-org.apache.maven.plugins.version>
+        <maven-javadoc-plugin-org.apache.maven.plugins.version>3.12.0
+        </maven-javadoc-plugin-org.apache.maven.plugins.version>
+        <maven-gpg-plugin-org.apache.maven.plugins.version>3.2.8</maven-gpg-plugin-org.apache.maven.plugins.version>
+        <central-publishing-maven-plugin-org.sonatype.central.version>0.10.0
+        </central-publishing-maven-plugin-org.sonatype.central.version>
         <maven-clean-plugin-org.apache.maven.plugins.version>3.5.0</maven-clean-plugin-org.apache.maven.plugins.version>
         <maven-surefire-plugin-org.apache.maven.plugins.version>3.5.5
         </maven-surefire-plugin-org.apache.maven.plugins.version>
@@ -122,7 +127,32 @@
 
     <groupId>vn.io.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>4.0.2.lcx-SNAPSHOT</version>
+    <version>4.0.2.lcx</version>
+
+    <name>lcx-lib</name>
+    <description>A reactive Java microservices toolkit built on Vert.x</description>
+    <url>https://github.com/tuanloc1105/jlcx-lib</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>tuanloc1105</id>
+            <name>Loc Vo Tuan</name>
+            <email>tuanloc1105@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/tuanloc1105/jlcx-lib.git</connection>
+        <developerConnection>scm:git:ssh://github.com/tuanloc1105/jlcx-lib.git</developerConnection>
+        <url>https://github.com/tuanloc1105/jlcx-lib</url>
+    </scm>
 
     <dependencyManagement>
 
@@ -768,6 +798,50 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin-org.apache.maven.plugins.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doclint>none</doclint>
+                    <failOnError>false</failOnError>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven-gpg-plugin-org.apache.maven.plugins.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>${central-publishing-maven-plugin-org.sonatype.central.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                </configuration>
             </plugin>
 
         </plugins>

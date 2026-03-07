@@ -6,7 +6,7 @@
     <parent>
         <groupId>vn.io.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
-        <version>4.0.2.lcx-SNAPSHOT</version>
+        <version>4.0.2.lcx</version>
     </parent>
 
     <artifactId>processor</artifactId>
@@ -22,7 +22,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>${jdk.version}</java.version>
 
-        <common-lib-vn.io.lcx.version>4.0.2.lcx-SNAPSHOT</common-lib-vn.io.lcx.version>
+        <common-lib-vn.io.lcx.version>4.0.2.lcx</common-lib-vn.io.lcx.version>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
 
     </properties>
 

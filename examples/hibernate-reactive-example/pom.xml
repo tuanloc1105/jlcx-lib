@@ -5,7 +5,7 @@
     <parent>
         <groupId>vn.io.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
-        <version>4.0.2.lcx-SNAPSHOT</version>
+        <version>4.0.2.lcx</version>
         <relativePath/>
     </parent>
 
@@ -25,8 +25,8 @@
         <java.version>${jdk.version}</java.version>
         <main.class>com.example.App</main.class>
 
-        <processor-vn.io.lcx.version>4.0.2.lcx-SNAPSHOT</processor-vn.io.lcx.version>
-        <common-lib-vn.io.lcx.version>4.0.2.lcx-SNAPSHOT</common-lib-vn.io.lcx.version>
+        <processor-vn.io.lcx.version>4.0.2.lcx</processor-vn.io.lcx.version>
+        <common-lib-vn.io.lcx.version>4.0.2.lcx</common-lib-vn.io.lcx.version>
         <reactiverse-contextual-logging-logback-io.reactiverse.version>2.0.0
         </reactiverse-contextual-logging-logback-io.reactiverse.version>
 
