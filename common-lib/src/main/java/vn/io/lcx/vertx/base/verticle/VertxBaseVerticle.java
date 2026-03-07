@@ -1,0 +1,26 @@
+package vn.io.lcx.vertx.base.verticle;
+
+import io.vertx.core.VerticleBase;
+import io.vertx.ext.web.RoutingContext;
+import org.apache.commons.lang3.StringUtils;
+import vn.io.lcx.common.constant.CommonConstant;
+import vn.io.lcx.common.utils.LogUtils;
+import vn.io.lcx.common.utils.UUIDv7;
+
+import static vn.io.lcx.common.constant.CommonConstant.TRACE_ID_MDC_KEY_NAME;
+
+public class VertxBaseVerticle extends VerticleBase {
+
+    public void createUUIDHandler(RoutingContext context) {
+        LogUtils.writeLog(this.getClass(), LogUtils.Level.DEBUG, context.toString());
+        LogUtils.writeLog(this.getClass(), LogUtils.Level.DEBUG, context.getClass().getName());
+        final var traceFromInput = (String) context.get(TRACE_ID_MDC_KEY_NAME);
+        if (StringUtils.isBlank(traceFromInput)) {
+            final var trace = UUIDv7.randomUUID().toString().replace(CommonConstant.HYPHEN, CommonConstant.EMPTY_STRING);
+            context.put(TRACE_ID_MDC_KEY_NAME, trace.replace(CommonConstant.HYPHEN, CommonConstant.EMPTY_STRING));
+            // LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "Create UUID Handler: {}", trace);
+        }
+        context.next();
+    }
+
+}

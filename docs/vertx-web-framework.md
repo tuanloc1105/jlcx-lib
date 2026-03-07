@@ -2,11 +2,11 @@
 
 ## Overview
 
-The framework provides annotation-driven HTTP routing on top of Vert.x 5.0.7. At compile
+The framework provides annotation-driven HTTP routing on top of Vert.x 5.0.8. At compile
 time, annotation processors generate an `ApplicationVerticle` that wires controllers, filters,
 authentication handlers, and the HTTP server together.
 
-All web annotations are in package `vn.com.lcx.vertx.base.annotation`.
+All web annotations are in package `vn.io.lcx.vertx.base.annotation`.
 
 ---
 
@@ -677,12 +677,12 @@ public class ServerConfig {
 ## Annotation Processors (Compile-Time Code Generation)
 
 The framework relies heavily on Java annotation processors (`javax.annotation.processing`) to
-generate boilerplate code at compile time. All processors are in package `vn.com.lcx.processor`.
+generate boilerplate code at compile time. All processors are in package `vn.io.lcx.processor`.
 
 ### ControllerProcessor
 
 **Triggers on:** `@Controller`, `@VertxApplication`, `@ContextHandler`
-**Generates:** `vn.com.lcx.vertx.verticle.ApplicationVerticle`
+**Generates:** `vn.io.lcx.vertx.verticle.ApplicationVerticle`
 
 This is the core processor for the web framework. It scans all `@Controller` classes, collects
 their route methods (`@Get`, `@Post`, `@Put`, `@Delete`), and generates a single
@@ -821,6 +821,71 @@ The remaining annotation processors are documented in their respective domain do
 
 ---
 
+## HTTP Client & Socket Utilities
+
+### VertxWebClientHttpUtils
+
+HTTP client with JSON/XML serialization, comprehensive logging, and sensitive data masking.
+
+**Constructors:**
+
+```java
+new VertxWebClientHttpUtils(vertx, gson)                           // 5s timeout
+new VertxWebClientHttpUtils(vertx, gson, 10000)                    // custom timeout ms
+new VertxWebClientHttpUtils(vertx, objectMapper, webClientOptions) // full custom
+```
+
+The `jsonHandler` parameter accepts either a `Gson` or `ObjectMapper` instance (auto-detected
+via `instanceof`).
+
+**Usage:**
+
+```java
+Future<Response<MyDTO>> result = httpUtils.sendRequest(
+    ctx,
+    HttpMethod.POST,
+    "https://api.example.com/data",
+    Map.of("Authorization", "Bearer token"),
+    requestPayload,
+    new TypeToken<MyDTO>() {}
+);
+```
+
+**Features:**
+- Request/response logging with `JsonMaskingUtils` (masks 60+ sensitive fields)
+- Execution time measurement
+- Form encoding for `Map` payloads
+- Empty body for GET/DELETE, JSON body for POST/PUT
+- Response wrapped in `Response<T>` with `code`, `headers`, `data`, `error` fields
+- Lenient JSON parsing (Gson `LENIENT` strictness)
+
+---
+
+### VertxSocketClientUtils
+
+TCP socket client for sending/receiving messages with timeout handling.
+
+**Constructors:**
+
+```java
+new VertxSocketClientUtils(vertx)                              // 5s timeout, UTF-8
+new VertxSocketClientUtils(vertx, 10000, StandardCharsets.UTF_8) // custom
+```
+
+**Usage:**
+
+```java
+Future<String> response = socketUtils.sendAndReceive(
+    ctx, "socket.host.com", 9090, "request message");
+```
+
+**Features:**
+- Automatic timeout with timer cancellation
+- Socket close on timeout/error
+- Detailed logging with destination, input/output messages, duration
+
+---
+
 ## Key Source Files
 
 | File                                          | Description                          |
@@ -849,5 +914,7 @@ The remaining annotation processors are documented in their respective domain do
 | `vertx/base/wrapper/RoutingContextLcxWrapper.java`| Request/response logging          |
 | `vertx/base/validate/AutoValidation.java`         | Annotation-based validation       |
 | `vertx/base/config/HttpOption.java`               | HTTP/2 configuration              |
+| `vertx/base/utils/VertxWebClientHttpUtils.java`   | HTTP client with logging          |
+| `vertx/base/utils/VertxSocketClientUtils.java`    | TCP socket client                 |
 | `processor/ControllerProcessor.java`              | Route code generation             |
 | `processor/RestControllerProcessor.java`          | REST wrapper code generation      |

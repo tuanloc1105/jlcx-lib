@@ -9,7 +9,7 @@ The `processor` module registers 9 annotation processors via
 
 ## MapperClassProcessor
 
-**Processor:** `vn.com.lcx.processor.MapperClassProcessor`
+**Processor:** `vn.io.lcx.processor.MapperClassProcessor`
 **Triggers on:** `@MapperClass` (interface only)
 **Generates:** `{InterfaceName}Impl`
 
@@ -19,11 +19,12 @@ with `@Component` for automatic DI registration.
 
 ### Annotations
 
-| Annotation     | Target | Description                                          |
-|----------------|--------|------------------------------------------------------|
-| `@MapperClass` | TYPE   | Marks an interface as a mapper (triggers processing) |
-| `@Mapping`     | METHOD | Defines field-level mapping rules (repeatable)       |
-| `@Merging`     | METHOD | Marks a method as a merge operation                  |
+| Annotation      | Target | Description                                          |
+|-----------------|--------|------------------------------------------------------|
+| `@MapperClass`  | TYPE   | Marks an interface as a mapper (triggers processing) |
+| `@MapperConfig` | TYPE   | Configuration for mapper code generation behavior    |
+| `@Mapping`      | METHOD | Defines field-level mapping rules (repeatable)       |
+| `@Merging`      | METHOD | Marks a method as a merge operation                  |
 
 ### `@Mapping` Attributes
 
@@ -42,6 +43,24 @@ with `@Component` for automatic DI registration.
 | Attribute         | Type    | Default | Description                                        |
 |-------------------|---------|---------|----------------------------------------------------|
 | `mergeNonNullField` | boolean | `false` | Only merge non-null fields from source into target |
+
+### `@MapperConfig` Attributes
+
+| Attribute                   | Type      | Default | Description                                              |
+|-----------------------------|-----------|---------|----------------------------------------------------------|
+| `nullSafeByDefault`         | `boolean` | `true`  | Generate null-safe code for all mappings                 |
+| `addGeneratedAnnotation`    | `boolean` | `true`  | Add `@Generated` annotation with timestamp to output     |
+| `componentName`             | `String`  | `""`    | Custom DI component name (empty uses generated name)     |
+| `warnOnUnmappedTargetFields`| `boolean` | `false` | Compilation warning for unmapped fields                  |
+| `strictTypeChecking`        | `boolean` | `false` | Fail compilation on type mismatches                      |
+
+```java
+@MapperClass
+@MapperConfig(nullSafeByDefault = true, warnOnUnmappedTargetFields = true)
+public interface TaskMapper {
+    TaskDTO toDTO(TaskEntity entity);
+}
+```
 
 ---
 
@@ -64,8 +83,8 @@ public interface TaskMapper {
 **Generated code:**
 
 ```java
-@Generated(value = "vn.com.lcx.processor.MapperClassProcessor", date = "...")
-@vn.com.lcx.common.annotation.Component
+@Generated(value = "vn.io.lcx.processor.MapperClassProcessor", date = "...")
+@vn.io.lcx.common.annotation.Component
 public class TaskMapperImpl implements TaskMapper {
 
     public TaskMapperImpl() {}
@@ -192,6 +211,7 @@ When `mergeNonNullField = false`, all fields from `source` are copied directly i
 | `processor/model/SourceParameterInfo.java` | Source parameter metadata model |
 | `processor/exception/InvalidMappingException.java` | Mapping validation errors |
 | `common/annotation/mapper/MapperClass.java` | `@MapperClass` annotation |
+| `common/annotation/mapper/MapperConfig.java` | `@MapperConfig` annotation |
 | `common/annotation/mapper/Mapping.java` | `@Mapping` annotation |
 | `common/annotation/mapper/Merging.java` | `@Merging` annotation |
 

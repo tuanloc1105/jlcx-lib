@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import vn.com.lcx.vertx.base.http.response.CommonResponse;
+import vn.io.lcx.vertx.base.http.response.CommonResponse;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor

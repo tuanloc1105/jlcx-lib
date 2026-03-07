@@ -1,6 +1,6 @@
 package ${package-name};
 
-@vn.com.lcx.common.annotation.Component
+@vn.io.lcx.common.annotation.Component
 public class ${proxy-class-name} implements ${interface-class-name} {
 
 ${methods}

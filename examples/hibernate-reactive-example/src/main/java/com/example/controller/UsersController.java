@@ -7,10 +7,10 @@ import com.example.model.http.response.UserLoginResponse;
 import com.example.service.UsersService;
 import io.vertx.core.Future;
 import lombok.RequiredArgsConstructor;
-import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.vertx.base.annotation.process.Post;
-import vn.com.lcx.vertx.base.annotation.process.RequestBody;
-import vn.com.lcx.vertx.base.annotation.process.RestController;
+import vn.io.lcx.common.annotation.Component;
+import vn.io.lcx.vertx.base.annotation.process.Post;
+import vn.io.lcx.vertx.base.annotation.process.RequestBody;
+import vn.io.lcx.vertx.base.annotation.process.RestController;
 
 @Component
 @RestController(path = "/api/users")

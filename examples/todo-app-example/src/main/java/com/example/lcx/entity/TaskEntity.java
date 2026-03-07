@@ -5,12 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import vn.com.lcx.common.annotation.ColumnName;
-import vn.com.lcx.common.annotation.ForeignKey;
-import vn.com.lcx.common.annotation.IdColumn;
-import vn.com.lcx.common.annotation.Index;
-import vn.com.lcx.common.annotation.SQLMapping;
-import vn.com.lcx.common.annotation.TableName;
+import vn.io.lcx.common.annotation.ColumnName;
+import vn.io.lcx.common.annotation.ForeignKey;
+import vn.io.lcx.common.annotation.IdColumn;
+import vn.io.lcx.common.annotation.Index;
+import vn.io.lcx.common.annotation.SQLMapping;
+import vn.io.lcx.common.annotation.TableName;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;

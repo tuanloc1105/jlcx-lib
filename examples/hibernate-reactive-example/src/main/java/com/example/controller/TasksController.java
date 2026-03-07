@@ -12,12 +12,12 @@ import com.example.service.TasksService;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
-import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.database.pageable.Page;
-import vn.com.lcx.vertx.base.annotation.process.Auth;
-import vn.com.lcx.vertx.base.annotation.process.Post;
-import vn.com.lcx.vertx.base.annotation.process.RequestBody;
-import vn.com.lcx.vertx.base.annotation.process.RestController;
+import vn.io.lcx.common.annotation.Component;
+import vn.io.lcx.common.database.pageable.Page;
+import vn.io.lcx.vertx.base.annotation.process.Auth;
+import vn.io.lcx.vertx.base.annotation.process.Post;
+import vn.io.lcx.vertx.base.annotation.process.RequestBody;
+import vn.io.lcx.vertx.base.annotation.process.RestController;
 
 @RestController(path = "/api/tasks")
 @Component

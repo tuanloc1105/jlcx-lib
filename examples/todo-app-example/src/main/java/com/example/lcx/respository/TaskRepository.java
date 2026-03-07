@@ -4,11 +4,11 @@ import com.example.lcx.entity.TaskEntity;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.SqlConnection;
-import vn.com.lcx.common.database.pageable.Page;
-import vn.com.lcx.common.database.pageable.Pageable;
-import vn.com.lcx.reactive.annotation.Query;
-import vn.com.lcx.reactive.annotation.RRepository;
-import vn.com.lcx.reactive.repository.ReactiveRepository;
+import vn.io.lcx.common.database.pageable.Page;
+import vn.io.lcx.common.database.pageable.Pageable;
+import vn.io.lcx.reactive.annotation.Query;
+import vn.io.lcx.reactive.annotation.RRepository;
+import vn.io.lcx.reactive.repository.ReactiveRepository;
 
 import java.math.BigInteger;
 import java.util.List;

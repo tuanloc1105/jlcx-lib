@@ -8,9 +8,9 @@ code generation, multi-database ORM support, and a rich set of utilities.
 
 | Property      | Value                                 |
 |---------------|---------------------------------------|
-| GroupId       | `vn.com.lcx`                          |
+| GroupId       | `vn.io.lcx`                          |
 | ArtifactId    | `lcx-lib`                             |
-| Version       | `4.0.1.lcx`                  |
+| Version       | `4.0.2.lcx`                  |
 | Java Version  | 17                                    |
 | Build Tool    | Maven 3.9+                            |
 
@@ -38,27 +38,36 @@ The core module containing all runtime code:
 
 | Package                         | Description                                    |
 |---------------------------------|------------------------------------------------|
-| `vn.com.lcx.common.annotation` | DI and mapping annotations                     |
-| `vn.com.lcx.common.config`     | `ClassPool` DI container, configuration        |
-| `vn.com.lcx.common.scanner`    | Runtime package scanning (`PackageScanner`)    |
-| `vn.com.lcx.common.database`   | JDBC execution, strategies, entity analysis    |
-| `vn.com.lcx.common.utils`      | 28+ utility classes                            |
-| `vn.com.lcx.common.constant`   | Global constants                               |
-| `vn.com.lcx.common.exception`  | Custom exceptions                              |
-| `vn.com.lcx.common.cache`      | Caching abstractions                           |
-| `vn.com.lcx.common.task`       | Task execution, batch processing, retry logic  |
-| `vn.com.lcx.common.thread`     | Thread utilities                               |
-| `vn.com.lcx.common.lock`       | Locking mechanisms                             |
-| `vn.com.lcx.common.mail`       | Email utilities                                |
-| `vn.com.lcx.common.cron`       | Scheduled task / cron support                  |
-| `vn.com.lcx.common.logging`    | Logging configuration                          |
-| `vn.com.lcx.common.dto`        | Shared DTOs                                    |
-| `vn.com.lcx.common.context`    | Context management                             |
-| `vn.com.lcx.common.javaassist` | Bytecode manipulation via Javassist            |
-| `vn.com.lcx.jpa`               | JPA/Hibernate ORM layer                        |
-| `vn.com.lcx.reactive`          | Hibernate Reactive integration                 |
-| `vn.com.lcx.vertx`             | Vert.x web framework base classes              |
-| `vn.com.lcx.processor`         | Annotation processor implementations           |
+| `vn.io.lcx.common.annotation` | DI and mapping annotations                     |
+| `vn.io.lcx.common.config`     | `ClassPool` DI container, configuration        |
+| `vn.io.lcx.common.scanner`    | Runtime package scanning (`PackageScanner`)    |
+| `vn.io.lcx.common.database`   | JDBC execution, strategies, entity analysis    |
+| `vn.io.lcx.common.database.context` | `ConnectionContext` (deprecated)          |
+| `vn.io.lcx.common.utils`      | 30+ utility classes                            |
+| `vn.io.lcx.common.constant`   | Global constants                               |
+| `vn.io.lcx.common.exception`  | Custom exceptions                              |
+| `vn.io.lcx.common.cache`      | Caching abstractions                           |
+| `vn.io.lcx.common.task`       | Task execution, batch processing, retry logic  |
+| `vn.io.lcx.common.thread`     | Thread utilities                               |
+| `vn.io.lcx.common.lock`       | Locking mechanisms                             |
+| `vn.io.lcx.common.mail`       | Email utilities                                |
+| `vn.io.lcx.common.cron`       | Scheduled task / cron support                  |
+| `vn.io.lcx.common.logging`    | Logging configuration                          |
+| `vn.io.lcx.common.dto`        | Shared DTOs                                    |
+| `vn.io.lcx.common.context`    | Context management (`AuthContext`)              |
+| `vn.io.lcx.common.array`      | `LargeArray<T>` - chunked large collections    |
+| `vn.io.lcx.common.ref`        | `Ref<T>` - mutable reference wrapper           |
+| `vn.io.lcx.common.javaassist` | Bytecode manipulation via Javassist            |
+| `vn.io.lcx.jpa`               | JPA/Hibernate ORM layer                        |
+| `vn.io.lcx.jpa.dto`           | `BaseEntityDTO`, `BaseUnixEntityDTO`           |
+| `vn.io.lcx.jpa.functional`    | `RowMapper`, `BatchCallback`, `ResultBatchCallback` |
+| `vn.io.lcx.reactive`          | Hibernate Reactive integration                 |
+| `vn.io.lcx.reactive.functional`| `RowBatchCallback<T,U>` async batch callback  |
+| `vn.io.lcx.reactive.wrapper`  | `PreparedQueryWrapper`, `PoolLcxWrapper`       |
+| `vn.io.lcx.reactive.utils`    | `ReactiveRowStreamingUtils`, reactive `FileUtils` |
+| `vn.io.lcx.vertx`             | Vert.x web framework base classes              |
+| `vn.io.lcx.vertx.base.utils`  | `VertxSocketClientUtils`, `VertxWebClientHttpUtils` |
+| `vn.io.lcx.processor`         | Annotation processor implementations           |
 
 ### processor
 
@@ -87,15 +96,21 @@ compile scope. The nine registered processors are:
 | Technology            | Version   | Purpose                                      |
 |-----------------------|-----------|----------------------------------------------|
 | Vert.x                | 5.0.8     | Async event loop, HTTP server, SQL clients   |
-| Hibernate ORM         | 7.2.5     | JPA persistence (sync)                       |
-| Hibernate Reactive    | 4.2.4     | Non-blocking persistence                     |
+| Hibernate ORM         | 7.2.6     | JPA persistence (sync)                       |
+| Hibernate Reactive    | 4.2.5     | Non-blocking persistence                     |
 | HikariCP              | 7.0.2     | JDBC connection pooling                      |
 | Gson                  | 2.13.2    | JSON serialization/deserialization           |
 | Jackson               | 2.21.1    | JSON/XML data binding (5 modules)            |
-| SnakeYAML             | 2.5       | YAML configuration loading                   |
+| SnakeYAML             | 2.6       | YAML configuration loading                   |
 | SLF4J + Logback       | 2.0.17 / 1.5.32 | Logging                               |
 | Javassist             | 3.30.2    | Bytecode manipulation                        |
 | Lombok                | 1.18.42   | Boilerplate reduction                        |
+| Apache Commons Text   | 1.15.0    | Text manipulation and interpolation          |
+| Apache Commons Lang3  | 3.20.0    | String utilities, reflection helpers         |
+| Apache Commons Collections4 | 4.5.0 | Advanced collection operations             |
+| JAXB API + Runtime    | 4.0.5 / 4.0.6 | XML binding                             |
+| Jakarta Persistence API | 3.2.0   | JPA specification                            |
+| Jakarta Annotation API | 3.0.0    | Annotation processing                        |
 
 ### Database Drivers
 
@@ -119,7 +134,7 @@ compile scope. The nine registered processors are:
 | Technology            | Version   |
 |-----------------------|-----------|
 | gRPC (Netty shaded)   | 1.79.0    |
-| Protobuf              | 4.33.5    |
+| Protobuf              | 4.34.0    |
 
 ### Monitoring
 
@@ -127,7 +142,8 @@ compile scope. The nine registered processors are:
 |-------------------------------|-----------|
 | Micrometer Core               | 1.16.3    |
 | Micrometer Prometheus Registry| 1.16.3    |
-| Dropwizard Metrics            | 4.2.38    |
+| Dropwizard Metrics 4          | 4.2.38    |
+| Dropwizard Metrics 5          | 5.0.6     |
 
 ### Security
 
@@ -142,9 +158,11 @@ compile scope. The nine registered processors are:
 | Technology            | Version   |
 |-----------------------|-----------|
 | JUnit Jupiter         | 6.0.3     |
-| Mockito               | 5.21.0    |
+| Mockito               | 5.22.0    |
+| Mockito Inline        | 5.2.0     |
 | DataFaker             | 2.5.4     |
 | H2 Database           | 2.4.240   |
+| Vert.x Unit           | 5.0.8     |
 
 ---
 
