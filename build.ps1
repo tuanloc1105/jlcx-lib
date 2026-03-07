@@ -17,5 +17,6 @@ mvn `
   install `
   -D"skipTests=true" `
   -D"file.encoding=UTF8" `
+  -D"gpg.skip" `
   -f `
   pom.xml

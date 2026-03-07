@@ -14,4 +14,12 @@ mvn --version
 
 mvn `
   clean `
+  install `
+  -D"skipTests=true" `
+  -D"file.encoding=UTF8" `
+  -f `
+  pom.xml
+
+mvn `
+  clean `
   deploy
