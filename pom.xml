@@ -46,14 +46,14 @@
         <metrics-healthchecks-io.dropwizard.metrics.version>4.2.38</metrics-healthchecks-io.dropwizard.metrics.version>
         <metrics-core-io.dropwizard.metrics5.version>5.0.6</metrics-core-io.dropwizard.metrics5.version>
         <javassist-org.javassist.version>3.30.2-GA</javassist-org.javassist.version>
-        <snakeyaml-org.yaml.version>2.5</snakeyaml-org.yaml.version>
+        <snakeyaml-org.yaml.version>2.6</snakeyaml-org.yaml.version>
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
         <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.2.0</kafka-clients-org.apache.kafka.version>
-        <hibernate-core-org.hibernate.orm.version>7.2.5.Final</hibernate-core-org.hibernate.orm.version>
-        <hibernate-tools-orm-org.hibernate.tool.version>7.2.5.Final</hibernate-tools-orm-org.hibernate.tool.version>
-        <hibernate-jcache-org.hibernate.orm.version>7.2.5.Final</hibernate-jcache-org.hibernate.orm.version>
-        <hibernate-reactive-core-org.hibernate.reactive.version>4.2.4.Final
+        <hibernate-core-org.hibernate.orm.version>7.2.6.Final</hibernate-core-org.hibernate.orm.version>
+        <hibernate-tools-orm-org.hibernate.tool.version>7.2.6.Final</hibernate-tools-orm-org.hibernate.tool.version>
+        <hibernate-jcache-org.hibernate.orm.version>7.2.6.Final</hibernate-jcache-org.hibernate.orm.version>
+        <hibernate-reactive-core-org.hibernate.reactive.version>4.2.5.Final
         </hibernate-reactive-core-org.hibernate.reactive.version>
         <jakarta.persistence-api-jakarta.persistence.version>3.2.0</jakarta.persistence-api-jakarta.persistence.version>
         <ehcache-org.ehcache.version>3.11.1</ehcache-org.ehcache.version>
@@ -80,17 +80,17 @@
         <grpc-netty-shaded-io.grpc.version>1.79.0</grpc-netty-shaded-io.grpc.version>
         <grpc-protobuf-io.grpc.version>1.79.0</grpc-protobuf-io.grpc.version>
         <grpc-stub-io.grpc.version>1.79.0</grpc-stub-io.grpc.version>
-        <protobuf-java-com.google.protobuf.version>4.33.5</protobuf-java-com.google.protobuf.version>
-        <protobuf-java-util-com.google.protobuf.version>4.33.5</protobuf-java-util-com.google.protobuf.version>
+        <protobuf-java-com.google.protobuf.version>4.34.0</protobuf-java-com.google.protobuf.version>
+        <protobuf-java-util-com.google.protobuf.version>4.34.0</protobuf-java-util-com.google.protobuf.version>
         <junit-jupiter-api-org.junit.jupiter.version>6.0.3</junit-jupiter-api-org.junit.jupiter.version>
         <junit-jupiter-engine-org.junit.jupiter.version>6.0.3</junit-jupiter-engine-org.junit.jupiter.version>
         <junit-jupiter-params-org.junit.jupiter.version>6.0.3</junit-jupiter-params-org.junit.jupiter.version>
-        <mockito-core-org.mockito.version>5.21.0</mockito-core-org.mockito.version>
-        <mockito-junit-jupiter-org.mockito.version>5.21.0</mockito-junit-jupiter-org.mockito.version>
+        <mockito-core-org.mockito.version>5.22.0</mockito-core-org.mockito.version>
+        <mockito-junit-jupiter-org.mockito.version>5.22.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
         <datafaker-net.datafaker.version>2.5.4</datafaker-net.datafaker.version>
         <h2-com.h2database.version>2.4.240</h2-com.h2database.version>
-        <maven-plugin-api-org.apache.maven.version>3.9.12</maven-plugin-api-org.apache.maven.version>
+        <maven-plugin-api-org.apache.maven.version>3.9.13</maven-plugin-api-org.apache.maven.version>
         <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.2
         </maven-plugin-annotations-org.apache.maven.plugin-tools.version>
         <maven-compiler-plugin-org.apache.maven.plugins.version>3.15.0
@@ -98,7 +98,7 @@
         <maven-dependency-plugin-org.apache.maven.plugins.version>3.10.0
         </maven-dependency-plugin-org.apache.maven.plugins.version>
         <maven-jar-plugin-org.apache.maven.plugins.version>3.5.0</maven-jar-plugin-org.apache.maven.plugins.version>
-        <maven-resources-plugin-org.apache.maven.plugins.version>3.4.0
+        <maven-resources-plugin-org.apache.maven.plugins.version>3.5.0
         </maven-resources-plugin-org.apache.maven.plugins.version>
         <sonar-maven-plugin-org.sonarsource.scanner.maven.version>5.5.0.6356
         </sonar-maven-plugin-org.sonarsource.scanner.maven.version>

@@ -96,12 +96,12 @@ compile scope. The nine registered processors are:
 | Technology            | Version   | Purpose                                      |
 |-----------------------|-----------|----------------------------------------------|
 | Vert.x                | 5.0.8     | Async event loop, HTTP server, SQL clients   |
-| Hibernate ORM         | 7.2.5     | JPA persistence (sync)                       |
-| Hibernate Reactive    | 4.2.4     | Non-blocking persistence                     |
+| Hibernate ORM         | 7.2.6     | JPA persistence (sync)                       |
+| Hibernate Reactive    | 4.2.5     | Non-blocking persistence                     |
 | HikariCP              | 7.0.2     | JDBC connection pooling                      |
 | Gson                  | 2.13.2    | JSON serialization/deserialization           |
 | Jackson               | 2.21.1    | JSON/XML data binding (5 modules)            |
-| SnakeYAML             | 2.5       | YAML configuration loading                   |
+| SnakeYAML             | 2.6       | YAML configuration loading                   |
 | SLF4J + Logback       | 2.0.17 / 1.5.32 | Logging                               |
 | Javassist             | 3.30.2    | Bytecode manipulation                        |
 | Lombok                | 1.18.42   | Boilerplate reduction                        |
@@ -134,7 +134,7 @@ compile scope. The nine registered processors are:
 | Technology            | Version   |
 |-----------------------|-----------|
 | gRPC (Netty shaded)   | 1.79.0    |
-| Protobuf              | 4.33.5    |
+| Protobuf              | 4.34.0    |
 
 ### Monitoring
 
@@ -158,7 +158,7 @@ compile scope. The nine registered processors are:
 | Technology            | Version   |
 |-----------------------|-----------|
 | JUnit Jupiter         | 6.0.3     |
-| Mockito               | 5.21.0    |
+| Mockito               | 5.22.0    |
 | Mockito Inline        | 5.2.0     |
 | DataFaker             | 2.5.4     |
 | H2 Database           | 2.4.240   |
