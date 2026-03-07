@@ -6,9 +6,9 @@ import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.server.GrpcServer;
 import lombok.RequiredArgsConstructor;
-import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.annotation.Verticle;
-import vn.com.lcx.vertx.base.verticle.VertxBaseVerticle;
+import vn.io.lcx.common.annotation.Component;
+import vn.io.lcx.common.annotation.Verticle;
+import vn.io.lcx.vertx.base.verticle.VertxBaseVerticle;
 
 @Verticle
 @RequiredArgsConstructor

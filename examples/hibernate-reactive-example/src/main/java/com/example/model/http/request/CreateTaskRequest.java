@@ -3,7 +3,7 @@ package com.example.model.http.request;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import vn.com.lcx.vertx.base.annotation.NotNull;
+import vn.io.lcx.vertx.base.annotation.NotNull;
 
 import java.time.LocalDateTime;
 

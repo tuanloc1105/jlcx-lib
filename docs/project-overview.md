@@ -8,7 +8,7 @@ code generation, multi-database ORM support, and a rich set of utilities.
 
 | Property      | Value                                 |
 |---------------|---------------------------------------|
-| GroupId       | `vn.com.lcx`                          |
+| GroupId       | `vn.io.lcx`                          |
 | ArtifactId    | `lcx-lib`                             |
 | Version       | `4.0.2.lcx-SNAPSHOT`                  |
 | Java Version  | 17                                    |
@@ -38,36 +38,36 @@ The core module containing all runtime code:
 
 | Package                         | Description                                    |
 |---------------------------------|------------------------------------------------|
-| `vn.com.lcx.common.annotation` | DI and mapping annotations                     |
-| `vn.com.lcx.common.config`     | `ClassPool` DI container, configuration        |
-| `vn.com.lcx.common.scanner`    | Runtime package scanning (`PackageScanner`)    |
-| `vn.com.lcx.common.database`   | JDBC execution, strategies, entity analysis    |
-| `vn.com.lcx.common.database.context` | `ConnectionContext` (deprecated)          |
-| `vn.com.lcx.common.utils`      | 30+ utility classes                            |
-| `vn.com.lcx.common.constant`   | Global constants                               |
-| `vn.com.lcx.common.exception`  | Custom exceptions                              |
-| `vn.com.lcx.common.cache`      | Caching abstractions                           |
-| `vn.com.lcx.common.task`       | Task execution, batch processing, retry logic  |
-| `vn.com.lcx.common.thread`     | Thread utilities                               |
-| `vn.com.lcx.common.lock`       | Locking mechanisms                             |
-| `vn.com.lcx.common.mail`       | Email utilities                                |
-| `vn.com.lcx.common.cron`       | Scheduled task / cron support                  |
-| `vn.com.lcx.common.logging`    | Logging configuration                          |
-| `vn.com.lcx.common.dto`        | Shared DTOs                                    |
-| `vn.com.lcx.common.context`    | Context management (`AuthContext`)              |
-| `vn.com.lcx.common.array`      | `LargeArray<T>` - chunked large collections    |
-| `vn.com.lcx.common.ref`        | `Ref<T>` - mutable reference wrapper           |
-| `vn.com.lcx.common.javaassist` | Bytecode manipulation via Javassist            |
-| `vn.com.lcx.jpa`               | JPA/Hibernate ORM layer                        |
-| `vn.com.lcx.jpa.dto`           | `BaseEntityDTO`, `BaseUnixEntityDTO`           |
-| `vn.com.lcx.jpa.functional`    | `RowMapper`, `BatchCallback`, `ResultBatchCallback` |
-| `vn.com.lcx.reactive`          | Hibernate Reactive integration                 |
-| `vn.com.lcx.reactive.functional`| `RowBatchCallback<T,U>` async batch callback  |
-| `vn.com.lcx.reactive.wrapper`  | `PreparedQueryWrapper`, `PoolLcxWrapper`       |
-| `vn.com.lcx.reactive.utils`    | `ReactiveRowStreamingUtils`, reactive `FileUtils` |
-| `vn.com.lcx.vertx`             | Vert.x web framework base classes              |
-| `vn.com.lcx.vertx.base.utils`  | `VertxSocketClientUtils`, `VertxWebClientHttpUtils` |
-| `vn.com.lcx.processor`         | Annotation processor implementations           |
+| `vn.io.lcx.common.annotation` | DI and mapping annotations                     |
+| `vn.io.lcx.common.config`     | `ClassPool` DI container, configuration        |
+| `vn.io.lcx.common.scanner`    | Runtime package scanning (`PackageScanner`)    |
+| `vn.io.lcx.common.database`   | JDBC execution, strategies, entity analysis    |
+| `vn.io.lcx.common.database.context` | `ConnectionContext` (deprecated)          |
+| `vn.io.lcx.common.utils`      | 30+ utility classes                            |
+| `vn.io.lcx.common.constant`   | Global constants                               |
+| `vn.io.lcx.common.exception`  | Custom exceptions                              |
+| `vn.io.lcx.common.cache`      | Caching abstractions                           |
+| `vn.io.lcx.common.task`       | Task execution, batch processing, retry logic  |
+| `vn.io.lcx.common.thread`     | Thread utilities                               |
+| `vn.io.lcx.common.lock`       | Locking mechanisms                             |
+| `vn.io.lcx.common.mail`       | Email utilities                                |
+| `vn.io.lcx.common.cron`       | Scheduled task / cron support                  |
+| `vn.io.lcx.common.logging`    | Logging configuration                          |
+| `vn.io.lcx.common.dto`        | Shared DTOs                                    |
+| `vn.io.lcx.common.context`    | Context management (`AuthContext`)              |
+| `vn.io.lcx.common.array`      | `LargeArray<T>` - chunked large collections    |
+| `vn.io.lcx.common.ref`        | `Ref<T>` - mutable reference wrapper           |
+| `vn.io.lcx.common.javaassist` | Bytecode manipulation via Javassist            |
+| `vn.io.lcx.jpa`               | JPA/Hibernate ORM layer                        |
+| `vn.io.lcx.jpa.dto`           | `BaseEntityDTO`, `BaseUnixEntityDTO`           |
+| `vn.io.lcx.jpa.functional`    | `RowMapper`, `BatchCallback`, `ResultBatchCallback` |
+| `vn.io.lcx.reactive`          | Hibernate Reactive integration                 |
+| `vn.io.lcx.reactive.functional`| `RowBatchCallback<T,U>` async batch callback  |
+| `vn.io.lcx.reactive.wrapper`  | `PreparedQueryWrapper`, `PoolLcxWrapper`       |
+| `vn.io.lcx.reactive.utils`    | `ReactiveRowStreamingUtils`, reactive `FileUtils` |
+| `vn.io.lcx.vertx`             | Vert.x web framework base classes              |
+| `vn.io.lcx.vertx.base.utils`  | `VertxSocketClientUtils`, `VertxWebClientHttpUtils` |
+| `vn.io.lcx.processor`         | Annotation processor implementations           |
 
 ### processor
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `vn.com.lcx.common` package provides 30+ utility classes, a package scanner, global
+The `vn.io.lcx.common` package provides 30+ utility classes, a package scanner, global
 constants, and custom exceptions. All utility classes are `final` with private constructors
 (static-only usage).
 
@@ -14,7 +14,7 @@ constants, and custom exceptions. All utility classes are `final` with private c
 
 Runtime class discovery for the DI container.
 
-**Location:** `vn.com.lcx.common.scanner.PackageScanner`
+**Location:** `vn.io.lcx.common.scanner.PackageScanner`
 
 ```java
 List<Class<?>> classes = PackageScanner.findClasses("com.example.app");
@@ -35,7 +35,7 @@ List<Class<?>> classes = PackageScanner.findClasses("com.example.app");
 
 ### LargeArray\<T\> - Chunked Large Collections
 
-**Location:** `vn.com.lcx.common.array.LargeArray`
+**Location:** `vn.io.lcx.common.array.LargeArray`
 
 Memory-efficient array implementation for collections that exceed standard Java array limits.
 Breaks large arrays into chunks of `Integer.MAX_VALUE - 8` stored in a `List<T[]>`.
@@ -57,7 +57,7 @@ byte[] val = data.get(2_500_000_000L);
 
 ### Ref\<T\> - Mutable Reference Wrapper
 
-**Location:** `vn.com.lcx.common.ref.Ref`
+**Location:** `vn.io.lcx.common.ref.Ref`
 
 Enables mutable pass-by-reference semantics where Java parameters are normally pass-by-value.
 
@@ -82,7 +82,7 @@ NetSocket socket = socketRef.getVal();
 
 ### AuthContext - ThreadLocal Authentication
 
-**Location:** `vn.com.lcx.common.context.AuthContext`
+**Location:** `vn.io.lcx.common.context.AuthContext`
 
 ThreadLocal-based authentication context for storing/retrieving current user information.
 

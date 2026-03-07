@@ -1,0 +1,64 @@
+package vn.io.lcx.common.utils;
+
+import org.apache.commons.lang3.StringUtils;
+import vn.io.lcx.common.constant.CommonConstant;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+
+public class SocketUtils {
+
+    public String sendAndReceive(String socketHost, int socketPort, String inputMessage) {
+        var result = CommonConstant.EMPTY_STRING;
+        if (StringUtils.isBlank(socketHost)) {
+            throw new NullPointerException("socketHost is blank");
+        }
+        if (socketPort <= 0) {
+            throw new NullPointerException("socketPort is blank");
+        }
+        if (StringUtils.isBlank(inputMessage)) {
+            throw new NullPointerException("inputMessage is blank");
+        }
+        final var startingTime = (double) System.currentTimeMillis();
+        try (
+                Socket socket = new Socket(socketHost, socketPort);
+                var output = socket.getOutputStream();
+                // var writer = new PrintWriter(output, true);
+                var writer = new BufferedWriter(new OutputStreamWriter(output));
+
+                var input = socket.getInputStream();
+                var reader = new BufferedReader(new InputStreamReader(input))
+
+        ) {
+            // writer.println(inputMessage);
+            writer.write(inputMessage);
+            writer.flush();
+            final var endingTime = (double) System.currentTimeMillis();
+            final var duration = endingTime - startingTime;
+            result = reader.readLine();
+            LogUtils.writeLog(
+                    this.getClass(),
+                    LogUtils.Level.INFO,
+                    """
+                            Connected to the socket server {}:{}
+                            - Input message: {}
+                            - Server responded: {}
+                            - Duration {}ms""",
+                    socketHost,
+                    socketPort,
+                    inputMessage,
+                    result,
+                    duration
+            );
+
+        } catch (IOException ex) {
+            LogUtils.writeLog(this.getClass(), ex.getMessage(), ex);
+        }
+        return result;
+    }
+
+}

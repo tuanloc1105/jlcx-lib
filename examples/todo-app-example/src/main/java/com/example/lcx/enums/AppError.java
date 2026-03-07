@@ -2,7 +2,7 @@ package com.example.lcx.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import vn.com.lcx.vertx.base.enums.ErrorCode;
+import vn.io.lcx.vertx.base.enums.ErrorCode;
 
 @Getter
 @AllArgsConstructor

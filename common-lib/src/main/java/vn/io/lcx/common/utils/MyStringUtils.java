@@ -1,0 +1,718 @@
+package vn.io.lcx.common.utils;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import org.apache.commons.lang3.StringUtils;
+import vn.io.lcx.common.constant.CommonConstant;
+
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+public final class MyStringUtils {
+
+    private MyStringUtils() {
+    }
+
+    /**
+     * Adds a new field with the specified name and value to a JSON string.
+     *
+     * @param gson            the Gson instance to use for parsing and serialization
+     * @param inputJsonString the input JSON string
+     * @param fieldName       the name of the field to add
+     * @param fieldValue      the value of the field to add
+     * @return the resulting JSON string with the new field added
+     */
+    public static String addNewFieldToJsonString(final Gson gson, final String inputJsonString, final String fieldName, final Object fieldValue) {
+        final LinkedHashMap<String, Object> jsonMap = gson.fromJson(inputJsonString, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
+        jsonMap.put(fieldName, fieldValue);
+        return gson.toJson(jsonMap);
+    }
+
+    /**
+     * Removes a field with the specified name from a JSON string.
+     *
+     * @param gson            the Gson instance to use for parsing and serialization
+     * @param inputJsonString the input JSON string
+     * @param fieldName       the name of the field to remove
+     * @return the resulting JSON string with the field removed
+     */
+    public static String removeFieldValueFromJsonString(final Gson gson, final String inputJsonString, final String fieldName) {
+        final LinkedHashMap<String, Object> jsonMap = gson.fromJson(inputJsonString, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
+        jsonMap.remove(fieldName);
+        return gson.toJson(jsonMap);
+    }
+
+    /**
+     * Recursively retrieves all values of a specified field name from a JSON string.
+     *
+     * @param gson            the Gson instance to use for parsing and serialization
+     * @param inputJsonString the input JSON string
+     * @param fieldName       the name of the field to search for
+     * @param fieldDataType   the expected type of the field value
+     * @param <T>             the type of the field value
+     * @return a list of all values found for the specified field name
+     */
+    public static <T> List<T> getFieldValueOfJsonString(final Gson gson, final String inputJsonString, final String fieldName, final Class<T> fieldDataType) {
+        final var result = new ArrayList<T>();
+        final LinkedHashMap<String, Object> jsonMap = gson.fromJson(inputJsonString, CommonConstant.HASH_MAP_GSON_TYPE_TOKEN.getType());
+        for (Map.Entry<String, Object> header : jsonMap.entrySet()) {
+            Object value = header.getValue();
+            if (fieldName.equals(header.getKey())) {
+                result.add(fieldDataType.cast(value));
+            }
+            if (value instanceof Map) {
+                result.addAll(getFieldValueOfJsonString(gson, gson.toJson(value), fieldName, fieldDataType));
+            }
+            if (value instanceof List<?>) {
+                List<?> list = (List<?>) value;
+                if (!list.isEmpty()) {
+                    if (list.get(0) instanceof Map) {
+                        for (Object o : list) {
+                            result.addAll(getFieldValueOfJsonString(gson, gson.toJson(o), fieldName, fieldDataType));
+                        }
+                    }
+                }
+            }
+            if (!result.isEmpty()) {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Minifies a JSON string by removing unnecessary whitespace and formatting.
+     * If the input is not valid JSON, an exception is thrown.
+     *
+     * @param input the JSON string to minify
+     * @return the minified JSON string
+     * @throws IllegalArgumentException if the input is not valid JSON
+     */
+    public static String minifyJsonString(String input) {
+        if (StringUtils.isBlank(input)) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        if (!stringIsJsonFormat(input)) {
+            return input;
+        }
+        if (!stringIsJsonFormat(input.trim())) {
+            throw new IllegalArgumentException(input.trim() + " is not a valid JSON string");
+        }
+        if (input.length() > 100000) {
+            return input.substring(0, 50) + "..." + input.substring(input.length() - 50);
+        }
+        return input
+                .replace("\n", " ")
+                .replace("\r", CommonConstant.EMPTY_STRING)
+                .replace("\t", CommonConstant.EMPTY_STRING)
+                .replace("    ", CommonConstant.EMPTY_STRING)
+                .replace("\": \"", "\":\"")
+                .replace("\", \"", "\",\"")
+                .replace("{ ", "{")
+                .replace("} ", "}")
+                .replace(": {", ":{")
+                .replace(" [", "[")
+                .replace("[ ", "[")
+                .replace(" ]", "]")
+                .replace("] ", "]")
+                .replace(", ", ",")
+                .replace("\" }", "\"}");
+    }
+
+    /**
+     * Minifies a string by trimming, removing tabs, and condensing whitespace and formatting.
+     *
+     * @param inputString the string to minify
+     * @return the minified string
+     */
+    public static String minifyString(String inputString) {
+        if (StringUtils.isBlank(inputString)) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        // Step 1: Trim the string and replace spaces/new lines
+        String minified = inputString.trim() // Removes leading and trailing whitespaces
+                .replace("\n", " ") // Replaces new lines with space
+                .replace("\t", "") // Removes tabs
+                .replace("    ", "") // Removes quadruple spaces
+                .replace("\": \"", "\":\"") // Minifies JSON
+                .replace("\", \"", "\",\"")
+                .replace("{ ", "{")
+                .replace("} ", "}")
+                .replace(": {", ":{")
+                .replace("\" }", "\"}");
+
+        // Step 2: Format SQL statements
+        // minified = minified
+        //         .replace(";  ", ";\n") // Handles multiple spaces before semicolons
+        //         .replace("; ", ";\n") // Replaces spaces after semicolons
+        //         .replace(" SELECT ", ";\nSELECT ") // Inserts line breaks before SELECT
+        //         .replace(" UPDATE ", ";\nUPDATE ") // Inserts line breaks before UPDATE
+        //         .replace(" DELETE ", ";\nDELETE ") // Inserts line breaks before DELETE
+        //         .replace(" INSERT INTO ", ";\nINSERT INTO ") // Inserts line breaks before INSERT INTO
+        //         .replace("  SELECT ", ";\nSELECT ") // Handles multiple spaces before SELECT
+        //         .replace("  UPDATE ", ";\nUPDATE ") // Handles multiple spaces before UPDATE
+        //         .replace("  DELETE ", ";\nDELETE ") // Handles multiple spaces before DELETE
+        //         .replace("  INSERT INTO ", ";\nINSERT INTO "); // Handles multiple spaces before INSERT INTO
+
+        return minified;
+    }
+
+    /**
+     * Encodes a string for safe use in URLs using UTF-8 encoding.
+     *
+     * @param value the string to encode
+     * @return the URL-encoded string, or an empty string if encoding fails
+     */
+    public static String encodeUrl(String value) {
+        try {
+            return URLEncoder.encode(value, "UTF-8");
+        } catch (Exception e) {
+            return CommonConstant.EMPTY_STRING;
+        }
+    }
+
+    /**
+     * Decodes a URL-encoded string using UTF-8 encoding.
+     *
+     * @param value the string to decode
+     * @return the decoded string, or an empty string if decoding fails
+     */
+    public static String decodeUrl(String value) {
+        try {
+            return URLDecoder.decode(value, "UTF-8");
+        } catch (Exception e) {
+            return CommonConstant.EMPTY_STRING;
+        }
+    }
+
+    /**
+     * Returns the last N characters of a string, or the whole string if shorter than the limit.
+     *
+     * @param input            the input string
+     * @param lengthLimitation the number of characters to return from the end
+     * @return the last N characters, or the input if shorter
+     */
+    public static String getLastChars(String input, int lengthLimitation) {
+        if (input == null || lengthLimitation == 0) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        if (input.length() > lengthLimitation) {
+            return input.substring(input.length() - lengthLimitation);
+        } else {
+            return input;
+        }
+    }
+
+    /**
+     * Checks if a string is in valid JSON format.
+     *
+     * @param input the string to check
+     * @return true if the string is valid JSON, false otherwise
+     */
+    public static boolean stringIsJsonFormat(final String input) {
+        try {
+            if (StringUtils.isBlank(input)) {
+                return false;
+            }
+            JsonParser.parseString(input);
+            return true;
+        } catch (Exception e) {
+            // LogUtils.writeLogMyStringUtils.class, LogUtils.Level.WARN, e.getMessage());
+            return false;
+        }
+    }
+
+    private static String repeatString(String str, int count) {
+        return IntStream.range(0, count)
+                .mapToObj(i -> str)
+                .collect(Collectors.joining());
+    }
+
+    /**
+     * Returns the input text centered within the specified console width, padded with spaces.
+     *
+     * @param text         the text to center
+     * @param consoleWidth the width to center within
+     * @return the centered text
+     */
+    public static String getCenteredText(String text, int consoleWidth) {
+        if (StringUtils.isBlank(text) || consoleWidth == 0) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        // Calculate the padding needed to center the text
+        int padding = (consoleWidth - text.length()) / 2;
+
+        // Create the padding spaces and return the centered text
+        return repeatString(" ", Math.max(0, padding)) + text + repeatString(" ", Math.max(0, padding));
+    }
+
+    /**
+     * Returns the input text left-aligned within the specified console width, padded with spaces.
+     *
+     * @param text         the text to align left
+     * @param consoleWidth the width to align within
+     * @return the left-aligned text
+     */
+    public static String alignLeftText(String text, int consoleWidth) {
+        if (StringUtils.isBlank(text) || consoleWidth == 0) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        // Calculate the padding needed to center the text
+        int padding = (consoleWidth - text.length()) / 2;
+
+        // Create the padding spaces and return the centered text
+        return text + repeatString(" ", Math.max(0, padding)) + repeatString(" ", Math.max(0, padding));
+    }
+
+    /**
+     * Returns the input text right-aligned within the specified console width, padded with spaces.
+     *
+     * @param text         the text to align right
+     * @param consoleWidth the width to align within
+     * @return the right-aligned text
+     */
+    public static String alignRightText(String text, int consoleWidth) {
+        if (StringUtils.isBlank(text) || consoleWidth == 0) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        // Calculate the padding needed to center the text
+        int padding = (consoleWidth - text.length()) / 2;
+
+        // Create the padding spaces and return the centered text
+        return repeatString(" ", Math.max(0, padding)) + repeatString(" ", Math.max(0, padding)) + text;
+    }
+
+    /**
+     * Puts one or more strings into a box with borders, optionally centering or aligning the text.
+     *
+     * @param logWithConsoleWidthIsTheLongestLine if true, box width is set to the longest line
+     * @param mode                                the paragraph alignment mode (center, left, right)
+     * @param linesOfString                       the lines of text to put in the box
+     * @return the boxed string
+     */
+    public static String putStringIntoABox(final boolean logWithConsoleWidthIsTheLongestLine,
+                                           ParagraphMode mode,
+                                           String... linesOfString) {
+        if (linesOfString == null || linesOfString.length == 0) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        int consoleWidth;
+        if (logWithConsoleWidthIsTheLongestLine) {
+            consoleWidth = 0;
+            for (String line : linesOfString) {
+                if (StringUtils.isBlank(line)) {
+                    continue;
+                }
+                if (line.length() > consoleWidth) {
+                    consoleWidth = line.length();
+                }
+            }
+        } else {
+            consoleWidth = 100;
+        }
+
+        List<String> listOfStringsAfterCentered = new ArrayList<>();
+
+        int longestLength = 0;
+        for (String line : linesOfString) {
+            String lineAfterCentered;
+
+            switch (mode) {
+                case CENTER:
+                    lineAfterCentered = "│" + getCenteredText(line, consoleWidth);
+                    break;
+                case ALIGN_LEFT:
+                    lineAfterCentered = "│" + alignLeftText(line, consoleWidth);
+                    break;
+                case ALIGN_RIGHT:
+                    lineAfterCentered = "│" + alignRightText(line, consoleWidth);
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + mode);
+            }
+
+            var currentLineLength = lineAfterCentered.length();
+            listOfStringsAfterCentered.add(lineAfterCentered);
+            if (currentLineLength > longestLength) {
+                longestLength = currentLineLength;
+            }
+        }
+        for (int index = 0; index < listOfStringsAfterCentered.size(); index++) {
+            var currentIndexString = listOfStringsAfterCentered.get(index);
+            var currentIndexLength = currentIndexString.length();
+            if (currentIndexLength < longestLength) {
+                var numberOfSpaceNeedToBeAdd = longestLength - currentIndexLength;
+                for (int i = 0; i < numberOfSpaceNeedToBeAdd; i++) {
+                    currentIndexString += " ";
+                }
+            }
+            currentIndexString += "│";
+            listOfStringsAfterCentered.set(index, currentIndexString);
+        }
+        int lengthOfHeaderAndFooterOfBox = listOfStringsAfterCentered.get(0).length();
+        StringBuilder boxHeader = new StringBuilder();
+        StringBuilder boxFooter = new StringBuilder();
+        for (int i = 0; i < lengthOfHeaderAndFooterOfBox; i++) {
+            if (i == 0) {
+                boxHeader.append("┌");
+                boxFooter.append("└");
+            } else if (i == lengthOfHeaderAndFooterOfBox - 1) {
+                boxHeader.append("┐");
+                boxFooter.append("┘");
+            } else {
+                boxHeader.append("─");
+                boxFooter.append("─");
+            }
+        }
+        return boxHeader + "\n" + String.join("\n", listOfStringsAfterCentered) + "\n" + boxFooter;
+
+    }
+
+    /**
+     * Converts a UTF-8 string to ASCII encoding.
+     *
+     * @param utf8String the UTF-8 string
+     * @return the ASCII-encoded string
+     * @throws NullPointerException if the input is blank
+     */
+    public static String utf8ToAscii(String utf8String) {
+        if (StringUtils.isBlank(utf8String)) {
+            throw new NullPointerException();
+        }
+        try {
+            byte[] utf8Bytes = utf8String.getBytes(StandardCharsets.UTF_8);
+            return new String(utf8Bytes, StandardCharsets.ISO_8859_1);
+        } catch (Exception e) {
+            LogUtils.writeLog(MyStringUtils.class, "Convert error", e, LogUtils.Level.WARN);
+            return null;
+        }
+    }
+
+    /**
+     * Converts an ASCII string to UTF-8 encoding.
+     *
+     * @param asciiString the ASCII string
+     * @return the UTF-8 encoded string
+     * @throws NullPointerException if the input is blank
+     */
+    public static String asciiToUtf8(String asciiString) {
+        if (StringUtils.isBlank(asciiString)) {
+            throw new NullPointerException();
+        }
+        try {
+            byte[] asciiBytes = asciiString.getBytes(StandardCharsets.ISO_8859_1);
+            return new String(asciiBytes, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            LogUtils.writeLog(MyStringUtils.class, "Convert error", e, LogUtils.Level.WARN);
+            return null;
+        }
+    }
+
+    /**
+     * Checks if a string is numeric (optionally negative).
+     *
+     * @param str the string to check
+     * @return true if the string is numeric, false otherwise
+     */
+    public static boolean isNumeric(String str) {
+        return StringUtils.isNotBlank(str) && str.matches("-?\\d+");
+    }
+
+    /**
+     * Checks if a string is not numeric.
+     *
+     * @param str the string to check
+     * @return true if the string is not numeric, false otherwise
+     */
+    public static boolean isNotNumeric(String str) {
+        return !isNumeric(str);
+    }
+
+    /**
+     * Deserializes an XML string to an object of the specified class.
+     *
+     * @param xml the XML string
+     * @param clz the class to deserialize to
+     * @param <T> the type of the object
+     * @return the deserialized object, or null if conversion fails
+     */
+    public static <T> T fromXML(String xml, Class<T> clz) {
+        try {
+            final var jaxbContext = JAXBContext.newInstance(clz);
+            final var unmarshaller = jaxbContext.createUnmarshaller();
+            StringReader reader = new StringReader(xml);
+            return clz.cast(unmarshaller.unmarshal(reader));
+        } catch (Exception e) {
+            LogUtils.writeLog(MyStringUtils.class, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Serializes an object to an XML string.
+     *
+     * @param input the object to serialize
+     * @param <T>   the type of the object
+     * @return the XML string, or empty string if conversion fails
+     */
+    public static <T> String toXML(T input) {
+        try {
+            final var jaxbContext = JAXBContext.newInstance(input.getClass());
+            final var marshaller = jaxbContext.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            // Write the XML to a string
+            StringWriter sw = new StringWriter();
+            marshaller.marshal(input, sw);
+            return sw.toString();
+        } catch (Exception e) {
+            LogUtils.writeLog(MyStringUtils.class, e.getMessage(), e);
+            return CommonConstant.EMPTY_STRING;
+        }
+    }
+
+    /**
+     * Formats a list of strings so that each word is padded to align with the longest word in its column.
+     *
+     * @param input the list of strings to format
+     * @return the formatted string with aligned columns
+     */
+    public static String formatStringSpace(List<String> input) {
+        var lengthOfEachPart = new ArrayList<Integer>();
+        for (String currentLine : input) {
+            var wordsInLine = Arrays.asList(currentLine.split(" "));
+            for (int i = 0; i < wordsInLine.size(); i++) {
+                final int lengthOfCurrentWord = wordsInLine.get(i).length();
+                try {
+                    var lengthOfCurrentPart = lengthOfEachPart.get(i);
+                    if (lengthOfCurrentWord > lengthOfCurrentPart) {
+                        lengthOfEachPart.set(i, lengthOfCurrentWord);
+                    }
+                } catch (Exception e) {
+                    lengthOfEachPart.add(lengthOfCurrentWord);
+                }
+            }
+        }
+        final var listOfResult = new ArrayList<String>();
+        for (String currentLine : input) {
+            String result = "";
+            var wordsInLine = Arrays.asList(currentLine.split(" "));
+            for (int i = 0; i < wordsInLine.size(); i++) {
+                result += "%-" + lengthOfEachPart.get(i) + "s    ";
+            }
+            listOfResult.add(String.format(result, wordsInLine.toArray()));
+
+        }
+        return String.join(System.lineSeparator(), listOfResult);
+    }
+
+    /**
+     * Formats a list of lists of strings so that each column is aligned, with an optional delimiter.
+     *
+     * @param input     the list of lists of strings to format
+     * @param delimiter optional delimiter to use between lines
+     * @return the formatted string with aligned columns
+     */
+    public static String formatStringSpace2(List<List<String>> input, String... delimiter) {
+        final var formatedList = formatStringWithEqualSpaceLength(input);
+        if (delimiter.length == 1 && StringUtils.isNotBlank(delimiter[0])) {
+            return String.join(delimiter[0], formatedList);
+        } else {
+            return String.join(System.lineSeparator(), formatedList);
+        }
+    }
+
+    /**
+     * Formats a list of lists of strings so that each column is aligned to the maximum width in that column.
+     *
+     * @param input the list of lists of strings to format
+     * @return a list of formatted strings with aligned columns
+     */
+    public static List<String> formatStringWithEqualSpaceLength(List<List<String>> input) {
+        List<Integer> lengthOfEachPart = new ArrayList<>();
+        for (List<String> wordsInLine : input) {
+            for (int i = 0; i < wordsInLine.size(); i++) {
+                var lengthOfCurrentWord = wordsInLine.get(i).length();
+                try {
+                    var lengthOfCurrentPart = lengthOfEachPart.get(i);
+                    if (lengthOfCurrentWord > lengthOfCurrentPart) {
+                        lengthOfEachPart.set(i, lengthOfCurrentWord);
+                    }
+                } catch (Exception e) {
+                    lengthOfEachPart.add(lengthOfCurrentWord);
+                }
+            }
+        }
+        final ArrayList<String> listOfResult = new ArrayList<>();
+        for (List<String> wordsInLine : input) {
+            var result = "";
+            for (int i = 0; i < wordsInLine.size(); i++) {
+                result += "%-" + lengthOfEachPart.get(i) + "s ";
+            }
+            listOfResult.add(
+                    removeSuffixOfString(
+                            String.format(
+                                    result,
+                                    wordsInLine.toArray()
+                            ),
+                            " "
+                    ).trim()
+            );
+        }
+        return listOfResult;
+    }
+
+    /**
+     * Remove the suffix from the input string if it ends with the specified suffix.
+     *
+     * @param input               The original string
+     * @param suffixWillBeRemoved The suffix to remove
+     * @return String without the suffix if present, otherwise the original string
+     */
+    public static String removeSuffixOfString(String input, String suffixWillBeRemoved) {
+        int indexOfSuffix = input.lastIndexOf(suffixWillBeRemoved);
+        if (indexOfSuffix > 0) {
+            return input.substring(0, indexOfSuffix);
+        }
+        return input;
+    }
+
+    /**
+     * Remove prefix from the input string if it starts with the prefix.
+     *
+     * @param input  The original string
+     * @param prefix The prefix to remove
+     * @return String without prefix if present, otherwise the original string
+     */
+    public static String removePrefixOfString(String input, String prefix) {
+        if (input == null || prefix == null) {
+            return input;
+        }
+        if (input.startsWith(prefix)) {
+            return input.substring(prefix.length());
+        }
+        return input;
+    }
+
+    public static boolean isBlank(String str) {
+        return str == null || str.trim().isEmpty();
+    }
+
+    public static boolean isNotBlank(String str) {
+        return !isBlank(str);
+    }
+
+    /**
+     * Finds all indices (positions) of a specific character within a String.
+     * The function first normalizes the input string by replacing all Non-breaking
+     * Space characters (U+00A0) with regular spaces (U+0020).
+     * * @param text The input String to search through.
+     *
+     * @param character The character to find.
+     * @return A List<Integer> containing all 0-based indices where the character is found.
+     */
+    public static List<Integer> findAllOccurrences(String text, char character) {
+
+        // --- Normalization Step ---
+        // Replace all Non-breaking Spaces (\u00A0) with regular spaces.
+        // This is crucial because text copied from some sources (like web/PDF)
+        // often contains these hidden characters, causing index counting errors.
+        String normalizedText = text.replace('\u00A0', ' ');
+
+        List<Integer> indices = new ArrayList<>();
+        int startIndex = 0;
+
+        // The search logic operates on the normalized string
+        while (startIndex < normalizedText.length()) {
+
+            // Search for the character starting from the current startIndex
+            int foundIndex = normalizedText.indexOf(character, startIndex);
+
+            if (foundIndex == -1) {
+                break; // Character not found in the remainder
+            }
+
+            // Found it! The index is correct based on the normalized string.
+            indices.add(foundIndex);
+
+            // Update startIndex to the position *after* the index just found
+            startIndex = foundIndex + 1;
+        }
+
+        return indices;
+    }
+
+    /**
+     * Replaces the character at a specific index in the original string
+     * with a replacement string.
+     * * @param originalString The string to be modified.
+     *
+     * @param index             The zero-based index of the character to replace.
+     * @param replacementString The new string content to insert at the index.
+     * @return The new string after the replacement is done.
+     * @throws IndexOutOfBoundsException If the index is out of the string bounds.
+     */
+    public static String replaceCharWithSubstring(
+            String originalString,
+            int index,
+            String replacementString) {
+
+        // 1. Input Validation: Check if the index is valid.
+        if (index < 0 || index >= originalString.length()) {
+            throw new IndexOutOfBoundsException(
+                    "Index " + index + " is out of bounds for string length " + originalString.length()
+            );
+        }
+
+        // 2. Use StringBuilder for efficient modification.
+        // We create a mutable copy of the original string.
+        StringBuilder sb = new StringBuilder(originalString);
+
+        // 3. The replace method takes three arguments:
+        //    (start_index, end_index, replacement_string).
+        //    To replace only the single character at 'index', we use:
+        //    - start_index: index
+        //    - end_index: index + 1 (exclusive)
+        sb.replace(index, index + 1, replacementString);
+
+        // 4. Convert the StringBuilder back to an immutable String and return it.
+        return sb.toString();
+    }
+
+    /**
+     * Normalizes a string by removing diacritical marks and converting special Vietnamese characters to ASCII.
+     *
+     * @param s the string to normalize
+     * @return the normalized string
+     */
+    public static String normalizeString(String s) {
+        if (StringUtils.isBlank(s)) {
+            return CommonConstant.EMPTY_STRING;
+        }
+        String temp = Normalizer.normalize(s, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        temp = pattern.matcher(temp).replaceAll("");
+        return temp.replace("đ", "d").replace("Đ", "D");
+    }
+
+    public enum ParagraphMode {
+        CENTER,
+        ALIGN_LEFT,
+        ALIGN_RIGHT,
+    }
+
+}

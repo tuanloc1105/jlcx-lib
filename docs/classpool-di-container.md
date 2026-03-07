@@ -12,7 +12,7 @@ It handles:
 - **Conditional creation** - `@DependsOn` for prerequisite beans
 - **Vert.x integration** - verticle discovery and deployment
 
-All annotations are in package `vn.com.lcx.common.annotation`.
+All annotations are in package `vn.io.lcx.common.annotation`.
 
 ---
 
@@ -235,7 +235,7 @@ public class HttpVerticle extends VertxBaseVerticle { ... }
 ClassPool.init(packagesToScan, verticleClass)
 │
 ├─ 1. Package Scanning
-│     Scan all packages + "vn.com.lcx" via PackageScanner
+│     Scan all packages + "vn.io.lcx" via PackageScanner
 │     Deduplicate discovered classes
 │
 ├─ 2. Classification
@@ -496,7 +496,7 @@ Each entry reports:
 
 ## Compile-Time: DIScanner (Experimental - Not ready for use)
 
-**Processor:** `vn.com.lcx.processor.DIScanner`
+**Processor:** `vn.io.lcx.processor.DIScanner`
 **Triggers on:** all classes (`@SupportedAnnotationTypes("*")`)
 **Generates:** `META-INF/class-index-{UUID}.json` resource files
 

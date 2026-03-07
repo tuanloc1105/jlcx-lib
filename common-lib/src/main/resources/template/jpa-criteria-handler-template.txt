@@ -1,22 +1,22 @@
     public void save(${entity-class} entity) {
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -26,51 +26,51 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             currentSessionInContext.persist(entity);
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 currentSessionInContext.persist(entity);
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
     }
 
     public ${entity-class} update(${entity-class} entity) {
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -80,20 +80,20 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             ${entity-class} managed = currentSessionInContext.merge(entity);
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             return managed;
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
@@ -101,7 +101,7 @@
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 ${entity-class} managed = currentSessionInContext.merge(entity);
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
                 return managed;
             }
@@ -109,24 +109,24 @@
     }
 
     public void delete(${entity-class} entity) {
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -136,51 +136,51 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             currentSessionInContext.remove(entity);
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 currentSessionInContext.remove(entity);
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
     }
 
     public void save(java.util.List<${entity-class}> entities) {
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -190,16 +190,16 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             // for (int i = 0; i < entities.size(); i++) {
             //     currentSessionInContext.save(entities.get(i));
             //     if (i > 0 && i % 50 == 0) {
@@ -207,7 +207,7 @@
             //         currentSessionInContext.clear();
             //     }
             // }
-            vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
+            vn.io.lcx.common.task.batch.BatchHandler batchHandler = new vn.io.lcx.common.task.batch.BatchHandler();
             final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             batchHandler.processListInBatches(
@@ -226,7 +226,7 @@
                     50
             );
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -237,7 +237,7 @@
                 //         currentSessionInContext.clear();
                 //     }
                 // }
-                vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
+                vn.io.lcx.common.task.batch.BatchHandler batchHandler = new vn.io.lcx.common.task.batch.BatchHandler();
                 final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 batchHandler.processListInBatches(
@@ -256,31 +256,31 @@
                         50
                 );
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
     }
 
     public void update(java.util.List<${entity-class}> entities) {
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -290,16 +290,16 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             // for (int i = 0; i < entities.size(); i++) {
             //     currentSessionInContext.merge(entities.get(i));
             //     if (i > 0 && i % 50 == 0) {
@@ -307,7 +307,7 @@
             //         currentSessionInContext.clear();
             //     }
             // }
-            vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
+            vn.io.lcx.common.task.batch.BatchHandler batchHandler = new vn.io.lcx.common.task.batch.BatchHandler();
             final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             batchHandler.processListInBatches(
@@ -322,7 +322,7 @@
                     50
             );
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -333,7 +333,7 @@
                 //         currentSessionInContext.clear();
                 //     }
                 // }
-                vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
+                vn.io.lcx.common.task.batch.BatchHandler batchHandler = new vn.io.lcx.common.task.batch.BatchHandler();
                 final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 batchHandler.processListInBatches(
@@ -348,31 +348,31 @@
                         50
                 );
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
     }
 
     public void delete(java.util.List<${entity-class}> entities) {
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -382,16 +382,16 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             // for (int i = 0; i < entities.size(); i++) {
             //     currentSessionInContext.remove(entities.get(i));
             //     if (i > 0 && i % 50 == 0) {
@@ -399,7 +399,7 @@
             //         currentSessionInContext.clear();
             //     }
             // }
-            vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
+            vn.io.lcx.common.task.batch.BatchHandler batchHandler = new vn.io.lcx.common.task.batch.BatchHandler();
             final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
             final double startingTime = (double) java.lang.System.currentTimeMillis();
             batchHandler.processListInBatches(
@@ -414,7 +414,7 @@
                     50
             );
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 org.hibernate.Transaction transaction = currentSessionInContext.beginTransaction();
@@ -425,7 +425,7 @@
                 //         currentSessionInContext.clear();
                 //     }
                 // }
-                vn.com.lcx.common.task.batch.BatchHandler batchHandler = new vn.com.lcx.common.task.batch.BatchHandler();
+                vn.io.lcx.common.task.batch.BatchHandler batchHandler = new vn.io.lcx.common.task.batch.BatchHandler();
                 final org.hibernate.Session finalCurrentSessionInContext = currentSessionInContext;
                 final double startingTime = (double) java.lang.System.currentTimeMillis();
                 batchHandler.processListInBatches(
@@ -440,32 +440,32 @@
                         50
                 );
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 transaction.commit();
             }
         }
     }
 
-    public java.util.List<${entity-class}> find(vn.com.lcx.jpa.respository.CriteriaHandler<${entity-class}> handler) {
+    public java.util.List<${entity-class}> find(vn.io.lcx.jpa.respository.CriteriaHandler<${entity-class}> handler) {
         java.util.List<${entity-class}> result = new java.util.ArrayList<>();
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -475,16 +475,16 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
             jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
@@ -498,7 +498,7 @@
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             result.addAll(query.getResultList());
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
@@ -514,32 +514,32 @@
                 org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
                 result.addAll(query.getResultList());
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             }
         }
         return result;
     }
 
-    public java.util.Optional<${entity-class}> findOne(vn.com.lcx.jpa.respository.CriteriaHandler<${entity-class}> handler) {
+    public java.util.Optional<${entity-class}> findOne(vn.io.lcx.jpa.respository.CriteriaHandler<${entity-class}> handler) {
         java.util.Optional<${entity-class}> result = java.util.Optional.empty();
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -549,16 +549,16 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
             jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
@@ -572,7 +572,7 @@
             org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
             result = java.util.Optional.ofNullable(query.uniqueResult());
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
@@ -588,32 +588,32 @@
                 org.hibernate.query.Query<${entity-class}> query = currentSessionInContext.createQuery(criteriaQuery);
                 result = java.util.Optional.ofNullable(query.uniqueResult());
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             }
         }
         return result;
     }
 
-    public vn.com.lcx.common.database.pageable.Page<${entity-class}> find(vn.com.lcx.jpa.respository.CriteriaHandler<${entity-class}> handler, vn.com.lcx.common.database.pageable.Pageable pageable) {
-        java.util.concurrent.atomic.AtomicReference<vn.com.lcx.common.database.pageable.Page<${entity-class}>> result = new java.util.concurrent.atomic.AtomicReference<>();
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+    public vn.io.lcx.common.database.pageable.Page<${entity-class}> find(vn.io.lcx.jpa.respository.CriteriaHandler<${entity-class}> handler, vn.io.lcx.common.database.pageable.Pageable pageable) {
+        java.util.concurrent.atomic.AtomicReference<vn.io.lcx.common.database.pageable.Page<${entity-class}>> result = new java.util.concurrent.atomic.AtomicReference<>();
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -623,23 +623,23 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
-            vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) pageable;
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.common.database.pageable.PageableImpl pageimpl = (vn.io.lcx.common.database.pageable.PageableImpl) pageable;
             final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
             final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
             jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
             java.util.List<jakarta.persistence.criteria.Order> orders = new java.util.ArrayList<>();
             pageimpl.getFieldNameAndDirectionMap().forEach((field, direction) -> {
-                if (vn.com.lcx.common.database.pageable.Direction.DESC.equals(direction)) {
+                if (vn.io.lcx.common.database.pageable.Direction.DESC.equals(direction)) {
                     orders.add(criteriaBuilder.desc(root.get(field)));
                 } else {
                     orders.add(criteriaBuilder.asc(root.get(field)));
@@ -666,9 +666,9 @@
             }
             Long totalItems = currentSessionInContext.createQuery(countQuery).getSingleResult();
             final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-            vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+            vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
             result.set(
-                    vn.com.lcx.common.database.pageable.Page.<${entity-class}>create(
+                    vn.io.lcx.common.database.pageable.Page.<${entity-class}>create(
                             queryResult,
                             totalItems,
                             pageimpl.getPageNumber(),
@@ -677,13 +677,13 @@
             );
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {
-                vn.com.lcx.common.database.pageable.PageableImpl pageimpl = (vn.com.lcx.common.database.pageable.PageableImpl) pageable;
+                vn.io.lcx.common.database.pageable.PageableImpl pageimpl = (vn.io.lcx.common.database.pageable.PageableImpl) pageable;
                 final jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder = currentSessionInContext.getCriteriaBuilder();
                 final jakarta.persistence.criteria.CriteriaQuery<${entity-class}> criteriaQuery = criteriaBuilder.createQuery(${entity-class}.class);
                 jakarta.persistence.criteria.Root<${entity-class}> root = criteriaQuery.from(${entity-class}.class);
                 java.util.List<jakarta.persistence.criteria.Order> orders = new java.util.ArrayList<>();
                 pageimpl.getFieldNameAndDirectionMap().forEach((field, direction) -> {
-                    if (vn.com.lcx.common.database.pageable.Direction.DESC.equals(direction)) {
+                    if (vn.io.lcx.common.database.pageable.Direction.DESC.equals(direction)) {
                         orders.add(criteriaBuilder.desc(root.get(field)));
                     } else {
                         orders.add(criteriaBuilder.asc(root.get(field)));
@@ -710,9 +710,9 @@
                 }
                 Long totalItems = currentSessionInContext.createQuery(countQuery).getSingleResult();
                 final double duration = ((double) java.lang.System.currentTimeMillis()) - startingTime;
-                vn.com.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.com.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
+                vn.io.lcx.common.utils.LogUtils.writeLog(this.getClass(), vn.io.lcx.common.utils.LogUtils.Level.INFO, "Executed SQL in {} ms", duration);
                 result.set(
-                        vn.com.lcx.common.database.pageable.Page.<${entity-class}>create(
+                        vn.io.lcx.common.database.pageable.Page.<${entity-class}>create(
                                 queryResult,
                                 totalItems,
                                 pageimpl.getPageNumber(),

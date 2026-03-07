@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>vn.com.lcx</groupId>
+        <groupId>vn.io.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
         <version>4.0.2.lcx-SNAPSHOT</version>
     </parent>
@@ -22,16 +22,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>${jdk.version}</java.version>
 
-        <common-lib-vn.com.lcx.version>4.0.2.lcx-SNAPSHOT</common-lib-vn.com.lcx.version>
+        <common-lib-vn.io.lcx.version>4.0.2.lcx-SNAPSHOT</common-lib-vn.io.lcx.version>
 
     </properties>
 
     <dependencies>
 
         <dependency>
-            <groupId>vn.com.lcx</groupId>
+            <groupId>vn.io.lcx</groupId>
             <artifactId>common-lib</artifactId>
-            <version>${common-lib-vn.com.lcx.version}</version>
+            <version>${common-lib-vn.io.lcx.version}</version>
         </dependency>
 
         <dependency>

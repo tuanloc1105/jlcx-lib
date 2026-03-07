@@ -16,10 +16,10 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.SqlConnection;
 import lombok.RequiredArgsConstructor;
-import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.utils.BCryptUtils;
-import vn.com.lcx.common.utils.DateTimeUtils;
-import vn.com.lcx.vertx.base.exception.InternalServiceException;
+import vn.io.lcx.common.annotation.Component;
+import vn.io.lcx.common.utils.BCryptUtils;
+import vn.io.lcx.common.utils.DateTimeUtils;
+import vn.io.lcx.vertx.base.exception.InternalServiceException;
 
 @Component
 @RequiredArgsConstructor

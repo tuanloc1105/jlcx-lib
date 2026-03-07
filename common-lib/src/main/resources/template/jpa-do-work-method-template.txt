@@ -1,22 +1,22 @@
     public void ${method-name}(org.hibernate.jdbc.Work work) {
-        final org.hibernate.SessionFactory sessionFactory = vn.com.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
+        final org.hibernate.SessionFactory sessionFactory = vn.io.lcx.jpa.context.EntityContainer.getEntityManager(${entity-class}.class);
         // This variable is the result of checking whether the method
-        // in the class annotated with `@vn.com.lcx.jpa.annotation.Service`
-        // is also annotated with `@vn.com.lcx.jpa.annotation.Transactional`.
-        // This check occurs in the Proxy layer of the class annotated with `@vn.com.lcx.jpa.annotation.Service`.
-        boolean transactionOpen = vn.com.lcx.jpa.context.JpaContext.isTransactionOpen();
+        // in the class annotated with `@vn.io.lcx.jpa.annotation.Service`
+        // is also annotated with `@vn.io.lcx.jpa.annotation.Transactional`.
+        // This check occurs in the Proxy layer of the class annotated with `@vn.io.lcx.jpa.annotation.Service`.
+        boolean transactionOpen = vn.io.lcx.jpa.context.JpaContext.isTransactionOpen();
         if (transactionOpen) {
             boolean sessionIsJustCreate = false;
-            org.hibernate.Session currentSessionInContext = vn.com.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
+            org.hibernate.Session currentSessionInContext = vn.io.lcx.jpa.context.JpaContext.getSession(${entity-class}.class);
             if (currentSessionInContext == null) {
                 currentSessionInContext = sessionFactory.openSession();
-                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.com.lcx.jpa.context.JpaContext.getTransactionIsolation()));
+                currentSessionInContext.doWork(connection -> connection.setTransactionIsolation(vn.io.lcx.jpa.context.JpaContext.getTransactionIsolation()));
                 sessionIsJustCreate = true;
             }
-            int transactionMode = vn.com.lcx.jpa.context.JpaContext.getTransactionMode();
-            org.hibernate.Transaction transaction = vn.com.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
+            int transactionMode = vn.io.lcx.jpa.context.JpaContext.getTransactionMode();
+            org.hibernate.Transaction transaction = vn.io.lcx.jpa.context.JpaContext.getTransaction(${entity-class}.class);
             switch (transactionMode) {
-                case vn.com.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.CREATE_NEW_TRANSACTION_MODE:
                     if (sessionIsJustCreate) {
                         transaction = currentSessionInContext.beginTransaction();
                     } else {
@@ -26,16 +26,16 @@
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
-                case vn.com.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
+                case vn.io.lcx.jpa.context.JpaConstant.USE_EXISTING_TRANSACTION_MODE:
                     if (transaction == null) {
                         transaction = currentSessionInContext.beginTransaction();
                     }
                     break;
                 default:
-                    throw new vn.com.lcx.jpa.exception.JpaException("Invalid transaction mode");
+                    throw new vn.io.lcx.jpa.exception.JpaException("Invalid transaction mode");
             }
-            vn.com.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
-            vn.com.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
+            vn.io.lcx.jpa.context.JpaContext.setSession(${entity-class}.class, currentSessionInContext);
+            vn.io.lcx.jpa.context.JpaContext.setTransaction(${entity-class}.class, transaction);
             currentSessionInContext.doWork(work);
         } else {
             try (org.hibernate.Session currentSessionInContext = sessionFactory.openSession()) {

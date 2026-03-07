@@ -6,7 +6,7 @@ The framework provides annotation-driven HTTP routing on top of Vert.x 5.0.8. At
 time, annotation processors generate an `ApplicationVerticle` that wires controllers, filters,
 authentication handlers, and the HTTP server together.
 
-All web annotations are in package `vn.com.lcx.vertx.base.annotation`.
+All web annotations are in package `vn.io.lcx.vertx.base.annotation`.
 
 ---
 
@@ -677,12 +677,12 @@ public class ServerConfig {
 ## Annotation Processors (Compile-Time Code Generation)
 
 The framework relies heavily on Java annotation processors (`javax.annotation.processing`) to
-generate boilerplate code at compile time. All processors are in package `vn.com.lcx.processor`.
+generate boilerplate code at compile time. All processors are in package `vn.io.lcx.processor`.
 
 ### ControllerProcessor
 
 **Triggers on:** `@Controller`, `@VertxApplication`, `@ContextHandler`
-**Generates:** `vn.com.lcx.vertx.verticle.ApplicationVerticle`
+**Generates:** `vn.io.lcx.vertx.verticle.ApplicationVerticle`
 
 This is the core processor for the web framework. It scans all `@Controller` classes, collects
 their route methods (`@Get`, `@Post`, `@Put`, `@Delete`), and generates a single

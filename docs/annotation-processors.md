@@ -9,7 +9,7 @@ The `processor` module registers 9 annotation processors via
 
 ## MapperClassProcessor
 
-**Processor:** `vn.com.lcx.processor.MapperClassProcessor`
+**Processor:** `vn.io.lcx.processor.MapperClassProcessor`
 **Triggers on:** `@MapperClass` (interface only)
 **Generates:** `{InterfaceName}Impl`
 
@@ -83,8 +83,8 @@ public interface TaskMapper {
 **Generated code:**
 
 ```java
-@Generated(value = "vn.com.lcx.processor.MapperClassProcessor", date = "...")
-@vn.com.lcx.common.annotation.Component
+@Generated(value = "vn.io.lcx.processor.MapperClassProcessor", date = "...")
+@vn.io.lcx.common.annotation.Component
 public class TaskMapperImpl implements TaskMapper {
 
     public TaskMapperImpl() {}

@@ -4,9 +4,9 @@ import com.example.model.entity.TasksEntity;
 import com.example.model.entity.UsersEntity;
 import io.vertx.core.Future;
 import org.hibernate.reactive.stage.Stage;
-import vn.com.lcx.jpa.annotation.Query;
-import vn.com.lcx.reactive.annotation.HRRepository;
-import vn.com.lcx.reactive.repository.HReactiveRepository;
+import vn.io.lcx.jpa.annotation.Query;
+import vn.io.lcx.reactive.annotation.HRRepository;
+import vn.io.lcx.reactive.repository.HReactiveRepository;
 
 import java.util.Optional;
 

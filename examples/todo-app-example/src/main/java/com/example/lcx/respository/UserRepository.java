@@ -4,9 +4,9 @@ import com.example.lcx.entity.UserEntity;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.SqlConnection;
-import vn.com.lcx.reactive.annotation.Query;
-import vn.com.lcx.reactive.annotation.RRepository;
-import vn.com.lcx.reactive.repository.ReactiveRepository;
+import vn.io.lcx.reactive.annotation.Query;
+import vn.io.lcx.reactive.annotation.RRepository;
+import vn.io.lcx.reactive.repository.ReactiveRepository;
 
 import java.util.Optional;
 

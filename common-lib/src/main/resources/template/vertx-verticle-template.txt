@@ -1,8 +1,8 @@
-package vn.com.lcx.vertx.verticle;
+package vn.io.lcx.vertx.verticle;
 
-@vn.com.lcx.common.annotation.Verticle
-@vn.com.lcx.common.annotation.Component
-public class ApplicationVerticle extends vn.com.lcx.vertx.base.verticle.VertxBaseVerticle {
+@vn.io.lcx.common.annotation.Verticle
+@vn.io.lcx.common.annotation.Component
+public class ApplicationVerticle extends vn.io.lcx.vertx.base.verticle.VertxBaseVerticle {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger("ApplicationVerticle");
 
@@ -14,16 +14,16 @@ ${constructor}
     public io.vertx.core.Future<io.vertx.core.http.HttpServer> start() {
         try {
             ${jwt-auth-handler}
-            io.vertx.ext.web.Router router = vn.com.lcx.vertx.base.custom.MyRouter.router(super.vertx);
+            io.vertx.ext.web.Router router = vn.io.lcx.vertx.base.custom.MyRouter.router(super.vertx);
             ${static-resource-handler}
             boolean enableMetric = Boolean.parseBoolean(
-                    vn.com.lcx.common.constant.CommonConstant.applicationConfig.getPropertyWithEnvironment("server.enable-metrics") + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING
+                    vn.io.lcx.common.constant.CommonConstant.applicationConfig.getPropertyWithEnvironment("server.enable-metrics") + vn.io.lcx.common.constant.CommonConstant.EMPTY_STRING
             );
             if (enableMetric) {
                 router.route("/metrics").handler(io.vertx.micrometer.PrometheusScrapingHandler.create());
             }
             try {
-                final Long bodyBytesLimit = (long) vn.com.lcx.common.constant.CommonConstant.applicationConfig.<Integer>getProperty_("server.body-bytes-limit");
+                final Long bodyBytesLimit = (long) vn.io.lcx.common.constant.CommonConstant.applicationConfig.<Integer>getProperty_("server.body-bytes-limit");
                 if (bodyBytesLimit == null) {
                     router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
                 } else {
@@ -34,8 +34,8 @@ ${constructor}
                 router.route().handler(io.vertx.ext.web.handler.BodyHandler.create());
             }
             {
-                final String cookieAuthName = vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.cookie-auth-name");
-                if (vn.com.lcx.common.utils.MyStringUtils.isNotBlank(cookieAuthName)) {
+                final String cookieAuthName = vn.io.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.cookie-auth-name");
+                if (vn.io.lcx.common.utils.MyStringUtils.isNotBlank(cookieAuthName)) {
                     router.route().handler(ctx -> {
                         if (ctx.request().headers().get("Authorization") == null) {
                             io.vertx.core.http.Cookie cookie = ctx.request().getCookie(cookieAuthName);
@@ -55,15 +55,15 @@ ${constructor}
 
             ${router-handler}
 
-            final String portString = vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.port");
+            final String portString = vn.io.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.port");
             int port;
-            if (vn.com.lcx.common.utils.MyStringUtils.isNotBlank(portString) && vn.com.lcx.common.utils.MyStringUtils.isNumeric(portString)) {
+            if (vn.io.lcx.common.utils.MyStringUtils.isNotBlank(portString) && vn.io.lcx.common.utils.MyStringUtils.isNumeric(portString)) {
                 port = Integer.parseInt(portString);
             } else {
                 port = 8080;
             }
             io.vertx.core.Future<io.vertx.core.http.HttpServer> future;
-            io.vertx.core.http.HttpServerOptions serverOptions = vn.com.lcx.common.config.ClassPool.getInstance(io.vertx.core.http.HttpServerOptions.class);
+            io.vertx.core.http.HttpServerOptions serverOptions = vn.io.lcx.common.config.ClassPool.getInstance(io.vertx.core.http.HttpServerOptions.class);
             if (serverOptions != null) {
                 future = vertx.createHttpServer(serverOptions)
                         .requestHandler(router)
@@ -72,9 +72,9 @@ ${constructor}
                             logger.info("Server started on port " + port + " with custom options");
                         });
             } else {
-                final boolean enableHttp2 = Boolean.parseBoolean(vn.com.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.enable-http-2") + vn.com.lcx.common.constant.CommonConstant.EMPTY_STRING);
+                final boolean enableHttp2 = Boolean.parseBoolean(vn.io.lcx.common.constant.CommonConstant.applicationConfig.getProperty("server.enable-http-2") + vn.io.lcx.common.constant.CommonConstant.EMPTY_STRING);
                 if (enableHttp2) {
-                    future = vertx.createHttpServer(vn.com.lcx.vertx.base.config.HttpOption.configureHttp2H2C(port))
+                    future = vertx.createHttpServer(vn.io.lcx.vertx.base.config.HttpOption.configureHttp2H2C(port))
                             .requestHandler(router)
                             .listen()
                             .onSuccess(server -> {

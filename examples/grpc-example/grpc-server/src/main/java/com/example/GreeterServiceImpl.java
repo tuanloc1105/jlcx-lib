@@ -4,9 +4,9 @@ import com.example.grpc.GreeterService;
 import com.example.grpc.HelloReply;
 import com.example.grpc.HelloRequest;
 import io.vertx.core.Future;
-import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.utils.LogUtils;
-import vn.com.lcx.vertx.base.custom.EmptyRoutingContext;
+import vn.io.lcx.common.annotation.Component;
+import vn.io.lcx.common.utils.LogUtils;
+import vn.io.lcx.vertx.base.custom.EmptyRoutingContext;
 
 @Component
 public class GreeterServiceImpl extends GreeterService {

@@ -8,12 +8,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.grpc.client.GrpcClient;
 import lombok.RequiredArgsConstructor;
-import vn.com.lcx.common.annotation.Component;
-import vn.com.lcx.common.annotation.PostConstruct;
-import vn.com.lcx.common.utils.LogUtils;
-import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
-import vn.com.lcx.vertx.base.custom.EmptyRoutingContext;
-import vn.com.lcx.vertx.base.custom.MyVertxDeployment;
+import vn.io.lcx.common.annotation.Component;
+import vn.io.lcx.common.annotation.PostConstruct;
+import vn.io.lcx.common.utils.LogUtils;
+import vn.io.lcx.vertx.base.annotation.app.VertxApplication;
+import vn.io.lcx.vertx.base.custom.EmptyRoutingContext;
+import vn.io.lcx.vertx.base.custom.MyVertxDeployment;
 
 @VertxApplication
 @Component

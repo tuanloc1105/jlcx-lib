@@ -353,7 +353,7 @@ ALTER TABLE public.tasks ADD CONSTRAINT FK_tasks_STATUS
 
 ## Compile-Time Code Generation (@SQLMapping)
 
-**Processor:** `vn.com.lcx.processor.SQLMappingProcessor`
+**Processor:** `vn.io.lcx.processor.SQLMappingProcessor`
 **Triggers on:** `@SQLMapping`
 **Generates:** `{ClassName}Utils` (static methods) and `{ClassName}MappingImpl` (instance methods)
 
@@ -421,7 +421,7 @@ MSSQL also generates `OUTPUT INSERTED.<idColumn>` for reactive insert statements
 
 ## Service Proxy Generation (@Service)
 
-**Processor:** `vn.com.lcx.processor.ServiceProcessor`
+**Processor:** `vn.io.lcx.processor.ServiceProcessor`
 **Triggers on:** `@Service`
 **Generates:** `{ClassName}Proxy` (e.g., `UserService` → `UserServiceProxy`)
 
@@ -475,7 +475,7 @@ so all callers automatically get transaction management.
 
 ## Repository Proxy Generation (@Repository)
 
-**Processor:** `vn.com.lcx.processor.RepositoryProcessor`
+**Processor:** `vn.io.lcx.processor.RepositoryProcessor`
 **Triggers on:** `@Repository` (interface only, must extend `JpaRepository<E, ID>`)
 **Generates:** `{InterfaceName}Proxy` (e.g., `UserRepository` → `UserRepositoryProxy`)
 
@@ -533,7 +533,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
 
 ### ReactiveRepositoryProcessor
 
-**Processor:** `vn.com.lcx.processor.ReactiveRepositoryProcessor`
+**Processor:** `vn.io.lcx.processor.ReactiveRepositoryProcessor`
 **Triggers on:** `@RRepository` (interface only, must extend `ReactiveRepository<E>`)
 **Generates:** `{InterfaceName}Impl`
 
@@ -571,7 +571,7 @@ Generates implementations for Vert.x reactive SQL client repositories.
 
 ### HRRepositoryProcessor
 
-**Processor:** `vn.com.lcx.processor.HRRepositoryProcessor`
+**Processor:** `vn.io.lcx.processor.HRRepositoryProcessor`
 **Triggers on:** `@HRRepository` (interface only, must extend `HReactiveRepository<E>`)
 **Generates:** `{InterfaceName}Impl`
 
@@ -1171,7 +1171,7 @@ ReactiveRowStreamingUtils.stream(
 ### Reactive FileUtils
 
 Non-blocking file I/O using Vert.x FileSystem API. Located at
-`vn.com.lcx.reactive.utils.FileUtils` (distinct from the sync `vn.com.lcx.common.utils.FileUtils`).
+`vn.io.lcx.reactive.utils.FileUtils` (distinct from the sync `vn.io.lcx.common.utils.FileUtils`).
 
 All methods return `Future<T>` for async composition.
 

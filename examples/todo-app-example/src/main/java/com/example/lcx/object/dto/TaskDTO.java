@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import vn.com.lcx.jpa.dto.BaseEntityDTO;
+import vn.io.lcx.jpa.dto.BaseEntityDTO;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;

@@ -5,9 +5,9 @@
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
 
     <conversionRule conversionWord="vMdcTrace"
-                    converterClass="vn.com.lcx.common.logging.VertxTraceIdMDCConverter" />
+                    converterClass="vn.io.lcx.common.logging.VertxTraceIdMDCConverter" />
     <conversionRule conversionWord="vMdcOperation"
-                    converterClass="vn.com.lcx.common.logging.VertxOperationMDCConverter" />
+                    converterClass="vn.io.lcx.common.logging.VertxOperationMDCConverter" />
 
     <!-- Global properties -->
     <property name="APPLICATION_NAME" value="${APPLICATION_NAME}" scope="context"/>

@@ -8,7 +8,7 @@ compile-time code generation, multi-database ORM support, and a rich set of util
 
 | Property      | Value                    |
 |---------------|--------------------------|
-| GroupId       | `vn.com.lcx`             |
+| GroupId       | `vn.io.lcx`             |
 | ArtifactId    | `lcx-lib`                |
 | Version       | `4.0.2.lcx-SNAPSHOT`     |
 | Java          | 17                       |
@@ -58,14 +58,14 @@ mvn clean install          # Full build with annotation processing (-proc:full)
 
 | Package | Purpose |
 |---------|---------|
-| `vn.com.lcx.common.config` | `ClassPool` DI container |
-| `vn.com.lcx.common.annotation` | DI and entity annotations |
-| `vn.com.lcx.common.database` | JDBC execution, DDL strategies |
-| `vn.com.lcx.common.utils` | 30+ utility classes |
-| `vn.com.lcx.jpa` | JPA/Hibernate ORM layer, repositories |
-| `vn.com.lcx.reactive` | Hibernate Reactive + Vert.x SQL clients |
-| `vn.com.lcx.vertx` | Vert.x web framework, controllers, validation |
-| `vn.com.lcx.processor` | Annotation processor implementations |
+| `vn.io.lcx.common.config` | `ClassPool` DI container |
+| `vn.io.lcx.common.annotation` | DI and entity annotations |
+| `vn.io.lcx.common.database` | JDBC execution, DDL strategies |
+| `vn.io.lcx.common.utils` | 30+ utility classes |
+| `vn.io.lcx.jpa` | JPA/Hibernate ORM layer, repositories |
+| `vn.io.lcx.reactive` | Hibernate Reactive + Vert.x SQL clients |
+| `vn.io.lcx.vertx` | Vert.x web framework, controllers, validation |
+| `vn.io.lcx.processor` | Annotation processor implementations |
 
 ## 9 Annotation Processors
 

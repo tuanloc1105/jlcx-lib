@@ -1,7 +1,7 @@
 package com.example;
 
-import vn.com.lcx.vertx.base.annotation.app.VertxApplication;
-import vn.com.lcx.vertx.base.custom.MyVertxDeployment;
+import vn.io.lcx.vertx.base.annotation.app.VertxApplication;
+import vn.io.lcx.vertx.base.custom.MyVertxDeployment;
 
 @VertxApplication
 public class App {
