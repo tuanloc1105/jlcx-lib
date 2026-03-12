@@ -163,7 +163,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
 
     private boolean validateParameters(MethodInfo methodInfo, List<String> codeLines) {
         var params = methodInfo.getInputParameters();
-        if (params.isEmpty() || params.size() < 2) {
+        if (params.size() < 2) {
             codeLines.add(String.format("throw new vn.io.lcx.jpa.exception.CodeGenError(\"%s\");", ERROR_INVALID_PARAMETERS));
             return false;
         }
@@ -526,6 +526,7 @@ public class ReactiveRepositoryProcessor extends AbstractProcessor {
         String pageableParam = actualParameters.get(actualParameters.size() - 1).getSimpleName().toString();
 
         codeLines.add("        }).compose(rs -> {");
+        codeLines.add("            count.set(0);");
         codeLines.add(String.format(
                 "            return vn.io.lcx.reactive.wrapper.SqlConnectionLcxWrapper.init(%s, %s).preparedQuery(\"%s\")",
                 sqlConnVar, contextVar, countStatement));

@@ -96,6 +96,8 @@ public final class ReactiveCodeGenHelper {
             case DELETE:
                 generateDeleteCode(codeLines, sqlConnectionVar, contextVar, entityType);
                 break;
+            default:
+                throw new IllegalArgumentException("Use generateBatchCrudCode for batch operations");
         }
 
         return codeLines;
@@ -240,7 +242,7 @@ public final class ReactiveCodeGenHelper {
                 .orElse(-1);
 
         return index != -1
-                ? keywords.subList(index, keywords.size())
+                ? new ArrayList<>(keywords.subList(index, keywords.size()))
                 : Collections.emptyList();
     }
 
