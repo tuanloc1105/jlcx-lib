@@ -483,7 +483,7 @@ Generates concrete implementations for blocking JPA repository interfaces.
 
 **Built-in methods (auto-generated):**
 
-- `findById(ID)` — uses Hibernate `createQuery("FROM Entity WHERE idField = ?")`, returns
+- `findById(ID)` — uses Hibernate `createQuery("FROM Entity WHERE idField = ?1")`, returns
   `Optional<E>`. The ID field is detected via `@Id` annotation on the entity.
 - `save`, `update`, `delete`, `find`, `findOne` — inherited from `JpaRepository` base
   implementation

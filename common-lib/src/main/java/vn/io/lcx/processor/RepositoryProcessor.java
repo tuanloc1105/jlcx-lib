@@ -95,16 +95,17 @@ public class RepositoryProcessor extends AbstractProcessor {
                         pageableParameter.getSimpleName()
                 )
         );
-        codeLines.add("if (!pageimpl.getFieldNameAndDirectionMap().isEmpty()) {");
-        codeLines.add("    orderStatement.append(\" order by \");");
-        codeLines.add("}");
+        codeLines.add("java.util.List<String> orderItems = new java.util.ArrayList<>();");
         codeLines.add("pageimpl.getFieldNameAndDirectionMap().forEach((field, direction) -> {");
         codeLines.add("    if (vn.io.lcx.common.database.pageable.Direction.DESC.equals(direction)) {");
-        codeLines.add("        orderStatement.append(\" \").append(field).append(\" desc\");");
+        codeLines.add("        orderItems.add(field + \" desc\");");
         codeLines.add("    } else {");
-        codeLines.add("        orderStatement.append(\" \").append(field).append(\" asc\");");
+        codeLines.add("        orderItems.add(field + \" asc\");");
         codeLines.add("    }");
         codeLines.add("});");
+        codeLines.add("if (!orderItems.isEmpty()) {");
+        codeLines.add("    orderStatement.append(\" order by \").append(String.join(\", \", orderItems));");
+        codeLines.add("}");
         codeLines.add(
                 String.format(
                         "org.hibernate.query.Query<%2$s> query = currentSessionInContext.createQuery(\"%1$s\" + orderStatement.toString(), %2$s.class);",
@@ -156,9 +157,7 @@ public class RepositoryProcessor extends AbstractProcessor {
         Matcher matcher = pattern.matcher(query);
 
         if (matcher.find()) {
-            int selectKeywordStart = query.toLowerCase().indexOf("select");
-            String beforeSelect = query.substring(0, selectKeywordStart);
-
+            String beforeSelect = query.substring(0, matcher.start());
             String afterFrom = query.substring(matcher.end() - "FROM".length());
 
             return beforeSelect + "SELECT COUNT(1) " + afterFrom;
@@ -336,11 +335,12 @@ public class RepositoryProcessor extends AbstractProcessor {
             final var codeLines = new ArrayList<String>();
             codeLines.add(
                     String.format(
-                            "org.hibernate.query.Query<%1$s> query = currentSessionInContext.createQuery(\"FROM %1$s where %2$s = ?\", %1$s.class);",
+                            "org.hibernate.query.Query<%1$s> query = currentSessionInContext.createQuery(\"FROM %1$s where %2$s = ?1\", %1$s.class);",
                             genericClasses.get(0).toString(),
                             idFieldName
                     )
             );
+            codeLines.add("query.setParameter(1, id);");
             codeLines.add(
                     "return java.util.Optional.ofNullable(query.uniqueResult());"
             );
@@ -461,7 +461,12 @@ public class RepositoryProcessor extends AbstractProcessor {
                     methodInfo,
                     executableElement
             );
+            return;
         }
+        var code = buildBaseCode(NOT_IMPLEMENT_CODE_TEMPLATE, genericEntityClass, methodInfo)
+                .replace(PH_ERROR_MESSAGE,
+                        "Method " + methodInfo.getMethodName() + " must be annotated with @Query or @Modifying");
+        methodCodeBody.append(code).append("\n");
     }
 
     /**
@@ -745,11 +750,9 @@ public class RepositoryProcessor extends AbstractProcessor {
                 !listTypeName.contains("<")) {
             throw new CodeGenError("Unknown type " + listTypeName);
         }
-        return listTypeName
-                .replace(TYPE_JAVA_LIST + "<", CommonConstant.EMPTY_STRING)
-                .replace(TYPE_PAGE + "<", CommonConstant.EMPTY_STRING)
-                .replace(TYPE_JAVA_OPTIONAL + "<", CommonConstant.EMPTY_STRING)
-                .replace(">", CommonConstant.EMPTY_STRING);
+        int firstOpen = listTypeName.indexOf('<');
+        int lastClose = listTypeName.lastIndexOf('>');
+        return listTypeName.substring(firstOpen + 1, lastClose);
     }
 
     private void setParameters(MethodInfo methodInfo, ArrayList<String> codeLines) {
