@@ -18,8 +18,10 @@ mvn `
   -D"skipTests=true" `
   -D"file.encoding=UTF8" `
   -f `
+  -P"release" `
   pom.xml
 
 mvn `
   clean `
-  deploy
+  deploy `
+  -P"release"

@@ -24,5 +24,4 @@ mvn \
  install \
  -DskipTests=true \
  -Dfile.encoding=UTF8 \
- -Dgpg.skip \
  -f pom.xml
