@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -75,6 +74,14 @@ public class HRRepositoryProcessor extends AbstractProcessor {
                 processorClassInfo.getClazz(),
                 HReactiveRepository.class.getName());
 
+        if (genericClasses.isEmpty()) {
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "HRRepository must extend HReactiveRepository with generic type parameters: "
+                            + processorClassInfo.getClazz().getQualifiedName());
+            return;
+        }
+
         String repositoryTemplate = FileUtils.readResourceFileAsText(
                 this.getClass().getClassLoader(),
                 "template/repository-template.txt");
@@ -82,8 +89,12 @@ public class HRRepositoryProcessor extends AbstractProcessor {
                 this.getClass().getClassLoader(),
                 "template/method-template.txt");
 
-        assert StringUtils.isNotBlank(repositoryTemplate);
-        assert StringUtils.isNotBlank(methodTemplate);
+        if (StringUtils.isBlank(repositoryTemplate) || StringUtils.isBlank(methodTemplate)) {
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "Failed to load template files for HRRepository code generation");
+            return;
+        }
 
         final TypeMirror entityTypeMirror = genericClasses.get(0);
         StringBuilder methodCodeBody = new StringBuilder();
@@ -101,23 +112,36 @@ public class HRRepositoryProcessor extends AbstractProcessor {
             }
 
             final var codeLines = new ArrayList<String>();
-            // Basic validation
             if (methodInfo.getInputParameters().isEmpty()) {
-                // Might handle no-arg methods if needed, but standard ones have args
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "Method " + methodInfo.getMethodName()
+                                + " must have at least one parameter (Stage.Session)");
+                return;
             }
 
             final VariableElement sessionVariable = methodInfo.getInputParameters().get(0);
             if (!sessionVariable.asType().toString().equals("org.hibernate.reactive.stage.Stage.Session")) {
-                // Maybe log warning or assume first arg is session if type matches
-                // But user example has Stage.Session session as first arg
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "First parameter of method " + methodInfo.getMethodName()
+                                + " must be org.hibernate.reactive.stage.Stage.Session");
+                return;
             }
 
             final String methodName = methodInfo.getMethodName();
             final List<? extends VariableElement> parameters = methodInfo.getInputParameters();
 
-            if (Optional.ofNullable(executableElement.getAnnotation(Query.class)).isPresent()) {
+            if (executableElement.getAnnotation(Query.class) != null) {
                 buildQueryMethodCodeBody(executableElement, codeLines, parameters, actualReturnType, entityTypeMirror);
             } else {
+                if (parameters.size() < 2) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.ERROR,
+                            "Method " + methodName
+                                    + " requires at least 2 parameters (Stage.Session, ...)");
+                    return;
+                }
                 switch (methodName) {
                     case "save":
                         buildSaveMethod(codeLines, parameters, entityTypeMirror);
@@ -307,11 +331,11 @@ public class HRRepositoryProcessor extends AbstractProcessor {
         codeLines.add("        {");
         codeLines.add("            final var countQuery = criteriaBuilder.createQuery(Long.class);");
         codeLines.add("            final var countRoot = countQuery.from(" + entityType + ".class);");
+        codeLines.add("            countQuery.select(criteriaBuilder.count(countRoot));");
         codeLines.add("            if (" + handler + " != null) {");
         codeLines.add("                jakarta.persistence.criteria.Predicate countPredicate = " + handler
                 + ".toPredicate(criteriaBuilder, countQuery, countRoot);");
-        codeLines.add("                countQuery.select(criteriaBuilder.count(countRoot))");
-        codeLines.add("                        .where(countPredicate);");
+        codeLines.add("                countQuery.where(countPredicate);");
         codeLines.add("            }");
         codeLines.add("            return io.vertx.core.Future.fromCompletionStage(");
         codeLines.add("                    (java.util.concurrent.CompletionStage<Long>) " + session
@@ -363,7 +387,7 @@ public class HRRepositoryProcessor extends AbstractProcessor {
         if (resultSetMappingAnn != null) {
             if (isNative) {
                 createQueryCall = session + ".createNativeQuery(\"" + queryStr.replace("\"", "\\\"")
-                        + "\", new ResultSetMapping<" + entityType + ">() {\n" +
+                        + "\", new org.hibernate.reactive.common.ResultSetMapping<" + entityType + ">() {\n" +
                         "    @Override\n" +
                         "    public String getName() {\n" +
                         "        return \"" + resultSetMappingAnn.name() + "\";\n" +
@@ -466,12 +490,10 @@ public class HRRepositoryProcessor extends AbstractProcessor {
                 }
 
                 if (pageableParam == null) {
-                    // Fallback or error? For now assume user provides it if they want Page
-                    // But to avoid compile error, just do what we did or throw generic
-                    // Let's assume it exists as per user request
-                    codeLines.add("// Error: Page return type requires a Pageable parameter.");
-                    // return null to satisfy
-                    codeLines.add("return null;");
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.ERROR,
+                            "Method with Page return type requires a Pageable parameter");
+                    codeLines.clear();
                     return;
                 }
 
