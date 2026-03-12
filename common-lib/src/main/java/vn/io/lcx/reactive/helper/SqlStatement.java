@@ -1,9 +1,9 @@
 package vn.io.lcx.reactive.helper;
 
-import vn.io.lcx.common.cache.CacheUtils;
 import vn.io.lcx.common.database.pageable.Pageable;
 import vn.io.lcx.reactive.exception.EmptyConditionStatementException;
 import vn.io.lcx.reactive.exception.EmptyFromStatementException;
+import vn.io.lcx.reactive.exception.EmptyGroupByStatementException;
 import vn.io.lcx.reactive.exception.EmptyOrderStatementException;
 import vn.io.lcx.reactive.exception.EmptySelectStatementException;
 
@@ -18,7 +18,8 @@ import vn.io.lcx.reactive.exception.EmptySelectStatementException;
  * <ul>
  *     <li>Builds SELECT and COUNT SQL statements simultaneously.</li>
  *     <li>Supports logic chaining: AND, OR, AND(...OR...), OR(...AND...).</li>
- *     <li>Optional caching to avoid rebuilding identical SQL structures.</li>
+ *     <li>Supports GROUP BY and HAVING clauses.</li>
+ *     <li>State validation ensures correct clause ordering.</li>
  *     <li>Fluent, chainable interface.</li>
  * </ul>
  *
@@ -26,18 +27,19 @@ import vn.io.lcx.reactive.exception.EmptySelectStatementException;
  * <ul>
  *     <li>All SQL parameter placeholders must use <strong>#</strong>.
  *         Example: <code>column = #</code></li>
- *     <li>If caching is enabled and SQL exists for the given key, all method calls
- *         become no-op until finalize methods are called.</li>
- *     <li>This class assumes external classes such as CacheUtils, Pageable, and
- *         several custom exceptions.</li>
+ *     <li>When GROUP BY is used, the COUNT query becomes
+ *         <code>SELECT COUNT(1) ... GROUP BY ...</code>, which returns one row per group.
+ *         For pagination with GROUP BY, callers should handle the count query accordingly.</li>
  * </ul>
  */
 public class SqlStatement {
 
     /**
-     * Global SQL cache with max size 1000.
+     * Tracks the builder's current position in the SQL clause sequence.
      */
-    private static final CacheUtils<String, String> sqlCache = CacheUtils.create(1000);
+    private enum State {
+        INIT, SELECT, FROM, WHERE, CONDITION, GROUP_BY, HAVING, ORDER
+    }
 
     /**
      * Builder for the SELECT query.
@@ -50,57 +52,20 @@ public class SqlStatement {
     private final StringBuilder count = new StringBuilder();
 
     /**
-     * Cache key name (null if cache disabled).
+     * Current state of the builder for call-order validation.
      */
-    private final String cacheKeyName;
-    /**
-     * Whether caching is enabled.
-     */
-    private final boolean isUseCache;
-    /**
-     * Tracks whether WHERE has been called. Required before AND/OR.
-     */
-    private boolean containedWhere = false;
+    private State currentState = State.INIT;
 
-    /**
-     * Private constructor used internally.
-     *
-     * @param cacheKeyName cache key (null if disabled)
-     * @param isUseCache   whether this builder uses caching
-     */
-    private SqlStatement(String cacheKeyName,
-                         boolean isUseCache) {
-        this.cacheKeyName = cacheKeyName;
-        this.isUseCache = isUseCache;
+    private SqlStatement() {
     }
 
     /**
-     * Creates a new SqlStatement builder with caching disabled.
+     * Creates a new SqlStatement builder.
      *
      * @return a new {@code SqlStatement} instance
      */
     public static SqlStatement init() {
-        return new SqlStatement(
-                null,
-                false
-        );
-    }
-
-    /**
-     * Creates a new SqlStatement builder with caching enabled.
-     *
-     * @param cacheKeyName unique cache key
-     * @return a new SqlStatement with caching enabled
-     * @throws NullPointerException if the key is null or blank
-     */
-    public static SqlStatement initWithCache(String cacheKeyName) {
-        if (cacheKeyName == null || cacheKeyName.isBlank()) {
-            throw new NullPointerException();
-        }
-        return new SqlStatement(
-                cacheKeyName,
-                true
-        );
+        return new SqlStatement();
     }
 
     /**
@@ -109,11 +74,12 @@ public class SqlStatement {
      *
      * @param columns one or more column names or expressions
      * @return this builder for chaining
+     * @throws IllegalStateException       if called out of order
      * @throws EmptySelectStatementException if no columns were supplied
      */
     public SqlStatement select(String... columns) {
-        if (alreadyCached()) {
-            return this;
+        if (currentState != State.INIT) {
+            throw new IllegalStateException("select() must be called first and only once");
         }
         if (columns.length == 0) {
             throw new EmptySelectStatementException();
@@ -121,24 +87,24 @@ public class SqlStatement {
         count.append("SELECT\n    COUNT(1)");
         statement.append("SELECT");
         statement.append("\n    ").append(columns[0]);
-        if (columns.length > 1) {
-            for (int i = 1; i < columns.length; i++) {
-                statement.append(",\n    ").append(columns[i]);
-            }
+        for (int i = 1; i < columns.length; i++) {
+            statement.append(",\n    ").append(columns[i]);
         }
+        currentState = State.SELECT;
         return this;
     }
 
     /**
      * Appends a FROM clause to both SELECT and COUNT statements.
      *
-     * @param tables one or more table names
+     * @param tables one or more table names or join expressions
      * @return this builder for chaining
+     * @throws IllegalStateException      if select() was not called first
      * @throws EmptyFromStatementException if no tables were provided
      */
     public SqlStatement from(String... tables) {
-        if (alreadyCached()) {
-            return this;
+        if (currentState != State.SELECT) {
+            throw new IllegalStateException("from() must be called after select()");
         }
         if (tables.length == 0) {
             throw new EmptyFromStatementException();
@@ -147,12 +113,11 @@ public class SqlStatement {
         count.append("\n    ").append(tables[0]);
         statement.append("\nFROM");
         statement.append("\n    ").append(tables[0]);
-        if (tables.length > 1) {
-            for (int i = 1; i < tables.length; i++) {
-                count.append("\n    ").append(tables[i]);
-                statement.append("\n    ").append(tables[i]);
-            }
+        for (int i = 1; i < tables.length; i++) {
+            count.append("\n    ").append(tables[i]);
+            statement.append("\n    ").append(tables[i]);
         }
+        currentState = State.FROM;
         return this;
     }
 
@@ -162,16 +127,15 @@ public class SqlStatement {
      *
      * @param condition SQL condition text
      * @return this builder for chaining
+     * @throws IllegalStateException if from() was not called first
      */
     public SqlStatement where(String condition) {
-        if (alreadyCached()) {
-            return this;
-        }
+        requireState("where()", State.FROM);
         count.append("\nWHERE");
         count.append("\n    ").append(condition);
         statement.append("\nWHERE");
         statement.append("\n    ").append(condition);
-        containedWhere = true;
+        currentState = State.WHERE;
         return this;
     }
 
@@ -179,51 +143,23 @@ public class SqlStatement {
      * Adds a basic WHERE 1 = 1 clause.
      *
      * @return this builder for chaining
+     * @throws IllegalStateException if from() was not called first
      */
     public SqlStatement where() {
-        if (alreadyCached()) {
-            return this;
-        }
-        count.append("\nWHERE");
-        count.append("\n    ").append("1 = 1");
-        statement.append("\nWHERE");
-        statement.append("\n    1 = 1");
-        containedWhere = true;
-        return this;
+        return where("1 = 1");
     }
 
     /**
      * Adds AND conditions to the WHERE clause.
+     * <p>Multiple conditions are grouped: <code>AND (cond1 AND cond2 ...)</code></p>
      *
      * @param conditions one or more SQL conditions
      * @return this builder for chaining
-     * @throws RuntimeException                 if WHERE was not called first
+     * @throws IllegalStateException           if where() was not called first
      * @throws EmptyConditionStatementException if no conditions were provided
      */
     public SqlStatement and(String... conditions) {
-        if (alreadyCached()) {
-            return this;
-        }
-        if (!containedWhere) {
-            throw new RuntimeException("The `where` method has not been called yet");
-        }
-        if (conditions.length == 0) {
-            throw new EmptyConditionStatementException();
-        }
-        if (conditions.length > 1) {
-            count.append("\n    AND (").append("\n        ").append(conditions[0]);
-            statement.append("\n    AND (").append("\n        ").append(conditions[0]);
-            for (int i = 1; i < conditions.length; i++) {
-                count.append("\n        AND ").append(conditions[i]);
-                statement.append("\n        AND ").append(conditions[i]);
-            }
-            count.append("\n    )");
-            statement.append("\n    )");
-        } else {
-            count.append("\n    AND ").append(conditions[0]);
-            statement.append("\n    AND ").append(conditions[0]);
-        }
-        return this;
+        return condition("and()", "AND", "AND", conditions);
     }
 
     /**
@@ -231,67 +167,24 @@ public class SqlStatement {
      *
      * @param conditions one or more SQL conditions
      * @return this builder for chaining
-     * @throws RuntimeException                 if WHERE was not called first
+     * @throws IllegalStateException           if where() was not called first
      * @throws EmptyConditionStatementException if no conditions were provided
      */
     public SqlStatement andOr(String... conditions) {
-        if (alreadyCached()) {
-            return this;
-        }
-        if (!containedWhere) {
-            throw new RuntimeException("The `where` method has not been called yet");
-        }
-        if (conditions.length == 0) {
-            throw new EmptyConditionStatementException();
-        }
-        if (conditions.length > 1) {
-            count.append("\n    AND (").append("\n        ").append(conditions[0]);
-            statement.append("\n    AND (").append("\n        ").append(conditions[0]);
-            for (int i = 1; i < conditions.length; i++) {
-                count.append("\n        OR ").append(conditions[i]);
-                statement.append("\n        OR ").append(conditions[i]);
-            }
-            count.append("\n    )");
-            statement.append("\n    )");
-        } else {
-            count.append("\n    AND ").append(conditions[0]);
-            statement.append("\n    AND ").append(conditions[0]);
-        }
-        return this;
+        return condition("andOr()", "AND", "OR", conditions);
     }
 
     /**
      * Adds OR conditions to the WHERE clause.
+     * <p>Multiple conditions are grouped: <code>OR (cond1 OR cond2 ...)</code></p>
      *
      * @param conditions one or more SQL conditions
      * @return this builder for chaining
-     * @throws RuntimeException                 if WHERE was not called first
+     * @throws IllegalStateException           if where() was not called first
      * @throws EmptyConditionStatementException if no conditions were provided
      */
     public SqlStatement or(String... conditions) {
-        if (alreadyCached()) {
-            return this;
-        }
-        if (!containedWhere) {
-            throw new RuntimeException("The `where` method has not been called yet");
-        }
-        if (conditions.length == 0) {
-            throw new EmptyConditionStatementException();
-        }
-        if (conditions.length > 1) {
-            count.append("\n    OR (").append("\n        ").append(conditions[0]);
-            statement.append("\n    OR (").append("\n        ").append(conditions[0]);
-            for (int i = 1; i < conditions.length; i++) {
-                count.append("\n        OR ").append(conditions[i]);
-                statement.append("\n        OR ").append(conditions[i]);
-            }
-            count.append("\n    )");
-            statement.append("\n    )");
-        } else {
-            count.append("\n    OR ").append(conditions[0]);
-            statement.append("\n    OR ").append(conditions[0]);
-        }
-        return this;
+        return condition("or()", "OR", "OR", conditions);
     }
 
     /**
@@ -299,56 +192,74 @@ public class SqlStatement {
      *
      * @param conditions SQL conditions
      * @return this builder for chaining
-     * @throws RuntimeException                 if WHERE was not called first
+     * @throws IllegalStateException           if where() was not called first
      * @throws EmptyConditionStatementException if no conditions were provided
      */
     public SqlStatement orAnd(String... conditions) {
-        if (alreadyCached()) {
-            return this;
+        return condition("orAnd()", "OR", "AND", conditions);
+    }
+
+    /**
+     * Appends a GROUP BY clause to both SELECT and COUNT statements.
+     *
+     * @param columns one or more column names or expressions
+     * @return this builder for chaining
+     * @throws IllegalStateException          if called before from() or after order()
+     * @throws EmptyGroupByStatementException if no columns were provided
+     */
+    public SqlStatement groupBy(String... columns) {
+        requireState("groupBy()", State.FROM, State.WHERE, State.CONDITION);
+        if (columns.length == 0) {
+            throw new EmptyGroupByStatementException();
         }
-        if (!containedWhere) {
-            throw new RuntimeException("The `where` method has not been called yet");
+        count.append("\nGROUP BY");
+        count.append("\n    ").append(columns[0]);
+        statement.append("\nGROUP BY");
+        statement.append("\n    ").append(columns[0]);
+        for (int i = 1; i < columns.length; i++) {
+            count.append(",\n    ").append(columns[i]);
+            statement.append(",\n    ").append(columns[i]);
         }
-        if (conditions.length == 0) {
-            throw new EmptyConditionStatementException();
-        }
-        if (conditions.length > 1) {
-            count.append("\n    OR (").append("\n        ").append(conditions[0]);
-            statement.append("\n    OR (").append("\n        ").append(conditions[0]);
-            for (int i = 1; i < conditions.length; i++) {
-                count.append("\n        AND ").append(conditions[i]);
-                statement.append("\n        AND ").append(conditions[i]);
-            }
-            count.append("\n    )");
-            statement.append("\n    )");
-        } else {
-            count.append("\n    OR ").append(conditions[0]);
-            statement.append("\n    OR ").append(conditions[0]);
-        }
+        currentState = State.GROUP_BY;
         return this;
     }
 
     /**
-     * Appends ORDER BY to the SELECT query.
+     * Appends a HAVING clause to both SELECT and COUNT statements.
+     *
+     * @param condition SQL condition for HAVING
+     * @return this builder for chaining
+     * @throws IllegalStateException if groupBy() was not called first
+     */
+    public SqlStatement having(String condition) {
+        requireState("having()", State.GROUP_BY);
+        count.append("\nHAVING");
+        count.append("\n    ").append(condition);
+        statement.append("\nHAVING");
+        statement.append("\n    ").append(condition);
+        currentState = State.HAVING;
+        return this;
+    }
+
+    /**
+     * Appends ORDER BY to the SELECT query only.
      *
      * @param orders columns or expressions used for ordering
      * @return this builder for chaining
+     * @throws IllegalStateException       if called before from()
      * @throws EmptyOrderStatementException if no columns were provided
      */
     public SqlStatement order(String... orders) {
-        if (alreadyCached()) {
-            return this;
-        }
+        requireState("order()", State.FROM, State.WHERE, State.CONDITION, State.GROUP_BY, State.HAVING);
         if (orders.length == 0) {
             throw new EmptyOrderStatementException();
         }
         statement.append("\nORDER BY");
         statement.append("\n    ").append(orders[0]);
-        if (orders.length > 1) {
-            for (int i = 1; i < orders.length; i++) {
-                statement.append(",\n    ").append(orders[i]);
-            }
+        for (int i = 1; i < orders.length; i++) {
+            statement.append(",\n    ").append(orders[i]);
         }
+        currentState = State.ORDER;
         return this;
     }
 
@@ -359,21 +270,11 @@ public class SqlStatement {
      * @return the final SELECT SQL
      */
     public String finalizeQueryStatement(Pageable pageable) {
-        final String sqlStatement;
-        if (alreadyCached()) {
-            sqlStatement = sqlCache.get(cacheKeyName);
-        } else {
-            sqlStatement = statement.toString();
-            if (isUseCache) {
-                sqlCache.put(cacheKeyName, sqlStatement);
-                sqlCache.put(cacheKeyName + "_count", count.toString());
-            }
-        }
+        var sqlStatement = statement.toString();
         if (pageable != null) {
             return sqlStatement + "\n" + pageable.toSql();
-        } else {
-            return sqlStatement;
         }
+        return sqlStatement;
     }
 
     /**
@@ -391,31 +292,62 @@ public class SqlStatement {
      * @return generated SQL COUNT query
      */
     public String finalizeCountStatement() {
-        final String sqlStatement;
-        final var cacheKey = cacheKeyName + "_count";
-        if (alreadyCached()) {
-            sqlStatement = sqlCache.get(cacheKey);
-        } else {
-            sqlStatement = count.toString();
-            if (isUseCache) {
-                sqlCache.put(cacheKeyName, statement.toString());
-                sqlCache.put(cacheKey, sqlStatement);
-            }
-        }
-        return sqlStatement;
+        return count.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "SqlStatement{query=" + statement + ", count=" + count + '}';
     }
 
     /**
-     * Checks if this SQL has already been generated and cached.
-     * If so, all builder methods become no-op.
+     * Shared implementation for {@code and}, {@code andOr}, {@code or}, {@code orAnd}.
      *
-     * @return true if SQL is cached; false otherwise
+     * @param methodName   name of the calling method (for error messages)
+     * @param outerKeyword AND or OR — the keyword joining this block to the WHERE clause
+     * @param innerKeyword AND or OR — the keyword joining conditions within the block
+     * @param conditions   one or more SQL conditions
+     * @return this builder for chaining
      */
-    private boolean alreadyCached() {
-        if (isUseCache) {
-            return sqlCache.containsKey(cacheKeyName);
+    private SqlStatement condition(String methodName, String outerKeyword, String innerKeyword, String... conditions) {
+        requireState(methodName, State.WHERE, State.CONDITION);
+        if (conditions.length == 0) {
+            throw new EmptyConditionStatementException();
         }
-        return false;
+        if (conditions.length > 1) {
+            var open = "\n    " + outerKeyword + " (\n        ";
+            count.append(open).append(conditions[0]);
+            statement.append(open).append(conditions[0]);
+            for (int i = 1; i < conditions.length; i++) {
+                var inner = "\n        " + innerKeyword + " ";
+                count.append(inner).append(conditions[i]);
+                statement.append(inner).append(conditions[i]);
+            }
+            count.append("\n    )");
+            statement.append("\n    )");
+        } else {
+            var single = "\n    " + outerKeyword + " ";
+            count.append(single).append(conditions[0]);
+            statement.append(single).append(conditions[0]);
+        }
+        currentState = State.CONDITION;
+        return this;
+    }
+
+    /**
+     * Validates that the current state is one of the allowed states.
+     *
+     * @param methodName   name of the calling method (for error messages)
+     * @param allowedStates states in which the method may be called
+     * @throws IllegalStateException if the current state is not allowed
+     */
+    private void requireState(String methodName, State... allowedStates) {
+        for (var allowed : allowedStates) {
+            if (currentState == allowed) {
+                return;
+            }
+        }
+        throw new IllegalStateException(methodName + " cannot be called in state " + currentState);
     }
 
 }
