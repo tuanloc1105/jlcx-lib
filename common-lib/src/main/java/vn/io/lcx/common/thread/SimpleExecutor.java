@@ -20,39 +20,36 @@ import java.util.concurrent.TimeUnit;
  *
  * <p>This class provides a simplified interface for creating and managing thread pools
  * with various rejection policies and timeout configurations. It supports both
- * synchronous task execution with result collection and asynchronous execution
- * with CountDownLatch for coordination.</p>
+ * fire-and-forget task execution with CountDownLatch coordination and asynchronous
+ * execution via CompletableFuture.</p>
  *
  * <p>Key features:</p>
  * <ul>
  *   <li>Configurable thread pool size (min/max threads)</li>
  *   <li>Multiple rejection policies (ABORT, DISCARD, CALLER_RUNS, DISCARD_OLDEST)</li>
  *   <li>Timeout support for task execution</li>
- *   <li>Both synchronous and asynchronous execution modes</li>
- *   <li>Automatic resource cleanup</li>
+ *   <li>Virtual Thread support (JDK 21+) with automatic fallback</li>
+ *   <li>AutoCloseable for proper resource cleanup</li>
  *   <li>Comprehensive logging</li>
  * </ul>
  *
  * <p>Usage example:</p>
  * <pre>{@code
  * // Create executor with custom configuration
- * SimpleExecutor<String> executor = SimpleExecutor.init(
- *     2,  // min threads
- *     10, // max threads
- *     RejectMode.ABORT_POLICY,
- *     30, // timeout
- *     TimeUnit.SECONDS
- * );
+ * try (SimpleExecutor<String> executor = SimpleExecutor.init(
+ *         2,  // min threads
+ *         10, // max threads
+ *         RejectMode.ABORT_POLICY,
+ *         30, // timeout
+ *         TimeUnit.SECONDS
+ * )) {
+ *     // Add tasks
+ *     executor.addNewTask(() -> "Task 1 result");
+ *     executor.addNewTask(() -> "Task 2 result");
  *
- * // Add tasks
- * executor.addNewTask(() -> "Task 1 result");
- * executor.addNewTask(() -> "Task 2 result");
- *
- * // Execute and get results
- * List<String> results = executor.executeTasks();
- *
- * // Or execute asynchronously
- * executor.executeTasksWithCountDownLatch();
+ *     // Execute tasks
+ *     executor.executeTasksWithCountDownLatch();
+ * }
  * }</pre>
  *
  * @param <T> the type of result returned by the tasks
@@ -72,22 +69,22 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     /**
      * Minimum number of threads in the pool
      */
-    private int minThread;
+    private final int minThread;
 
     /**
      * Maximum number of threads in the pool
      */
-    private int maxThread;
+    private final int maxThread;
 
     /**
      * Timeout duration for task execution
      */
-    private long timeout;
+    private final long timeout;
 
     /**
      * Time unit for timeout
      */
-    private TimeUnit unit;
+    private final TimeUnit unit;
 
     /**
      * The underlying executor service
@@ -97,13 +94,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     /**
      * Flag to indicate whether to use Virtual Threads (JDK 21+)
      */
-    private boolean useVirtualThread;
-
-    public SimpleExecutor(List<Callable<T>> taskList, RejectedExecutionHandler rejectedExecutionHandler) {
-        this.taskList = taskList;
-        this.rejectedExecutionHandler = rejectedExecutionHandler;
-        this.useVirtualThread = false;
-    }
+    private final boolean useVirtualThread;
 
     public SimpleExecutor(List<Callable<T>> taskList,
                           RejectedExecutionHandler rejectedExecutionHandler,
@@ -111,17 +102,6 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                           int maxThread,
                           long timeout,
                           TimeUnit unit,
-                          ExecutorService executorService) {
-        this(taskList, rejectedExecutionHandler, minThread, maxThread, timeout, unit, executorService, false);
-    }
-
-    public SimpleExecutor(List<Callable<T>> taskList,
-                          RejectedExecutionHandler rejectedExecutionHandler,
-                          int minThread,
-                          int maxThread,
-                          long timeout,
-                          TimeUnit unit,
-                          ExecutorService executorService,
                           boolean useVirtualThread) {
         this.taskList = taskList;
         this.rejectedExecutionHandler = rejectedExecutionHandler;
@@ -129,7 +109,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         this.maxThread = maxThread;
         this.timeout = timeout;
         this.unit = unit;
-        this.executorService = executorService;
+        this.executorService = null;
         this.useVirtualThread = useVirtualThread;
     }
 
@@ -161,7 +141,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                 maxNumberOfThreads,
                 timeout,
                 unit,
-                null
+                false
         );
     }
 
@@ -182,13 +162,15 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     public static <T> SimpleExecutor<T> init(RejectMode rejectMode,
                                              final long timeout,
                                              final TimeUnit unit) {
-        final var asd = new SimpleExecutor<T>(
+        return new SimpleExecutor<>(
                 new ArrayList<>(),
-                SimpleExecutor.getRejectHandlerClass(rejectMode)
+                SimpleExecutor.getRejectHandlerClass(rejectMode),
+                0,
+                0,
+                timeout,
+                unit,
+                false
         );
-        asd.setUnit(unit);
-        asd.setTimeout(timeout);
-        return asd;
     }
 
     /**
@@ -210,14 +192,15 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
      */
     public static <T> SimpleExecutor<T> initWithVirtualThread(final long timeout,
                                                                final TimeUnit unit) {
-        final var executor = new SimpleExecutor<T>(
+        return new SimpleExecutor<>(
                 new ArrayList<>(),
-                new ThreadPoolExecutor.AbortPolicy() // Default policy, not used for virtual threads
+                new ThreadPoolExecutor.AbortPolicy(), // Default policy, not used for virtual threads
+                0,
+                0,
+                timeout,
+                unit,
+                true
         );
-        executor.setUnit(unit);
-        executor.setTimeout(timeout);
-        executor.setUseVirtualThread(true);
-        return executor;
     }
 
     /**
@@ -249,7 +232,6 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                 maxNumberOfThreads,
                 timeout,
                 unit,
-                null,
                 useVirtualThread
         );
     }
@@ -257,34 +239,17 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     /**
      * Converts a RejectMode enum to the corresponding RejectedExecutionHandler.
      *
-     * <p>This method maps the enum values to their corresponding ThreadPoolExecutor
-     * rejection policy implementations.</p>
-     *
      * @param rejectMode the rejection mode to convert
      * @return the corresponding RejectedExecutionHandler implementation
      * @throws IllegalArgumentException if rejectMode is null
      */
-    @SuppressWarnings("DuplicateBranchesInSwitch")
     public static RejectedExecutionHandler getRejectHandlerClass(RejectMode rejectMode) {
-        RejectedExecutionHandler rejectedExecutionHandler;
-        switch (rejectMode) {
-            case ABORT_POLICY:
-                rejectedExecutionHandler = new ThreadPoolExecutor.AbortPolicy();
-                break;
-            case DISCARD_OLDEST_POLICY:
-                rejectedExecutionHandler = new ThreadPoolExecutor.DiscardOldestPolicy();
-                break;
-            case CALLER_RUNS_POLICY:
-                rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-                break;
-            case DISCARD_POLICY:
-                rejectedExecutionHandler = new ThreadPoolExecutor.DiscardPolicy();
-                break;
-            default:
-                rejectedExecutionHandler = new ThreadPoolExecutor.AbortPolicy();
-                break;
-        }
-        return rejectedExecutionHandler;
+        return switch (rejectMode) {
+            case ABORT_POLICY -> new ThreadPoolExecutor.AbortPolicy();
+            case DISCARD_OLDEST_POLICY -> new ThreadPoolExecutor.DiscardOldestPolicy();
+            case CALLER_RUNS_POLICY -> new ThreadPoolExecutor.CallerRunsPolicy();
+            case DISCARD_POLICY -> new ThreadPoolExecutor.DiscardPolicy();
+        };
     }
 
     public List<Callable<T>> getTaskList() {
@@ -299,42 +264,20 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         return minThread;
     }
 
-    @Override
-    public void setMinThread(int minThread) {
-        this.minThread = minThread;
-    }
-
     public int getMaxThread() {
         return maxThread;
-    }
-
-    @Override
-    public void setMaxThread(int maxThread) {
-        this.maxThread = maxThread;
     }
 
     public long getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(long timeout) {
-        this.timeout = timeout;
-    }
-
     public TimeUnit getUnit() {
         return unit;
     }
 
-    public void setUnit(TimeUnit unit) {
-        this.unit = unit;
-    }
-
     public ExecutorService getExecutorService() {
         return executorService;
-    }
-
-    public void setExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
     }
 
     /**
@@ -347,25 +290,9 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     }
 
     /**
-     * Sets whether this executor should use Virtual Threads.
-     *
-     * <p>When set to true and running on JDK 21+, the executor will use
-     * Virtual Threads for task execution. On earlier JDK versions, it will
-     * fallback to platform threads.</p>
-     *
-     * @param useVirtualThread true to use Virtual Threads, false for platform threads
-     * @return this executor instance for method chaining
-     */
-    public SimpleExecutor<T> setUseVirtualThread(boolean useVirtualThread) {
-        this.useVirtualThread = useVirtualThread;
-        return this;
-    }
-
-    /**
      * Adds a single task to the executor's task list.
      *
-     * <p>The task will be executed when {@link #executeTasks()} or
-     * {@link #executeTasksWithCountDownLatch()} is called.</p>
+     * <p>The task will be executed when {@link #executeTasksWithCountDownLatch()} is called.</p>
      *
      * @param task the callable task to add
      * @throws NullPointerException if task is null
@@ -378,8 +305,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
     /**
      * Adds multiple tasks to the executor's task list.
      *
-     * <p>All tasks will be executed when {@link #executeTasks()} or
-     * {@link #executeTasksWithCountDownLatch()} is called.</p>
+     * <p>All tasks will be executed when {@link #executeTasksWithCountDownLatch()} is called.</p>
      *
      * @param tasks the list of callable tasks to add
      * @throws NullPointerException if tasks is null or contains null elements
@@ -400,8 +326,7 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
      *
      * @return the configured ExecutorService
      */
-    @Override
-    public ExecutorService createExecutorService() {
+    private ExecutorService createExecutorService() {
         if (executorService != null && !executorService.isTerminated()) {
             return executorService;
         }
@@ -442,80 +367,13 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
                     this.maxThread,
                     0L,
                     TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<>(this.taskList.size()),
+                    new LinkedBlockingQueue<>(Math.max(this.taskList.size(), this.maxThread)),
                     new LcxThreadFactory.MyThreadFactory("lcx-worker"),
                     this.rejectedExecutionHandler
             );
         }
         executorService = service;
         return service;
-    }
-
-    /**
-     * Executes all tasks synchronously and returns their results.
-     *
-     * <p>This method executes all tasks in the task list and waits for their completion.
-     * If any task fails, all remaining futures are cancelled and a RuntimeException
-     * is thrown.</p>
-     *
-     * <p><strong>Note:</strong> This method is deprecated. Use
-     * {@link #executeTasksWithCountDownLatch()} instead for better error handling
-     * and resource management.</p>
-     *
-     * @return a list containing the results of all tasks in the order they were added
-     * @throws RuntimeException      if any task fails or if the execution is interrupted
-     * @throws IllegalStateException if no tasks have been added
-     * @deprecated Use {@link #executeTasksWithCountDownLatch()} instead
-     */
-    @Override
-    @Deprecated
-    public List<T> executeTasks() {
-        LogUtils.writeLog(
-                SimpleExecutor.class,
-                LogUtils.Level.INFO,
-                "Execution info:\n" +
-                        "    - Task list: {}\n" +
-                        "    - Rejected execution handler: {}\n" +
-                        "    - Min number of thread(s): {}\n" +
-                        "    - Max number of thread(s): {}\n" +
-                        "    - Timeout: {}\n" +
-                        "    - Time unit: {}",
-                this.taskList.size(),
-                this.rejectedExecutionHandler.getClass().getSimpleName(),
-                this.minThread,
-                this.maxThread,
-                this.timeout,
-                this.unit.toString()
-        );
-        List<T> result = new ArrayList<>(this.taskList.size());
-        ExecutorService executor = this.createExecutorService();
-        try {
-            List<Future<T>> futures;
-            if (this.timeout <= 0 || this.unit == null) {
-                futures = executor.invokeAll(this.taskList);
-            } else {
-                futures = executor.invokeAll(this.taskList, this.timeout, this.unit);
-            }
-
-            while (!futures.isEmpty()) {
-                final var future = futures.remove(0);
-                try {
-                    result.add(future.get());
-                } catch (Throwable e) {
-                    LogUtils.writeLog(this.getClass(), e.getMessage(), e);
-                    future.cancel(true);
-                    futures.forEach(this::cancelFutureTasks);
-                    // throw new RuntimeException("Task failed due to " + e, e);
-                }
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            // Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        } finally {
-            executor.shutdown();
-        }
-        return result;
     }
 
     /**
@@ -583,9 +441,8 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
             });
         }
         executor.shutdown();
-        var finishedInTime = false;
         try {
-            finishedInTime = latch.await(this.timeout, this.unit);
+            var finishedInTime = latch.await(this.timeout, this.unit);
             if (finishedInTime) {
                 LogUtils.writeLog(this.getClass(), LogUtils.Level.INFO, "All tasks finished in time");
             } else {
@@ -659,29 +516,36 @@ public class SimpleExecutor<T> implements BaseExecutor<T> {
         if (runnable.length == 0) {
             return CompletableFuture.completedFuture(null);
         }
-        final ExecutorService executor = createExecutorService();
+        // Create a separate executor to avoid shutting down the shared executorService
+        final ExecutorService localExecutor = Executors.newCachedThreadPool(
+                new LcxThreadFactory.MyThreadFactory("lcx-async-worker")
+        );
         CompletableFuture<Void> currentFuture = CompletableFuture.completedFuture(null);
         for (Runnable r : runnable) {
-            currentFuture = currentFuture.thenRunAsync(r, executor);
+            currentFuture = currentFuture.thenRunAsync(r, localExecutor);
         }
-        return currentFuture;
+        return currentFuture.whenComplete((result, error) -> localExecutor.shutdown());
     }
 
     /**
-     * Shuts down the executor service gracefully.
+     * Shuts down the executor service gracefully with two-phase termination.
      *
-     * <p>This method initiates a graceful shutdown of the executor service.
-     * No new tasks will be accepted, but already submitted tasks will be
-     * allowed to complete.</p>
-     *
-     * <p>Note: This method only initiates shutdown. For complete cleanup,
-     * consider using {@link #executeTasksWithCountDownLatch()} which handles
-     * shutdown automatically.</p>
+     * <p>This method initiates a graceful shutdown, waits up to 30 seconds for
+     * running tasks to complete, then forces shutdown if necessary.</p>
      */
     @Override
-    public void shutdownExecutor() {
+    public void close() {
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
+            try {
+                if (!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
+                    LogUtils.writeLog(this.getClass(), LogUtils.Level.WARN, "Executor did not terminate in time, forcing shutdown...");
+                    executorService.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executorService.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
