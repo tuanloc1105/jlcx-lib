@@ -483,7 +483,7 @@ Generates concrete implementations for blocking JPA repository interfaces.
 
 **Built-in methods (auto-generated):**
 
-- `findById(ID)` — uses Hibernate `createQuery("FROM Entity WHERE idField = ?")`, returns
+- `findById(ID)` — uses Hibernate `createQuery("FROM Entity WHERE idField = ?1")`, returns
   `Optional<E>`. The ID field is detected via `@Id` annotation on the entity.
 - `save`, `update`, `delete`, `find`, `findOne` — inherited from `JpaRepository` base
   implementation
@@ -1014,9 +1014,10 @@ String countSql = stmt.finalizeCountStatement();      // SELECT COUNT(1) FROM ..
 ```
 
 - Use `#` as placeholder (converted to `?`, `$1`, or `@p1` at runtime)
-- Supports optional L1 caching via `SqlStatement.initWithCache("key")`
 - `where()` must be called before `and()` / `or()`
+- Supports `groupBy()` and `having()` clauses
 - ORDER BY only applies to SELECT, not COUNT
+- State validation ensures correct clause ordering: `select` → `from` → `where` → `and/or` → `groupBy` → `having` → `order`
 
 ---
 

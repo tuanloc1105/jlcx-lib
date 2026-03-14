@@ -10,7 +10,7 @@ code generation, multi-database ORM support, and a rich set of utilities.
 |---------------|---------------------------------------|
 | GroupId       | `vn.io.lcx`                          |
 | ArtifactId    | `lcx-lib`                             |
-| Version       | `4.0.2.lcx`                  |
+| Version       | `4.0.3.lcx`                  |
 | Java Version  | 17                                    |
 | Build Tool    | Maven 3.9+                            |
 
@@ -104,7 +104,7 @@ compile scope. The nine registered processors are:
 | SnakeYAML             | 2.6       | YAML configuration loading                   |
 | SLF4J + Logback       | 2.0.17 / 1.5.32 | Logging                               |
 | Javassist             | 3.30.2    | Bytecode manipulation                        |
-| Lombok                | 1.18.42   | Boilerplate reduction                        |
+| Lombok                | 1.18.44   | Boilerplate reduction                        |
 | Apache Commons Text   | 1.15.0    | Text manipulation and interpolation          |
 | Apache Commons Lang3  | 3.20.0    | String utilities, reflection helpers         |
 | Apache Commons Collections4 | 4.5.0 | Advanced collection operations             |
@@ -119,14 +119,14 @@ compile scope. The nine registered processors are:
 | Oracle                | ojdbc11 23.26.1 |
 | PostgreSQL            | 42.7.10         |
 | MySQL                 | 9.6.0           |
-| SQL Server            | 13.2.1          |
+| SQL Server            | 13.4.0          |
 
 ### Messaging & Caching
 
 | Technology            | Version   |
 |-----------------------|-----------|
 | Apache Kafka          | 4.2.0     |
-| Jedis (Redis)         | 7.3.0     |
+| Jedis (Redis)         | 7.4.0     |
 | Ehcache               | 3.11.1    |
 
 ### gRPC
@@ -140,8 +140,8 @@ compile scope. The nine registered processors are:
 
 | Technology                    | Version   |
 |-------------------------------|-----------|
-| Micrometer Core               | 1.16.3    |
-| Micrometer Prometheus Registry| 1.16.3    |
+| Micrometer Core               | 1.16.4    |
+| Micrometer Prometheus Registry| 1.16.4    |
 | Dropwizard Metrics 4          | 4.2.38    |
 | Dropwizard Metrics 5          | 5.0.6     |
 
@@ -158,7 +158,7 @@ compile scope. The nine registered processors are:
 | Technology            | Version   |
 |-----------------------|-----------|
 | JUnit Jupiter         | 6.0.3     |
-| Mockito               | 5.22.0    |
+| Mockito               | 5.23.0    |
 | Mockito Inline        | 5.2.0     |
 | DataFaker             | 2.5.4     |
 | H2 Database           | 2.4.240   |

@@ -16,6 +16,7 @@ public class JavaSqlResultSetConstant {
             put("boolean", "getBoolean");
             put("Boolean", "getBoolean");
             put("byte", "getByte");
+            put("Byte", "getByte");
             put("byte[]", "getBytes");
             put("Clob", "getClob");
             put("Date", "getDate");
@@ -32,6 +33,7 @@ public class JavaSqlResultSetConstant {
             put("Object", "getObject");
             put("RowId", "getRowId");
             put("short", "getShort");
+            put("Short", "getShort");
             put("Statement", "getStatement");
             put("String", "getString");
             put("Time", "getTime");
@@ -57,6 +59,7 @@ public class JavaSqlResultSetConstant {
             put("long", "getLong");
             put("Long", "getLong");
             put("short", "getShort");
+            put("Short", "getShort");
             put("String", "getString");
             put("LocalDateTime", "getLocalDateTime");
             put("LocalDate", "getLocalDate");
@@ -72,6 +75,10 @@ public class JavaSqlResultSetConstant {
             put("BigInteger", "java.math.BigInteger.ZERO");
             put("boolean", "false");
             put("Boolean", "false");
+            put("byte", "(byte) 0");
+            put("Byte", "(byte) 0");
+            put("char", "'\\0'");
+            put("Character", "null");
             put("double", "0D");
             put("Double", "0D");
             put("float", "0F");
@@ -81,6 +88,7 @@ public class JavaSqlResultSetConstant {
             put("long", "0L");
             put("Long", "0L");
             put("short", "0");
+            put("Short", "(short) 0");
             put("String", "\"\"");
             put("LocalDateTime", "null");
             put("LocalDate", "null");
@@ -94,10 +102,31 @@ public class JavaSqlResultSetConstant {
         {
             add("BigDecimal");
             add("BigInteger");
+            add("byte");
+            add("Byte");
+            add("double");
+            add("Double");
+            add("float");
+            add("Float");
+            add("int");
+            add("Integer");
             add("long");
             add("Long");
+            add("short");
+            add("Short");
         }
     };
+
+    public static final Map<String, String> PRIMITIVE_TO_WRAPPER_MAP = Map.of(
+            "boolean", "Boolean",
+            "byte", "Byte",
+            "char", "Character",
+            "double", "Double",
+            "float", "Float",
+            "int", "Integer",
+            "long", "Long",
+            "short", "Short"
+    );
 
     public static final String DOT = "\\.";
 
