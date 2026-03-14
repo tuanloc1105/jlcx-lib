@@ -6,7 +6,7 @@
     <parent>
         <groupId>vn.io.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
-        <version>4.0.3.lcx</version>
+        <version>4.0.4.lcx-SNAPSHOT</version>
     </parent>
 
     <artifactId>processor</artifactId>
@@ -22,7 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>${jdk.version}</java.version>
 
-        <common-lib-vn.io.lcx.version>4.0.3.lcx</common-lib-vn.io.lcx.version>
+        <common-lib-vn.io.lcx.version>4.0.4.lcx-SNAPSHOT</common-lib-vn.io.lcx.version>
 
     </properties>
 

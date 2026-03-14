@@ -127,7 +127,7 @@
 
     <groupId>vn.io.lcx</groupId>
     <artifactId>lcx-lib</artifactId>
-    <version>4.0.3.lcx</version>
+    <version>4.0.4.lcx-SNAPSHOT</version>
 
     <name>lcx-lib</name>
     <description>A reactive Java microservices toolkit built on Vert.x</description>
