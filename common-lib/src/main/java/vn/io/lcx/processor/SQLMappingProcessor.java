@@ -645,7 +645,9 @@ public class SQLMappingProcessor extends AbstractProcessor {
             if (!LocalDateTime.class.getSimpleName().equals(fieldTypeSimpleName) &&
                     !LocalDate.class.getSimpleName().equals(fieldTypeSimpleName) &&
                     !BigDecimal.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                    !BigInteger.class.getSimpleName().equals(fieldTypeSimpleName) &&
+                    !"char".equals(fieldTypeSimpleName) &&
+                    !"Character".equals(fieldTypeSimpleName)) {
                 resultSetMappingCodeLines.add(
                         String.format(
                                 "// ################# Unknown type to generate code for field `%s` - `%s` #################",
@@ -714,6 +716,20 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         )
                 );
             }
+            if ("char".equals(fieldTypeSimpleName) || "Character".equals(fieldTypeSimpleName)) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    String strValue = resultSet.getString(\"%s\");",
+                                databaseColumnNameToBeGet
+                        )
+                );
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    if (strValue != null && !strValue.isEmpty()) { instance.%s(strValue.charAt(0)); }",
+                                setFieldMethodName
+                        )
+                );
+            }
             resultSetMappingCodeLines.add(
                     "} catch (java.sql.SQLException e) {"
             );
@@ -765,20 +781,40 @@ public class SQLMappingProcessor extends AbstractProcessor {
             vertxRowMappingCodeLines.add(
                     "try {"
             );
-            vertxRowMappingCodeLines.add(
-                    String.format(
-                            "    %1$s value = row.%2$s(\"%3$s\");",
-                            fieldType,
-                            resultSetFunctionWillBeUse,
-                            databaseColumnNameToBeGet
-                    )
-            );
-            vertxRowMappingCodeLines.add(
-                    String.format(
-                            "    instance.%s(value);",
-                            setFieldMethodName
-                    )
-            );
+            String wrapperType = JavaSqlResultSetConstant.PRIMITIVE_TO_WRAPPER_MAP.get(fieldTypeSimpleName);
+            if (wrapperType != null) {
+                String defaultValue = JavaSqlResultSetConstant.DATA_TYPE_DEFAULT_VALUE_MAP.getOrDefault(fieldTypeSimpleName, "0");
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "    %1$s boxed = row.%2$s(\"%3$s\");",
+                                wrapperType,
+                                resultSetFunctionWillBeUse,
+                                databaseColumnNameToBeGet
+                        )
+                );
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "    instance.%s(boxed != null ? boxed : %s);",
+                                setFieldMethodName,
+                                defaultValue
+                        )
+                );
+            } else {
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "    %1$s value = row.%2$s(\"%3$s\");",
+                                fieldType,
+                                resultSetFunctionWillBeUse,
+                                databaseColumnNameToBeGet
+                        )
+                );
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "    instance.%s(value);",
+                                setFieldMethodName
+                        )
+                );
+            }
             vertxRowMappingCodeLines.add(
                     "} catch (java.lang.Throwable e) {"
             );
@@ -789,6 +825,32 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "}"
             );
         } else {
+            if ("byte".equals(fieldTypeSimpleName) || "Byte".equals(fieldTypeSimpleName)) {
+                vertxRowMappingCodeLines.add("try {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "    Short shortValue = row.getShort(\"%s\");", databaseColumnNameToBeGet));
+                vertxRowMappingCodeLines.add("    if (shortValue != null) {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "        instance.%s((byte) shortValue.shortValue());", setFieldMethodName));
+                vertxRowMappingCodeLines.add("    }");
+                vertxRowMappingCodeLines.add("} catch (java.lang.Throwable e) {");
+                vertxRowMappingCodeLines.add("    log.debug(e.getMessage());");
+                vertxRowMappingCodeLines.add("}");
+                return;
+            }
+            if ("char".equals(fieldTypeSimpleName) || "Character".equals(fieldTypeSimpleName)) {
+                vertxRowMappingCodeLines.add("try {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "    String strValue = row.getString(\"%s\");", databaseColumnNameToBeGet));
+                vertxRowMappingCodeLines.add("    if (strValue != null && !strValue.isEmpty()) {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "        instance.%s(strValue.charAt(0));", setFieldMethodName));
+                vertxRowMappingCodeLines.add("    }");
+                vertxRowMappingCodeLines.add("} catch (java.lang.Throwable e) {");
+                vertxRowMappingCodeLines.add("    log.debug(e.getMessage());");
+                vertxRowMappingCodeLines.add("}");
+                return;
+            }
             if (!BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
                 vertxRowMappingCodeLines.add(
                         String.format(
@@ -837,14 +899,33 @@ public class SQLMappingProcessor extends AbstractProcessor {
             vertxRowMappingCodeLines.add(
                     "try {"
             );
-            vertxRowMappingCodeLines.add(
-                    String.format(
-                            "    %1$s value = row.%2$s(\"%3$s\");",
-                            fieldType,
-                            resultSetFunctionWillBeUse,
-                            databaseColumnNameToBeGet
-                    )
-            );
+            String wrapperType = JavaSqlResultSetConstant.PRIMITIVE_TO_WRAPPER_MAP.get(fieldTypeSimpleName);
+            if (wrapperType != null) {
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "    %1$s boxed = row.%2$s(\"%3$s\");",
+                                wrapperType,
+                                resultSetFunctionWillBeUse,
+                                databaseColumnNameToBeGet
+                        )
+                );
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "    %s value = boxed != null ? boxed : %s;",
+                                fieldType,
+                                defaultValueCode
+                        )
+                );
+            } else {
+                vertxRowMappingCodeLines.add(
+                        String.format(
+                                "    %1$s value = row.%2$s(\"%3$s\");",
+                                fieldType,
+                                resultSetFunctionWillBeUse,
+                                databaseColumnNameToBeGet
+                        )
+                );
+            }
             vertxRowMappingCodeLines.add(
                     String.format("    model.%s(value);", setFieldMethodName)
             );
@@ -859,6 +940,38 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "}"
             );
         } else {
+            if ("byte".equals(fieldTypeSimpleName) || "Byte".equals(fieldTypeSimpleName)) {
+                vertxRowMappingCodeLines.add("try {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "    Short shortValue = row.getShort(\"%s\");", databaseColumnNameToBeGet));
+                vertxRowMappingCodeLines.add("    if (shortValue != null) {");
+                vertxRowMappingCodeLines.add("        byte value = (byte) shortValue.shortValue();");
+                vertxRowMappingCodeLines.add(String.format("        model.%s(value);", setFieldMethodName));
+                vertxRowMappingCodeLines.add("        return value;");
+                vertxRowMappingCodeLines.add("    } else {");
+                vertxRowMappingCodeLines.add("        " + returnDefaultValueCode + ";");
+                vertxRowMappingCodeLines.add("    }");
+                vertxRowMappingCodeLines.add("} catch (java.lang.Throwable ignored) {");
+                vertxRowMappingCodeLines.add("    " + returnDefaultValueCode + ";");
+                vertxRowMappingCodeLines.add("}");
+                return;
+            }
+            if ("char".equals(fieldTypeSimpleName) || "Character".equals(fieldTypeSimpleName)) {
+                vertxRowMappingCodeLines.add("try {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "    String strValue = row.getString(\"%s\");", databaseColumnNameToBeGet));
+                vertxRowMappingCodeLines.add("    if (strValue != null && !strValue.isEmpty()) {");
+                vertxRowMappingCodeLines.add("        char value = strValue.charAt(0);");
+                vertxRowMappingCodeLines.add(String.format("        model.%s(value);", setFieldMethodName));
+                vertxRowMappingCodeLines.add("        return value;");
+                vertxRowMappingCodeLines.add("    } else {");
+                vertxRowMappingCodeLines.add("        " + returnDefaultValueCode + ";");
+                vertxRowMappingCodeLines.add("    }");
+                vertxRowMappingCodeLines.add("} catch (java.lang.Throwable ignored) {");
+                vertxRowMappingCodeLines.add("    " + returnDefaultValueCode + ";");
+                vertxRowMappingCodeLines.add("}");
+                return;
+            }
             if (!BigInteger.class.getSimpleName().equals(fieldTypeSimpleName)) {
                 vertxRowMappingCodeLines.add(
                         String.format(
@@ -910,6 +1023,16 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 vertxRowMappingCodeLines.add("final java.math.BigDecimal value = java.math.BigDecimal.valueOf(lastInsertId);");
             } else if (fieldTypeSimpleName.equals("BigInteger")) {
                 vertxRowMappingCodeLines.add("final java.math.BigInteger value = java.math.BigInteger.valueOf(lastInsertId);");
+            } else if (fieldTypeSimpleName.equals("int") || fieldTypeSimpleName.equals("Integer")) {
+                vertxRowMappingCodeLines.add("final int value = (int) lastInsertId;");
+            } else if (fieldTypeSimpleName.equals("short") || fieldTypeSimpleName.equals("Short")) {
+                vertxRowMappingCodeLines.add("final short value = (short) lastInsertId;");
+            } else if (fieldTypeSimpleName.equals("byte") || fieldTypeSimpleName.equals("Byte")) {
+                vertxRowMappingCodeLines.add("final byte value = (byte) lastInsertId;");
+            } else if (fieldTypeSimpleName.equals("float") || fieldTypeSimpleName.equals("Float")) {
+                vertxRowMappingCodeLines.add("final float value = (float) lastInsertId;");
+            } else if (fieldTypeSimpleName.equals("double") || fieldTypeSimpleName.equals("Double")) {
+                vertxRowMappingCodeLines.add("final double value = (double) lastInsertId;");
             } else {
                 vertxRowMappingCodeLines.add("final long value = lastInsertId;");
             }
@@ -984,6 +1107,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
         final var idElement = idElements.get(0);
         final String idFieldName = idElement.getSimpleName().toString();
         final String idGetterName = getGetterName(idElement, idFieldName);
+        final boolean idIsPrimitive = isPrimitiveType(idElement);
         ColumnName idColumnNameAnnotation = idElement.getAnnotation(ColumnName.class);
         String idDatabaseColumnNameToBeGet = Optional
                 .ofNullable(idColumnNameAnnotation)
@@ -999,21 +1123,27 @@ public class SQLMappingProcessor extends AbstractProcessor {
         getColumnNameFromFieldNameCodeLine.add("switch (fieldName) {");
         insertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         reactiveInsertStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
-        updateStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
-        updateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
-        updateStatementCodeLines.add("}");
+        if (!idIsPrimitive) {
+            updateStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
+            updateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
+            updateStatementCodeLines.add("}");
+        }
         updateStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
-        reactiveUpdateStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
-        reactiveUpdateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
-        reactiveUpdateStatementCodeLines.add("}");
+        if (!idIsPrimitive) {
+            reactiveUpdateStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
+            reactiveUpdateStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
+            reactiveUpdateStatementCodeLines.add("}");
+        }
         reactiveUpdateStatementCodeLines.add("java.util.List<String> cols = new java.util.ArrayList<>();");
         reactiveUpdateStatementCodeLines.add("int count = 0;");
-        deleteStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
-        deleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
-        deleteStatementCodeLines.add("}");
-        reactiveDeleteStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
-        reactiveDeleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
-        reactiveDeleteStatementCodeLines.add("}");
+        if (!idIsPrimitive) {
+            deleteStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
+            deleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
+            deleteStatementCodeLines.add("}");
+            reactiveDeleteStatementCodeLines.add(String.format("if (model.%s() == null) {", idGetterName));
+            reactiveDeleteStatementCodeLines.add("    throw new RuntimeException(\"Primary key is null\");");
+            reactiveDeleteStatementCodeLines.add("}");
+        }
         insertJdbcParameterCodeLines.add("java.util.Map<Integer, Object> map = new java.util.HashMap<>();");
         insertJdbcParameterCodeLines.add("int startingPosition = 0;");
         updateJdbcParameterCodeLines.add("java.util.Map<Integer, Object> map = new java.util.HashMap<>();");
@@ -1230,18 +1360,25 @@ public class SQLMappingProcessor extends AbstractProcessor {
         reactiveDeleteStatementCodeLines.add("} else {");
         reactiveDeleteStatementCodeLines.add(String.format("    return \"DELETE FROM %s WHERE %s = \" + placeHolder + \"1\";", tableName, idDatabaseColumnNameToBeGet));
         reactiveDeleteStatementCodeLines.add("}");
-        deleteJdbcParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
-        deleteJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.%s());", idGetterName));
-        deleteJdbcParameterCodeLines.add("}");
-        deleteVertClientParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
-        deleteVertClientParameterCodeLines.add(String.format("    params.add(model.%s());", idGetterName));
-        deleteVertClientParameterCodeLines.add("}");
-        updateVertClientParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
-        updateVertClientParameterCodeLines.add(String.format("    params.add(model.%s());", idGetterName));
-        updateVertClientParameterCodeLines.add("}");
-        updateJdbcParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
-        updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.%s());", idGetterName));
-        updateJdbcParameterCodeLines.add("}");
+        if (idIsPrimitive) {
+            deleteJdbcParameterCodeLines.add(String.format("map.put(++startingPosition, model.%s());", idGetterName));
+            deleteVertClientParameterCodeLines.add(String.format("params.add(model.%s());", idGetterName));
+            updateVertClientParameterCodeLines.add(String.format("params.add(model.%s());", idGetterName));
+            updateJdbcParameterCodeLines.add(String.format("map.put(++startingPosition, model.%s());", idGetterName));
+        } else {
+            deleteJdbcParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
+            deleteJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.%s());", idGetterName));
+            deleteJdbcParameterCodeLines.add("}");
+            deleteVertClientParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
+            deleteVertClientParameterCodeLines.add(String.format("    params.add(model.%s());", idGetterName));
+            deleteVertClientParameterCodeLines.add("}");
+            updateVertClientParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
+            updateVertClientParameterCodeLines.add(String.format("    params.add(model.%s());", idGetterName));
+            updateVertClientParameterCodeLines.add("}");
+            updateJdbcParameterCodeLines.add(String.format("if (model.%s() != null) {", idGetterName));
+            updateJdbcParameterCodeLines.add(String.format("    map.put(++startingPosition, model.%s());", idGetterName));
+            updateJdbcParameterCodeLines.add("}");
+        }
         insertJdbcParameterCodeLines.add("return map;");
         updateJdbcParameterCodeLines.add("return map;");
         deleteJdbcParameterCodeLines.add("return map;");
