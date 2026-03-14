@@ -10,7 +10,7 @@ code generation, multi-database ORM support, and a rich set of utilities.
 |---------------|---------------------------------------|
 | GroupId       | `vn.io.lcx`                          |
 | ArtifactId    | `lcx-lib`                             |
-| Version       | `4.0.3.lcx-SNAPSHOT`                  |
+| Version       | `4.0.3.lcx`                  |
 | Java Version  | 17                                    |
 | Build Tool    | Maven 3.9+                            |
 

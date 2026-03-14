@@ -5,7 +5,7 @@
     <parent>
         <groupId>vn.io.lcx</groupId>
         <artifactId>lcx-lib</artifactId>
-        <version>4.0.3.lcx-SNAPSHOT</version>
+        <version>4.0.3.lcx</version>
     </parent>
 
     <artifactId>common-lib</artifactId>
