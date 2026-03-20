@@ -1,0 +1,8 @@
+server:
+  port: 8888
+  host: localhost
+database:
+  type: h2
+  url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
+  username: sa
+  password: ""
