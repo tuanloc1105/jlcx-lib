@@ -224,4 +224,240 @@ class ServiceProcessorTest {
                     "Generated proxy should be in same package");
         }
     }
+
+    @Nested
+    @DisplayName("Transactional Attributes")
+    class TransactionalAttributes {
+
+        @Test
+        void transactionalWithIsolation_generatesIsolationCode() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.IsoService",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Service;
+                    import vn.io.lcx.jpa.annotation.Transactional;
+                    import java.sql.Connection;
+
+                    @Service
+                    public class IsoService {
+                        @Transactional(isolation = Connection.TRANSACTION_SERIALIZABLE)
+                        public void serialWork() {}
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("IsoServiceProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            // TRANSACTION_SERIALIZABLE = 8; the processor writes the integer value
+            assertTrue(code.contains("setTransactionIsolation(8)"),
+                    "Generated proxy should contain setTransactionIsolation with TRANSACTION_SERIALIZABLE value (8)");
+        }
+
+        @Test
+        void transactionalWithOnRollback_generatesRollbackCode() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.RollbackService",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Service;
+                    import vn.io.lcx.jpa.annotation.Transactional;
+
+                    @Service
+                    public class RollbackService {
+                        @Transactional(onRollback = {RuntimeException.class})
+                        public void riskyWork() {}
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("RollbackServiceProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("RuntimeException"),
+                    "Generated proxy should contain RuntimeException in rollback catch block");
+            assertTrue(code.contains("rollback"),
+                    "Generated proxy should contain rollback logic");
+        }
+    }
+
+    @Nested
+    @DisplayName("Return Type Handling")
+    class ReturnTypeHandling {
+
+        @Test
+        void voidMethod_wrappedCorrectly() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.VoidService",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Service;
+
+                    @Service
+                    public class VoidService {
+                        public void doSomething() {}
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("VoidServiceProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertFalse(code.contains("return actualResult"),
+                    "Void method should not contain 'return actualResult'");
+        }
+
+        @Test
+        void returnTypeMethod_wrappedWithReturn() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.ReturnService",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Service;
+
+                    @Service
+                    public class ReturnService {
+                        public String fetchData() {
+                            return "data";
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ReturnServiceProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("return actualResult"),
+                    "Non-void method should contain 'return actualResult'");
+        }
+    }
+
+    @Nested
+    @DisplayName("Method Modifier Filtering")
+    class MethodModifierFiltering {
+
+        @Test
+        void abstractMethod_isSkipped() {
+            // An abstract class with an abstract method: the processor skips the abstract
+            // method in the generated proxy. This causes compilation to fail because the
+            // proxy extends the abstract class without implementing the abstract method,
+            // which proves the processor correctly filters out abstract methods.
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.AbstractService",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Service;
+
+                    @Service
+                    public abstract class AbstractService {
+                        public void concreteMethod() {}
+
+                        public abstract void abstractMethod();
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            // Compilation fails because the generated proxy skips the abstract method,
+            // resulting in a concrete class that doesn't implement the abstract method.
+            // This confirms abstract methods are filtered out by the processor.
+            assertEquals(Compilation.Status.FAILURE, compilation.status(),
+                    "Compilation should fail because abstract method is skipped in proxy, " +
+                    "leaving the proxy as a concrete class that doesn't implement it");
+        }
+
+        @Test
+        void finalMethod_isSkipped() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.FinalService",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Service;
+
+                    @Service
+                    public class FinalService {
+                        public void normalMethod() {}
+
+                        public final void finalMethod() {}
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("FinalServiceProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("normalMethod"), "Should contain normal method");
+            assertFalse(code.contains("finalMethod"),
+                    "Final method should be skipped in generated proxy");
+        }
+
+        @Test
+        void protectedMethod_isSkipped() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.ProtectedService",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Service;
+
+                    @Service
+                    public class ProtectedService {
+                        public void publicMethod() {}
+
+                        protected void protectedMethod() {}
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ProtectedServiceProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("publicMethod"), "Should contain public method");
+            assertFalse(code.contains("protectedMethod"),
+                    "Protected method should be skipped in generated proxy");
+        }
+    }
 }

@@ -534,4 +534,319 @@ class SQLMappingProcessorTest {
             assertTrue(code.contains("public "), "MappingImpl should have public methods");
         }
     }
+
+    @Nested
+    @DisplayName("Enum and Special Types")
+    class EnumAndSpecialTypes {
+
+        @Test
+        void enumField_handledWithValueOf() throws Exception {
+            JavaFileObject enumSource = JavaFileObjects.forSourceString(
+                    "test.Status",
+                    """
+                    package test;
+
+                    public enum Status {
+                        ACTIVE, INACTIVE, PENDING
+                    }
+                    """
+            );
+
+            JavaFileObject entitySource = JavaFileObjects.forSourceString(
+                    "test.EnumEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+
+                    @SQLMapping
+                    @TableName("enum_table")
+                    public class EnumEntity {
+                        @IdColumn
+                        private Long id;
+                        private Status status;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public Status getStatus() { return status; }
+                        public void setStatus(Status status) { this.status = status; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(enumSource, entitySource);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("EnumEntityUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+            assertTrue(generatedCode.contains("valueOf"), "Generated code should use valueOf for enum field");
+        }
+
+        @Test
+        void bigIntegerField_compileSuccessfully() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.BigIntEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import java.math.BigInteger;
+
+                    @SQLMapping
+                    @TableName("bigint_table")
+                    public class BigIntEntity {
+                        @IdColumn
+                        private Long id;
+                        private BigInteger bigValue;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public BigInteger getBigValue() { return bigValue; }
+                        public void setBigValue(BigInteger bigValue) { this.bigValue = bigValue; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            assertTrue(compilation.generatedSourceFiles().stream()
+                    .anyMatch(f -> f.getName().contains("BigIntEntityUtils")));
+        }
+
+        @Test
+        void clobAnnotatedField_handledSpecially() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.ClobEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.Clob;
+
+                    @SQLMapping
+                    @TableName("clob_table")
+                    public class ClobEntity {
+                        @IdColumn
+                        private Long id;
+                        @Clob
+                        private String content;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getContent() { return content; }
+                        public void setContent(String content) { this.content = content; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ClobEntityUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+            assertTrue(generatedCode.contains("Clob") || generatedCode.contains("parseClobToString"),
+                    "Generated code should handle Clob field specially");
+        }
+    }
+
+    @Nested
+    @DisplayName("Lifecycle Callbacks")
+    class LifecycleCallbacks {
+
+        @Test
+        void preInsertMethod_calledInInsertStatement() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.PreInsertEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.PreInsert;
+
+                    @SQLMapping
+                    @TableName("pre_insert_table")
+                    public class PreInsertEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+
+                        @PreInsert
+                        public void beforeInsert() {
+                            // lifecycle callback
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("PreInsertEntityUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+            assertTrue(generatedCode.contains("beforeInsert"),
+                    "Generated insertStatement code should call the @PreInsert method");
+        }
+
+        @Test
+        void preUpdateMethod_calledInUpdateStatement() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.PreUpdateEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.PreUpdate;
+
+                    @SQLMapping
+                    @TableName("pre_update_table")
+                    public class PreUpdateEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+
+                        @PreUpdate
+                        public void beforeUpdate() {
+                            // lifecycle callback
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("PreUpdateEntityUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+            assertTrue(generatedCode.contains("beforeUpdate"),
+                    "Generated updateStatement code should call the @PreUpdate method");
+        }
+    }
+
+    @Nested
+    @DisplayName("Column Name Attributes")
+    class ColumnNameAttributes {
+
+        @Test
+        void nonUpdatableField_excludedFromUpdateStatement() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.NonUpdatableEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.ColumnName;
+
+                    @SQLMapping
+                    @TableName("non_updatable_table")
+                    public class NonUpdatableEntity {
+                        @IdColumn
+                        private Long id;
+                        @ColumnName(name = "CREATED_BY", updatable = false)
+                        private String createdBy;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getCreatedBy() { return createdBy; }
+                        public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("NonUpdatableEntityUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+
+            // The updateStatement method should not include CREATED_BY
+            // Extract only the updateStatement method body for checking
+            int updateIdx = generatedCode.indexOf("updateStatement");
+            int insertIdx = generatedCode.indexOf("insertStatement");
+            assertTrue(updateIdx >= 0, "Generated code should contain updateStatement method");
+
+            // Find the next method after updateStatement to bound the search
+            String updateSection = generatedCode.substring(updateIdx,
+                    generatedCode.indexOf("public", updateIdx + 1) > 0
+                            ? generatedCode.indexOf("public", updateIdx + 1)
+                            : generatedCode.length());
+            assertFalse(updateSection.contains("CREATED_BY"),
+                    "UPDATE code should not include non-updatable column CREATED_BY");
+        }
+
+        @Test
+        void emptyEntityWithOnlyId_compileSuccessfully() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.IdOnlyEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+
+                    @SQLMapping
+                    @TableName("id_only_table")
+                    public class IdOnlyEntity {
+                        @IdColumn
+                        private Long id;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            assertTrue(compilation.generatedSourceFiles().stream()
+                    .anyMatch(f -> f.getName().contains("IdOnlyEntityUtils")));
+        }
+    }
 }

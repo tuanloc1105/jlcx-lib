@@ -202,4 +202,193 @@ class RepositoryProcessorTest {
                     "Generated code should reference entity type");
         }
     }
+
+    @Nested
+    @DisplayName("Modifying Methods")
+    class ModifyingMethods {
+
+        @Test
+        void modifyingAnnotation_generatesUpdateQuery() throws Exception {
+            JavaFileObject repo = JavaFileObjects.forSourceString(
+                    "test.ModifyingUpdateRepo",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Repository;
+                    import vn.io.lcx.jpa.annotation.Query;
+                    import vn.io.lcx.jpa.annotation.Modifying;
+                    import vn.io.lcx.jpa.annotation.Param;
+                    import vn.io.lcx.jpa.respository.JpaRepository;
+
+                    @Repository
+                    public interface ModifyingUpdateRepo extends JpaRepository<TestEntity, Long> {
+                        @Modifying
+                        @Query("UPDATE TestEntity e SET e.name = :name WHERE e.id = :id")
+                        void updateName(@Param("name") String name, @Param("id") Long id);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(testEntity(), repo);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ModifyingUpdateRepoProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("UPDATE TestEntity"),
+                    "Generated code should contain the UPDATE statement");
+        }
+
+        @Test
+        void modifyingDelete_generatesDeleteQuery() throws Exception {
+            JavaFileObject repo = JavaFileObjects.forSourceString(
+                    "test.ModifyingDeleteRepo",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Repository;
+                    import vn.io.lcx.jpa.annotation.Query;
+                    import vn.io.lcx.jpa.annotation.Modifying;
+                    import vn.io.lcx.jpa.annotation.Param;
+                    import vn.io.lcx.jpa.respository.JpaRepository;
+
+                    @Repository
+                    public interface ModifyingDeleteRepo extends JpaRepository<TestEntity, Long> {
+                        @Modifying
+                        @Query("DELETE FROM TestEntity e WHERE e.id = :id")
+                        void deleteById(@Param("id") Long id);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(testEntity(), repo);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ModifyingDeleteRepoProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("DELETE FROM TestEntity"),
+                    "Generated code should contain the DELETE statement");
+        }
+    }
+
+    @Nested
+    @DisplayName("Parameter Binding")
+    class ParameterBinding {
+
+        @Test
+        void paramAnnotation_generatesNamedParameterBinding() throws Exception {
+            JavaFileObject repo = JavaFileObjects.forSourceString(
+                    "test.ParamBindingRepo",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Repository;
+                    import vn.io.lcx.jpa.annotation.Query;
+                    import vn.io.lcx.jpa.annotation.Param;
+                    import vn.io.lcx.jpa.respository.JpaRepository;
+                    import java.util.List;
+
+                    @Repository
+                    public interface ParamBindingRepo extends JpaRepository<TestEntity, Long> {
+                        @Query("SELECT e FROM TestEntity e WHERE e.name = :status")
+                        List<TestEntity> findByStatus(@Param("status") String status);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(testEntity(), repo);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ParamBindingRepoProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("status"),
+                    "Generated code should contain 'status' parameter");
+        }
+
+        @Test
+        void multipleParameters_allBound() throws Exception {
+            JavaFileObject repo = JavaFileObjects.forSourceString(
+                    "test.MultiParamRepo",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Repository;
+                    import vn.io.lcx.jpa.annotation.Query;
+                    import vn.io.lcx.jpa.annotation.Param;
+                    import vn.io.lcx.jpa.respository.JpaRepository;
+                    import java.util.List;
+
+                    @Repository
+                    public interface MultiParamRepo extends JpaRepository<TestEntity, Long> {
+                        @Query("SELECT e FROM TestEntity e WHERE e.name = :name AND e.id = :id")
+                        List<TestEntity> findByNameAndId(@Param("name") String name, @Param("id") Long id);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(testEntity(), repo);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("MultiParamRepoProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("name"),
+                    "Generated code should contain 'name' parameter");
+            assertTrue(code.contains("id"),
+                    "Generated code should contain 'id' parameter");
+        }
+    }
+
+    @Nested
+    @DisplayName("Pagination Support")
+    class PaginationSupport {
+
+        @Test
+        void pageableParameter_generatesPaginatedQuery() throws Exception {
+            JavaFileObject repo = JavaFileObjects.forSourceString(
+                    "test.PageableRepo",
+                    """
+                    package test;
+
+                    import vn.io.lcx.jpa.annotation.Repository;
+                    import vn.io.lcx.jpa.annotation.Query;
+                    import vn.io.lcx.jpa.respository.JpaRepository;
+                    import vn.io.lcx.common.database.pageable.Page;
+                    import vn.io.lcx.common.database.pageable.Pageable;
+
+                    @Repository
+                    public interface PageableRepo extends JpaRepository<TestEntity, Long> {
+                        @Query("SELECT e FROM TestEntity e")
+                        Page<TestEntity> findAllPaged(Pageable pageable);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(testEntity(), repo);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("PageableRepoProxy"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("pageable") || code.contains("Pageable"),
+                    "Generated code should reference Pageable or pageable");
+        }
+    }
 }

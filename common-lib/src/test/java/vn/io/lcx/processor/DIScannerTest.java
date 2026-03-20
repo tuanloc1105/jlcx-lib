@@ -3,6 +3,7 @@ package vn.io.lcx.processor;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
@@ -284,5 +285,167 @@ class DIScannerTest {
 
         assertTrue(allJsonContent.contains("test.CompA"), "JSON should contain CompA");
         assertTrue(allJsonContent.contains("test.CompB"), "JSON should contain CompB");
+    }
+
+    @Nested
+    @DisplayName("Field And Constructor Details")
+    class FieldAndConstructorDetails {
+
+        @Test
+        void componentWithFields_jsonContainsFieldInfo() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.FieldComponent",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.Component;
+
+                    @Component
+                    public class FieldComponent {
+                        private String name;
+                        private int age;
+                        private boolean active;
+
+                        public FieldComponent() {}
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject jsonFile = compilation.generatedFiles().stream()
+                    .filter(f -> f.getName().contains("class-index") && f.getName().endsWith(".json"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String json = jsonFile.getCharContent(false).toString();
+            assertTrue(json.contains("name"), "JSON should contain field name 'name'");
+            assertTrue(json.contains("age"), "JSON should contain field name 'age'");
+            assertTrue(json.contains("active"), "JSON should contain field name 'active'");
+        }
+
+        @Test
+        void componentWithMultiArgConstructor_jsonContainsAllParamTypes() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.MultiCtorComponent",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.Component;
+
+                    @Component
+                    public class MultiCtorComponent {
+                        private final String name;
+                        private final Integer count;
+                        private final Boolean flag;
+
+                        public MultiCtorComponent(String name, Integer count, Boolean flag) {
+                            this.name = name;
+                            this.count = count;
+                            this.flag = flag;
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject jsonFile = compilation.generatedFiles().stream()
+                    .filter(f -> f.getName().contains("class-index") && f.getName().endsWith(".json"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String json = jsonFile.getCharContent(false).toString();
+            assertTrue(json.contains("java.lang.String"),
+                    "JSON should contain String constructor param type");
+            assertTrue(json.contains("java.lang.Integer"),
+                    "JSON should contain Integer constructor param type");
+            assertTrue(json.contains("java.lang.Boolean"),
+                    "JSON should contain Boolean constructor param type");
+        }
+    }
+
+    @Nested
+    @DisplayName("Interface Implementation")
+    class InterfaceImplementation {
+
+        @Test
+        void componentImplementingInterface_jsonContainsSuperType() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.SerializableComponent",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.Component;
+                    import java.io.Serializable;
+
+                    @Component
+                    public class SerializableComponent implements Serializable {
+                        public SerializableComponent() {}
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject jsonFile = compilation.generatedFiles().stream()
+                    .filter(f -> f.getName().contains("class-index") && f.getName().endsWith(".json"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String json = jsonFile.getCharContent(false).toString();
+            assertTrue(json.contains("java.io.Serializable"),
+                    "JSON should contain the implemented interface java.io.Serializable");
+        }
+    }
+
+    @Nested
+    @DisplayName("Multiple Instance Methods")
+    class MultipleInstanceMethods {
+
+        @Test
+        void componentWithMultipleInstanceMethods_allInJson() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.MultiInstanceComponent",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.Component;
+                    import vn.io.lcx.common.annotation.Instance;
+
+                    @Component
+                    public class MultiInstanceComponent {
+                        public MultiInstanceComponent() {}
+
+                        @Instance
+                        public String createFirst() {
+                            return "first";
+                        }
+
+                        @Instance
+                        public Integer createSecond() {
+                            return 42;
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject jsonFile = compilation.generatedFiles().stream()
+                    .filter(f -> f.getName().contains("class-index") && f.getName().endsWith(".json"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String json = jsonFile.getCharContent(false).toString();
+            assertTrue(json.contains("createFirst"),
+                    "JSON should contain first @Instance method name");
+            assertTrue(json.contains("createSecond"),
+                    "JSON should contain second @Instance method name");
+        }
     }
 }

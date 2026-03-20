@@ -507,4 +507,195 @@ class MapperClassProcessorTest {
             assertTrue(code.contains("toSource"), "Should contain toSource method");
         }
     }
+
+    @Nested
+    @DisplayName("Mapping With fromParameter")
+    class MappingWithFromParameter {
+
+        @Test
+        void mappingWithFromParameter_usesCorrectSourceParam() throws Exception {
+            JavaFileObject firstDto = JavaFileObjects.forSourceString(
+                    "test.FirstDto",
+                    """
+                    package test;
+
+                    public class FirstDto {
+                        private String name;
+
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            JavaFileObject secondDto = JavaFileObjects.forSourceString(
+                    "test.SecondDto",
+                    """
+                    package test;
+
+                    public class SecondDto {
+                        private String name;
+
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            JavaFileObject resultDto = JavaFileObjects.forSourceString(
+                    "test.ResultDto",
+                    """
+                    package test;
+
+                    public class ResultDto {
+                        private String name;
+
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.FromParamMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+                    import vn.io.lcx.common.annotation.mapper.Mapping;
+
+                    @MapperClass
+                    public interface FromParamMapper {
+                        @Mapping(fromField = "name", toField = "name", fromParameter = "second")
+                        ResultDto map(FirstDto first, SecondDto second);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(firstDto, secondDto, resultDto, mapper);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject impl = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("FromParamMapperImpl"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = impl.getCharContent(false).toString();
+            assertTrue(code.contains("second"),
+                    "Generated code should use the 'second' parameter as source");
+        }
+    }
+
+    @Nested
+    @DisplayName("Empty And Special Mappers")
+    class EmptyAndSpecialMappers {
+
+        @Test
+        void multipleMethodsWithDifferentReturnTypes_allGenerated() throws Exception {
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.MultiReturnMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+
+                    @MapperClass
+                    public interface MultiReturnMapper {
+                        SourceDto toSource(TargetDto target);
+                        TargetDto toTarget(SourceDto source);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(sourceDto(), targetDto(), mapper);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject impl = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("MultiReturnMapperImpl"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = impl.getCharContent(false).toString();
+            assertTrue(code.contains("toSource"), "Should contain toSource method");
+            assertTrue(code.contains("toTarget"), "Should contain toTarget method");
+        }
+    }
+
+    @Nested
+    @DisplayName("Field Type Variations")
+    class FieldTypeVariations {
+
+        @Test
+        void mapperWithAllWrapperTypes_compilesSuccessfully() {
+            JavaFileObject wrapperSource = JavaFileObjects.forSourceString(
+                    "test.WrapperSourceDto",
+                    """
+                    package test;
+
+                    public class WrapperSourceDto {
+                        private Integer intVal;
+                        private Long longVal;
+                        private Double doubleVal;
+                        private Boolean boolVal;
+                        private String strVal;
+
+                        public Integer getIntVal() { return intVal; }
+                        public void setIntVal(Integer intVal) { this.intVal = intVal; }
+                        public Long getLongVal() { return longVal; }
+                        public void setLongVal(Long longVal) { this.longVal = longVal; }
+                        public Double getDoubleVal() { return doubleVal; }
+                        public void setDoubleVal(Double doubleVal) { this.doubleVal = doubleVal; }
+                        public Boolean getBoolVal() { return boolVal; }
+                        public void setBoolVal(Boolean boolVal) { this.boolVal = boolVal; }
+                        public String getStrVal() { return strVal; }
+                        public void setStrVal(String strVal) { this.strVal = strVal; }
+                    }
+                    """
+            );
+
+            JavaFileObject wrapperTarget = JavaFileObjects.forSourceString(
+                    "test.WrapperTargetDto",
+                    """
+                    package test;
+
+                    public class WrapperTargetDto {
+                        private Integer intVal;
+                        private Long longVal;
+                        private Double doubleVal;
+                        private Boolean boolVal;
+                        private String strVal;
+
+                        public Integer getIntVal() { return intVal; }
+                        public void setIntVal(Integer intVal) { this.intVal = intVal; }
+                        public Long getLongVal() { return longVal; }
+                        public void setLongVal(Long longVal) { this.longVal = longVal; }
+                        public Double getDoubleVal() { return doubleVal; }
+                        public void setDoubleVal(Double doubleVal) { this.doubleVal = doubleVal; }
+                        public Boolean getBoolVal() { return boolVal; }
+                        public void setBoolVal(Boolean boolVal) { this.boolVal = boolVal; }
+                        public String getStrVal() { return strVal; }
+                        public void setStrVal(String strVal) { this.strVal = strVal; }
+                    }
+                    """
+            );
+
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.WrapperTypeMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+
+                    @MapperClass
+                    public interface WrapperTypeMapper {
+                        WrapperTargetDto map(WrapperSourceDto source);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(wrapperSource, wrapperTarget, mapper);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status(),
+                    "Mapper with all wrapper types should compile successfully");
+        }
+    }
 }
