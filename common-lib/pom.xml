@@ -21,6 +21,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>${jdk.version}</java.version>
 
+        <compile-testing-com.google.testing.compile.version>0.23.0</compile-testing-com.google.testing.compile.version>
+
     </properties>
 
     <dependencies>
@@ -320,10 +322,11 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.google.testing.compile/compile-testing -->
         <dependency>
             <groupId>com.google.testing.compile</groupId>
             <artifactId>compile-testing</artifactId>
-            <version>0.21.0</version>
+            <version>${compile-testing-com.google.testing.compile.version}</version>
             <scope>test</scope>
         </dependency>
 
