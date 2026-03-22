@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `vn.io.lcx.common` package provides 30+ utility classes, a package scanner, global
+The `vn.io.lcx.common` package provides 28 utility classes, a package scanner, global
 constants, and custom exceptions. All utility classes are `final` with private constructors
 (static-only usage).
 

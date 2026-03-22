@@ -43,7 +43,7 @@ The core module containing all runtime code:
 | `vn.io.lcx.common.scanner`    | Runtime package scanning (`PackageScanner`)    |
 | `vn.io.lcx.common.database`   | JDBC execution, strategies, entity analysis    |
 | `vn.io.lcx.common.database.context` | `ConnectionContext` (deprecated)          |
-| `vn.io.lcx.common.utils`      | 30+ utility classes                            |
+| `vn.io.lcx.common.utils`      | 28 utility classes                             |
 | `vn.io.lcx.common.constant`   | Global constants                               |
 | `vn.io.lcx.common.exception`  | Custom exceptions                              |
 | `vn.io.lcx.common.cache`      | Caching abstractions                           |

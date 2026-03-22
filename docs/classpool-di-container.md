@@ -3,7 +3,7 @@
 ## Overview
 
 `ClassPool` is a reflection-based dependency injection container located at
-`common-lib/src/main/java/vn/com/lcx/common/config/ClassPool.java`.
+`common-lib/src/main/java/vn/io/lcx/common/config/ClassPool.java`.
 
 It handles:
 - **Package scanning** - discovers classes via `PackageScanner`
@@ -494,7 +494,7 @@ Each entry reports:
 
 ---
 
-## Compile-Time: DIScanner (Experimental - Not ready for use)
+## Compile-Time: DIScanner
 
 **Processor:** `vn.io.lcx.processor.DIScanner`
 **Triggers on:** all classes (`@SupportedAnnotationTypes("*")`)
