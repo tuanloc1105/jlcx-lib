@@ -95,7 +95,7 @@ compile scope. The nine registered processors are:
 
 | Technology            | Version   | Purpose                                      |
 |-----------------------|-----------|----------------------------------------------|
-| Vert.x                | 5.0.8     | Async event loop, HTTP server, SQL clients   |
+| Vert.x                | 5.0.10    | Async event loop, HTTP server, SQL clients   |
 | Hibernate ORM         | 7.3.0     | JPA persistence (sync)                       |
 | Hibernate Reactive    | 4.3.0     | Non-blocking persistence                     |
 | HikariCP              | 7.0.2     | JDBC connection pooling                      |
@@ -149,7 +149,7 @@ compile scope. The nine registered processors are:
 
 | Technology            | Version   |
 |-----------------------|-----------|
-| Vert.x Auth JWT       | 5.0.8     |
+| Vert.x Auth JWT       | 5.0.10    |
 | jBCrypt               | 0.4       |
 | Jakarta Mail           | 2.0.5     |
 
@@ -162,7 +162,7 @@ compile scope. The nine registered processors are:
 | Mockito Inline        | 5.2.0     |
 | DataFaker             | 2.5.4     |
 | H2 Database           | 2.4.240   |
-| Vert.x Unit           | 5.0.8     |
+| Vert.x Unit           | 5.0.10    |
 
 ---
 
@@ -181,7 +181,7 @@ compile scope. The nine registered processors are:
     └──────┬──────┘ └────┬────┘ └─────┬──────┘
            │             │             │
     ┌──────▼─────────────▼─────────────▼──────┐
-    │            Vert.x Core 5.0.8             │
+    │            Vert.x Core 5.0.10             │
     │     Event Loop  │  Worker Pool           │
     └──────────────────┬───────────────────────┘
                        │

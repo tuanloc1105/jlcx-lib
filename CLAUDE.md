@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**jlcx-lib** is a reactive Java microservices toolkit built on Vert.x 5.0.8.
+**jlcx-lib** is a reactive Java microservices toolkit built on Vert.x 5.0.10.
 It provides a lightweight DI container, annotation-driven HTTP routing with
 compile-time code generation, multi-database ORM support, and a rich set of utilities.
 

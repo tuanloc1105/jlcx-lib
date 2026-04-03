@@ -1,6 +1,6 @@
 # jlcx-lib
 
-A reactive Java microservices toolkit built on Vert.x 5.0.8. It provides a lightweight DI container (`ClassPool`), annotation-driven HTTP routing with compile-time code generation, multi-database ORM support, and a rich set of utilities — so teams can ship production-ready microservices without re-implementing infrastructure pieces.
+A reactive Java microservices toolkit built on Vert.x 5.0.10. It provides a lightweight DI container (`ClassPool`), annotation-driven HTTP routing with compile-time code generation, multi-database ORM support, and a rich set of utilities — so teams can ship production-ready microservices without re-implementing infrastructure pieces.
 
 | Property   | Value                |
 |------------|----------------------|
@@ -35,7 +35,7 @@ A reactive Java microservices toolkit built on Vert.x 5.0.8. It provides a light
     └──────┬──────┘ └────┬────┘ └─────┬──────┘
            │             │             │
     ┌──────▼─────────────▼─────────────▼──────┐
-    │            Vert.x Core 5.0.8             │
+    │            Vert.x Core 5.0.10             │
     │     Event Loop  │  Worker Pool           │
     └──────────────────┬───────────────────────┘
                        │
@@ -82,7 +82,7 @@ jlcx-lib/
 
 | Technology | Version | Purpose |
 |---|---|---|
-| Vert.x | 5.0.8 | Async event loop, HTTP server, SQL clients, gRPC, Redis, Auth JWT, Micrometer |
+| Vert.x | 5.0.10 | Async event loop, HTTP server, SQL clients, gRPC, Redis, Auth JWT, Micrometer |
 | Hibernate ORM | 7.3.0 | JPA persistence (sync) |
 | Hibernate Reactive | 4.3.0 | Non-blocking persistence |
 | HikariCP | 7.0.2 | JDBC connection pooling |
@@ -132,7 +132,7 @@ jlcx-lib/
 
 | Technology | Version |
 |---|---|
-| Vert.x Auth JWT | 5.0.8 |
+| Vert.x Auth JWT | 5.0.10 |
 | jBCrypt | 0.4 |
 | Jakarta Mail | 2.0.5 |
 
