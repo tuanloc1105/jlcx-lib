@@ -110,8 +110,8 @@ jlcx-lib/
 | Technology | Version |
 |---|---|
 | Apache Kafka | 4.2.0 |
-| Jedis (Redis) | 7.4.0 |
-| Ehcache | 3.11.1 |
+| Jedis (Redis) | 7.4.1 |
+| Ehcache | 3.12.0 |
 
 ### gRPC
 
