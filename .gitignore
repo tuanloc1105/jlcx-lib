@@ -65,6 +65,5 @@ buildNumber.properties
 data
 
 # ClaudeKit
-plans/*/reports/
-.claude
+plans/
 .claude

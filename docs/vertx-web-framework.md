@@ -2,7 +2,7 @@
 
 ## Overview
 
-The framework provides annotation-driven HTTP routing on top of Vert.x 5.0.8. At compile
+The framework provides annotation-driven HTTP routing on top of Vert.x 5.0.10. At compile
 time, annotation processors generate an `ApplicationVerticle` that wires controllers, filters,
 authentication handlers, and the HTTP server together.
 

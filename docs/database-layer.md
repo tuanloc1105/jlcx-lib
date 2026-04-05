@@ -1242,23 +1242,23 @@ Logs all SQL statements at DEBUG level with execution timing.
 | `common/database/DatabaseExecutorImpl.java` | JDBC execution implementation            |
 | `common/database/DatabaseProperty.java`   | Connection configuration                   |
 | `common/database/type/DBTypeEnum.java`    | Database type definitions                  |
-| `common/database/DatabaseStrategy.java`   | DDL generation interface                   |
-| `common/database/OracleStrategy.java`     | Oracle DDL strategy                        |
-| `common/database/PostgreSQLStrategy.java` | PostgreSQL DDL strategy                    |
-| `common/database/MySQLStrategy.java`      | MySQL DDL strategy                         |
-| `common/database/MSSQLStrategy.java`      | SQL Server DDL strategy                    |
-| `common/database/reflect/EntityAnalyzer.java` | Entity analysis orchestrator           |
-| `common/database/reflect/FieldProcessor.java` | Field-level DDL processing             |
-| `common/database/reflect/SqlGenerator.java`   | SQL file generation                    |
+| `common/database/utils/DatabaseStrategy.java`   | DDL generation interface              |
+| `common/database/utils/OracleStrategy.java`     | Oracle DDL strategy                   |
+| `common/database/utils/PostgreSQLStrategy.java` | PostgreSQL DDL strategy               |
+| `common/database/utils/MySQLStrategy.java`      | MySQL DDL strategy                    |
+| `common/database/utils/MSSQLStrategy.java`      | SQL Server DDL strategy               |
+| `common/database/utils/EntityAnalyzer.java`     | Entity analysis orchestrator          |
+| `common/database/utils/FieldProcessor.java`     | Field-level DDL processing            |
+| `common/database/utils/SqlGenerator.java`       | SQL file generation                   |
 | `common/database/pageable/Pageable.java`  | Pagination interface                       |
 | `common/database/pageable/Page.java`      | Page result wrapper                        |
 | `common/database/specification/Specification.java` | Fluent query builder              |
-| `common/database/handler/resultset/ResultSetHandler.java` | Row mapper interface       |
+| `common/database/ResultSetHandler.java`   | Row mapper interface                       |
 | `common/database/handler/statement/*.java` | Type-specific parameter handlers          |
-| `common/annotation/mapper/TableName.java` | `@TableName` annotation                    |
-| `common/annotation/mapper/ColumnName.java`| `@ColumnName` annotation                   |
-| `common/annotation/mapper/IdColumn.java`  | `@IdColumn` annotation                     |
-| `common/annotation/mapper/ForeignKey.java`| `@ForeignKey` annotation                   |
+| `common/annotation/TableName.java`        | `@TableName` annotation                    |
+| `common/annotation/ColumnName.java`       | `@ColumnName` annotation                   |
+| `common/annotation/IdColumn.java`         | `@IdColumn` annotation                     |
+| `common/annotation/ForeignKey.java`       | `@ForeignKey` annotation                   |
 | `jpa/repository/JpaRepository.java`       | JPA repository interface                   |
 | `reactive/repository/HReactiveRepository.java` | Hibernate Reactive repository interface |
 | `reactive/repository/ReactiveRepository.java`  | Vert.x SQL client repository interface |

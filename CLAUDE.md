@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**jlcx-lib** is a reactive Java microservices toolkit built on Vert.x 5.0.8.
+**jlcx-lib** is a reactive Java microservices toolkit built on Vert.x 5.0.10.
 It provides a lightweight DI container, annotation-driven HTTP routing with
 compile-time code generation, multi-database ORM support, and a rich set of utilities.
 
@@ -10,7 +10,7 @@ compile-time code generation, multi-database ORM support, and a rich set of util
 |---------------|--------------------------|
 | GroupId       | `vn.io.lcx`             |
 | ArtifactId    | `lcx-lib`                |
-| Version       | `4.0.3.lcx`     |
+| Version       | `4.0.4.lcx`     |
 | Java          | 17                       |
 | Build Tool    | Maven 3.9+               |
 
@@ -18,7 +18,7 @@ compile-time code generation, multi-database ORM support, and a rich set of util
 
 ```
 jlcx-lib/
-├── common-lib/          Core library (DI, HTTP, database, utilities) — 284 classes
+├── common-lib/          Core library (DI, HTTP, database, utilities) — 285 classes
 ├── processor/           Annotation processors (depends on common-lib)
 ├── examples/
 │   ├── todo-app-example/
@@ -38,7 +38,7 @@ Read these files for in-depth understanding of the codebase:
 | [docs/vertx-web-framework.md](docs/vertx-web-framework.md) | HTTP routing, `@Controller`/`@RestController`, request binding, validation, middleware |
 | [docs/database-layer.md](docs/database-layer.md) | JDBC, entity annotations, DDL generation, JPA repositories, reactive repositories, pagination |
 | [docs/annotation-processors.md](docs/annotation-processors.md) | `@MapperClass` processor, `@Mapping`/`@Merging`, all 9 processor cross-references |
-| [docs/utilities.md](docs/utilities.md) | 30+ utility classes, constants, custom exceptions, package scanner |
+| [docs/utilities.md](docs/utilities.md) | 28 utility classes, constants, custom exceptions, package scanner |
 
 ## Key Conventions
 
@@ -61,7 +61,7 @@ mvn clean install          # Full build with annotation processing (-proc:full)
 | `vn.io.lcx.common.config` | `ClassPool` DI container |
 | `vn.io.lcx.common.annotation` | DI and entity annotations |
 | `vn.io.lcx.common.database` | JDBC execution, DDL strategies |
-| `vn.io.lcx.common.utils` | 30+ utility classes |
+| `vn.io.lcx.common.utils` | 28 utility classes |
 | `vn.io.lcx.jpa` | JPA/Hibernate ORM layer, repositories |
 | `vn.io.lcx.reactive` | Hibernate Reactive + Vert.x SQL clients |
 | `vn.io.lcx.vertx` | Vert.x web framework, controllers, validation |

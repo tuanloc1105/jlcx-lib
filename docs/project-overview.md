@@ -10,7 +10,7 @@ code generation, multi-database ORM support, and a rich set of utilities.
 |---------------|---------------------------------------|
 | GroupId       | `vn.io.lcx`                          |
 | ArtifactId    | `lcx-lib`                             |
-| Version       | `4.0.3.lcx`                  |
+| Version       | `4.0.4.lcx`                           |
 | Java Version  | 17                                    |
 | Build Tool    | Maven 3.9+                            |
 
@@ -43,7 +43,7 @@ The core module containing all runtime code:
 | `vn.io.lcx.common.scanner`    | Runtime package scanning (`PackageScanner`)    |
 | `vn.io.lcx.common.database`   | JDBC execution, strategies, entity analysis    |
 | `vn.io.lcx.common.database.context` | `ConnectionContext` (deprecated)          |
-| `vn.io.lcx.common.utils`      | 30+ utility classes                            |
+| `vn.io.lcx.common.utils`      | 28 utility classes                             |
 | `vn.io.lcx.common.constant`   | Global constants                               |
 | `vn.io.lcx.common.exception`  | Custom exceptions                              |
 | `vn.io.lcx.common.cache`      | Caching abstractions                           |
@@ -95,12 +95,12 @@ compile scope. The nine registered processors are:
 
 | Technology            | Version   | Purpose                                      |
 |-----------------------|-----------|----------------------------------------------|
-| Vert.x                | 5.0.8     | Async event loop, HTTP server, SQL clients   |
-| Hibernate ORM         | 7.2.6     | JPA persistence (sync)                       |
-| Hibernate Reactive    | 4.2.5     | Non-blocking persistence                     |
+| Vert.x                | 5.0.10    | Async event loop, HTTP server, SQL clients   |
+| Hibernate ORM         | 7.3.0     | JPA persistence (sync)                       |
+| Hibernate Reactive    | 4.3.0     | Non-blocking persistence                     |
 | HikariCP              | 7.0.2     | JDBC connection pooling                      |
 | Gson                  | 2.13.2    | JSON serialization/deserialization           |
-| Jackson               | 2.21.1    | JSON/XML data binding (5 modules)            |
+| Jackson               | 2.21.2    | JSON/XML data binding (5 modules)            |
 | SnakeYAML             | 2.6       | YAML configuration loading                   |
 | SLF4J + Logback       | 2.0.17 / 1.5.32 | Logging                               |
 | Javassist             | 3.30.2    | Bytecode manipulation                        |
@@ -108,7 +108,7 @@ compile scope. The nine registered processors are:
 | Apache Commons Text   | 1.15.0    | Text manipulation and interpolation          |
 | Apache Commons Lang3  | 3.20.0    | String utilities, reflection helpers         |
 | Apache Commons Collections4 | 4.5.0 | Advanced collection operations             |
-| JAXB API + Runtime    | 4.0.5 / 4.0.6 | XML binding                             |
+| JAXB API + Runtime    | 4.0.5 / 4.0.7 | XML binding                             |
 | Jakarta Persistence API | 3.2.0   | JPA specification                            |
 | Jakarta Annotation API | 3.0.0    | Annotation processing                        |
 
@@ -126,15 +126,15 @@ compile scope. The nine registered processors are:
 | Technology            | Version   |
 |-----------------------|-----------|
 | Apache Kafka          | 4.2.0     |
-| Jedis (Redis)         | 7.4.0     |
-| Ehcache               | 3.11.1    |
+| Jedis (Redis)         | 7.4.1     |
+| Ehcache               | 3.12.0    |
 
 ### gRPC
 
 | Technology            | Version   |
 |-----------------------|-----------|
-| gRPC (Netty shaded)   | 1.79.0    |
-| Protobuf              | 4.34.0    |
+| gRPC (Netty shaded)   | 1.80.0    |
+| Protobuf              | 4.34.1    |
 
 ### Monitoring
 
@@ -149,7 +149,7 @@ compile scope. The nine registered processors are:
 
 | Technology            | Version   |
 |-----------------------|-----------|
-| Vert.x Auth JWT       | 5.0.8     |
+| Vert.x Auth JWT       | 5.0.10    |
 | jBCrypt               | 0.4       |
 | Jakarta Mail           | 2.0.5     |
 
@@ -162,7 +162,7 @@ compile scope. The nine registered processors are:
 | Mockito Inline        | 5.2.0     |
 | DataFaker             | 2.5.4     |
 | H2 Database           | 2.4.240   |
-| Vert.x Unit           | 5.0.8     |
+| Vert.x Unit           | 5.0.10    |
 
 ---
 
@@ -181,7 +181,7 @@ compile scope. The nine registered processors are:
     └──────┬──────┘ └────┬────┘ └─────┬──────┘
            │             │             │
     ┌──────▼─────────────▼─────────────▼──────┐
-    │            Vert.x Core 5.0.8             │
+    │            Vert.x Core 5.0.10             │
     │     Event Loop  │  Worker Pool           │
     └──────────────────┬───────────────────────┘
                        │
