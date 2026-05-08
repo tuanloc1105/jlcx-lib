@@ -1,82 +1,87 @@
-# CLAUDE.md - jlcx-lib Project Guide
+# jlcx-lib Agent Guide
 
-## Project Overview
+This file is also exposed as `AGENTS.md` and `GEMINI.md` through symlinks.
+Keep it short. Put domain details in `docs/` and read them on demand.
 
-**jlcx-lib** is a reactive Java microservices toolkit built on Vert.x 5.0.10.
-It provides a lightweight DI container, annotation-driven HTTP routing with
-compile-time code generation, multi-database ORM support, and a rich set of utilities.
+## Project Facts
 
-| Property      | Value                    |
-|---------------|--------------------------|
-| GroupId       | `vn.io.lcx`             |
-| ArtifactId    | `lcx-lib`                |
-| Version       | `4.0.5.lcx-SNAPSHOT`     |
-| Java          | 17                       |
-| Build Tool    | Maven 3.9+               |
+`jlcx-lib` is a Java 17 / Maven reactive microservice toolkit.
 
-## Module Structure
+Core capabilities:
 
-```
-jlcx-lib/
-├── common-lib/          Core library (DI, HTTP, database, utilities) — 285 classes
-├── processor/           Annotation processors (depends on common-lib)
-├── examples/
-│   ├── todo-app-example/
-│   ├── hibernate-reactive-example/
-│   └── grpc-example/    (grpc-client + grpc-server)
-└── docs/                Detailed documentation (START HERE)
-```
+- lightweight DI container in `ClassPool`
+- annotation-driven Vert.x HTTP routing
+- compile-time code generation through 9 annotation processors
+- sync JDBC helpers, JPA repositories, Vert.x SQL repositories, and Hibernate Reactive repositories
+- database DDL/query helpers for Oracle, PostgreSQL, MySQL, and SQL Server
+- shared infrastructure utilities: cache, mail, cron, lock, task retry, logging, auth context, crypto, JSON/YAML, file, date/time
 
-## Documentation
+Dependency versions drift. Treat `pom.xml` as the source of truth. At this refresh the source uses Java 17, Vert.x 5.0.12, Hibernate ORM 7.3.3.Final, and Hibernate Reactive 4.3.3.Final.
 
-Read these files for in-depth understanding of the codebase:
+## Repository Shape
 
-| Document | What it covers |
-|----------|----------------|
-| [docs/project-overview.md](docs/project-overview.md) | Architecture, technology stack, all modules, configuration |
-| [docs/classpool-di-container.md](docs/classpool-di-container.md) | `ClassPool` DI container, `@Component`, `@Instance`, `@Qualifier`, lifecycle |
-| [docs/vertx-web-framework.md](docs/vertx-web-framework.md) | HTTP routing, `@Controller`/`@RestController`, request binding, validation, middleware |
-| [docs/database-layer.md](docs/database-layer.md) | JDBC, entity annotations, DDL generation, JPA repositories, reactive repositories, pagination |
-| [docs/annotation-processors.md](docs/annotation-processors.md) | `@MapperClass` processor, `@Mapping`/`@Merging`, all 9 processor cross-references |
-| [docs/utilities.md](docs/utilities.md) | 28 utility classes, constants, custom exceptions, package scanner |
+| Path | Current role |
+|---|---|
+| `common-lib/` | Main library. Contains `vn.io.lcx.common.*`, `vn.io.lcx.jpa.*`, `vn.io.lcx.reactive.*`, `vn.io.lcx.vertx.base.*`, and the real `vn.io.lcx.processor.*` implementations. |
+| `processor/` | Annotation-processor facade jar. It contains `ProcessorModule` and `META-INF/services/javax.annotation.processing.Processor`; processor implementations are loaded from transitive `common-lib`. |
+| `examples/todo-app-example/` | Reactive SQL Todo app with Vert.x backend, React/Vite frontend, Dockerfile, and Helm chart. |
+| `examples/hibernate-reactive-example/` | Todo app using Hibernate Reactive repositories plus React/Vite frontend. |
+| `examples/grpc-example/` | gRPC client/server example with shared proto generation scripts. |
+| `docs/` | Source-aware domain documentation for agents. |
 
-## Key Conventions
+Root Maven modules are only `common-lib` and `processor`. Examples are independent projects under `examples/`.
 
-- **Async-first**: Controller methods return `Future<T>`. Non-blocking I/O via Vert.x event loop.
-- **Compile-time code generation**: Annotation processors generate routing, repository, mapper code. No runtime reflection for route discovery.
-- **DI**: `ClassPool` — lightweight two-phase dependency injection. Use `@Component`, `@Instance`, `@Qualifier`, `@DependsOn`.
-- **Multi-database**: Strategy pattern for Oracle, PostgreSQL, MySQL, SQL Server. Dual sync (Hibernate ORM) and async (Hibernate Reactive / Vert.x SQL clients).
-- **Configuration**: `application.yaml` with `${ENV_VAR:default}` syntax. Access via `CommonConstant.applicationConfig`.
+## Read-On-Demand Map
 
-## Build
+Read the narrow doc before editing that area:
+
+| Work area | Read |
+|---|---|
+| Architecture, modules, dependencies, source map | `docs/project-overview.md` |
+| DI, lifecycle, `ClassPool`, `@Component`, `@Instance`, `@Qualifier`, `@DependsOn`, `@PostConstruct` | `docs/classpool-di-container.md` |
+| HTTP routing, controllers, request binding, auth/API key, validation, Vert.x wrappers | `docs/vertx-web-framework.md` |
+| JDBC, DDL, entity annotations, JPA, reactive SQL, Hibernate Reactive, pagination, specifications | `docs/database-layer.md` |
+| Annotation processors, generated classes, templates, processor facade module | `docs/annotation-processors.md` |
+| Utilities, cache, mail, cron, locks, tasks, logging, constants, exceptions | `docs/utilities.md` |
+| Example apps, frontend stacks, routes, Docker/Helm, gRPC generation | `docs/examples.md` |
+| Config keys and environment placeholders | `docs/configuration.md` |
+| Verification commands and test layout | `docs/testing-guide.md` |
+
+## Build And Verify
+
+Use targeted verification when possible:
 
 ```bash
-mvn clean install          # Full build with annotation processing (-proc:full)
+mvn -pl common-lib test
+mvn -pl processor test
+mvn clean install
 ```
 
-## Important Packages
+Root scripts:
 
-| Package | Purpose |
-|---------|---------|
-| `vn.io.lcx.common.config` | `ClassPool` DI container |
-| `vn.io.lcx.common.annotation` | DI and entity annotations |
-| `vn.io.lcx.common.database` | JDBC execution, DDL strategies |
-| `vn.io.lcx.common.utils` | 28 utility classes |
-| `vn.io.lcx.jpa` | JPA/Hibernate ORM layer, repositories |
-| `vn.io.lcx.reactive` | Hibernate Reactive + Vert.x SQL clients |
-| `vn.io.lcx.vertx` | Vert.x web framework, controllers, validation |
-| `vn.io.lcx.processor` | Annotation processor implementations |
+```bash
+./build.sh
+./clean.sh
+./snapshot.sh
+./release.sh
+```
 
-## 9 Annotation Processors
+The parent compiler config uses full annotation processing. If generated-code behavior changes, verify both `common-lib` processor tests and a downstream example compile.
 
-| Processor | Triggers On | Generates |
-|-----------|-------------|-----------|
-| `ControllerProcessor` | `@Controller`, `@VertxApplication`, `@ContextHandler` | `ApplicationVerticle` with routing |
-| `RestControllerProcessor` | `@RestController` | `Reactive{Name}` wrapper |
-| `RepositoryProcessor` | `@Repository` (extends `JpaRepository`) | `{Name}Proxy` |
-| `HRRepositoryProcessor` | `@HRRepository` (extends `HReactiveRepository`) | `{Name}Impl` |
-| `ReactiveRepositoryProcessor` | `@RRepository` (extends `ReactiveRepository`) | `{Name}Impl` |
-| `ServiceProcessor` | `@Service` | `{Name}Proxy` with transactions |
-| `MapperClassProcessor` | `@MapperClass` | `{Name}Impl` object mapper |
-| `SQLMappingProcessor` | `@SQLMapping` | `{Name}Utils` + `{Name}MappingImpl` |
-| `DIScanner` | `@Component` (wildcard) | `META-INF/class-index-*.json` |
+## Source Conventions
+
+- Match existing package names exactly, including existing typos such as `respository`.
+- Do not move processor implementations unless the task explicitly asks. They currently live in `common-lib/src/main/java/vn/io/lcx/processor`.
+- Generated code relies on templates in `common-lib/src/main/resources/template`; keep processor classpath/resource behavior in mind.
+- Controllers and repositories are async-first: Vert.x APIs generally return `Future<T>`.
+- Generated routing is compile-time, not runtime route discovery.
+- Keep docs token-light here; add detail to a specific `docs/*.md` file and link it from this guide.
+
+## Current Gotchas
+
+- `processor/` is a facade/registrar module, not the implementation module.
+- `DIScanner` supports wildcard processing and emits `META-INF/class-index-{UUID}.json` for `@Component` classes.
+- The Todo example frontend env sample uses `api/v1`, while backend routes are `/api/v2/...`; align env manually when running it.
+- The Todo Helm chart uses `DATABASE_*` names, while app config expects `REACTIVE_DATABASE_*`; treat deploy values as example material, not guaranteed production-ready config.
+- Hibernate Reactive example `persistence.xml` appears stale: it lists `Author`/`Book`, while current source has `UsersEntity`/`TasksEntity`.
+- Example resources contain hardcoded defaults and RSA keys for local/demo use. Do not present them as production-safe.
