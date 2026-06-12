@@ -125,7 +125,19 @@ Tests for field mapping and code generation live in `common-lib/src/test/java/vn
 - `{Entity}Utils`
 - `{Entity}MappingImpl`
 
-It uses entity annotations such as `@TableName`, `@ColumnName`, `@IdColumn`, `@SecondaryIdColumn`, `@ForeignKey`, `@SubTable`, `@Clob`, `@Index`, `@PreInsert`, `@PreUpdate`, and `@ReadOnly`.
+It directly uses:
+
+- `@TableName` for the target table and optional schema.
+- `@ColumnName` for physical column names plus `insertable`, `updatable`, and `nullable` generated SQL/parameter behavior.
+- `@IdColumn` for the single primary id column.
+- `@Clob` for JDBC CLOB-to-string result mapping.
+- `@PreInsert` and `@PreUpdate` for lifecycle hooks called when generated insert/update statements are built.
+
+`@SQLMapping` classes must compile with a non-blank `@TableName`, exactly one non-static/non-final `@IdColumn`, supported field types, JavaBean-style accessors, at least one insertable column, and at least one updatable non-id column. `@PreInsert` and `@PreUpdate` methods must be unique per annotation, parameterless, and return `void`.
+
+Generated result-set and Vert.x row mapping is fail-fast: a missing column, type mismatch, invalid enum value, or other mapping failure is rethrown as an `IllegalStateException` with entity, field, and column context. Enum database `NULL` values map to Java `null`.
+
+Related database metadata annotations such as `@SecondaryIdColumn`, `@ForeignKey`, `@SubTable`, `@Index`, and `@ReadOnly` are used by the broader database analysis/DDL/helper layer; this processor does not currently consume them directly.
 
 ## Debugging Generated Code
 

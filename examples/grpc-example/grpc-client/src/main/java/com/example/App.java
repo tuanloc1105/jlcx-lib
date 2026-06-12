@@ -36,13 +36,13 @@ public class App {
         Future<HelloReply> response = greeterClient.sayHello(HelloRequest.newBuilder().setName("John").build());
         response.onSuccess(result ->
                 {
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Service responded: " + response.result().getMessage());
+                    LogUtils.writeLog(App.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Service responded: " + response.result().getMessage());
                     System.exit(0);
                 }
         );
         response.onFailure(err ->
                 {
-                    LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Service failure: " + response.cause().getMessage());
+                    LogUtils.writeLog(App.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Service failure: " + response.cause().getMessage());
                     System.exit(0);
                 }
         );

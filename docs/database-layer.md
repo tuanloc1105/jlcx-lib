@@ -194,6 +194,10 @@ Generated classes:
 
 Generated mapping relies on entity annotations and templates in `common-lib/src/main/resources/template`.
 
+The processor validates the mapping contract at compile time. A mapped entity must have a non-blank `@TableName`, exactly one non-static/non-final `@IdColumn`, supported mapped field types, matching getters and setters, at least one insertable column, and at least one updatable non-id column. `@PreInsert` and `@PreUpdate` methods must be parameterless `void` methods; the generated statement methods call them before building insert/update SQL.
+
+Generated SQL honors `@ColumnName(name = ...)`, `insertable`, `updatable`, and `nullable` for statement and parameter generation. Generated JDBC and Vert.x row mapping fails fast by throwing `IllegalStateException` with column/field/entity context when a column read or conversion fails.
+
 See `docs/annotation-processors.md` for processor details.
 
 ## Examples

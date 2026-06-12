@@ -20,6 +20,10 @@ class SQLMappingProcessorTest {
                 .compile(sources);
     }
 
+    private String errors(Compilation compilation) {
+        return compilation.errors().toString();
+    }
+
     @Nested
     @DisplayName("Valid Entity")
     class ValidEntity {
@@ -155,6 +159,44 @@ class SQLMappingProcessorTest {
             String generatedCode = generatedUtils.getCharContent(false).toString();
             assertTrue(generatedCode.contains("products"), "Generated code should reference table name 'products'");
         }
+
+        @Test
+        void tableNameWithSchema_generatesQualifiedTableName() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.SchemaEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+
+                    @SQLMapping
+                    @TableName(value = "products", schema = "catalog")
+                    public class SchemaEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("SchemaEntityUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+            assertTrue(generatedCode.contains("catalog.products"));
+        }
     }
 
     @Nested
@@ -162,7 +204,7 @@ class SQLMappingProcessorTest {
     class MissingAnnotations {
 
         @Test
-        void missingTableName_generatesCodeWithError() throws Exception {
+        void missingTableName_failsCompilation() {
             JavaFileObject source = JavaFileObjects.forSourceString(
                     "test.NoTableEntity",
                     """
@@ -186,20 +228,43 @@ class SQLMappingProcessorTest {
             );
 
             Compilation compilation = compile(source);
-            // Compilation succeeds but generated code throws CodeGenError
-            assertEquals(Compilation.Status.SUCCESS, compilation.status());
-
-            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
-                    .filter(f -> f.getName().contains("NoTableEntityUtils"))
-                    .findFirst()
-                    .orElseThrow();
-
-            String generatedCode = generatedUtils.getCharContent(false).toString();
-            assertTrue(generatedCode.contains("TableName"), "Generated code should contain error about missing TableName");
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("TableName"));
         }
 
         @Test
-        void missingIdColumn_generatesCodeWithError() throws Exception {
+        void blankTableName_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.BlankTableEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+
+                    @SQLMapping
+                    @TableName("")
+                    public class BlankTableEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("must not be blank"));
+        }
+
+        @Test
+        void missingIdColumn_failsCompilation() {
             JavaFileObject source = JavaFileObjects.forSourceString(
                     "test.NoIdEntity",
                     """
@@ -223,15 +288,8 @@ class SQLMappingProcessorTest {
             );
 
             Compilation compilation = compile(source);
-            assertEquals(Compilation.Status.SUCCESS, compilation.status());
-
-            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
-                    .filter(f -> f.getName().contains("NoIdEntityUtils"))
-                    .findFirst()
-                    .orElseThrow();
-
-            String generatedCode = generatedUtils.getCharContent(false).toString();
-            assertTrue(generatedCode.contains("primary key"), "Generated code should contain error about missing primary key");
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("primary key"));
         }
 
         @Test
@@ -265,8 +323,8 @@ class SQLMappingProcessorTest {
             );
 
             Compilation compilation = compile(source);
-            // Multiple @IdColumn causes errors in generated code compilation
             assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("More than one id column"));
         }
     }
 
@@ -414,6 +472,83 @@ class SQLMappingProcessorTest {
         }
 
         @Test
+        void primitiveBooleanIsPrefixedField_usesIsGetterAndSetWithoutIsPrefix() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.BooleanEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+
+                    @SQLMapping
+                    @TableName("boolean_entity")
+                    public class BooleanEntity {
+                        @IdColumn
+                        private Long id;
+                        private boolean isActive;
+                        private boolean issue;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public boolean isActive() { return isActive; }
+                        public void setActive(boolean active) { isActive = active; }
+                        public boolean isIssue() { return issue; }
+                        public void setIssue(boolean issue) { this.issue = issue; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("BooleanEntityUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+            assertTrue(generatedCode.contains("model.isActive()"));
+            assertTrue(generatedCode.contains("instance.setActive"));
+            assertTrue(generatedCode.contains("model.isIssue()"));
+            assertTrue(generatedCode.contains("instance.setIssue"));
+        }
+
+        @Test
+        void fluentSetters_compileSuccessfully() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.FluentSetterEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+
+                    @SQLMapping
+                    @TableName("fluent_setter")
+                    public class FluentSetterEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public FluentSetterEntity setId(Long id) { this.id = id; return this; }
+                        public String getName() { return name; }
+                        public FluentSetterEntity setName(String name) { this.name = name; return this; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+        }
+
+        @Test
         void staticAndFinalFields_areSkipped() throws Exception {
             JavaFileObject source = JavaFileObjects.forSourceString(
                     "test.StaticFinalEntity",
@@ -529,7 +664,6 @@ class SQLMappingProcessorTest {
                     .orElseThrow();
 
             String code = mappingImpl.getCharContent(false).toString();
-            // MappingImpl should NOT have static methods (replaced from "public static" to "public")
             assertFalse(code.contains("public static"), "MappingImpl should not have static methods");
             assertTrue(code.contains("public "), "MappingImpl should have public methods");
         }
@@ -586,6 +720,8 @@ class SQLMappingProcessorTest {
 
             String generatedCode = generatedUtils.getCharContent(false).toString();
             assertTrue(generatedCode.contains("valueOf"), "Generated code should use valueOf for enum field");
+            assertTrue(generatedCode.contains("value != null"), "Generated code should map null enum values to null");
+            assertTrue(generatedCode.contains("IllegalStateException"), "Generated mapping should fail fast on invalid enum values");
         }
 
         @Test
@@ -757,6 +893,152 @@ class SQLMappingProcessorTest {
             assertTrue(generatedCode.contains("beforeUpdate"),
                     "Generated updateStatement code should call the @PreUpdate method");
         }
+
+        @Test
+        void preInsertWithParameter_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.InvalidPreInsertParamEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.PreInsert;
+
+                    @SQLMapping
+                    @TableName("invalid_pre_insert_param")
+                    public class InvalidPreInsertParamEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+
+                        @PreInsert
+                        public void beforeInsert(String value) {
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("@PreInsert method must not declare parameters"));
+        }
+
+        @Test
+        void preInsertWithReturnValue_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.InvalidPreInsertReturnEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.PreInsert;
+
+                    @SQLMapping
+                    @TableName("invalid_pre_insert_return")
+                    public class InvalidPreInsertReturnEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+
+                        @PreInsert
+                        public String beforeInsert() {
+                            return name;
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("@PreInsert method must return void"));
+        }
+
+        @Test
+        void preUpdateWithParameter_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.InvalidPreUpdateParamEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.PreUpdate;
+
+                    @SQLMapping
+                    @TableName("invalid_pre_update_param")
+                    public class InvalidPreUpdateParamEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+
+                        @PreUpdate
+                        public void beforeUpdate(String value) {
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("@PreUpdate method must not declare parameters"));
+        }
+
+        @Test
+        void preUpdateWithReturnValue_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.InvalidPreUpdateReturnEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.PreUpdate;
+
+                    @SQLMapping
+                    @TableName("invalid_pre_update_return")
+                    public class InvalidPreUpdateReturnEntity {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+
+                        @PreUpdate
+                        public String beforeUpdate() {
+                            return name;
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("@PreUpdate method must return void"));
+        }
     }
 
     @Nested
@@ -804,13 +1086,9 @@ class SQLMappingProcessorTest {
 
             String generatedCode = generatedUtils.getCharContent(false).toString();
 
-            // The updateStatement method should not include CREATED_BY
-            // Extract only the updateStatement method body for checking
             int updateIdx = generatedCode.indexOf("updateStatement");
-            int insertIdx = generatedCode.indexOf("insertStatement");
             assertTrue(updateIdx >= 0, "Generated code should contain updateStatement method");
 
-            // Find the next method after updateStatement to bound the search
             String updateSection = generatedCode.substring(updateIdx,
                     generatedCode.indexOf("public", updateIdx + 1) > 0
                             ? generatedCode.indexOf("public", updateIdx + 1)
@@ -820,7 +1098,74 @@ class SQLMappingProcessorTest {
         }
 
         @Test
-        void emptyEntityWithOnlyId_compileSuccessfully() {
+        void noInsertableColumns_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.NoInsertableEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.ColumnName;
+
+                    @SQLMapping
+                    @TableName("no_insertable")
+                    public class NoInsertableEntity {
+                        @IdColumn
+                        @ColumnName(insertable = false)
+                        private Long id;
+                        @ColumnName(insertable = false)
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("at least one insertable column"));
+        }
+
+        @Test
+        void noUpdatableNonIdColumns_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.NoUpdatableEntity",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.TableName;
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.ColumnName;
+
+                    @SQLMapping
+                    @TableName("no_updatable")
+                    public class NoUpdatableEntity {
+                        @IdColumn
+                        private Long id;
+                        @ColumnName(updatable = false)
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("at least one updatable non-id column"));
+        }
+
+        @Test
+        void emptyEntityWithOnlyId_failsCompilation() {
             JavaFileObject source = JavaFileObjects.forSourceString(
                     "test.IdOnlyEntity",
                     """
@@ -843,10 +1188,8 @@ class SQLMappingProcessorTest {
             );
 
             Compilation compilation = compile(source);
-            assertEquals(Compilation.Status.SUCCESS, compilation.status());
-
-            assertTrue(compilation.generatedSourceFiles().stream()
-                    .anyMatch(f -> f.getName().contains("IdOnlyEntityUtils")));
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("at least one updatable non-id column"));
         }
     }
 }

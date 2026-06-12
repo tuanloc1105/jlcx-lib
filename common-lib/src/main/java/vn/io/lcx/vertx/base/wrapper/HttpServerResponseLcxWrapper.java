@@ -262,8 +262,13 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
     }
 
     @Override
-    public int streamId() {
+    public long streamId() {
         return realResponse.streamId();
+    }
+
+    @Override
+    public Future<Void> writeAltSvc(String altSvc) {
+        return realResponse.writeAltSvc(altSvc);
     }
 
     @Override
@@ -274,6 +279,11 @@ public class HttpServerResponseLcxWrapper implements HttpServerResponse {
     @Override
     public Future<Void> reset(long code) {
         return realResponse.reset(code);
+    }
+
+    @Override
+    public Future<Boolean> cancel() {
+        return realResponse.cancel();
     }
 
     @Override
