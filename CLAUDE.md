@@ -16,7 +16,7 @@ Core capabilities:
 - database DDL/query helpers for Oracle, PostgreSQL, MySQL, and SQL Server
 - shared infrastructure utilities: cache, mail, cron, lock, task retry, logging, auth context, crypto, JSON/YAML, file, date/time
 
-Dependency versions drift. Treat `pom.xml` as the source of truth. At this refresh the source uses Java 17, Vert.x 5.0.12, Hibernate ORM 7.3.3.Final, and Hibernate Reactive 4.3.3.Final.
+Dependency versions drift. Treat `pom.xml` as the source of truth. At this refresh the source uses Java 17, Vert.x 5.1.2, Hibernate ORM 7.4.1.Final, and Hibernate Reactive 4.4.1.Final.
 
 ## Repository Shape
 

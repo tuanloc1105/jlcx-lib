@@ -91,10 +91,10 @@ Current key versions at this refresh:
 | Dependency | Version |
 |---|---|
 | Java | 17 |
-| Vert.x | 5.0.12 |
-| Hibernate ORM | 7.3.3.Final |
-| Hibernate Reactive | 4.3.3.Final |
-| JAXB runtime | 4.0.8 |
+| Vert.x | 5.1.2 |
+| Hibernate ORM | 7.4.1.Final |
+| Hibernate Reactive | 4.4.1.Final |
+| JAXB runtime | 4.0.9 |
 
 ## Editing Guidance
 
