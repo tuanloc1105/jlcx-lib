@@ -33,11 +33,11 @@ A reactive Java microservices toolkit built on Vert.x 5.1.2. It provides a light
     │  Framework  │ │   DI    │ │   Layer    │
     │ (generated) │ │Container│ │ (ORM/JDBC) │
     └──────┬──────┘ └────┬────┘ └─────┬──────┘
-           │             │             │
-    ┌──────▼─────────────▼─────────────▼──────┐
-    │            Vert.x Core 5.1.2            │
-    │     Event Loop  │  Worker Pool          │
-    └──────────────────┬──────────────────────┘
+           │             │            │
+    ┌──────▼─────────────▼────────────▼──────┐
+    │            Vert.x Core 5.1.2           │
+    │     Event Loop  │  Worker Pool         │
+    └──────────────────┬─────────────────────┘
                        │
     ┌──────────────────▼───────────────────────┐
     │        Infrastructure Services           │
