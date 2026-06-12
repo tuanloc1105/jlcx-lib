@@ -7,8 +7,7 @@ The database layer spans sync JDBC helpers, DDL/entity analysis, JPA repositorie
 | Package | Role |
 |---|---|
 | `vn.io.lcx.common.database` | JDBC executor, properties, connection context. |
-| `vn.io.lcx.common.database.utils` | Entity analysis, field processing, SQL/DDL helpers. |
-| `vn.io.lcx.common.database.strategy` | DB-specific DDL strategies. |
+| `vn.io.lcx.common.database.utils` | Entity analysis, field processing, SQL/DDL helpers, and DB-specific DDL strategies. |
 | `vn.io.lcx.common.database.pageable` | DB-specific pagination. |
 | `vn.io.lcx.common.database.specification` | Fluent SQL condition builder. |
 | `vn.io.lcx.common.database.handler.statement` | Input statement parameter handlers. |
@@ -33,11 +32,11 @@ Important annotations:
 
 | Annotation | Use |
 |---|---|
-| `@TableName` | Physical table name. |
-| `@ColumnName` | Physical column name. |
+| `@TableName` | Physical table name plus table-level index metadata. |
+| `@ColumnName` | Physical column name plus insert/update/nullability, `index`, and `columnDataTypeDefinition` metadata. |
 | `@IdColumn` | Primary id column. |
 | `@SecondaryIdColumn` | Secondary id column. |
-| `@ForeignKey` | Foreign-key metadata. |
+| `@ForeignKey` | Foreign-key metadata: `referenceColumn`, `referenceTable`, and `cascade`. |
 | `@SubTable` | Nested/sub-table mapping. |
 | `@Clob` | CLOB column mapping. |
 | `@Index` | Index metadata. |
@@ -57,6 +56,8 @@ Main classes:
 - `DatabaseExecutorImpl`
 - `DatabaseProperty`
 - `ConnectionContext`
+
+`ConnectionContext` is deprecated for removal in current source; prefer the executor/config paths used by the active repository layers.
 
 `DatabaseExecutorImpl` provides singleton-style JDBC operations:
 
@@ -107,7 +108,7 @@ DB-specific implementations:
 - MySQL pageable
 - SQL Server pageable
 
-`PageableImpl` stores page/page-size/sort metadata. When an entity class is provided, it maps Java field names to physical column names through entity annotations.
+`PageableImpl` stores page/page-size/sort metadata and is a base holder. Several rendering/mapping methods are intentionally unimplemented there; vendor pageables perform SQL rendering and field-to-column mapping.
 
 ## Specifications
 
@@ -124,6 +125,8 @@ Supported operation families include:
 - null checks
 
 Specification code also maps entity fields to column names when entity metadata is available.
+
+`SimpleSpecificationImpl` is marked in source as still being tested; be conservative when changing or relying on edge-case predicate behavior.
 
 ## JPA Layer
 
@@ -155,7 +158,7 @@ Do not silently correct the package typo `respository`; it is the current source
 
 Important classes/interfaces:
 
-- `ReactiveRepository<T, ID>`
+- `ReactiveRepository<T>`
 - `SqlStatement`
 - statement builders/wrappers
 - result mapping utilities
@@ -168,6 +171,8 @@ Generated code:
 
 - `@RRepository` interfaces extending `ReactiveRepository` get `{RepositoryInterface}Impl`.
 - `vn.io.lcx.reactive.annotation.Query` drives custom query methods.
+- Custom methods without supported generated behavior need reactive `@Query`.
+- Processor validation follows the current method signature convention with `RoutingContext` and `SqlConnection` leading parameters.
 
 The Todo example uses this path with manual SQL queries.
 
@@ -175,7 +180,7 @@ The Todo example uses this path with manual SQL queries.
 
 Important interface:
 
-- `HReactiveRepository<T, ID>`
+- `HReactiveRepository<T>`
 
 Generated code:
 
@@ -204,17 +209,19 @@ See `docs/annotation-processors.md` for processor details.
 
 Todo app:
 
-- prefix/config: `reactive.database.*`
+- source config prefix: `server.reactive.database.*` (example YAML nests this as `server.reactive.database`)
 - routes under `/api/v2/user` and `/api/v2/task`
 - repository path: `@RRepository`
 - SQL references schema names like `r_lcx`
+- entities use `@SQLMapping`/`@TableName` style mapping
 
 Hibernate Reactive app:
 
-- prefix/config: `hreactive.database.*`
+- source config prefix: `server.hreactive.database.*` (example YAML nests this as `server.hreactive.database`)
 - persistence unit: `postgresql-example`
 - repository path: `@HRRepository`
 - current `persistence.xml` appears stale against entity source
+- entities use standard Jakarta `@Entity`/`@Table` mapping
 
 See `docs/examples.md`.
 

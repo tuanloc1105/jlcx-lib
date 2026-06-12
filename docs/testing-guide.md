@@ -15,6 +15,8 @@ Root scripts:
 ```bash
 ./build.sh
 ./clean.sh
+./snapshot.sh
+./release.sh
 ```
 
 The root Maven build covers `common-lib` and `processor`. Examples are separate projects under `examples/`.
@@ -107,3 +109,5 @@ mvn clean compile
 - Example resources contain demo keys/defaults; do not use them for production assertions.
 - Hibernate Reactive example persistence metadata appears stale against current entities.
 - Todo deploy chart env names may not match app YAML keys.
+- Todo Dockerfile currently uses a Java 11 base image while source targets Java 17.
+- gRPC example source uses port `7070`; older notes may mention `9090`.

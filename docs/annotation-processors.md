@@ -20,7 +20,7 @@ When configuring annotation processor paths manually, include both `processor` a
 | `HRRepositoryProcessor` | `@HRRepository` | `{RepositoryInterface}Impl` | Hibernate Reactive repository implementation. |
 | `MapperClassProcessor` | `@MapperClass` | `{MapperInterface}Impl` | Object mapper implementation using `@Mapping`, `@Mappings`, `@Merging`, and mapper config. |
 | `SQLMappingProcessor` | `@SQLMapping` | `{Entity}Utils`, `{Entity}MappingImpl` | SQL/entity mapping helpers. Emits two classes. |
-| `DIScanner` | wildcard `*`; filters `@Component` root elements | `META-INF/class-index-{UUID}.json` | Compile-time component index for faster DI scanning. |
+| `DIScanner` | wildcard `*`; filters `@Component` root elements | `META-INF/class-index-{UUID}.json` | Compile-time component metadata. Current runtime DI does not read these index files. |
 
 All processors return `SourceVersion.latest()` while the project targets Java 17 through Maven.
 
@@ -64,7 +64,6 @@ Template changes can affect multiple generated classes. Verify with processor te
 `ControllerProcessor` reads:
 
 - `@VertxApplication` for bootstrap configuration
-- `@ComponentScan` for package scanning
 - `@Controller` route classes and route methods
 - HTTP method annotations: `@Get`, `@Post`, `@Put`, `@Delete`
 - `@ContextHandler` middleware
@@ -72,6 +71,8 @@ Template changes can affect multiple generated classes. Verify with processor te
 - request binding annotations for path/query/header/form/body/file values
 
 Generated output is fixed: `vn.io.lcx.vertx.verticle.ApplicationVerticle`.
+
+`@ComponentScan` is read by `MyVertxDeployment` at runtime when it builds the package list for `ClassPool`; do not model it as `ControllerProcessor` input.
 
 ## Rest Controller Generation
 
@@ -97,12 +98,13 @@ JPA:
 
 Reactive SQL:
 
-- `@RRepository` interfaces extending `ReactiveRepository<T, ID>` get `{Name}Impl`.
+- `@RRepository` interfaces extending `ReactiveRepository<T>` get `{Name}Impl`.
 - `vn.io.lcx.reactive.annotation.Query` drives custom SQL methods.
+- Custom reactive methods are constrained by the processor. Unsupported methods need reactive `@Query`, and generated repository methods expect the first parameters to match the current `RoutingContext`/`SqlConnection` conventions.
 
 Hibernate Reactive:
 
-- `@HRRepository` interfaces extending `HReactiveRepository<T, ID>` get `{Name}Impl`.
+- `@HRRepository` interfaces extending `HReactiveRepository<T>` get `{Name}Impl`.
 - Generated code works with `Stage.Session` style Hibernate Reactive APIs.
 
 ## Mapper Generation

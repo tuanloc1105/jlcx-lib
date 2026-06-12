@@ -31,8 +31,8 @@ Root Maven modules are `common-lib` and `processor`. Example projects are not ro
 |---|---|
 | `vn.io.lcx.common.annotation` | DI annotations, entity/table annotations, mapper annotations, SQL mapping annotations. |
 | `vn.io.lcx.common.config` | `ClassPool`, default object mappers, Gson, Logback setup, framework defaults. |
-| `vn.io.lcx.common.database` | JDBC executor, connection context, database property model, DDL/entity/query helpers. |
-| `vn.io.lcx.common.database.strategy` | Oracle, PostgreSQL, MySQL, SQL Server DDL strategies. |
+| `vn.io.lcx.common.database` | JDBC executor, deprecated connection context, database property model, DDL/entity/query helpers. |
+| `vn.io.lcx.common.database.utils` | Entity analysis, SQL generation, and Oracle/PostgreSQL/MySQL/SQL Server DDL strategies. |
 | `vn.io.lcx.common.database.pageable` | Cross-database pagination SQL generation. |
 | `vn.io.lcx.common.database.specification` | Fluent SQL condition builder. |
 | `vn.io.lcx.common.utils` | String, object, JSON/YAML, crypto, date/time, file, random, HTTP, collection, serialization helpers. |
@@ -53,10 +53,11 @@ Root Maven modules are `common-lib` and `processor`. Example projects are not ro
 Typical app flow:
 
 1. App class uses `@VertxApplication`.
-2. Annotation processors generate routing, wrappers, repositories, service proxies, SQL mapping helpers, and DI class indexes.
-3. `ClassPool` scans configured packages and generated class indexes, registers components/instances, resolves dependencies, and runs lifecycle hooks.
-4. Generated `ApplicationVerticle` wires Vert.x routes, auth handlers, static resources, and controller wrappers.
-5. Controllers delegate to services/repositories that return `Future<T>` for async Vert.x paths.
+2. Annotation processors generate routing, wrappers, repositories, service proxies, SQL mapping helpers, object mappers, and component metadata files.
+3. `MyVertxDeployment` reads `@ComponentScan`, seeds Vert.x defaults, and starts `ClassPool`.
+4. `ClassPool` scans packages through `PackageScanner`, registers components/instances, resolves constructor/factory parameters, and runs lifecycle hooks.
+5. Generated `ApplicationVerticle` wires Vert.x routes, auth handlers, static resources, and controller wrappers.
+6. Controllers delegate to services/repositories that return `Future<T>` for async Vert.x paths.
 
 ## Important Generated Outputs
 
@@ -71,6 +72,8 @@ Typical app flow:
 | `@MapperClass` | `{MapperInterface}Impl` |
 | `@SQLMapping` | `{Entity}Utils` and `{Entity}MappingImpl` |
 | `@Component` scanned by `DIScanner` | `META-INF/class-index-{UUID}.json` |
+
+Current runtime DI does not read the `META-INF/class-index-*` files; package scanning remains the authoritative discovery path.
 
 ## Resources
 

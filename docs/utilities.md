@@ -53,6 +53,8 @@ Important classes:
 
 `RedisPoolImpl` handles Redis pool behavior such as CRUD/ping-style operations. Treat Redis config keys as app-specific unless confirmed in target YAML.
 
+`CacheUtils<K,V>` is an in-memory cache with capacity and scheduled expiry cleanup. Reactive Redis client setup lives under `vn.io.lcx.reactive.cache.VertxRedisConfiguration`.
+
 ## Mail
 
 Important classes:
@@ -64,7 +66,9 @@ Important classes:
 - `MailPropertiesEmptyError`
 - `MailSendingError`
 
-`ReactiveMailSender` integrates mail sending with Vert.x blocking execution patterns.
+`ReactiveMailSender` wraps blocking SMTP send through Vert.x `WorkerExecutor.executeBlocking(..., false)`.
+
+`MailHelper` validates host/port/username/password/email targets, forces SMTP auth/starttls/SSL socket factory/TLSv1.2 and 10s timeouts, then sleeps 500ms between messages.
 
 ## Cron
 
@@ -94,6 +98,10 @@ Important classes/interfaces:
 
 `DefaultConfiguration` registers executor-related defaults and can use virtual-thread-aware support when runtime allows.
 
+`MyTaskRetrying` retries with `Thread.sleep` and returns `null` after exhausting retries rather than rethrowing the last exception.
+
+`LockManager` is file-lock based. It appends `.lock` when missing, retries every 100ms until timeout, throws if the same instance already holds a lock, and deletes the lock file on release.
+
 ## Logging
 
 Logging resources/classes:
@@ -107,7 +115,7 @@ Logging resources/classes:
 
 ## Auth Context
 
-`AuthContext` stores request/auth-related context. Be careful with async boundaries; confirm context propagation before adding new usage.
+`AuthContext` is a static `ThreadLocal<Object>` with `set`, `get`, typed `get`, and `clear`. Be careful with async boundaries; prefer `RoutingContext` storage for route-local user data.
 
 ## Constants
 

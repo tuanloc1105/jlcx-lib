@@ -1,6 +1,6 @@
 # jlcx-lib
 
-A reactive Java microservices toolkit built on Vert.x 5.0.10. It provides a lightweight DI container (`ClassPool`), annotation-driven HTTP routing with compile-time code generation, multi-database ORM support, and a rich set of utilities — so teams can ship production-ready microservices without re-implementing infrastructure pieces.
+A reactive Java microservices toolkit built on Vert.x 5.1.2. It provides a lightweight DI container (`ClassPool`), annotation-driven HTTP routing with compile-time code generation, multi-database ORM support, and a rich set of utilities — so teams can ship production-ready microservices without re-implementing infrastructure pieces.
 
 | Property   | Value                |
 |------------|----------------------|
@@ -16,8 +16,8 @@ A reactive Java microservices toolkit built on Vert.x 5.0.10. It provides a ligh
 - **Compile-time code generation** — Annotation processors generate routing, repository, service proxy, and mapper code at build time. No runtime reflection for route discovery.
 - **Async-first** — Controller methods return `Future<T>`. Non-blocking I/O via the Vert.x event loop.
 - **Lightweight DI** — `ClassPool` two-phase dependency injection container with `@Component`, `@Instance`, `@Qualifier`, `@DependsOn`.
-- **Multi-database ORM** — Strategy pattern supporting Oracle, PostgreSQL, MySQL, and SQL Server. Dual sync (Hibernate ORM 7.3) and async (Hibernate Reactive 4.3 / Vert.x SQL clients) paths.
-- **Rich utilities** — 285 classes across 28 utility modules: caching, task scheduling, retry logic, mail, cron, locking, large collections, and more.
+- **Multi-database ORM** — Strategy pattern supporting Oracle, PostgreSQL, MySQL, and SQL Server. Dual sync (Hibernate ORM 7.4.1.Final) and async (Hibernate Reactive 4.4.1.Final / Vert.x SQL clients) paths.
+- **Rich utilities** — Shared helpers and infrastructure for caching, task scheduling, retry logic, mail, cron, locking, large collections, crypto, JSON/YAML, file handling, and more.
 - **End-to-end examples** — gRPC, Hibernate Reactive, and Todo app examples that double as documentation and integration tests.
 
 ## Architecture
@@ -35,7 +35,7 @@ A reactive Java microservices toolkit built on Vert.x 5.0.10. It provides a ligh
     └──────┬──────┘ └────┬────┘ └─────┬──────┘
            │             │             │
     ┌──────▼─────────────▼─────────────▼──────┐
-    │            Vert.x Core 5.0.10             │
+    │            Vert.x Core 5.1.2              │
     │     Event Loop  │  Worker Pool           │
     └──────────────────┬───────────────────────┘
                        │
@@ -49,8 +49,8 @@ A reactive Java microservices toolkit built on Vert.x 5.0.10. It provides a ligh
 
 ```
 jlcx-lib/
-├── common-lib/          Core library (DI, HTTP, database, utilities) — 285 classes
-├── processor/           Annotation processors (depends on common-lib)
+├── common-lib/          Core library (DI, HTTP, database, utilities, processor implementations)
+├── processor/           Annotation-processor facade/SPI jar (depends on common-lib)
 ├── examples/
 │   ├── todo-app-example/
 │   ├── hibernate-reactive-example/
@@ -58,8 +58,8 @@ jlcx-lib/
 └── docs/                Detailed documentation
 ```
 
-- **`common-lib`** — Core runtime: `ClassPool` DI container, Vert.x web framework base classes, JDBC/reactive database layer, JPA helpers, entity annotations, 28 utility classes, caching, task scheduling, cron, mail, locking, logging defaults, and resource templates.
-- **`processor`** — 9 annotation processors registered via `META-INF/services/javax.annotation.processing.Processor`. Generates routing verticles, repository implementations, service proxies, object mappers, and component indices at compile time.
+- **`common-lib`** — Core runtime: `ClassPool` DI container, Vert.x web framework base classes, JDBC/reactive database layer, JPA helpers, entity annotations, shared utilities/infrastructure, resource templates, and the real processor implementations.
+- **`processor`** — Facade/registrar jar for 9 annotation processors via `META-INF/services/javax.annotation.processing.Processor`; implementation classes and templates are loaded from transitive `common-lib`.
 - **`examples`** — Runnable Vert.x projects demonstrating typical usage patterns.
 
 ## 9 Annotation Processors
@@ -82,57 +82,57 @@ jlcx-lib/
 
 | Technology | Version | Purpose |
 |---|---|---|
-| Vert.x | 5.0.10 | Async event loop, HTTP server, SQL clients, gRPC, Redis, Auth JWT, Micrometer |
-| Hibernate ORM | 7.3.0 | JPA persistence (sync) |
-| Hibernate Reactive | 4.3.0 | Non-blocking persistence |
+| Vert.x | 5.1.2 | Async event loop, HTTP server, SQL clients, gRPC, Redis, Auth JWT, Micrometer |
+| Hibernate ORM | 7.4.1.Final | JPA persistence (sync) |
+| Hibernate Reactive | 4.4.1.Final | Non-blocking persistence |
 | HikariCP | 7.0.2 | JDBC connection pooling |
-| Jackson | 2.21.2 | JSON/XML data binding |
-| Gson | 2.13.2 | JSON serialization |
+| Jackson | 2.22.0 | JSON/XML data binding |
+| Gson | 2.14.0 | JSON serialization |
 | SnakeYAML | 2.6 | YAML configuration loading |
-| Lombok | 1.18.44 | Boilerplate reduction |
-| Javassist | 3.30.2 | Bytecode manipulation |
+| Lombok | 1.18.46 | Boilerplate reduction |
+| Javassist | 3.31.0-GA | Bytecode manipulation |
 | Apache Commons (Text, Lang3, Collections4) | 1.15 / 3.20 / 4.5 | String, reflection, collection utilities |
-| JAXB API + Runtime | 4.0.5 / 4.0.7 | XML binding |
+| JAXB API + Runtime | 4.0.5 / 4.0.9 | XML binding |
 | Jakarta Persistence API | 3.2.0 | JPA specification |
 
 ### Database Drivers
 
 | Database | Driver Version |
 |---|---|
-| Oracle | ojdbc11 23.26.1 |
-| PostgreSQL | 42.7.10 |
-| MySQL | 9.6.0 |
-| SQL Server | 13.4.0 |
+| Oracle | ojdbc11 23.26.2.0.0 |
+| PostgreSQL | 42.7.11 |
+| MySQL | 9.7.0 |
+| SQL Server | 13.4.0.jre11 |
 | H2 (testing) | 2.4.240 |
 
 ### Messaging & Caching
 
 | Technology | Version |
 |---|---|
-| Apache Kafka | 4.2.0 |
-| Jedis (Redis) | 7.4.1 |
+| Apache Kafka | 4.3.0 |
+| Jedis (Redis) | 7.5.2 |
 | Ehcache | 3.12.0 |
 
 ### gRPC
 
 | Technology | Version |
 |---|---|
-| gRPC (Netty shaded) | 1.80.0 |
-| Protobuf | 4.34.1 |
+| gRPC (Netty shaded) | 1.82.0 |
+| Protobuf | 4.35.1 |
 
 ### Monitoring
 
 | Technology | Version |
 |---|---|
-| Micrometer Core + Prometheus | 1.16.4 |
-| Dropwizard Metrics 4 | 4.2.38 |
-| Dropwizard Metrics 5 | 5.0.6 |
+| Micrometer Core + Prometheus | 1.17.0 |
+| Dropwizard Metrics 4 | 4.2.39 |
+| Dropwizard Metrics 5 | 5.0.7 |
 
 ### Security
 
 | Technology | Version |
 |---|---|
-| Vert.x Auth JWT | 5.0.10 |
+| Vert.x Auth JWT | 5.1.2 |
 | jBCrypt | 0.4 |
 | Jakarta Mail | 2.0.5 |
 
@@ -140,7 +140,7 @@ jlcx-lib/
 
 | Technology | Version |
 |---|---|
-| JUnit Jupiter | 6.0.3 |
+| JUnit Jupiter | 6.1.0 |
 | Mockito | 5.23.0 |
 | DataFaker | 2.5.4 |
 
@@ -149,8 +149,8 @@ jlcx-lib/
 | Technology | Version |
 |---|---|
 | Maven Compiler Plugin | 3.15.0 |
-| Maven Surefire Plugin | 3.5.5 |
-| SonarQube Scanner | 5.5.0 |
+| Maven Surefire Plugin | 3.5.6 |
+| SonarQube Scanner | 5.7.0.6970 |
 
 ## Prerequisites
 
@@ -334,7 +334,8 @@ Each example includes `build.sh`, `clean.sh`, and PowerShell counterparts.
 |---------|---------|
 | `vn.io.lcx.common.config` | `ClassPool` DI container, configuration |
 | `vn.io.lcx.common.annotation` | DI and entity annotations |
-| `vn.io.lcx.common.database` | JDBC execution, DDL strategies, entity analysis |
+| `vn.io.lcx.common.database` | JDBC execution, database property model, pageable/specification contracts |
+| `vn.io.lcx.common.database.utils` | Entity analysis, SQL generation, DB-specific DDL strategies |
 | `vn.io.lcx.common.utils` | 28 utility classes |
 | `vn.io.lcx.common.task` | Task execution, batch processing, retry logic |
 | `vn.io.lcx.common.cache` | Caching abstractions |
@@ -370,7 +371,7 @@ For in-depth documentation, see the `docs/` directory:
 | [docs/vertx-web-framework.md](docs/vertx-web-framework.md) | HTTP routing, `@Controller`/`@RestController`, request binding, validation, middleware |
 | [docs/database-layer.md](docs/database-layer.md) | JDBC, entity annotations, DDL generation, JPA repositories, reactive repositories, pagination |
 | [docs/annotation-processors.md](docs/annotation-processors.md) | `@MapperClass` processor, `@Mapping`/`@Merging`, all 9 processor cross-references |
-| [docs/utilities.md](docs/utilities.md) | 28 utility classes, constants, custom exceptions, package scanner |
+| [docs/utilities.md](docs/utilities.md) | Utilities, shared infrastructure, constants, custom exceptions, package scanner |
 
 ## Troubleshooting
 

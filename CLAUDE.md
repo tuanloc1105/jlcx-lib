@@ -14,6 +14,7 @@ Core capabilities:
 - compile-time code generation through 9 annotation processors
 - sync JDBC helpers, JPA repositories, Vert.x SQL repositories, and Hibernate Reactive repositories
 - database DDL/query helpers for Oracle, PostgreSQL, MySQL, and SQL Server
+- object mapper generation through `@MapperClass`, `@Mapping`, `@Mappings`, and `@Merging`
 - shared infrastructure utilities: cache, mail, cron, lock, task retry, logging, auth context, crypto, JSON/YAML, file, date/time
 
 Dependency versions drift. Treat `pom.xml` as the source of truth. At this refresh the source uses Java 17, Vert.x 5.1.2, Hibernate ORM 7.4.1.Final, and Hibernate Reactive 4.4.1.Final.
@@ -75,13 +76,19 @@ The parent compiler config uses full annotation processing. If generated-code be
 - Generated code relies on templates in `common-lib/src/main/resources/template`; keep processor classpath/resource behavior in mind.
 - Controllers and repositories are async-first: Vert.x APIs generally return `Future<T>`.
 - Generated routing is compile-time, not runtime route discovery.
+- DI injection is constructor/factory-parameter based; fields are used as metadata for matching, not as general reflective field injection.
 - Keep docs token-light here; add detail to a specific `docs/*.md` file and link it from this guide.
 
 ## Current Gotchas
 
 - `processor/` is a facade/registrar module, not the implementation module.
-- `DIScanner` supports wildcard processing and emits `META-INF/class-index-{UUID}.json` for `@Component` classes.
+- `DIScanner` supports wildcard processing and emits `META-INF/class-index-{UUID}.json` for `@Component` classes, but current runtime scanning does not read those index files.
+- `@ComponentScan` is read by runtime deployment bootstrap, not by `ControllerProcessor`.
+- `@APIKey` currently works through generated route code for direct `@Controller` methods; `RestControllerProcessor` does not copy it from `@RestController` methods.
+- Framework config keys include the `server.` prefix in source (`server.database.*`, `server.reactive.database.*`, `server.hreactive.database.*`) even when example YAML nesting makes this easy to miss.
 - The Todo example frontend env sample uses `api/v1`, while backend routes are `/api/v2/...`; align env manually when running it.
 - The Todo Helm chart uses `DATABASE_*` names, while app config expects `REACTIVE_DATABASE_*`; treat deploy values as example material, not guaranteed production-ready config.
+- The Todo Dockerfile currently uses a Java 11 base image although the project targets Java 17.
 - Hibernate Reactive example `persistence.xml` appears stale: it lists `Author`/`Book`, while current source has `UsersEntity`/`TasksEntity`.
+- gRPC example source uses port `7070`; older README notes may mention `9090`.
 - Example resources contain hardcoded defaults and RSA keys for local/demo use. Do not present them as production-safe.

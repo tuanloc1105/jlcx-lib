@@ -1,6 +1,6 @@
 # Configuration Reference
 
-Configuration is loaded from YAML/properties helpers and made available through `CommonConstant.applicationConfig`. Environment placeholders use the `${ENV_VAR:default}` style in example YAML files.
+Configuration is loaded from YAML helpers and made available through `CommonConstant.applicationConfig`. Environment placeholders use the `${ENV_VAR:default}` style in example YAML files.
 
 This doc records current config surfaces. Verify exact keys in the target app before changing behavior.
 
@@ -9,25 +9,31 @@ This doc records current config surfaces. Verify exact keys in the target app be
 | Area | Source/classes |
 |---|---|
 | Application config holder | `CommonConstant.applicationConfig` |
-| YAML/property parsing | `YamlProperties`, `LCXProperties`, config helpers |
+| YAML parsing | `YamlProperties`, `LCXProperties`, config helpers |
 | Default JSON/XML/Gson | `DefaultConfiguration`, `BuildGson`, `BuildObjectMapper` |
 | Logging | `LogbackConfig`, `default-logback.xml` |
 | DI bootstrap | `ClassPool` |
 
-`common-lib` does not ship a main `application.yaml`. Examples and tests provide app configs.
+`common-lib` does not ship a main `application.yaml`. Examples and tests provide app configs. `ClassPool.loadProperties()` reads classpath `application.yaml` or the system property `application_config.file`.
+
+Despite names such as `PropertiesUtils`, current source handles `.yaml`/`.yml`, not Java `.properties` files. Missing non-placeholder values can become the literal string `"null"`; several config paths compare against `CommonConstant.NULL_STRING`.
+
+`ClassPool.loadProperties()` also reads `json.sensitive_field` and appends those names to `JsonMaskingUtils.CUSTOM_FIELD`.
 
 ## Common Server Keys
 
-Examples use server keys for host/port style configuration. `ControllerProcessor` and generated `ApplicationVerticle` consume `@VertxApplication` metadata plus config values.
+Examples use server keys for host/port style configuration. Generated `ApplicationVerticle` consumes `@VertxApplication` metadata plus config values.
 
 Common things to check:
 
-- HTTP port
-- static webroot
-- component scan package
-- context handlers
-- auth/API-key handlers
-- Vert.x deployment options
+- `server.port`
+- `server.enable-http-2`
+- `server.body-bytes-limit`
+- `server.cookie-auth-name`
+- `server.api-key`
+- `server.enable-metrics`
+- `server.metrics.enable`, `server.metrics.port`, `server.metrics.endpoint`
+- `server.enable-virtual-thread`
 
 See `docs/vertx-web-framework.md` for routing behavior.
 
@@ -44,35 +50,41 @@ Supported database types:
 
 Typical properties:
 
-- host
-- port
-- username
-- password
-- database name/service name
-- max pool size or connection settings
-- database type
+- `server.database.host`
+- `server.database.port`
+- `server.database.username`
+- `server.database.password`
+- `server.database.name`
+- `server.database.schema_name`
+- `server.database.driver_class_name`
+- `server.database.dialect`
+- `server.database.initial_pool_size`
+- `server.database.max_pool_size`
+- `server.database.max_timeout`
+- `server.database.type`
+- `server.database.use_cache`
 
 `DBTypeEnum` stores driver class, JDBC URL template, version SQL, and Hibernate dialect information.
 
 ## Reactive SQL Config
 
-Todo app uses the `reactive.database.*` prefix with env defaults:
+Source reads the `server.reactive.database.*` prefix. Example YAML nests this as `server.reactive.database` and uses env defaults:
 
 | Key | Env default family |
 |---|---|
-| `reactive.database.host` | `REACTIVE_DATABASE_HOST` |
-| `reactive.database.port` | `REACTIVE_DATABASE_PORT` |
-| `reactive.database.username` | `REACTIVE_DATABASE_USERNAME` |
-| `reactive.database.password` | `REACTIVE_DATABASE_PASSWORD` |
-| `reactive.database.database` / name | `REACTIVE_DATABASE_NAME` |
-| `reactive.database.max-pool-size` | `REACTIVE_DATABASE_MAX_POOL_SIZE` |
-| `reactive.database.type` | `REACTIVE_DATABASE_TYPE` |
+| `server.reactive.database.host` | `REACTIVE_DATABASE_HOST` |
+| `server.reactive.database.port` | `REACTIVE_DATABASE_PORT` |
+| `server.reactive.database.username` | `REACTIVE_DATABASE_USERNAME` |
+| `server.reactive.database.password` | `REACTIVE_DATABASE_PASSWORD` |
+| `server.reactive.database.name` | `REACTIVE_DATABASE_NAME` |
+| `server.reactive.database.max_pool_size` | `REACTIVE_DATABASE_MAX_POOL_SIZE` |
+| `server.reactive.database.type` | `REACTIVE_DATABASE_TYPE` |
 
 Current Todo default port is `6060` and default DB type is PostgreSQL.
 
 ## Hibernate Reactive Config
 
-Hibernate Reactive example uses the `hreactive.database.*` prefix and `META-INF/persistence.xml`.
+Hibernate Reactive source reads `server.hreactive.database.*` and `META-INF/persistence.xml`. Example YAML nests this as `server.hreactive.database`, but the env placeholders are still named `REACTIVE_DATABASE_*`.
 
 Current app facts:
 
@@ -93,7 +105,13 @@ Important classes:
 - `RedisPoolImpl`
 - `CacheUtils`
 
-Check app config for host/port/password/database/pool naming before use; current docs should not invent missing keys.
+Known reactive Redis keys:
+
+- `server.reactive.redis.host`
+- `server.reactive.redis.port`
+- `server.reactive.redis.password`
+
+Gotcha: `VertxRedisConfiguration.redis()` currently reads max pool size from `server.reactive.database.max_pool_size`, not `server.reactive.redis.max_pool_size`.
 
 ## Mail
 

@@ -1,6 +1,6 @@
 # ClassPool DI Container
 
-`ClassPool` is the lightweight dependency container used by the framework and examples. It handles package scanning, component registration, instance factories, dependency ordering, field/constructor injection, qualifiers, and lifecycle hooks.
+`ClassPool` is the lightweight dependency container used by the framework and examples. It handles package scanning, component registration, instance factories, dependency ordering, constructor/factory-parameter injection, qualifiers, and lifecycle hooks.
 
 ## Main Classes
 
@@ -12,7 +12,7 @@
 | `BuildObjectMapper` | Builds JSON/XML Jackson mappers. |
 | `LogbackConfig` | Applies default logging configuration. |
 | `PackageScanner` | Runtime package scanning helper. |
-| `DIScanner` | Compile-time processor that emits `META-INF/class-index-{UUID}.json` for `@Component` classes. |
+| `DIScanner` | Compile-time processor that emits `META-INF/class-index-{UUID}.json` for `@Component` classes. Current runtime scanning does not read these files. |
 
 ## Core Annotations
 
@@ -21,7 +21,7 @@
 | `@Component` | type | Register a class as a DI component. |
 | `@Verticle` | type | Register/deploy Vert.x verticle classes as managed components. |
 | `@Instance` | method | Register a factory method result as a bean. |
-| `@Qualifier` | field/parameter/method/type usage | Disambiguate beans by name/key. |
+| `@Qualifier` | field/parameter | Disambiguate beans by name/key during constructor/factory-parameter resolution. |
 | `@DependsOn` | type/method | Force dependency ordering before component/factory initialization. |
 | `@PostConstruct` | method | Invoke after dependency injection. |
 
@@ -31,19 +31,19 @@ Typical flow:
 
 1. Load app config into `CommonConstant.applicationConfig`.
 2. Register framework defaults from `DefaultConfiguration`.
-3. Scan configured packages and generated class-index resources.
+3. Scan the main app package, configured `@ComponentScan` packages, and framework package `vn.io.lcx`.
 4. Register `@Component` and `@Verticle` classes.
 5. Register `@Instance` factory methods.
 6. Resolve `@DependsOn` ordering.
 7. Instantiate beans.
-8. Resolve constructor and field dependencies by type or qualifier.
+8. Resolve constructor and factory-method parameters by qualifier, name, or type.
 9. Run `@PostConstruct` hooks.
 
 `ClassPool` uses concurrent maps for global registries. Treat it as process-level state.
 
 ## Component Registration
 
-Use `@Component` for normal service/config/helper classes. The processor-side `DIScanner` also scans components at compile time and writes class indexes, letting runtime bootstrap avoid pure reflection-only discovery where generated indexes are available.
+Use `@Component` for normal service/config/helper classes. The processor-side `DIScanner` also scans components at compile time and writes class indexes, but current `ClassPool` runtime bootstrap still discovers classes through package resources via `PackageScanner.findClasses`.
 
 Use `@Verticle` for Vert.x verticles that the framework should treat as managed components.
 
@@ -51,7 +51,7 @@ Avoid renaming packages casually. Component scanning and generated route code de
 
 ## Factory Instances
 
-`@Instance` marks a factory method. The returned object is registered in the pool.
+`@Instance` marks a factory method. The returned object is registered in the pool by type hierarchy and by `@Instance.value()` or method name.
 
 Common pattern:
 
@@ -69,14 +69,15 @@ public class AppConfig {
 
 ## Dependency Resolution
 
-The container resolves dependencies by:
+The container resolves constructor and factory-method dependencies by:
 
-- concrete type
-- assignable interface/supertype
-- `@Qualifier` when multiple candidates exist
-- factory method return type for `@Instance`
+- parameter `@Qualifier`
+- matching field `@Qualifier`
+- parameter name
+- matching field name
+- parameter type FQCN and assignable type
 
-Constructor and field injection are both used in source. Match existing style in the package you edit.
+There is no general reflective field assignment path. Fields are used as metadata for constructor resolution, especially for Lombok-style constructors and diagnostics. Match existing constructor/factory style in the package you edit.
 
 If duplicate instances are possible, use `@Qualifier` rather than relying on registration order.
 
@@ -85,6 +86,8 @@ If duplicate instances are possible, use `@Qualifier` rather than relying on reg
 `@PostConstruct` methods run after dependency injection. Use them for local initialization that needs injected dependencies already present.
 
 Keep `@PostConstruct` side effects small. Expensive I/O or route/database bootstrapping should usually live in Vert.x startup code or explicit service methods.
+
+`@PostConstruct` methods must be single no-arg `void` methods.
 
 ## Ordering
 
@@ -114,6 +117,8 @@ These defaults are used by wrappers such as `RoutingContextLcxWrapper`, which ob
 - writes `META-INF/class-index-{UUID}.json`
 
 Generated class indexes are resources, not Java source files. If component scanning misses a generated/indexed component, check annotation processing and classpath resources first.
+
+Current runtime DI does not consume these index files; if scanning misses a component, inspect package scanning inputs, `@ComponentScan`, and classpath packaging before assuming the index is authoritative.
 
 ## Tests
 

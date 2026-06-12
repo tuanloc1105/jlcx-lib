@@ -39,7 +39,7 @@ Main entities:
 
 Config keys:
 
-- `reactive.database.*`
+- source reads `server.reactive.database.*`; YAML nests it under `server.reactive.database`
 - env defaults use `REACTIVE_DATABASE_*`
 - default database type is PostgreSQL
 
@@ -93,7 +93,8 @@ Main entities:
 
 Config keys:
 
-- `hreactive.database.*`
+- source reads `server.hreactive.database.*`; YAML nests it under `server.hreactive.database`
+- env placeholders are still named `REACTIVE_DATABASE_*`
 - server port `5050`
 - default database name `hreact`
 
@@ -143,11 +144,12 @@ Server:
 - main class: `com.example.App`
 - `GreeterServiceImpl` is `@Component`
 - `GrpcServerVerticle` is `@Component`
+- current source binds the gRPC HTTP server on port `7070`
 
 Client:
 
 - main class: `com.example.App`
-- creates client for localhost and calls the generated service
+- creates a client for `localhost:7070` and calls the generated service
 
 Generation:
 
@@ -155,6 +157,7 @@ Generation:
 - Requires `DEV_KIT_LOCATION/tool/protoc-gen-grpc-java`.
 - Requires `DEV_KIT_LOCATION/tool/protoc-gen-vertx`.
 - `note.txt` contains PowerShell variants.
+- Older README text may mention `9090`; the current source uses `7070`.
 
 Commands:
 
