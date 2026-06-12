@@ -172,7 +172,10 @@ Generated code:
 - `@RRepository` interfaces extending `ReactiveRepository` get `{RepositoryInterface}Impl`.
 - `vn.io.lcx.reactive.annotation.Query` drives custom query methods.
 - Custom methods without supported generated behavior need reactive `@Query`.
-- Processor validation follows the current method signature convention with `RoutingContext` and `SqlConnection` leading parameters.
+- Custom query method signatures are compile-time enforced: `Future<X>` return, `RoutingContext` first, `SqlConnection` second, and `Pageable` only as the final parameter.
+- Query placeholders support `?` or `?1` styles, but not both in one query. `IN (?)` and `IN (?1)` expand collection and object-array parameters.
+- `Future<Page<T>>` uses explicit `@Query(countQuery = "...")` when provided. Simple select queries can derive `SELECT COUNT(1)`, while complex SQL requires an explicit count query.
+- `Future<List<T>>` with `Pageable` and `Future<Object[]>` are deprecated and emit processor warnings.
 
 The Todo example uses this path with manual SQL queries.
 

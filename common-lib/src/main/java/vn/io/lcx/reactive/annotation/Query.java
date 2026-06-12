@@ -32,6 +32,17 @@ import java.lang.annotation.Target;
  * @Query("SELECT * FROM orders WHERE customer_id = ?1 AND total_amount > ?2")
  * Future<List<Order>> findOrdersByCustomerAndAmount(RoutingContext context, SqlConnection connection, Long customerId, BigDecimal minAmount);
  *
+ * // Query with collection expansion
+ * @Query("SELECT * FROM orders WHERE id IN (?1)")
+ * Future<List<Order>> findOrdersByIds(RoutingContext context, SqlConnection connection, List<Long> ids);
+ *
+ * // Page query with explicit count query
+ * @Query(
+ *     value = "SELECT * FROM orders WHERE status = ?1 ORDER BY created_at DESC",
+ *     countQuery = "SELECT COUNT(1) FROM orders WHERE status = ?1"
+ * )
+ * Future<Page<Order>> findOrderPage(RoutingContext context, SqlConnection connection, String status, Pageable pageable);
+ *
  * // Complex query with JOINs
  * @Query("SELECT u.name, o.order_date, o.total_amount " +
  *        "FROM users u " +
@@ -70,6 +81,9 @@ import java.lang.annotation.Target;
  *   <li>Database portability may be limited due to native SQL syntax</li>
  *   <li>No automatic entity mapping for complex result sets</li>
  *   <li>Database-specific features may not work across different databases</li>
+ *   <li>Use either implicit {@code ?} placeholders or indexed {@code ?1} placeholders; do not mix both styles</li>
+ *   <li>{@code IN (?)} and {@code IN (?1)} support collection and object array expansion</li>
+ *   <li>{@link vn.io.lcx.common.database.pageable.Page} return types may require {@link #countQuery()} for complex SQL</li>
  * </ul>
  *
  * @author lcx
@@ -97,7 +111,25 @@ public @interface Query {
      * <p><strong>Note:</strong> The query is processed at compile time (SOURCE retention),
      * so any syntax errors will be detected during compilation.</p>
      *
+     * <p>Placeholders may use implicit {@code ?} order or indexed {@code ?1}
+     * order. Mixed placeholder styles fail compilation. Collection parameters
+     * are supported in {@code IN (?)} and {@code IN (?1)} forms.</p>
+     *
      * @return the native SQL query string
      */
     String value();
+
+    /**
+     * Optional count query used when a repository method returns
+     * {@code Future<Page<T>>}.
+     *
+     * <p>If omitted, the processor derives a simple {@code SELECT COUNT(1)}
+     * query from straightforward {@code SELECT ... FROM ...} statements.
+     * Complex statements such as {@code WITH}, {@code UNION},
+     * {@code DISTINCT}, {@code GROUP BY}, or {@code HAVING} must provide an
+     * explicit count query.</p>
+     *
+     * @return the native SQL count query string
+     */
+    String countQuery() default "";
 }

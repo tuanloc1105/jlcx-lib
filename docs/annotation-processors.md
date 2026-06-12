@@ -100,7 +100,11 @@ Reactive SQL:
 
 - `@RRepository` interfaces extending `ReactiveRepository<T>` get `{Name}Impl`.
 - `vn.io.lcx.reactive.annotation.Query` drives custom SQL methods.
-- Custom reactive methods are constrained by the processor. Unsupported methods need reactive `@Query`, and generated repository methods expect the first parameters to match the current `RoutingContext`/`SqlConnection` conventions.
+- Custom query methods are compile-time validated: return `Future<X>`, first parameter `RoutingContext`, second parameter `SqlConnection`, and final `Pageable` only when pagination is used.
+- Query placeholders support either implicit `?` order or indexed `?1` order. Mixed placeholder styles fail compilation.
+- `IN (?)` and `IN (?1)` expand `Collection` and object-array parameters into database-specific placeholders and tuple values.
+- `Future<Page<T>>` methods use `@Query(countQuery = "...")` when present; simple selects can derive a count query, while complex SQL such as `WITH`, `UNION`, `DISTINCT`, `GROUP BY`, or `HAVING` must define one.
+- `Future<List<T>>` with `Pageable` and `Future<Object[]>` still compile but emit deprecation warnings.
 
 Hibernate Reactive:
 
