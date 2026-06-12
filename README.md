@@ -6,7 +6,7 @@ A reactive Java microservices toolkit built on Vert.x 5.1.2. It provides a light
 | ---------- | ---------------------- |
 | GroupId    | `vn.io.lcx`          |
 | ArtifactId | `lcx-lib`            |
-| Version    | `4.0.5.lcx-SNAPSHOT` |
+| Version    | `4.1.0.lcx`          |
 | Java       | 17                     |
 | Build Tool | Maven 3.9+             |
 | License    | Apache 2.0             |
@@ -198,14 +198,14 @@ Add the core library and annotation processor to your project (adjust the versio
 <dependency>
   <groupId>vn.io.lcx</groupId>
   <artifactId>common-lib</artifactId>
-  <version>4.0.5.lcx-SNAPSHOT</version>
+  <version>4.1.0.lcx</version>
 </dependency>
 
 <!-- Annotation processor (compile-time) -->
 <dependency>
   <groupId>vn.io.lcx</groupId>
   <artifactId>processor</artifactId>
-  <version>4.0.5.lcx-SNAPSHOT</version>
+  <version>4.1.0.lcx</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -226,7 +226,7 @@ The annotation processor runs during compilation and generates sources based on 
       <path>
         <groupId>vn.io.lcx</groupId>
         <artifactId>processor</artifactId>
-        <version>4.0.5.lcx-SNAPSHOT</version>
+        <version>4.1.0.lcx</version>
       </path>
     </annotationProcessorPaths>
     <compilerArgs>
