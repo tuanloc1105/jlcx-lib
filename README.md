@@ -23,11 +23,11 @@ A reactive Java microservices toolkit built on Vert.x 5.1.2. It provides a light
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                  Application Code                   │
-│  @Controller  @Component  @RestController  @Entity  │
-└──────────┬─────────────┬─────────────┬──────────────┘
-           │             │             │
+┌────────────────────────────────────────────────────┐
+│                  Application Code                  │
+│  @Controller  @Component  @RestController  @Entity │
+└──────────┬─────────────┬────────────┬──────────────┘
+           │             │            │
     ┌──────▼──────┐ ┌────▼────┐ ┌─────▼──────┐
     │ Vert.x Web  │ │ClassPool│ │  Database  │
     │  Framework  │ │   DI    │ │   Layer    │
