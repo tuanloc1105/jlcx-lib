@@ -333,7 +333,7 @@ class SQLMappingProcessorTest {
     class FieldTypeMapping {
 
         @Test
-        void allCommonFieldTypes_compileSuccessfully() {
+        void allCommonFieldTypes_compileSuccessfully() throws Exception {
             JavaFileObject source = JavaFileObjects.forSourceString(
                     "test.AllTypesEntity",
                     """
@@ -342,10 +342,12 @@ class SQLMappingProcessorTest {
                     import vn.io.lcx.common.annotation.SQLMapping;
                     import vn.io.lcx.common.annotation.TableName;
                     import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.ColumnName;
 
                     import java.math.BigDecimal;
                     import java.time.LocalDate;
                     import java.time.LocalDateTime;
+                    import java.time.OffsetDateTime;
 
                     @SQLMapping
                     @TableName("all_types")
@@ -363,6 +365,8 @@ class SQLMappingProcessorTest {
                         private BigDecimal bigDecimalField;
                         private LocalDate localDateField;
                         private LocalDateTime localDateTimeField;
+                        @ColumnName(name = "OFFSET_DATE_TIME_FIELD")
+                        private OffsetDateTime offsetDateTimeField;
 
                         public Long getId() { return id; }
                         public void setId(Long id) { this.id = id; }
@@ -388,17 +392,29 @@ class SQLMappingProcessorTest {
                         public void setLocalDateField(LocalDate localDateField) { this.localDateField = localDateField; }
                         public LocalDateTime getLocalDateTimeField() { return localDateTimeField; }
                         public void setLocalDateTimeField(LocalDateTime localDateTimeField) { this.localDateTimeField = localDateTimeField; }
+                        public OffsetDateTime getOffsetDateTimeField() { return offsetDateTimeField; }
+                        public void setOffsetDateTimeField(OffsetDateTime offsetDateTimeField) { this.offsetDateTimeField = offsetDateTimeField; }
                     }
                     """
             );
 
             Compilation compilation = compile(source);
-            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+            assertEquals(Compilation.Status.SUCCESS, compilation.status(), errors(compilation));
 
             assertTrue(compilation.generatedSourceFiles().stream()
                     .anyMatch(f -> f.getName().contains("AllTypesEntityUtils")));
             assertTrue(compilation.generatedSourceFiles().stream()
                     .anyMatch(f -> f.getName().contains("AllTypesEntityMappingImpl")));
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("AllTypesEntityUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+            assertTrue(generatedCode.contains("resultSet.getObject(\"OFFSET_DATE_TIME_FIELD\", java.time.OffsetDateTime.class)"));
+            assertTrue(generatedCode.contains("row.getOffsetDateTime(\"OFFSET_DATE_TIME_FIELD\")"));
+            assertFalse(generatedCode.contains("Unknown type to generate code for field `offsetDateTimeField`"));
         }
 
         @Test

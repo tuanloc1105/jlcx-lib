@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -318,6 +319,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
     private boolean isResultSetSpecialType(String fieldTypeSimpleName) {
         return LocalDateTime.class.getSimpleName().equals(fieldTypeSimpleName) ||
                 LocalDate.class.getSimpleName().equals(fieldTypeSimpleName) ||
+                OffsetDateTime.class.getSimpleName().equals(fieldTypeSimpleName) ||
                 BigDecimal.class.getSimpleName().equals(fieldTypeSimpleName) ||
                 BigInteger.class.getSimpleName().equals(fieldTypeSimpleName) ||
                 "char".equals(fieldTypeSimpleName) ||
@@ -867,12 +869,7 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     "}"
             );
         } else {
-            if (!LocalDateTime.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !LocalDate.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !BigDecimal.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !BigInteger.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !"char".equals(fieldTypeSimpleName) &&
-                    !"Character".equals(fieldTypeSimpleName)) {
+            if (!isResultSetSpecialType(fieldTypeSimpleName)) {
                 resultSetMappingCodeLines.add(
                         String.format(
                                 "// ################# Unknown type to generate code for field `%s` - `%s` #################",
@@ -909,6 +906,21 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 resultSetMappingCodeLines.add(
                         String.format(
                                 "    instance.%s(time != null ? time.toLocalDateTime() : null);",
+                                setFieldMethodName
+                        )
+                );
+            }
+            if (OffsetDateTime.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    %1$s value = resultSet.getObject(\"%2$s\", java.time.OffsetDateTime.class);",
+                                fieldType,
+                                databaseColumnNameToBeGet
+                        )
+                );
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    instance.%s(value);",
                                 setFieldMethodName
                         )
                 );
