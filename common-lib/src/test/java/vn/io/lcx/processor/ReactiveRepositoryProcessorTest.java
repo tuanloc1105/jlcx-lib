@@ -18,7 +18,7 @@ class ReactiveRepositoryProcessorTest {
 
     private Compilation compile(JavaFileObject... sources) {
         return javac()
-                .withProcessors(new ReactiveRepositoryProcessor())
+                .withProcessors(new SQLMappingProcessor(), new ReactiveRepositoryProcessor())
                 .compile(sources);
     }
 
@@ -28,7 +28,14 @@ class ReactiveRepositoryProcessorTest {
                 """
                 package test;
 
+                import vn.io.lcx.common.annotation.IdColumn;
+                import vn.io.lcx.common.annotation.SQLMapping;
+                import vn.io.lcx.common.annotation.TableName;
+
+                @SQLMapping
+                @TableName("products")
                 public class Product {
+                    @IdColumn
                     private Long id;
                     private String name;
                     private Double price;
@@ -50,7 +57,10 @@ class ReactiveRepositoryProcessorTest {
     }
 
     private String generatedSource(Compilation compilation, String className) throws IOException {
-        return compilation.generatedSourceFile(className)
+        String sourcePath = className.replace('.', '/') + ".java";
+        return compilation.generatedSourceFiles().stream()
+                .filter(file -> file.getName().endsWith(sourcePath))
+                .findFirst()
                 .orElseThrow()
                 .getCharContent(false)
                 .toString();
@@ -174,6 +184,59 @@ class ReactiveRepositoryProcessorTest {
                             || d.getMessage(null).contains("NullPointerException")));
 
             assertTrue(noProcessorCrash, "Processor should not crash on query method");
+        }
+
+        @Test
+        void queryMethodReturningSqlProjection_usesGeneratedProjectionRowMapper() throws Exception {
+            JavaFileObject projection = JavaFileObjects.forSourceString(
+                    "test.ProductSummary",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.ColumnName;
+                    import vn.io.lcx.common.annotation.SQLProjection;
+
+                    @SQLProjection
+                    public class ProductSummary {
+                        @ColumnName(name = "PRODUCT_ID")
+                        private Long productId;
+                        @ColumnName(name = "PRODUCT_NAME")
+                        private String productName;
+
+                        public Long getProductId() { return productId; }
+                        public void setProductId(Long productId) { this.productId = productId; }
+                        public String getProductName() { return productName; }
+                        public void setProductName(String productName) { this.productName = productName; }
+                    }
+                    """
+            );
+            JavaFileObject repo = JavaFileObjects.forSourceString(
+                    "test.ProductProjectionRepo",
+                    """
+                    package test;
+
+                    import io.vertx.core.Future;
+                    import io.vertx.ext.web.RoutingContext;
+                    import io.vertx.sqlclient.SqlConnection;
+                    import vn.io.lcx.reactive.annotation.Query;
+                    import vn.io.lcx.reactive.annotation.RRepository;
+                    import vn.io.lcx.reactive.repository.ReactiveRepository;
+
+                    @RRepository
+                    public interface ProductProjectionRepo extends ReactiveRepository<Product> {
+                        @Query("SELECT p.id AS PRODUCT_ID, p.name AS PRODUCT_NAME FROM products p WHERE p.id = ?1")
+                        Future<ProductSummary> findSummary(RoutingContext ctx, SqlConnection conn, Long id);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(productEntity(), projection, repo);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            String generatedCode = generatedSource(compilation, "test.ProductProjectionRepoImpl");
+            assertTrue(generatedCode.contains("test.ProductSummaryUtils.vertxRowMapping(row)"));
+            assertTrue(compilation.generatedSourceFiles().stream()
+                    .anyMatch(f -> f.getName().contains("ProductSummaryUtils")));
         }
 
         @Test

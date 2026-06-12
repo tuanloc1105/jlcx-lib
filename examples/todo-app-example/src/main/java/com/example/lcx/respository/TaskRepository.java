@@ -1,6 +1,7 @@
 package com.example.lcx.respository;
 
 import com.example.lcx.entity.TaskEntity;
+import com.example.lcx.object.dto.TaskOwnerProjection;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.SqlConnection;
@@ -61,5 +62,14 @@ public interface TaskRepository extends ReactiveRepository<TaskEntity> {
             "WHERE t.deleted_at IS NULL\n" +
             "    AND t.user_id = ?")
     Future<Long> countTasksOfUser(RoutingContext context, SqlConnection client, BigInteger userId);
+
+    @Query("SELECT t.id AS TASK_ID,\n" +
+            "       t.task_name AS TASK_NAME,\n" +
+            "       u.username AS OWNER_USERNAME\n" +
+            "FROM r_lcx.task t\n" +
+            "LEFT JOIN r_lcx.user u ON t.user_id = u.id\n" +
+            "WHERE t.deleted_at IS NULL\n" +
+            "    AND t.user_id = ?")
+    Future<List<TaskOwnerProjection>> getTaskOwnerProjections(RoutingContext context, SqlConnection client, BigInteger userId);
 
 }

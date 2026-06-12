@@ -19,7 +19,7 @@ When configuring annotation processor paths manually, include both `processor` a
 | `ReactiveRepositoryProcessor` | `@RRepository` | `{RepositoryInterface}Impl` | Vert.x SQL repository implementation. |
 | `HRRepositoryProcessor` | `@HRRepository` | `{RepositoryInterface}Impl` | Hibernate Reactive repository implementation. |
 | `MapperClassProcessor` | `@MapperClass` | `{MapperInterface}Impl` | Object mapper implementation using `@Mapping`, `@Mappings`, `@Merging`, and mapper config. |
-| `SQLMappingProcessor` | `@SQLMapping` | `{Entity}Utils`, `{Entity}MappingImpl` | SQL/entity mapping helpers. Emits two classes. |
+| `SQLMappingProcessor` | `@SQLMapping`, `@SQLProjection` | `{Entity}Utils`, `{Entity}MappingImpl`; `{Projection}Utils` | SQL/entity mapping helpers and read-only projection row mappers. |
 | `DIScanner` | wildcard `*`; filters `@Component` root elements | `META-INF/class-index-{UUID}.json` | Compile-time component metadata. Current runtime DI does not read these index files. |
 
 All processors return `SourceVersion.latest()` while the project targets Java 17 through Maven.
@@ -161,6 +161,33 @@ It directly uses:
 `@SQLMapping` classes must compile with a non-blank `@TableName`, exactly one non-static/non-final `@IdColumn`, supported field types, JavaBean-style accessors, at least one insertable column, and at least one updatable non-id column. `@PreInsert` and `@PreUpdate` methods must be unique per annotation, parameterless, and return `void`.
 
 Generated result-set and Vert.x row mapping is fail-fast: a missing column, type mismatch, invalid enum value, or other mapping failure is rethrown as an `IllegalStateException` with entity, field, and column context. Enum database `NULL` values map to Java `null`.
+
+`@SQLProjection` is for read-only query DTOs populated from custom SQL results, joins, subqueries, or views. It emits only `{Projection}Utils` with `resultSetMapping(ResultSet)` and `vertxRowMapping(Row)`, uses `@ColumnName(name = "...")` for result column names or SQL aliases, and does not require `@TableName` or `@IdColumn`. It does not generate table/id/write statement helpers.
+
+Example:
+
+```java
+@SQLProjection
+public class DisputeProcessInfo {
+    @ColumnName(name = "ID")
+    private BigDecimal id;
+
+    @ColumnName(name = "PROCESS_ID")
+    private BigDecimal processId;
+}
+```
+
+For joined queries, alias selected columns to the projection column names:
+
+```sql
+SELECT
+    ndi.id AS ID,
+    ndi.process_id AS PROCESS_ID,
+    npt.original_processing_code AS ORIGINAL_PROCESSING_CODE
+FROM ...
+```
+
+`@ReadOnly` is not a projection marker; it controls repository write behavior for entity mappings.
 
 Related database metadata annotations such as `@SecondaryIdColumn`, `@ForeignKey`, `@SubTable`, `@Index`, and `@ReadOnly` are used by the broader database analysis/DDL/helper layer; this processor does not currently consume them directly.
 

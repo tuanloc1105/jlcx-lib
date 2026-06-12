@@ -200,6 +200,145 @@ class SQLMappingProcessorTest {
     }
 
     @Nested
+    @DisplayName("SQL Projection")
+    class SQLProjectionMapping {
+
+        @Test
+        void projectionWithoutTableNameOrId_generatesRowMappingUtilsOnly() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.DisputeProcessInfo",
+                    """
+                    package test;
+
+                    import java.math.BigDecimal;
+                    import vn.io.lcx.common.annotation.ColumnName;
+                    import vn.io.lcx.common.annotation.SQLProjection;
+
+                    @SQLProjection
+                    public class DisputeProcessInfo {
+                        @ColumnName(name = "ID")
+                        private BigDecimal id;
+                        @ColumnName(name = "PROCESS_ID")
+                        private BigDecimal processId;
+                        private String status;
+
+                        public BigDecimal getId() { return id; }
+                        public void setId(BigDecimal id) { this.id = id; }
+                        public BigDecimal getProcessId() { return processId; }
+                        public void setProcessId(BigDecimal processId) { this.processId = processId; }
+                        public String getStatus() { return status; }
+                        public void setStatus(String status) { this.status = status; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status(), errors(compilation));
+
+            assertTrue(compilation.generatedSourceFiles().stream()
+                    .anyMatch(f -> f.getName().contains("DisputeProcessInfoUtils")));
+            assertFalse(compilation.generatedSourceFiles().stream()
+                    .anyMatch(f -> f.getName().contains("DisputeProcessInfoMappingImpl")));
+
+            JavaFileObject generatedUtils = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("DisputeProcessInfoUtils"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String generatedCode = generatedUtils.getCharContent(false).toString();
+            assertTrue(generatedCode.contains("resultSetMapping"));
+            assertTrue(generatedCode.contains("vertxRowMapping"));
+            assertTrue(generatedCode.contains("row.getBigDecimal(\"PROCESS_ID\")"));
+            assertTrue(generatedCode.contains("\"ID\""));
+            assertFalse(generatedCode.contains("insertStatement"));
+            assertFalse(generatedCode.contains("updateStatement"));
+            assertFalse(generatedCode.contains("deleteStatement"));
+            assertFalse(generatedCode.contains("idColumnName"));
+        }
+
+        @Test
+        void projectionWithUnsupportedFieldType_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.UnsupportedProjection",
+                    """
+                    package test;
+
+                    import java.util.Locale;
+                    import vn.io.lcx.common.annotation.SQLProjection;
+
+                    @SQLProjection
+                    public class UnsupportedProjection {
+                        private Locale locale;
+
+                        public Locale getLocale() { return locale; }
+                        public void setLocale(Locale locale) { this.locale = locale; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("Unsupported @SQLProjection field type"));
+        }
+
+        @Test
+        void projectionWithoutGetter_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.NoGetterProjection",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.SQLProjection;
+
+                    @SQLProjection
+                    public class NoGetterProjection {
+                        private String name;
+
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("must have getter"));
+        }
+
+        @Test
+        void classAnnotatedAsMappingAndProjection_failsCompilation() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.ConflictingModel",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.IdColumn;
+                    import vn.io.lcx.common.annotation.SQLMapping;
+                    import vn.io.lcx.common.annotation.SQLProjection;
+                    import vn.io.lcx.common.annotation.TableName;
+
+                    @SQLMapping
+                    @SQLProjection
+                    @TableName("conflicting_model")
+                    public class ConflictingModel {
+                        @IdColumn
+                        private Long id;
+                        private String name;
+
+                        public Long getId() { return id; }
+                        public void setId(Long id) { this.id = id; }
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(errors(compilation).contains("must not use both @SQLMapping and @SQLProjection"));
+        }
+    }
+
+    @Nested
     @DisplayName("Missing Annotations")
     class MissingAnnotations {
 
