@@ -77,6 +77,7 @@ The parent compiler config uses full annotation processing. If generated-code be
 - Controllers and repositories are async-first: Vert.x APIs generally return `Future<T>`.
 - Generated routing is compile-time, not runtime route discovery.
 - DI injection is constructor/factory-parameter based; fields are used as metadata for matching, not as general reflective field injection.
+- Code comments must be short and concise; avoid long-winded explanations.
 - Keep docs token-light here; add detail to a specific `docs/*.md` file and link it from this guide.
 
 ## Current Gotchas
