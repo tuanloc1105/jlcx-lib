@@ -1,233 +1,212 @@
 # Annotation Processors
 
-## Overview
+The project exposes 9 annotation processors. Current packaging is subtle:
 
-The `processor` module registers 9 annotation processors via
-`META-INF/services/javax.annotation.processing.Processor`.
+- Implementations live in `common-lib/src/main/java/vn/io/lcx/processor`.
+- The `processor` module is a facade/registrar jar with `ProcessorModule` and `META-INF/services/javax.annotation.processing.Processor`.
+- `processor/pom.xml` depends on `common-lib`, so ServiceLoader sees service names from `processor` and loads implementation classes from transitive `common-lib`.
 
----
+When configuring annotation processor paths manually, include both `processor` and its transitive `common-lib` resources. Templates are loaded from `common-lib/src/main/resources/template`.
 
-## MapperClassProcessor
+## Processor Table
 
-**Processor:** `vn.io.lcx.processor.MapperClassProcessor`
-**Triggers on:** `@MapperClass` (interface only)
-**Generates:** `{InterfaceName}Impl`
+| Processor | Supported annotations | Generated output | Notes |
+|---|---|---|---|
+| `ControllerProcessor` | `@ContextHandler`, `@Controller`, `@VertxApplication` | `vn.io.lcx.vertx.verticle.ApplicationVerticle` | One fixed generated verticle per app compile. Combines app config, context handlers, routes, static resources, auth, and API-key hooks. |
+| `RestControllerProcessor` | `@RestController` | `Reactive{OriginalClass}` | Same package. Generated wrapper is `@Component`, `@Controller`, extends `ReactiveController`, and delegates to the original controller. |
+| `RepositoryProcessor` | `@Repository` | `{RepositoryInterface}Proxy` | JPA repository proxy for interfaces extending `JpaRepository`. |
+| `ServiceProcessor` | `@Service` | `{ServiceClass}Proxy` | Transaction-aware service proxy. |
+| `ReactiveRepositoryProcessor` | `@RRepository` | `{RepositoryInterface}Impl` | Vert.x SQL repository implementation. |
+| `HRRepositoryProcessor` | `@HRRepository` | `{RepositoryInterface}Impl` | Hibernate Reactive repository implementation. |
+| `MapperClassProcessor` | `@MapperClass` | `{MapperInterface}Impl` | Object mapper implementation using `@Mapping`, `@Mappings`, `@Merging`, and mapper config. |
+| `SQLMappingProcessor` | `@SQLMapping`, `@SQLProjection` | `{Entity}Utils`, `{Entity}MappingImpl`; `{Projection}Utils` | SQL/entity mapping helpers and read-only projection row mappers. |
+| `DIScanner` | wildcard `*`; filters `@Component` root elements | `META-INF/class-index-{UUID}.json` | Compile-time component metadata. Current runtime DI does not read these index files. |
 
-Generates implementations for object mapper interfaces. Each method in the interface maps or
-merges objects based on annotations and field name matching. The generated class is annotated
-with `@Component` for automatic DI registration.
+All processors return `SourceVersion.latest()` while the project targets Java 17 through Maven.
 
-### Annotations
+## SPI Registration
 
-| Annotation      | Target | Description                                          |
-|-----------------|--------|------------------------------------------------------|
-| `@MapperClass`  | TYPE   | Marks an interface as a mapper (triggers processing) |
-| `@MapperConfig` | TYPE   | Configuration for mapper code generation behavior    |
-| `@Mapping`      | METHOD | Defines field-level mapping rules (repeatable)       |
-| `@Merging`      | METHOD | Marks a method as a merge operation                  |
+`processor/src/main/resources/META-INF/services/javax.annotation.processing.Processor` registers:
 
-### `@Mapping` Attributes
+```text
+vn.io.lcx.processor.MapperClassProcessor
+vn.io.lcx.processor.SQLMappingProcessor
+vn.io.lcx.processor.ReactiveRepositoryProcessor
+vn.io.lcx.processor.ServiceProcessor
+vn.io.lcx.processor.RepositoryProcessor
+vn.io.lcx.processor.ControllerProcessor
+vn.io.lcx.processor.DIScanner
+vn.io.lcx.processor.RestControllerProcessor
+vn.io.lcx.processor.HRRepositoryProcessor
+```
 
-| Attribute       | Type    | Default | Description                                                  |
-|-----------------|---------|---------|--------------------------------------------------------------|
-| `fromField`     | String  | `""`    | Source field name (defaults to same as `toField`)            |
-| `toField`       | String  | `""`    | Target field name                                            |
-| `code`          | String  | `""`    | Custom Java expression (used instead of getter)              |
-| `skip`          | boolean | `false` | Skip this target field entirely                              |
-| `nestedMapper`  | String  | `""`    | Mapper method name for nested object mapping                 |
-| `nullSafe`      | boolean | `false` | Generates null-safe code for this mapping                    |
-| `fromParameter` | String  | `""`    | Source parameter name (for multi-parameter mapping methods)  |
+No equivalent service file exists under `common-lib/src/main/resources`.
 
-### `@Merging` Attributes
+## Templates
 
-| Attribute         | Type    | Default | Description                                        |
-|-------------------|---------|---------|----------------------------------------------------|
-| `mergeNonNullField` | boolean | `false` | Only merge non-null fields from source into target |
+Generator templates live in `common-lib/src/main/resources/template`:
 
-### `@MapperConfig` Attributes
+- `controller-template.txt`
+- `vertx-verticle-template.txt`
+- `repository-template.txt`
+- `service-template.txt`
+- `method-template.txt`
+- `jpa-method-template.txt`
+- `jpa-do-work-method-template.txt`
+- `jpa-criteria-handler-template.txt`
+- `sql-mapping-template.txt`
+- `entity-mapping-impl-template.txt`
 
-| Attribute                   | Type      | Default | Description                                              |
-|-----------------------------|-----------|---------|----------------------------------------------------------|
-| `nullSafeByDefault`         | `boolean` | `true`  | Generate null-safe code for all mappings                 |
-| `addGeneratedAnnotation`    | `boolean` | `true`  | Add `@Generated` annotation with timestamp to output     |
-| `componentName`             | `String`  | `""`    | Custom DI component name (empty uses generated name)     |
-| `warnOnUnmappedTargetFields`| `boolean` | `false` | Compilation warning for unmapped fields                  |
-| `strictTypeChecking`        | `boolean` | `false` | Fail compilation on type mismatches                      |
+Template changes can affect multiple generated classes. Verify with processor tests and example compilation.
+
+## Controller Generation
+
+`ControllerProcessor` reads:
+
+- `@VertxApplication` for bootstrap configuration
+- `@Controller` route classes and route methods
+- HTTP method annotations: `@Get`, `@Post`, `@Put`, `@Delete`
+- `@ContextHandler` middleware
+- auth annotations: `@Auth`, `@APIKey`
+- request binding annotations for path/query/header/form/body/file values
+
+Generated output is fixed: `vn.io.lcx.vertx.verticle.ApplicationVerticle`.
+
+`@ComponentScan` is read by `MyVertxDeployment` at runtime when it builds the package list for `ClassPool`; do not model it as `ControllerProcessor` input.
+
+## Rest Controller Generation
+
+`RestControllerProcessor` wraps classes annotated with `@RestController`.
+
+Generated class shape:
+
+- name: `Reactive{OriginalClass}`
+- same package as source controller
+- annotated as `@Component` and `@Controller`
+- extends `ReactiveController`
+- delegates endpoint methods to original controller logic
+
+Use this path for REST controller ergonomics; use raw `@Controller` for lower-level control.
+
+## Repository And Service Generation
+
+JPA:
+
+- `@Repository` interfaces extending `JpaRepository<E, ID>` get `{Name}Proxy`.
+- `@Service` classes get `{Name}Proxy`, including transaction handling.
+- `@Transactional`, `@Query`, `@Param`, `@Modifying`, and `@ResultSetMapping` influence generated repository/service behavior.
+
+Reactive SQL:
+
+- `@RRepository` interfaces extending `ReactiveRepository<T>` get `{Name}Impl`.
+- `vn.io.lcx.reactive.annotation.Query` drives custom SQL methods.
+- Custom query methods are compile-time validated: return `Future<X>`, first parameter `RoutingContext`, second parameter `SqlConnection`, and final `Pageable` only when pagination is used.
+- Query placeholders support either implicit `?` order or indexed `?1` order. Mixed placeholder styles fail compilation.
+- `IN (?)` and `IN (?1)` expand `Collection` and object-array parameters into database-specific placeholders and tuple values.
+- `Future<Page<T>>` methods use `@Query(countQuery = "...")` when present; simple selects can derive a count query, while complex SQL such as `WITH`, `UNION`, `DISTINCT`, `GROUP BY`, or `HAVING` must define one.
+- `Future<List<T>>` with `Pageable` and `Future<Object[]>` still compile but emit deprecation warnings.
+
+Hibernate Reactive:
+
+- `@HRRepository` interfaces extending `HReactiveRepository<T>` get `{Name}Impl`.
+- Generated code works with `Stage.Session` style Hibernate Reactive APIs.
+
+## Mapper Generation
+
+`MapperClassProcessor` reads mapper source annotations:
+
+- `@MapperClass`
+- `@MapperConfig`
+- `@Mapping`
+- `@Mappings`
+- `@Merging`
+
+Support classes live under `vn.io.lcx.processor.model`, `service`, and `utility`.
+Tests for field mapping and code generation live in `common-lib/src/test/java/vn/io/lcx/processor`.
+
+### Multi-Parameter Mapper Methods
+
+`MapperClassProcessor` supports mapper methods with more than one source parameter:
 
 ```java
-@MapperClass
-@MapperConfig(nullSafeByDefault = true, warnOnUnmappedTargetFields = true)
-public interface TaskMapper {
-    TaskDTO toDTO(TaskEntity entity);
+ObjectC map(ObjectA a, ObjectB b);
+```
+
+Auto-mapping scans target fields against source parameters in declaration order. A target field is mapped from the first source parameter that has the same raw field name and exact field type.
+
+Use explicit mappings when a target field should read from a specific parameter:
+
+```java
+@Mapping(fromParameter = "b", fromField = "fieldInB", toField = "fieldInTarget")
+ObjectC map(ObjectA a, ObjectB b);
+```
+
+If `fromParameter` is blank on an explicit mapping, the first source parameter is used. Invalid `fromParameter`, missing `fromField`, missing `toField`, and duplicate explicit target fields fail during annotation processing instead of relying on generated Java compile errors. Multi-source mapping returns `null` when any source parameter is `null`.
+
+## SQL Mapping Generation
+
+`SQLMappingProcessor` reads `@SQLMapping` on entity-like classes and emits:
+
+- `{Entity}Utils`
+- `{Entity}MappingImpl`
+
+It directly uses:
+
+- `@TableName` for the target table and optional schema.
+- `@ColumnName` for physical column names plus `insertable`, `updatable`, and `nullable` generated SQL/parameter behavior.
+- `@IdColumn` for the single primary id column.
+- `@Clob` for JDBC CLOB-to-string result mapping.
+- `@PreInsert` and `@PreUpdate` for lifecycle hooks called when generated insert/update statements are built.
+
+`@SQLMapping` classes must compile with a non-blank `@TableName`, exactly one non-static/non-final `@IdColumn`, supported field types, JavaBean-style accessors, at least one insertable column, and at least one updatable non-id column. `@PreInsert` and `@PreUpdate` methods must be unique per annotation, parameterless, and return `void`.
+
+Generated result-set and Vert.x row mapping is fail-fast: a missing column, type mismatch, invalid enum value, or other mapping failure is rethrown as an `IllegalStateException` with entity, field, and column context. Enum database `NULL` values map to Java `null`.
+
+`@SQLProjection` is for read-only query DTOs populated from custom SQL results, joins, subqueries, or views. It emits only `{Projection}Utils` with `resultSetMapping(ResultSet)` and `vertxRowMapping(Row)`, uses `@ColumnName(name = "...")` for result column names or SQL aliases, and does not require `@TableName` or `@IdColumn`. It does not generate table/id/write statement helpers.
+
+Example:
+
+```java
+@SQLProjection
+public class DisputeProcessInfo {
+    @ColumnName(name = "ID")
+    private BigDecimal id;
+
+    @ColumnName(name = "PROCESS_ID")
+    private BigDecimal processId;
 }
 ```
 
----
+For joined queries, alias selected columns to the projection column names:
 
-### Single-Parameter Mapping
-
-The simplest case: one source parameter, one return type. Fields are matched automatically
-by name and type. Use `@Mapping` to override, skip, or customize individual fields.
-
-```java
-@MapperClass
-public interface TaskMapper {
-
-    @Mapping(fromField = "taskName", toField = "name")
-    @Mapping(toField = "status", code = "\"ACTIVE\"")
-    @Mapping(toField = "internalId", skip = true)
-    TaskDTO toDTO(TaskEntity entity);
-}
+```sql
+SELECT
+    ndi.id AS ID,
+    ndi.process_id AS PROCESS_ID,
+    npt.original_processing_code AS ORIGINAL_PROCESSING_CODE
+FROM ...
 ```
 
-**Generated code:**
+`@ReadOnly` is not a projection marker; it controls repository write behavior for entity mappings.
 
-```java
-@Generated(value = "vn.io.lcx.processor.MapperClassProcessor", date = "...")
-@vn.io.lcx.common.annotation.Component
-public class TaskMapperImpl implements TaskMapper {
+Related database metadata annotations such as `@SecondaryIdColumn`, `@ForeignKey`, `@SubTable`, `@Index`, and `@ReadOnly` are used by the broader database analysis/DDL/helper layer; this processor does not currently consume them directly.
 
-    public TaskMapperImpl() {}
+## Debugging Generated Code
 
-    @Override
-    public TaskDTO toDTO(TaskEntity entity) {
-        if (entity == null) {
-            return null;
-        }
-        TaskDTO instance = new TaskDTO();
-        instance.setName(entity.getTaskName());       // @Mapping(fromField="taskName", toField="name")
-        instance.setStatus("ACTIVE");                  // @Mapping(toField="status", code="\"ACTIVE\"")
-        // internalId skipped                          // @Mapping(toField="internalId", skip=true)
-        instance.setPriority(entity.getPriority());    // auto-matched by name+type
-        return instance;
-    }
-}
+1. Run a focused compile with annotation processing enabled.
+2. Inspect `target/generated-sources/annotations`.
+3. Check processor errors before generated Java errors; template failures often surface later.
+4. Verify service registration and processor classpath if javac reports processor class load failures.
+5. If `DIScanner` output is missing, check whether the component was a root element in the current compile round.
+
+## Verification
+
+Useful commands:
+
+```bash
+mvn -pl common-lib test
+mvn -pl processor test
+mvn clean install
 ```
 
-**Automatic field matching:** Fields not covered by explicit `@Mapping` annotations are
-matched automatically by name and type. If both source and target have a field with the same
-name and type, a `instance.setX(source.getX())` line is generated.
-
----
-
-### Multi-Parameter Mapping
-
-Mapping methods can accept multiple source parameters to combine fields from different
-source objects into a single target object.
-
-Use the `fromParameter` attribute in `@Mapping` to specify which parameter a field comes from.
-The value must match the parameter name declared in the method signature.
-
-```java
-@MapperClass
-public interface OrderMapper {
-
-    @Mapping(fromParameter = "user", fromField = "firstName", toField = "customerName")
-    @Mapping(fromParameter = "product", fromField = "productName", toField = "itemName")
-    @Mapping(toField = "status", code = "\"PENDING\"")
-    @Mapping(toField = "internalCode", skip = true)
-    OrderDTO toOrderDTO(UserEntity user, ProductEntity product);
-}
-```
-
-**Generated code:**
-
-```java
-@Override
-public OrderDTO toOrderDTO(UserEntity user, ProductEntity product) {
-    if (user == null || product == null) {
-        return null;
-    }
-    OrderDTO instance = new OrderDTO();
-    instance.setCustomerName(user.getFirstName());     // explicit: fromParameter="user"
-    instance.setItemName(product.getProductName());    // explicit: fromParameter="product"
-    instance.setStatus("PENDING");                      // custom code
-    // internalCode skipped
-    instance.setEmail(user.getEmail());                // auto-matched from user (first priority)
-    instance.setPrice(product.getPrice());             // auto-matched from product
-    return instance;
-}
-```
-
-**Auto-matching rules for multiple parameters:**
-
-- Target fields not covered by explicit `@Mapping` are auto-matched by name and type
-  across all source parameters
-- Parameters are checked in declaration order: the **first parameter** has highest priority
-- When multiple parameters have a field with the same name and type, the first parameter wins
-- If a `@Mapping` annotation omits `fromParameter`, it defaults to the first parameter
-
-**Null handling:** If any source parameter is `null`, the method returns `null`.
-
----
-
-### Object Merging
-
-Use `@Merging` to merge two instances of the **same type**. Both parameters must have
-identical types. Return type can be `void` or the entity type.
-
-```java
-@MapperClass
-public interface TaskMapper {
-
-    @Merging(mergeNonNullField = true)
-    TaskEntity merge(TaskEntity target, TaskEntity source);
-}
-```
-
-**Generated code:**
-
-```java
-@Override
-public TaskEntity merge(TaskEntity target, TaskEntity source) {
-    if (target == null || source == null) {
-        return null;
-    }
-    if (target.getName() == null) {
-        target.setName(source.getName());
-    }
-    if (target.getDescription() == null) {
-        target.setDescription(source.getDescription());
-    }
-    return target;
-}
-```
-
-When `mergeNonNullField = true`, only non-null fields from `source` overwrite `target`.
-When `mergeNonNullField = false`, all fields from `source` are copied directly into `target`.
-
----
-
-### Key Source Files
-
-| File | Description |
-|------|-------------|
-| `processor/MapperClassProcessor.java` | Main annotation processor |
-| `processor/template/CodeTemplates.java` | Code generation templates |
-| `processor/service/FieldMappingResolver.java` | Field type matching and compatibility |
-| `processor/service/MappingCodeGenerator.java` | Code snippet generation |
-| `processor/utility/TypeHierarchyAnalyzer.java` | Type hierarchy traversal |
-| `processor/model/FieldMappingInfo.java` | Field mapping metadata model |
-| `processor/model/SourceParameterInfo.java` | Source parameter metadata model |
-| `processor/exception/InvalidMappingException.java` | Mapping validation errors |
-| `common/annotation/mapper/MapperClass.java` | `@MapperClass` annotation |
-| `common/annotation/mapper/MapperConfig.java` | `@MapperConfig` annotation |
-| `common/annotation/mapper/Mapping.java` | `@Mapping` annotation |
-| `common/annotation/mapper/Merging.java` | `@Merging` annotation |
-
----
-
-## Other Processors (Cross-References)
-
-The remaining processors are documented in their respective domain docs:
-
-| Processor                    | Annotation        | Documentation                                            |
-|------------------------------|-------------------|----------------------------------------------------------|
-| `SQLMappingProcessor`        | `@SQLMapping`     | [database-layer.md](database-layer.md)                   |
-| `ServiceProcessor`           | `@Service`        | [database-layer.md](database-layer.md)                   |
-| `RepositoryProcessor`        | `@Repository`     | [database-layer.md](database-layer.md)                   |
-| `HRRepositoryProcessor`      | `@HRRepository`   | [database-layer.md](database-layer.md)                   |
-| `ReactiveRepositoryProcessor`| `@RRepository`    | [database-layer.md](database-layer.md)                   |
-| `ControllerProcessor`        | `@Controller`     | [vertx-web-framework.md](vertx-web-framework.md)        |
-| `RestControllerProcessor`    | `@RestController` | [vertx-web-framework.md](vertx-web-framework.md)        |
-| `DIScanner`                  | `@Component`      | [classpool-di-container.md](classpool-di-container.md)   |
+Processor tests currently live in `common-lib`, not `processor`.

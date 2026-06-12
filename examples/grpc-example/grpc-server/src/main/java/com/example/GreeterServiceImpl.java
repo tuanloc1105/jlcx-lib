@@ -13,7 +13,7 @@ public class GreeterServiceImpl extends GreeterService {
 
     @Override
     public Future<HelloReply> sayHello(HelloRequest request) {
-        LogUtils.writeLog(EmptyRoutingContext.init(), LogUtils.Level.INFO, "Receive a request: " + request.getName());
+        LogUtils.writeLog(GreeterServiceImpl.class, EmptyRoutingContext.init(), LogUtils.Level.INFO, "Receive a request: " + request.getName());
         return Future.succeededFuture(HelloReply.newBuilder()
                 .setMessage("Hello " + request.getName())
                 .build());

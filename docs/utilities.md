@@ -1,506 +1,157 @@
-# Utilities & Common Infrastructure
+# Utilities And Shared Infrastructure
 
-## Overview
+`common-lib` contains more than small helper methods. It also provides shared cache, mail, cron, lock, task, logging, and context infrastructure.
 
-The `vn.io.lcx.common` package provides 28 utility classes, a package scanner, global
-constants, and custom exceptions. All utility classes are `final` with private constructors
-(static-only usage).
+## Utility Packages
 
----
+| Package | Role |
+|---|---|
+| `vn.io.lcx.common.utils` | General-purpose utilities. |
+| `vn.io.lcx.common.cache` | Redis pool and cache helpers. |
+| `vn.io.lcx.common.mail` | Mail properties, email model, mail helper, reactive sender. |
+| `vn.io.lcx.common.cron` | Cron expression parser and field model. |
+| `vn.io.lcx.common.lock` | Lock manager. |
+| `vn.io.lcx.common.thread` | Executor and virtual-thread support. |
+| `vn.io.lcx.common.task` | Batch and retry task helpers. |
+| `vn.io.lcx.common.logging` | Logback MDC converters. |
+| `vn.io.lcx.common.context` | Auth/request context. |
+| `vn.io.lcx.common.scanner` | Package scanning. |
+| `vn.io.lcx.common.array` | `LargeArray`. |
+| `vn.io.lcx.common.exception` | Framework exceptions. |
+| `vn.io.lcx.common.constant` | Shared constants. |
 
-## Package Scanner
+## General Utilities
 
-### PackageScanner
+The source currently has 28 utility classes under `vn.io.lcx.common.utils`.
 
-Runtime class discovery for the DI container.
+Common areas:
 
-**Location:** `vn.io.lcx.common.scanner.PackageScanner`
+- string and word-case helpers
+- object/null helpers
+- collection helpers
+- JSON masking and serialization helpers
+- YAML/properties loading
+- date/time helpers
+- random/UUIDv7 helpers
+- file helpers
+- number formatting
+- exception helpers
+- crypto/hash helpers: RSA, AES, BCrypt, simple cipher
+- HTTP/socket helpers
+- topological sort
 
-```java
-List<Class<?>> classes = PackageScanner.findClasses("com.example.app");
-```
+Before adding a helper, search this package first. Many small operations already exist.
 
-| Method | Description |
-|--------|-------------|
-| `static List<Class<?>> findClasses(String packageName)` | Scans package for all `.class` files |
+## Cache
 
-- Supports both filesystem directories (`file://`) and JAR files (`jar:`)
-- Uses `Thread.currentThread().getContextClassLoader()`
-- Silently ignores classes that fail to load (`ClassNotFoundException`)
-- Returns empty list on I/O errors
+Important classes:
 
----
+- `RedisPool`
+- `RedisPoolImpl`
+- `CacheUtils`
+- `CacheException`
 
-## Data Structures
+`RedisPoolImpl` handles Redis pool behavior such as CRUD/ping-style operations. Treat Redis config keys as app-specific unless confirmed in target YAML.
 
-### LargeArray\<T\> - Chunked Large Collections
+`CacheUtils<K,V>` is an in-memory cache with capacity and scheduled expiry cleanup. Reactive Redis client setup lives under `vn.io.lcx.reactive.cache.VertxRedisConfiguration`.
 
-**Location:** `vn.io.lcx.common.array.LargeArray`
+## Mail
 
-Memory-efficient array implementation for collections that exceed standard Java array limits.
-Breaks large arrays into chunks of `Integer.MAX_VALUE - 8` stored in a `List<T[]>`.
+Important classes:
 
-```java
-LargeArray<byte[]> data = new LargeArray<>(3_000_000_000L);
-data.set(2_500_000_000L, value);
-byte[] val = data.get(2_500_000_000L);
-```
+- `EmailInfo`
+- `MailProperties`
+- `MailHelper`
+- `ReactiveMailSender`
+- `MailPropertiesEmptyError`
+- `MailSendingError`
 
-| Method | Description |
-|--------|-------------|
-| `LargeArray(long size)` | Construct with size > `Integer.MAX_VALUE` |
-| `T get(long index)` | Access element at index |
-| `void set(long index, T value)` | Set element at index |
-| `List<T[]> getChunks()` | Get underlying chunk list |
+`ReactiveMailSender` wraps blocking SMTP send through Vert.x `WorkerExecutor.executeBlocking(..., false)`.
 
----
+`MailHelper` validates host/port/username/password/email targets, forces SMTP auth/starttls/SSL socket factory/TLSv1.2 and 10s timeouts, then sleeps 500ms between messages.
 
-### Ref\<T\> - Mutable Reference Wrapper
+## Cron
 
-**Location:** `vn.io.lcx.common.ref.Ref`
+Cron parser/model classes:
 
-Enables mutable pass-by-reference semantics where Java parameters are normally pass-by-value.
+- `CronExpression`
+- `CronFieldType`
+- `BasicField`
+- `SimpleField`
+- `DayOfMonthField`
+- `DayOfWeekField`
+- `FieldPart`
 
-```java
-Ref<NetSocket> socketRef = Ref.init();
-// ... later in async callback:
-socketRef.setVal(socket);
-// ... elsewhere:
-NetSocket socket = socketRef.getVal();
-```
+The parser supports cron field handling, including optional seconds behavior in current source.
 
-| Method | Description |
-|--------|-------------|
-| `static <T> Ref<T> init(T val)` | Create with initial value |
-| `static <T> Ref<T> init()` | Create with null value |
-| `T getVal()` | Retrieve current value |
-| `void setVal(T val)` | Update value |
+## Thread And Task Helpers
 
----
+Important classes/interfaces:
 
-## Context Management
+- `BaseExecutor`
+- `SimpleExecutor`
+- `LcxThreadFactory`
+- `VirtualThreadSupport`
+- `BatchHandler`
+- `MyTaskRetrying`
+- `RejectMode`
 
-### AuthContext - ThreadLocal Authentication
+`DefaultConfiguration` registers executor-related defaults and can use virtual-thread-aware support when runtime allows.
 
-**Location:** `vn.io.lcx.common.context.AuthContext`
+`MyTaskRetrying` retries with `Thread.sleep` and returns `null` after exhausting retries rather than rethrowing the last exception.
 
-ThreadLocal-based authentication context for storing/retrieving current user information.
+`LockManager` is file-lock based. It appends `.lock` when missing, retries every 100ms until timeout, throws if the same instance already holds a lock, and deletes the lock file on release.
 
-```java
-AuthContext.set(userPrincipal);
-MyUser user = AuthContext.get(MyUser.class);
-AuthContext.clear(); // cleanup after request
-```
+## Logging
 
-| Method | Description |
-|--------|-------------|
-| `static void set(Object obj)` | Store auth object (user principal) |
-| `static Object get()` | Retrieve raw auth object |
-| `static <T> T get(Class<T> clz)` | Type-safe retrieval with casting |
-| `static void clear()` | Clear for thread cleanup |
+Logging resources/classes:
 
----
-
-## Utility Classes
-
-### BCryptUtils - Password Hashing
-
-```java
-String hash = BCryptUtils.hashPassword("myPassword");
-BCryptUtils.comparePassword("myPassword", hash); // throws if mismatch
-```
-
-| Method | Description |
-|--------|-------------|
-| `static String hashPassword(String password)` | Hash with BCrypt (4 rounds) |
-| `static void comparePassword(String password, String passHash)` | Verify password; throws `IllegalArgumentException` on mismatch |
+- `default-logback.xml`
+- `LogbackConfig`
+- `VertxTraceIdMDCConverter`
+- `VertxOperationMDCConverter`
 
----
+`default-logback.xml` includes rolling file config and placeholders such as `APPLICATION_NAME`, `LOG_PATTERN`, and `basePath`.
 
-### RSAUtils - RSA Encryption
+## Auth Context
 
-```java
-RSAPublicKey pubKey = RSAUtils.getPublicKey(pemString);
-String encrypted = RSAUtils.encrypt("secret data", pubKey);
-String decrypted = RSAUtils.decrypt(encrypted, privateKey);
-```
-
-| Method | Description |
-|--------|-------------|
-| `static String readKeyFromResource(String path, boolean isPrivate)` | Read PEM key from classpath |
-| `static String readKey(String path, boolean isPrivate)` | Read PEM key from filesystem |
-| `static RSAPublicKey getPublicKey(String pem)` | Parse PEM to RSAPublicKey |
-| `static RSAPrivateKey getPrivateKey(String pem)` | Parse PEM to RSAPrivateKey |
-| `static String encrypt(String data, RSAPublicKey key)` | Encrypt → Base64 string |
-| `static String decrypt(String data, RSAPrivateKey key)` | Base64 → decrypt → String |
-
-Algorithm: `RSA/ECB/OAEPWithSHA-256AndMGF1Padding`
-
----
-
-### AESUtils - AES Encryption
-
-Provides AES encryption/decryption with ECB and CBC modes.
-
----
-
-### FileUtils - File Operations
-
-Comprehensive file I/O with cross-platform support.
-
-| Method | Description |
-|--------|-------------|
-| `static boolean writeContentToFile(String path, String content)` | Overwrite file |
-| `static boolean appendContentToFile(String path, String content)` | Append to file |
-| `static String read(String path)` | Read entire file as string |
-| `static List<String> readToList(String path)` | Read non-empty trimmed lines |
-| `static String pathJoining(String... parts)` | Join with `File.separator` |
-| `static String pathJoiningWithSlash(String... parts)` | Join with `/` |
-| `static boolean createFolderIfNotExists(String path)` | Create directory tree |
-| `static void deleteFolder(File folder)` | Recursive delete |
-| `static String encodeFileToBase64(String path)` | File → Base64 string |
-| `static byte[] readFileIntoBytes(String path)` | File → byte array |
-| `static String getFileName(String path)` | Extract filename |
-| `static String getFileExtension(String path)` | Extract extension |
-| `static boolean checkIfExist(String path)` | Existence check |
-| `static boolean isReadableTextFile(String path)` | Check text MIME type |
-| `static boolean createFile(String path)` | Create empty file |
-| `static boolean createDirectory(String path)` | Create directory |
-| `static boolean delete(String path)` | Recursive delete |
-| `static boolean copy(String source, String dest)` | Recursive copy |
-| `static boolean move(String source, String dest)` | Move with replace |
-| `static boolean rename(String source, String newName)` | Rename in-place |
-| `static List<String> listFiles(String dir)` | List child names |
-| `static boolean changeFilePermission(String path, SystemUserPermission owner, group, other)` | POSIX/Windows permissions |
-| `static boolean changeDirectoryPermissionsRecursively(...)` | Recursive permission change |
-| `static String readResourceFileAsText(ClassLoader cl, String name)` | Read classpath resource |
-
-**SystemUserPermission** inner class: `readable`, `writeable`, `executable` boolean fields.
-`handlePermission()` returns numeric value (read=4, write=2, execute=1).
-
----
-
-### ObjectUtils - Reflection & Object Operations
-
-| Method | Description |
-|--------|-------------|
-| `static <S,T> T mapObjects(S source, Class<T> target)` | Copy matching fields to new instance |
-| `static boolean isNullOrEmpty(Object obj)` | Null, empty collection, or blank string |
-| `static Class<?> wrapPrimitive(Class<?> type)` | `int` → `Integer`, etc. |
-| `static Object getDefaultValue(Class<?> type)` | Default for primitive types |
-| `static List<Class<?>> getExtendAndInterfaceClasses(Class<?> target)` | Superclass + interfaces |
-| `static List<Type> getTypeParameters(Class<?> clazz)` | Generic type parameters |
-
----
-
-### MyStringUtils - String Manipulation
-
-Comprehensive string utilities including:
-- JSON string parsing
-- URL encoding/decoding
-- Case conversion (camelCase, PascalCase, CONSTANT_CASE)
-- Vietnamese diacritical mark handling
-- Text formatting and truncation
-
----
-
-### MyCollectionUtils - Collection Operations
-
-| Method | Description |
-|--------|-------------|
-| List splitting into fixed-size batches | |
-| Null element removal | |
-
----
-
-### WordCaseUtils - Case Conversion
-
-| Method | Description |
-|--------|-------------|
-| camelCase conversion | `myFieldName` |
-| PascalCase conversion | `MyFieldName` |
-| CONSTANT_CASE conversion | `MY_FIELD_NAME` |
-
----
-
-### DateTimeUtils - Date/Time Utilities
-
-Timezone-aware date/time operations supporting 28+ timezones including:
-VST (Vietnam), JST (Japan), EST (US Eastern), PST (US Pacific), UTC, and more.
-
----
-
-### ExceptionUtils - Stack Trace Extraction
-
-```java
-String stackTrace = ExceptionUtils.getStackTrace(exception);
-```
-
-| Method | Description |
-|--------|-------------|
-| `static String getStackTrace(Throwable t)` | Full stack trace as string |
-
----
-
-### SerializeUtils - Java Serialization
-
-```java
-SerializeUtils.serialize(myObject, "/data", "cache");  // → /data/cache.ser
-MyObject obj = SerializeUtils.deserialize("/data", "cache");
-```
-
-| Method | Description |
-|--------|-------------|
-| `static <T extends Serializable> void serialize(T obj, String path, String name)` | Object → `.ser` file |
-| `static <T extends Serializable> T deserialize(String path, String name)` | `.ser` file → Object |
-
----
-
-### YamlProperties - YAML Configuration
-
-```java
-YamlProperties props = new YamlProperties("application.yaml", classLoader);
-String port = props.getProperty("server.port", "8080");
-Integer poolSize = props.getProperty_("database.max-pool-size");
-```
-
-| Method | Description |
-|--------|-------------|
-| `String getProperty(String key)` | Dot-notation nested value lookup |
-| `String getProperty(String key, String defaultValue)` | With default |
-| `<T> T getProperty_(String key)` | Generic getter |
-
-Supports nested keys: `"app.server.port"` traverses `map.get("app").get("server").get("port")`.
-
----
-
-### LCXProperties - Environment-Aware Properties
-
-Wraps `YamlProperties` with environment variable substitution:
-
-```yaml
-database:
-  url: ${DB_URL:jdbc:postgresql://localhost:5432/mydb}
-```
-
-`${ENV_VAR:default}` syntax resolves environment variables with fallback defaults.
-
----
-
-### HttpUtils - HTTP Client
-
-HTTP client with JSON/XML support, connection pooling, and request masking for sensitive data.
-
----
-
-### JsonMaskingUtils - Sensitive Data Masking
-
-Masks sensitive fields in JSON strings. Protects 60+ field names including passwords, tokens,
-SSN, credit card numbers, and PII fields.
-
----
-
-### LogUtils - Structured Logging
-
-SLF4J-based logging with MDC support:
-- Automatic `trace_id` propagation
-- `operation_name` tracking
-- Vert.x `RoutingContext` integration
-- Log levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`
-
----
-
-### RandomUtils - Random Generation
-
-Random string/number generation, list shuffling, and random element selection.
-
----
-
-### NumberFormatUtils - Number Formatting
-
-`BigDecimal` formatting using US locale.
-
----
-
-### UUIDv7 - UUID Generation
-
-Generates UUID v7 (time-ordered) using timestamp and cryptographically random bytes.
-
----
-
-### ThreadUtils - Thread Monitoring
-
-Thread monitoring, safe interruption, and stack trace logging.
-
----
-
-### JVMSystemInfo - JVM Monitoring
-
-JVM memory and processor information with periodic monitoring via Vert.x timers.
-
----
-
-### CommonUtils - General Utilities
-
-Garbage collection triggers, random number generation, and application banner logging.
-
----
-
-### TopoSortUtils - Topological Sort
-
-Topological sorting implementation for dependency graph ordering.
-
----
-
-### DisableSsl - SSL Bypass
-
-Disables SSL certificate verification (for development/testing only).
-
----
-
-### ShellCommandRunningUtils - Shell Execution
-
-Executes shell commands from Java.
-
----
-
-### SocketUtils - Socket Operations
-
-Socket-level networking utilities.
-
----
-
-### SimpleCipherHandler - Lightweight Cipher
-
-Simple symmetric cipher utility.
-
----
-
-### PropertiesUtils - Property Loading
-
-```java
-LCXProperties props = PropertiesUtils.loadYamlProperties("application.yaml");
-LCXProperties empty = PropertiesUtils.emptyProperty();
-```
-
----
+`AuthContext` is a static `ThreadLocal<Object>` with `set`, `get`, typed `get`, and `clear`. Be careful with async boundaries; prefer `RoutingContext` storage for route-local user data.
 
 ## Constants
 
-### CommonConstant
+Important constants:
 
-Global constants used throughout the framework.
+- `CommonConstant`
+- `JavaSqlResultSetConstant`
 
-**String patterns:**
+`CommonConstant.applicationConfig` is the global application config access point used throughout the framework.
 
-| Constant | Value |
-|----------|-------|
-| `DEFAULT_LOCAL_DATE_TIME_STRING_PATTERN` | `yyyy-MM-dd HH:mm:ss.SSS` |
-| `DEFAULT_LOCAL_DATE_STRING_PATTERN` | `yyyy-MM-dd` |
-| `DEFAULT_LOCAL_DATE_TIME_VIETNAMESE_STRING_PATTERN` | `dd-MM-yyyy HH:mm:ss.SSS` |
-| `LOCAL_DATE_TIME_STRING_PATTERN_1` | `yyyy-MM-dd'T'HH:mm:ss` |
-| `LOCAL_DATE_TIME_STRING_PATTERN_2` | `yyyy-MM-dd'T'HH:mm:ss.SSS` |
+## Exceptions
 
-**Common values:**
+Framework exceptions include DI, config, cache, mail, database, reactive, and Vert.x error types.
 
-| Constant | Value |
-|----------|-------|
-| `EMPTY_STRING` | `""` |
-| `HYPHEN` | `"-"` |
-| `NULL_STRING` | `"null"` |
-| `UTF_8_STANDARD_CHARSET` | `"UTF-8"` |
+When adding a new exception, keep it close to the package that owns the behavior. Do not add generic exception types unless several callers share the same semantics.
 
-**MDC keys:**
+## Processor Support Utilities
 
-| Constant | Value |
-|----------|-------|
-| `TRACE_ID_MDC_KEY_NAME` | `"trace_id"` |
-| `OPERATION_NAME_MDC_KEY_NAME` | `"operation_name"` |
-| `CURRENT_USER` | `"current_user"` |
+Processor helper classes live under `vn.io.lcx.processor.*`, even though they are in `common-lib`.
 
-**Runtime values:**
+Important areas:
 
-| Constant | Description |
-|----------|-------------|
-| `ROOT_DIRECTORY_PROJECT_PATH` | Absolute path of working directory |
-| `applicationConfig` | Loaded `LCXProperties` (volatile) |
-| `DATA_TYPE_AND_SQL_STATEMENT_METHOD_MAP` | Java type → `SqlStatementHandler` map |
-| `SENSITIVE_FIELD_NAMES` | Immutable list of 60+ sensitive field names |
+- `template.CodeTemplates`
+- `model.FieldMappingInfo`
+- `model.SourceParameterInfo`
+- mapper/generator services
+- codegen utilities such as `ReactiveCodeGenHelper`
 
-**Sensitive field names include:** `password`, `pwd`, `secret`, `ssn`, `creditCardNumber`,
-`cvv`, `bankAccountNumber`, `token`, `accessToken`, `refreshToken`, `apiKey`, `sessionId`,
-`email`, `phone`, `address`, `ipAddress`, and many more.
+See `docs/annotation-processors.md` before editing them.
 
-### JavaSqlResultSetConstant
+## Tests
 
-Maps SQL data types to `ResultSet` getter methods and default values for type-safe
-result extraction.
+Utility and infra tests are mostly under `common-lib/src/test/java/vn/io/lcx/common`.
 
----
+Run:
 
-## Apache Commons Libraries
-
-The project includes three Apache Commons libraries as dependencies:
-
-| Library | Version | Purpose |
-|---------|---------|---------|
-| `commons-text` | 1.15.0 | String interpolation, text manipulation |
-| `commons-lang3` | 3.20.0 | String utilities, exception handling, reflection |
-| `commons-collections4` | 4.5.0 | Advanced collection operations, transformers, predicates |
-
----
-
-## Custom Exceptions
-
-All exceptions extend `RuntimeException`.
-
-| Exception | Description |
-|-----------|-------------|
-| `CacheException` | Cache operation failures |
-| `ValidationException` | Data validation errors |
-| `DuplicateInstancesException` | Duplicate bean name in ClassPool |
-| `LCXDataSourceException` | Data source operation errors |
-| `LCXDataSourcePropertiesException` | Data source configuration errors |
-| `HikariLcxDataSourceException` | HikariCP-specific errors |
-| `ConnectionEntryException` | Connection pool errors |
-
----
-
-## Annotation Processors
-
-See [annotation-processors.md](annotation-processors.md) for full documentation on all 9
-annotation processors (MapperClassProcessor, SQLMappingProcessor, ServiceProcessor, etc.).
-
----
-
-## Key Source Files
-
-| File | Description |
-|------|-------------|
-| `common/array/LargeArray.java` | Chunked large collections |
-| `common/ref/Ref.java` | Mutable reference wrapper |
-| `common/context/AuthContext.java` | ThreadLocal auth storage |
-| `common/scanner/PackageScanner.java` | Runtime class discovery |
-| `common/utils/BCryptUtils.java` | Password hashing |
-| `common/utils/RSAUtils.java` | RSA encryption |
-| `common/utils/AESUtils.java` | AES encryption |
-| `common/utils/FileUtils.java` | File operations |
-| `common/utils/ObjectUtils.java` | Reflection utilities |
-| `common/utils/MyStringUtils.java` | String manipulation |
-| `common/utils/DateTimeUtils.java` | Date/time utilities |
-| `common/utils/YamlProperties.java` | YAML configuration |
-| `common/utils/LCXProperties.java` | Environment-aware properties |
-| `common/utils/HttpUtils.java` | HTTP client |
-| `common/utils/JsonMaskingUtils.java` | Sensitive data masking |
-| `common/utils/LogUtils.java` | Structured logging |
-| `common/utils/ExceptionUtils.java` | Stack trace extraction |
-| `common/utils/SerializeUtils.java` | Java serialization |
-| `common/utils/UUIDv7.java` | UUID v7 generation |
-| `common/utils/RandomUtils.java` | Random generation |
-| `common/utils/WordCaseUtils.java` | Case conversion |
-| `common/utils/CommonUtils.java` | General utilities |
-| `common/constant/CommonConstant.java` | Global constants |
-| `common/exception/*.java` | Custom exceptions |
-| `processor/SQLMappingProcessor.java` | Entity code generator |
-| `processor/MapperClassProcessor.java` | Mapper code generator |
-| `processor/ServiceProcessor.java` | Service proxy generator |
+```bash
+mvn -pl common-lib test
+```

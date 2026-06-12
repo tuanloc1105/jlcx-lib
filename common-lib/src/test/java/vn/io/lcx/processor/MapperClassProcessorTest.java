@@ -396,41 +396,7 @@ class MapperClassProcessorTest {
     class MultiParamMapping {
 
         @Test
-        void multipleSourceParams_generatesImpl() {
-            JavaFileObject extraDto = JavaFileObjects.forSourceString(
-                    "test.AddressDto",
-                    """
-                    package test;
-
-                    public class AddressDto {
-                        private String city;
-
-                        public String getCity() { return city; }
-                        public void setCity(String city) { this.city = city; }
-                    }
-                    """
-            );
-
-            JavaFileObject combinedDto = JavaFileObjects.forSourceString(
-                    "test.CombinedDto",
-                    """
-                    package test;
-
-                    public class CombinedDto {
-                        private String name;
-                        private int age;
-                        private String city;
-
-                        public String getName() { return name; }
-                        public void setName(String name) { this.name = name; }
-                        public int getAge() { return age; }
-                        public void setAge(int age) { this.age = age; }
-                        public String getCity() { return city; }
-                        public void setCity(String city) { this.city = city; }
-                    }
-                    """
-            );
-
+        void multipleSourceParams_generatedCodeMapsFieldsFromEachSource() throws Exception {
             JavaFileObject mapper = JavaFileObjects.forSourceString(
                     "test.CombineMapper",
                     """
@@ -440,16 +406,265 @@ class MapperClassProcessorTest {
 
                     @MapperClass
                     public interface CombineMapper {
-                        CombinedDto combine(SourceDto source, AddressDto address);
+                        ResultDto map(FirstDto first, SecondDto second);
                     }
                     """
             );
 
-            Compilation compilation = compile(sourceDto(), extraDto, combinedDto, mapper);
+            Compilation compilation = compile(firstDto(), secondDto(), resultDto(), mapper);
             assertEquals(Compilation.Status.SUCCESS, compilation.status());
 
-            assertTrue(compilation.generatedSourceFiles().stream()
-                    .anyMatch(f -> f.getName().contains("CombineMapperImpl")));
+            String code = generatedCode(compilation, "CombineMapperImpl");
+            assertTrue(code.contains("instance.setName(first.getName());"));
+            assertTrue(code.contains("instance.setAge(first.getAge());"));
+            assertTrue(code.contains("instance.setCity(second.getCity());"));
+        }
+
+        @Test
+        void explicitMappingWithFromParameter_canMapAliasedTargetField() throws Exception {
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.FromParamMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+                    import vn.io.lcx.common.annotation.mapper.Mapping;
+
+                    @MapperClass
+                    public interface FromParamMapper {
+                        @Mapping(fromParameter = "second", fromField = "name", toField = "label")
+                        ResultDto map(FirstDto first, SecondDto second);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(firstDto(), secondDto(), resultDto(), mapper);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            String code = generatedCode(compilation, "FromParamMapperImpl");
+            assertTrue(code.contains("instance.setLabel(second.getName());"));
+        }
+
+        @Test
+        void skipMapping_preventsAutoMappingTargetField() throws Exception {
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.SkipMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+                    import vn.io.lcx.common.annotation.mapper.Mapping;
+
+                    @MapperClass
+                    public interface SkipMapper {
+                        @Mapping(toField = "name", skip = true)
+                        ResultDto map(FirstDto first, SecondDto second);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(firstDto(), secondDto(), resultDto(), mapper);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            String code = generatedCode(compilation, "SkipMapperImpl");
+            assertFalse(code.contains("instance.setName("));
+            assertTrue(code.contains("instance.setAge(first.getAge());"));
+            assertTrue(code.contains("instance.setCity(second.getCity());"));
+        }
+
+        @Test
+        void mappingWithUnknownFromParameter_causesError() {
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.UnknownParamMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+                    import vn.io.lcx.common.annotation.mapper.Mapping;
+
+                    @MapperClass
+                    public interface UnknownParamMapper {
+                        @Mapping(fromParameter = "missing", fromField = "name", toField = "name")
+                        ResultDto map(FirstDto first, SecondDto second);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(firstDto(), secondDto(), resultDto(), mapper);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(compilation.errors().stream()
+                    .anyMatch(d -> d.getMessage(null).contains("references parameter 'missing'")));
+        }
+
+        @Test
+        void mappingWithUnknownFromField_causesError() {
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.UnknownFieldMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+                    import vn.io.lcx.common.annotation.mapper.Mapping;
+
+                    @MapperClass
+                    public interface UnknownFieldMapper {
+                        @Mapping(fromParameter = "second", fromField = "missingName", toField = "name")
+                        ResultDto map(FirstDto first, SecondDto second);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(firstDto(), secondDto(), resultDto(), mapper);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(compilation.errors().stream()
+                    .anyMatch(d -> d.getMessage(null).contains("Field 'missingName' not found")));
+        }
+
+        @Test
+        void duplicateExplicitTargetField_causesError() {
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.DuplicateTargetMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+                    import vn.io.lcx.common.annotation.mapper.Mapping;
+
+                    @MapperClass
+                    public interface DuplicateTargetMapper {
+                        @Mapping(fromParameter = "first", fromField = "name", toField = "name")
+                        @Mapping(fromParameter = "second", fromField = "city", toField = "name")
+                        ResultDto map(FirstDto first, SecondDto second);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(firstDto(), secondDto(), resultDto(), mapper);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(compilation.errors().stream()
+                    .anyMatch(d -> d.getMessage(null).contains("duplicate target field 'name'")));
+        }
+
+        @Test
+        void blankFromParameter_defaultsToFirstParam() throws Exception {
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.DefaultParamMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+                    import vn.io.lcx.common.annotation.mapper.Mapping;
+
+                    @MapperClass
+                    public interface DefaultParamMapper {
+                        @Mapping(fromField = "name", toField = "name")
+                        ResultDto map(FirstDto first, SecondDto second);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(firstDto(), secondDto(), resultDto(), mapper);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            String code = generatedCode(compilation, "DefaultParamMapperImpl");
+            assertTrue(code.contains("instance.setName(first.getName());"));
+            assertFalse(code.contains("instance.setName(second.getName());"));
+        }
+
+        @Test
+        void customCodeMapping_canReferenceMultipleParameters() throws Exception {
+            JavaFileObject mapper = JavaFileObjects.forSourceString(
+                    "test.CustomCodeMapper",
+                    """
+                    package test;
+
+                    import vn.io.lcx.common.annotation.mapper.MapperClass;
+                    import vn.io.lcx.common.annotation.mapper.Mapping;
+
+                    @MapperClass
+                    public interface CustomCodeMapper {
+                        @Mapping(toField = "name", code = "first.getName() + second.getCity()")
+                        ResultDto map(FirstDto first, SecondDto second);
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(firstDto(), secondDto(), resultDto(), mapper);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            String code = generatedCode(compilation, "CustomCodeMapperImpl");
+            assertTrue(code.contains("instance.setName(first.getName() + second.getCity());"));
+        }
+
+        private JavaFileObject firstDto() {
+            return JavaFileObjects.forSourceString(
+                    "test.FirstDto",
+                    """
+                    package test;
+
+                    public class FirstDto {
+                        private String name;
+                        private int age;
+
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                        public int getAge() { return age; }
+                        public void setAge(int age) { this.age = age; }
+                    }
+                    """
+            );
+        }
+
+        private JavaFileObject secondDto() {
+            return JavaFileObjects.forSourceString(
+                    "test.SecondDto",
+                    """
+                    package test;
+
+                    public class SecondDto {
+                        private String name;
+                        private String city;
+
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                        public String getCity() { return city; }
+                        public void setCity(String city) { this.city = city; }
+                    }
+                    """
+            );
+        }
+
+        private JavaFileObject resultDto() {
+            return JavaFileObjects.forSourceString(
+                    "test.ResultDto",
+                    """
+                    package test;
+
+                    public class ResultDto {
+                        private String name;
+                        private String label;
+                        private int age;
+                        private String city;
+
+                        public String getName() { return name; }
+                        public void setName(String name) { this.name = name; }
+                        public String getLabel() { return label; }
+                        public void setLabel(String label) { this.label = label; }
+                        public int getAge() { return age; }
+                        public void setAge(int age) { this.age = age; }
+                        public String getCity() { return city; }
+                        public void setCity(String city) { this.city = city; }
+                    }
+                    """
+            );
+        }
+
+        private String generatedCode(Compilation compilation, String implName) throws Exception {
+            JavaFileObject impl = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains(implName))
+                    .findFirst()
+                    .orElseThrow();
+            return impl.getCharContent(false).toString();
         }
     }
 

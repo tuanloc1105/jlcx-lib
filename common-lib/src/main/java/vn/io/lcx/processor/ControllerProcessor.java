@@ -28,9 +28,7 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,12 +38,15 @@ import java.util.stream.Collectors;
 @SupportedAnnotationTypes({
         "vn.io.lcx.vertx.base.annotation.app.ContextHandler",
         "vn.io.lcx.vertx.base.annotation.process.Controller",
+        "vn.io.lcx.vertx.base.annotation.process.RestController",
         "vn.io.lcx.vertx.base.annotation.app.VertxApplication",
 })
 public class ControllerProcessor extends AbstractProcessor {
 
-    static boolean serveStaticResource = false;
-    final TreeMap<Integer, LinkedList<TypeElement>> contextHandlerOrderAndClassListMap = new TreeMap<>();
+    private boolean serveStaticResource = false;
+    private boolean applicationVerticleGenerated = false;
+    final Map<TypeElement, List<ExecutableElement>> controllerAndMethodMap = new LinkedHashMap<>();
+    final TreeMap<Integer, LinkedHashMap<String, TypeElement>> contextHandlerOrderAndClassListMap = new TreeMap<>();
 
     private static String extractApiKeyValidationMethod(boolean applicationHaveAPIKey) {
         String apiKeyAuthHandler = "    // None of api key auth handler";
@@ -71,13 +72,10 @@ public class ControllerProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        Map<TypeElement, List<ExecutableElement>> classMap = new HashMap<>();
-
         for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(vn.io.lcx.vertx.base.annotation.process.Controller.class)) {
             if (annotatedElement instanceof TypeElement) {
                 TypeElement typeElement = (TypeElement) annotatedElement;
                 try {
-                    // Get all methods
                     List<ExecutableElement> allMethodsOfClass = this.processingEnv.getElementUtils().getAllMembers(typeElement).stream()
                             .filter(e -> {
                                 boolean elementIsAMethod = e.getKind() == ElementKind.METHOD;
@@ -98,12 +96,7 @@ public class ControllerProcessor extends AbstractProcessor {
                                         annotatedWithGetOrPostOrPutOrDelete;
                             })
                             .map(member -> (ExecutableElement) member).collect(Collectors.toList());
-                    classMap.put(typeElement, allMethodsOfClass);
-                    // ProcessorClassInfo processorClassInfo = ProcessorClassInfo.init(
-                    //         typeElement,
-                    //         processingEnv.getTypeUtils(),
-                    //         processingEnv.getElementUtils()
-                    // );
+                    controllerAndMethodMap.put(typeElement, allMethodsOfClass);
                 } catch (Exception e) {
                     this.processingEnv.
                             getMessager().
@@ -138,16 +131,20 @@ public class ControllerProcessor extends AbstractProcessor {
             if (contextHandlerElement instanceof TypeElement) {
                 TypeElement typeElement = (TypeElement) contextHandlerElement;
                 ContextHandler contextHandler = typeElement.getAnnotation(ContextHandler.class);
-                var elementList = contextHandlerOrderAndClassListMap.get(contextHandler.order());
-                if (elementList == null) {
-                    contextHandlerOrderAndClassListMap.put(contextHandler.order(), new LinkedList<>(Collections.singleton(typeElement)));
-                } else {
-                    elementList.addLast(typeElement);
-                }
+                contextHandlerOrderAndClassListMap.computeIfAbsent(contextHandler.order(), ignored -> new LinkedHashMap<>())
+                        .putIfAbsent(typeElement.getQualifiedName().toString(), typeElement);
             }
         }
 
-        if (!classMap.isEmpty()) {
+        boolean restControllersInCurrentRound = !roundEnv
+                .getElementsAnnotatedWith(vn.io.lcx.vertx.base.annotation.process.RestController.class)
+                .isEmpty();
+
+        if (!roundEnv.processingOver()
+                && !restControllersInCurrentRound
+                && !controllerAndMethodMap.isEmpty()
+                && !applicationVerticleGenerated) {
+            applicationVerticleGenerated = true;
 
             int count = 1;
 
@@ -159,7 +156,7 @@ public class ControllerProcessor extends AbstractProcessor {
 
             if (!contextHandlerOrderAndClassListMap.isEmpty()) {
                 contextHandlerOrderAndClassListMap.forEach((integer, typeElements) -> {
-                    typeElements.forEach(typeElement -> {
+                    typeElements.values().forEach(typeElement -> {
                         constructorParameters.add(
                                 String.format(
                                         "%s filter%s%d",
@@ -194,7 +191,7 @@ public class ControllerProcessor extends AbstractProcessor {
                 });
             }
 
-            for (Map.Entry<TypeElement, List<ExecutableElement>> currentClass : classMap.entrySet()) {
+            for (Map.Entry<TypeElement, List<ExecutableElement>> currentClass : controllerAndMethodMap.entrySet()) {
                 processingEnv.getMessager().printMessage(
                         Diagnostic.Kind.NOTE,
                         vn.io.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.io.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
@@ -389,12 +386,14 @@ public class ControllerProcessor extends AbstractProcessor {
                 try (Writer writer = builderFile.openWriter()) {
                     writer.write(code);
                 }
+                controllerAndMethodMap.clear();
+                contextHandlerOrderAndClassListMap.clear();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        return true;
+        return !restControllersInCurrentRound;
     }
 
 }

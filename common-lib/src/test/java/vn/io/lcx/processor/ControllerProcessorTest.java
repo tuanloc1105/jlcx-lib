@@ -2,6 +2,7 @@ package vn.io.lcx.processor;
 
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,18 @@ class ControllerProcessorTest {
     private Compilation compile(JavaFileObject... sources) {
         return javac()
                 .withProcessors(new ControllerProcessor())
+                .compile(sources);
+    }
+
+    private Compilation compileWithRestController(JavaFileObject... sources) {
+        return javac()
+                .withProcessors(new RestControllerProcessor(), new ControllerProcessor())
+                .compile(sources);
+    }
+
+    private Compilation compileWithServiceOrder(JavaFileObject... sources) {
+        return javac()
+                .withProcessors(new ControllerProcessor(), new RestControllerProcessor())
                 .compile(sources);
     }
 
@@ -582,6 +595,227 @@ class ControllerProcessorTest {
             String code = verticle.getCharContent(false).toString();
             assertTrue(code.contains("MyContextHandler"),
                     "Generated ApplicationVerticle should reference the ContextHandler class");
+        }
+    }
+
+    @Nested
+    @DisplayName("Round Safety")
+    class RoundSafety {
+
+        @Test
+        void mixedControllerAndRestController_generatesSingleApplicationVerticleWithBothRoutes() throws Exception {
+            JavaFileObject rawController = JavaFileObjects.forSourceString(
+                    "test.RawController",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.Controller;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.ext.web.RoutingContext;
+
+                    @Controller(path = "/raw")
+                    public class RawController {
+                        @Get(path = "/ping")
+                        public void ping(RoutingContext ctx) {}
+                    }
+                    """
+            );
+            JavaFileObject restController = JavaFileObjects.forSourceString(
+                    "test.UserRestController",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/rest")
+                    public class UserRestController {
+                        @Get(path = "/list")
+                        public Future<String> list() {
+                            return Future.succeededFuture("ok");
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compileWithRestController(vertxAppSource(), rawController, restController);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+            assertEquals(1, compilation.generatedSourceFiles().stream()
+                            .filter(f -> f.getName().contains("ApplicationVerticle"))
+                            .count(),
+                    "Should generate exactly one ApplicationVerticle");
+
+            JavaFileObject verticle = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ApplicationVerticle"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = verticle.getCharContent(false).toString();
+            assertTrue(code.contains("/raw/ping"), "Should contain raw controller route");
+            assertTrue(code.contains("/rest/list"), "Should contain rest controller route");
+        }
+
+        @Test
+        void serviceOrder_restControllerProcessorStillReceivesRestController() throws Exception {
+            JavaFileObject rawController = JavaFileObjects.forSourceString(
+                    "test.ServiceOrderRawController",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.Controller;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.ext.web.RoutingContext;
+
+                    @Controller(path = "/raw")
+                    public class ServiceOrderRawController {
+                        @Get(path = "/ping")
+                        public void ping(RoutingContext ctx) {}
+                    }
+                    """
+            );
+            JavaFileObject restController = JavaFileObjects.forSourceString(
+                    "test.ServiceOrderRestController",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/rest")
+                    public class ServiceOrderRestController {
+                        @Get(path = "/list")
+                        public Future<String> list() {
+                            return Future.succeededFuture("ok");
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compileWithServiceOrder(vertxAppSource(), rawController, restController);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+            assertTrue(compilation.generatedSourceFiles().stream()
+                            .anyMatch(f -> f.getName().contains("ReactiveServiceOrderRestController")),
+                    "RestControllerProcessor should generate wrapper when ControllerProcessor runs first");
+
+            JavaFileObject verticle = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ApplicationVerticle"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = verticle.getCharContent(false).toString();
+            assertTrue(code.contains("/raw/ping"), "Should contain raw controller route");
+            assertTrue(code.contains("/rest/list"), "Should contain rest controller route");
+        }
+
+        @Test
+        void restControllerApiKeyRoute_hasValidateApiKeyHandlerInApplicationVerticle() throws Exception {
+            JavaFileObject restController = JavaFileObjects.forSourceString(
+                    "test.ExternalRestController",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.APIKey;
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/external")
+                    public class ExternalRestController {
+                        @APIKey
+                        @Get(path = "/data")
+                        public Future<String> data() {
+                            return Future.succeededFuture("data");
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compileWithRestController(vertxAppSource(), restController);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject wrapper = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ReactiveExternalRestController"))
+                    .findFirst()
+                    .orElseThrow();
+            assertTrue(wrapper.getCharContent(false).toString().contains("@APIKey"),
+                    "Generated wrapper should copy @APIKey");
+
+            JavaFileObject verticle = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ApplicationVerticle"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = verticle.getCharContent(false).toString();
+            assertTrue(code.contains("/external/data"), "Should contain rest controller route");
+            assertTrue(code.contains("validateApiKey"), "Should attach API key handler");
+        }
+
+        @Test
+        void contextHandlerNotDuplicatedAcrossRounds() throws Exception {
+            JavaFileObject handler = JavaFileObjects.forSourceString(
+                    "test.SharedContextHandler",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.app.ContextHandler;
+                    import io.vertx.ext.web.RoutingContext;
+
+                    @ContextHandler(order = 1)
+                    public class SharedContextHandler {
+                        public void handle(RoutingContext ctx) {
+                            ctx.next();
+                        }
+                    }
+                    """
+            );
+            JavaFileObject rawController = JavaFileObjects.forSourceString(
+                    "test.RawWithHandlerController",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.Controller;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.ext.web.RoutingContext;
+
+                    @Controller(path = "/raw")
+                    public class RawWithHandlerController {
+                        @Get(path = "/handler")
+                        public void handler(RoutingContext ctx) {}
+                    }
+                    """
+            );
+            JavaFileObject restController = JavaFileObjects.forSourceString(
+                    "test.RestWithHandlerController",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/rest")
+                    public class RestWithHandlerController {
+                        @Get(path = "/handler")
+                        public Future<String> handler() {
+                            return Future.succeededFuture("ok");
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compileWithRestController(vertxAppSource(), handler, rawController, restController);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject verticle = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ApplicationVerticle"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = verticle.getCharContent(false).toString();
+            assertEquals(1, StringUtils.countMatches(code, "private final test.SharedContextHandler filterSharedContextHandler1"),
+                    "Context handler field should be generated once");
         }
     }
 

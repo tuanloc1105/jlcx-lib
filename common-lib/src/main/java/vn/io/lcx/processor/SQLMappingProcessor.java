@@ -6,12 +6,14 @@ import vn.io.lcx.common.annotation.ColumnName;
 import vn.io.lcx.common.annotation.IdColumn;
 import vn.io.lcx.common.annotation.PreInsert;
 import vn.io.lcx.common.annotation.PreUpdate;
+import vn.io.lcx.common.annotation.SQLProjection;
 import vn.io.lcx.common.annotation.TableName;
 import vn.io.lcx.common.constant.CommonConstant;
 import vn.io.lcx.common.constant.JavaSqlResultSetConstant;
 import vn.io.lcx.common.utils.ExceptionUtils;
 import vn.io.lcx.common.utils.FileUtils;
 import vn.io.lcx.common.utils.MyStringUtils;
+import vn.io.lcx.processor.utility.MethodInfo;
 import vn.io.lcx.processor.utility.ProcessorClassInfo;
 import vn.io.lcx.processor.utility.TypeHierarchyAnalyzer;
 
@@ -32,6 +34,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,13 +47,17 @@ import static vn.io.lcx.common.constant.JavaSqlResultSetConstant.DOT;
 import static vn.io.lcx.common.utils.WordCaseUtils.capitalize;
 import static vn.io.lcx.common.utils.WordCaseUtils.convertCamelToConstant;
 
-@SupportedAnnotationTypes("vn.io.lcx.common.annotation.SQLMapping")
+@SupportedAnnotationTypes({
+        "vn.io.lcx.common.annotation.SQLMapping",
+        "vn.io.lcx.common.annotation.SQLProjection"
+})
 public class SQLMappingProcessor extends AbstractProcessor {
 
     // Error message constants
     private static final String ERROR_TABLE_NAME_REQUIRED = "A `vn.io.lcx.common.annotation.TableName` should be defined";
     private static final String ERROR_PRIMARY_KEY_REQUIRED = "A primary key should be defined";
     private static final String ERROR_MULTIPLE_ID_COLUMNS = "More than one id column was defined";
+    private static final String ERROR_MAPPING_AND_PROJECTION = "Class must not use both @SQLMapping and @SQLProjection";
 
     // Helper method to add error code to multiple lists
     @SafeVarargs
@@ -75,12 +82,25 @@ public class SQLMappingProcessor extends AbstractProcessor {
 
     private static String getGetterName(Element element, String fieldName) {
         if (isPrimitiveBoolean(element)) {
-            if (fieldName.startsWith("is")) {
+            if (isBooleanPropertyPrefix(fieldName)) {
                 return fieldName;
             }
             return "is" + capitalize(fieldName);
         }
         return "get" + capitalize(fieldName);
+    }
+
+    private static String getSetterName(Element element, String fieldName) {
+        if (isPrimitiveBoolean(element) && isBooleanPropertyPrefix(fieldName)) {
+            return "set" + fieldName.substring(2);
+        }
+        return "set" + capitalize(fieldName);
+    }
+
+    private static boolean isBooleanPropertyPrefix(String fieldName) {
+        return fieldName.startsWith("is") &&
+                fieldName.length() > 2 &&
+                Character.isUpperCase(fieldName.charAt(2));
     }
 
     @Override
@@ -94,11 +114,18 @@ public class SQLMappingProcessor extends AbstractProcessor {
         for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(vn.io.lcx.common.annotation.SQLMapping.class)) {
             if (annotatedElement instanceof TypeElement typeElement) {
                 try {
+                    if (typeElement.getAnnotation(SQLProjection.class) != null) {
+                        printError(ERROR_MAPPING_AND_PROJECTION, typeElement);
+                        continue;
+                    }
                     ProcessorClassInfo processorClassInfo = ProcessorClassInfo.init(
                             typeElement,
                             processingEnv.getTypeUtils(),
                             processingEnv.getElementUtils()
                     );
+                    if (!validateSqlMappingClass(processorClassInfo)) {
+                        continue;
+                    }
                     generateBuilderClass(processorClassInfo);
                 } catch (Exception e) {
                     this.processingEnv.
@@ -110,7 +137,262 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 }
             }
         }
+        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(SQLProjection.class)) {
+            if (annotatedElement instanceof TypeElement typeElement) {
+                try {
+                    if (typeElement.getAnnotation(vn.io.lcx.common.annotation.SQLMapping.class) != null) {
+                        continue;
+                    }
+                    ProcessorClassInfo processorClassInfo = ProcessorClassInfo.init(
+                            typeElement,
+                            processingEnv.getTypeUtils(),
+                            processingEnv.getElementUtils()
+                    );
+                    if (!validateSqlProjectionClass(processorClassInfo)) {
+                        continue;
+                    }
+                    generateProjectionClass(processorClassInfo);
+                } catch (Exception e) {
+                    this.processingEnv.
+                            getMessager().
+                            printMessage(
+                                    Diagnostic.Kind.ERROR,
+                                    ExceptionUtils.getStackTrace(e)
+                            );
+                }
+            }
+        }
         return true;
+    }
+
+    private boolean validateSqlProjectionClass(ProcessorClassInfo processorClassInfo) {
+        return validateMappableFields(processorClassInfo, "@SQLProjection");
+    }
+
+    private boolean validateSqlMappingClass(ProcessorClassInfo processorClassInfo) {
+        boolean valid = true;
+        TableName tableNameAnnotation = processorClassInfo.getClazz().getAnnotation(TableName.class);
+        if (tableNameAnnotation == null) {
+            printError(ERROR_TABLE_NAME_REQUIRED, processorClassInfo.getClazz());
+            valid = false;
+        } else if (StringUtils.isBlank(tableNameAnnotation.value())) {
+            printError("`vn.io.lcx.common.annotation.TableName#value` must not be blank", processorClassInfo.getClazz());
+            valid = false;
+        }
+
+        List<Element> idElements = processorClassInfo.getFields().stream()
+                .filter(element -> element.getAnnotation(IdColumn.class) != null)
+                .collect(Collectors.toList());
+        List<Element> invalidIdElements = idElements.stream()
+                .filter(element -> !isMappableField(element))
+                .collect(Collectors.toList());
+        List<Element> activeIdElements = idElements.stream()
+                .filter(this::isMappableField)
+                .collect(Collectors.toList());
+        invalidIdElements.forEach(element -> printError("@IdColumn field must not be static or final", element));
+        if (!invalidIdElements.isEmpty()) {
+            valid = false;
+        }
+        if (activeIdElements.isEmpty()) {
+            printError(ERROR_PRIMARY_KEY_REQUIRED, processorClassInfo.getClazz());
+            valid = false;
+        } else if (activeIdElements.size() > 1) {
+            activeIdElements.forEach(element -> printError(ERROR_MULTIPLE_ID_COLUMNS, element));
+            valid = false;
+        } else if (!isSupportedMappingField(activeIdElements.get(0))) {
+            printError(String.format(
+                    "Unsupported @IdColumn field type `%s` for field `%s`",
+                    activeIdElements.get(0).asType(),
+                    activeIdElements.get(0).getSimpleName()
+            ), activeIdElements.get(0));
+            valid = false;
+        }
+
+        if (!validateMappableFields(processorClassInfo, "@SQLMapping")) {
+            valid = false;
+        }
+
+        if (!validateLifecycleMethods(processorClassInfo, true)) {
+            valid = false;
+        }
+        if (!validateLifecycleMethods(processorClassInfo, false)) {
+            valid = false;
+        }
+        if (!hasInsertableColumn(processorClassInfo)) {
+            printError("@SQLMapping entity must have at least one insertable column", processorClassInfo.getClazz());
+            valid = false;
+        }
+        if (activeIdElements.size() == 1 && !hasUpdatableNonIdColumn(processorClassInfo, activeIdElements.get(0))) {
+            printError("@SQLMapping entity must have at least one updatable non-id column", processorClassInfo.getClazz());
+            valid = false;
+        }
+        return valid;
+    }
+
+    private boolean validateMappableFields(ProcessorClassInfo processorClassInfo, String annotationName) {
+        boolean valid = true;
+        final List<MethodInfo> methodInfos = new ArrayList<>(processorClassInfo.getMethods().keySet());
+        for (Element field : processorClassInfo.getFields()) {
+            if (!isMappableField(field)) {
+                continue;
+            }
+            if (!isSupportedMappingField(field)) {
+                printError(String.format(
+                        "Unsupported %s field type `%s` for field `%s`",
+                        annotationName,
+                        field.asType(),
+                        field.getSimpleName()
+                ), field);
+                valid = false;
+            }
+            if (!hasGetter(methodInfos, processorClassInfo, field)) {
+                printError(String.format(
+                        "%s field `%s` must have getter `%s()`",
+                        annotationName,
+                        field.getSimpleName(),
+                        getGetterName(field, field.getSimpleName().toString())
+                ), field);
+                valid = false;
+            }
+            if (!hasSetter(methodInfos, processorClassInfo, field)) {
+                printError(String.format(
+                        "%s field `%s` must have setter `%s(%s)`",
+                        annotationName,
+                        field.getSimpleName(),
+                        getSetterName(field, field.getSimpleName().toString()),
+                        field.asType()
+                ), field);
+                valid = false;
+            }
+        }
+        return valid;
+    }
+
+    private boolean validateLifecycleMethods(ProcessorClassInfo processorClassInfo, boolean preInsert) {
+        final var annotatedMethods = processorClassInfo.getMethods().entrySet().stream()
+                .filter(entry -> preInsert
+                        ? entry.getValue().getAnnotation(PreInsert.class) != null
+                        : entry.getValue().getAnnotation(PreUpdate.class) != null)
+                .collect(Collectors.toList());
+        boolean valid = true;
+        String annotationName = preInsert ? "@PreInsert" : "@PreUpdate";
+        if (annotatedMethods.size() > 1) {
+            annotatedMethods.forEach(entry -> printError(
+                    String.format("%s must be declared on at most one method", annotationName),
+                    entry.getValue()
+            ));
+            valid = false;
+        }
+        for (var entry : annotatedMethods) {
+            if (!entry.getKey().getInputParameters().isEmpty()) {
+                printError(String.format("%s method must not declare parameters", annotationName), entry.getValue());
+                valid = false;
+            }
+            if (!entry.getKey().getOutputParameter().getKind().equals(TypeKind.VOID)) {
+                printError(String.format("%s method must return void", annotationName), entry.getValue());
+                valid = false;
+            }
+        }
+        return valid;
+    }
+
+    private boolean hasGetter(List<MethodInfo> methodInfos, ProcessorClassInfo processorClassInfo, Element field) {
+        if (hasAnnotation(field, "lombok.Getter") ||
+                hasAnnotation(processorClassInfo.getClazz(), "lombok.Getter") ||
+                hasAnnotation(processorClassInfo.getClazz(), "lombok.Data")) {
+            return true;
+        }
+        String getterName = getGetterName(field, field.getSimpleName().toString());
+        return methodInfos.stream()
+                .anyMatch(methodInfo -> getterName.equals(methodInfo.getMethodName()) &&
+                        methodInfo.getInputParameters().isEmpty());
+    }
+
+    private boolean hasSetter(List<MethodInfo> methodInfos, ProcessorClassInfo processorClassInfo, Element field) {
+        if (hasAnnotation(field, "lombok.Setter") ||
+                hasAnnotation(processorClassInfo.getClazz(), "lombok.Setter") ||
+                hasAnnotation(processorClassInfo.getClazz(), "lombok.Data")) {
+            return true;
+        }
+        String setterName = getSetterName(field, field.getSimpleName().toString());
+        return methodInfos.stream()
+                .anyMatch(methodInfo -> setterName.equals(methodInfo.getMethodName()) &&
+                        methodInfo.getInputParameters().size() == 1 &&
+                        processingEnv.getTypeUtils().isAssignable(
+                                field.asType(),
+                                methodInfo.getInputParameters().get(0).asType()
+                        ));
+    }
+
+    private boolean hasAnnotation(Element element, String qualifiedName) {
+        return element.getAnnotationMirrors().stream()
+                .anyMatch(annotationMirror -> qualifiedName.contentEquals(
+                        annotationMirror.getAnnotationType().asElement().toString()
+                ));
+    }
+
+    private boolean hasInsertableColumn(ProcessorClassInfo processorClassInfo) {
+        return processorClassInfo.getFields().stream()
+                .filter(this::isMappableField)
+                .anyMatch(element -> Optional.ofNullable(element.getAnnotation(ColumnName.class))
+                        .map(ColumnName::insertable)
+                        .orElse(true));
+    }
+
+    private boolean hasUpdatableNonIdColumn(ProcessorClassInfo processorClassInfo, Element idElement) {
+        String idFieldName = idElement.getSimpleName().toString();
+        return processorClassInfo.getFields().stream()
+                .filter(this::isMappableField)
+                .filter(element -> !element.getSimpleName().toString().equals(idFieldName))
+                .anyMatch(element -> Optional.ofNullable(element.getAnnotation(ColumnName.class))
+                        .map(ColumnName::updatable)
+                        .orElse(true));
+    }
+
+    private boolean isMappableField(Element element) {
+        return !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC));
+    }
+
+    private boolean isSupportedMappingField(Element element) {
+        if (TypeHierarchyAnalyzer.isEnumField(element, processingEnv.getTypeUtils())) {
+            return true;
+        }
+        String fieldTypeSimpleName = getFieldTypeSimpleName(element.asType().toString());
+        boolean resultSetSupported = JavaSqlResultSetConstant.RESULT_SET_DATA_TYPE_MAP.containsKey(fieldTypeSimpleName) ||
+                isResultSetSpecialType(fieldTypeSimpleName);
+        boolean vertxSupported = JavaSqlResultSetConstant.VERTX_SQL_CLIENT_ROW.containsKey(fieldTypeSimpleName) ||
+                isVertxSpecialType(fieldTypeSimpleName);
+        return resultSetSupported && vertxSupported;
+    }
+
+    private boolean isResultSetSpecialType(String fieldTypeSimpleName) {
+        return LocalDateTime.class.getSimpleName().equals(fieldTypeSimpleName) ||
+                LocalDate.class.getSimpleName().equals(fieldTypeSimpleName) ||
+                OffsetDateTime.class.getSimpleName().equals(fieldTypeSimpleName) ||
+                BigDecimal.class.getSimpleName().equals(fieldTypeSimpleName) ||
+                BigInteger.class.getSimpleName().equals(fieldTypeSimpleName) ||
+                "char".equals(fieldTypeSimpleName) ||
+                "Character".equals(fieldTypeSimpleName);
+    }
+
+    private boolean isVertxSpecialType(String fieldTypeSimpleName) {
+        return BigInteger.class.getSimpleName().equals(fieldTypeSimpleName) ||
+                "byte".equals(fieldTypeSimpleName) ||
+                "Byte".equals(fieldTypeSimpleName) ||
+                "char".equals(fieldTypeSimpleName) ||
+                "Character".equals(fieldTypeSimpleName);
+    }
+
+    private static String getFieldTypeSimpleName(String fieldType) {
+        if (fieldType.matches(".*\\..*")) {
+            List<String> fieldTypeSplitDot = new ArrayList<>(Arrays.asList(fieldType.split(JavaSqlResultSetConstant.DOT)));
+            return fieldTypeSplitDot.get(fieldTypeSplitDot.size() - 1);
+        }
+        return fieldType;
+    }
+
+    private void printError(String message, Element element) {
+        this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message, element);
     }
 
     private void generateBuilderClass(ProcessorClassInfo processorClassInfo) throws IOException {
@@ -157,86 +439,42 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         processorClassInfo.getClazz().getSimpleName()
                 )
         );
+        appendRowMappingCodeLines(processorClassInfo, resultSetMappingCodeLines, vertxRowMappingCodeLines);
         processorClassInfo.getFields().stream()
-                .filter(
-                        element ->
-                                !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
-                ).forEach(
-                        element -> {
-                            final String fieldName = element.getSimpleName().toString();
-                            final String fieldType = element.asType().toString();
-                            final String setFieldMethodName;
-                            if (isPrimitiveBoolean(element) && fieldName.toLowerCase().startsWith("is")) {
-                                setFieldMethodName = "set" + fieldName.substring(2);
-                            } else {
-                                setFieldMethodName = "set" + capitalize(fieldName);
-                            }
-                            ColumnName columnNameAnnotation = element.getAnnotation(ColumnName.class);
-                            // String databaseColumnName = Optional
-                            //         .ofNullable(columnNameAnnotation)
-                            //         .filter(a -> StringUtils.isNotBlank(a.name()))
-                            //         .map(ColumnName::name)
-                            //         .orElse(convertCamelToConstant(fieldName));
-                            // String databaseColumnNameToBeGet = tableNameAnnotation
-                            //         .map(tableName -> String.format("%s_%s", EntityUtils.getTableShortenedName(tableName.value()).toUpperCase(), databaseColumnName))
-                            //         .orElse(databaseColumnName);
-                            String databaseColumnNameToBeGet = Optional
-                                    .ofNullable(columnNameAnnotation)
-                                    .filter(a -> StringUtils.isNotBlank(a.name()))
-                                    .map(ColumnName::name)
-                                    .orElse(convertCamelToConstant(fieldName));
-                            final String fieldTypeSimpleName;
-                            final String resultSetFunctionWillBeUse;
-                            final String vertxRowFunctionWillBeUse;
-                            if (fieldType.matches(".*\\..*")) {
-                                List<String> fieldTypeSplitDot = new ArrayList<>(Arrays.asList(fieldType.split(JavaSqlResultSetConstant.DOT)));
-                                fieldTypeSimpleName = fieldTypeSplitDot.get(fieldTypeSplitDot.size() - 1);
-                            } else {
-                                fieldTypeSimpleName = fieldType;
-                            }
-                            resultSetFunctionWillBeUse = JavaSqlResultSetConstant.RESULT_SET_DATA_TYPE_MAP.get(fieldTypeSimpleName);
-                            vertxRowFunctionWillBeUse = JavaSqlResultSetConstant.VERTX_SQL_CLIENT_ROW.get(fieldTypeSimpleName);
-                            extractResultSetMappingCode(
-                                    element,
-                                    resultSetFunctionWillBeUse,
-                                    resultSetMappingCodeLines,
-                                    fieldType,
-                                    databaseColumnNameToBeGet,
-                                    setFieldMethodName,
-                                    fieldTypeSimpleName
-                            );
-                            extractVertxRowMappingCode(
-                                    element,
-                                    vertxRowFunctionWillBeUse,
-                                    vertxRowMappingCodeLines,
-                                    fieldType,
-                                    databaseColumnNameToBeGet,
-                                    setFieldMethodName,
-                                    fieldTypeSimpleName
-                            );
-                            if (Optional.ofNullable(element.getAnnotation(IdColumn.class)).isPresent()) {
-                                idRowType.set(fieldType);
-                                idRowExtractCode(
-                                        element,
-                                        vertxRowFunctionWillBeUse,
-                                        idRowExtractCodeLines,
-                                        fieldType,
-                                        databaseColumnNameToBeGet,
-                                        setFieldMethodName,
-                                        fieldTypeSimpleName
-                                );
-                                mySqlIdRowExtractCode(
-                                        element,
-                                        vertxRowFunctionWillBeUse,
-                                        mySqlIdRowExtractCodeLines,
-                                        fieldType,
-                                        databaseColumnNameToBeGet,
-                                        setFieldMethodName,
-                                        fieldTypeSimpleName
-                                );
-                            }
-                        }
-                );
+                .filter(this::isMappableField)
+                .filter(element -> Optional.ofNullable(element.getAnnotation(IdColumn.class)).isPresent())
+                .forEach(element -> {
+                    final String fieldName = element.getSimpleName().toString();
+                    final String fieldType = element.asType().toString();
+                    final String setFieldMethodName = getSetterName(element, fieldName);
+                    ColumnName columnNameAnnotation = element.getAnnotation(ColumnName.class);
+                    String databaseColumnNameToBeGet = Optional
+                            .ofNullable(columnNameAnnotation)
+                            .filter(a -> StringUtils.isNotBlank(a.name()))
+                            .map(ColumnName::name)
+                            .orElse(convertCamelToConstant(fieldName));
+                    final String fieldTypeSimpleName = getFieldTypeSimpleName(fieldType);
+                    final String vertxRowFunctionWillBeUse = JavaSqlResultSetConstant.VERTX_SQL_CLIENT_ROW.get(fieldTypeSimpleName);
+                    idRowType.set(fieldType);
+                    idRowExtractCode(
+                            element,
+                            vertxRowFunctionWillBeUse,
+                            idRowExtractCodeLines,
+                            fieldType,
+                            databaseColumnNameToBeGet,
+                            setFieldMethodName,
+                            fieldTypeSimpleName
+                    );
+                    mySqlIdRowExtractCode(
+                            element,
+                            vertxRowFunctionWillBeUse,
+                            mySqlIdRowExtractCodeLines,
+                            fieldType,
+                            databaseColumnNameToBeGet,
+                            setFieldMethodName,
+                            fieldTypeSimpleName
+                    );
+                });
         resultSetMappingCodeLines.add("return instance;");
         vertxRowMappingCodeLines.add("return instance;");
         final var insertStatementCodeLines = new ArrayList<String>();
@@ -569,6 +807,133 @@ public class SQLMappingProcessor extends AbstractProcessor {
         }
     }
 
+    private void generateProjectionClass(ProcessorClassInfo processorClassInfo) throws IOException {
+        processingEnv.getMessager().printMessage(
+                Diagnostic.Kind.NOTE,
+                vn.io.lcx.common.utils.DateTimeUtils.toUnixMillis(vn.io.lcx.common.utils.DateTimeUtils.generateCurrentTimeDefault()) + ": " +
+                        String.format(
+                                "Generating code for SQL projection : %s",
+                                processorClassInfo.getClazz().getQualifiedName()
+                        )
+        );
+        final String sqlMappingTemplate = FileUtils.readResourceFileAsText(
+                this.getClass().getClassLoader(),
+                "template/sql-mapping-template.txt"
+        );
+        final String methodTemplate = FileUtils.readResourceFileAsText(
+                this.getClass().getClassLoader(),
+                "template/method-template.txt"
+        );
+        assert sqlMappingTemplate != null;
+        assert methodTemplate != null;
+
+        final var resultSetMappingCodeLines = new ArrayList<String>();
+        final var vertxRowMappingCodeLines = new ArrayList<String>();
+        resultSetMappingCodeLines.add(
+                String.format(
+                        "%1$s instance = new %1$s();",
+                        processorClassInfo.getClazz().getSimpleName()
+                )
+        );
+        vertxRowMappingCodeLines.add(
+                String.format(
+                        "%1$s instance = new %1$s();",
+                        processorClassInfo.getClazz().getSimpleName()
+                )
+        );
+        appendRowMappingCodeLines(processorClassInfo, resultSetMappingCodeLines, vertxRowMappingCodeLines);
+        resultSetMappingCodeLines.add("return instance;");
+        vertxRowMappingCodeLines.add("return instance;");
+
+        StringBuilder methodCodeBody = new StringBuilder("\n");
+        methodCodeBody.append(
+                methodTemplate
+                        .replace("${return-type}", "static " + processorClassInfo.getClazz().getQualifiedName().toString())
+                        .replace("${method-name}", "resultSetMapping")
+                        .replace("${list-of-parameters}", "java.sql.ResultSet resultSet")
+                        .replace("${method-body}", resultSetMappingCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n").append(
+                methodTemplate
+                        .replace("${return-type}", "static " + processorClassInfo.getClazz().getQualifiedName())
+                        .replace("${method-name}", "vertxRowMapping")
+                        .replace("${list-of-parameters}", "io.vertx.sqlclient.Row row")
+                        .replace("${method-body}", vertxRowMappingCodeLines
+                                .stream()
+                                .collect(
+                                        Collectors.joining(
+                                                "\n        ",
+                                                CommonConstant.EMPTY_STRING,
+                                                CommonConstant.EMPTY_STRING
+                                        )
+                                )
+                        )
+        ).append("\n");
+
+        final var packageName = processingEnv
+                .getElementUtils()
+                .getPackageOf(processorClassInfo.getClazz())
+                .getQualifiedName()
+                .toString();
+        final var className = processorClassInfo.getClazz().getSimpleName() + "Utils";
+        final var code = sqlMappingTemplate
+                .replace("${package-name}", packageName)
+                .replace("${class-name}", className)
+                .replace("${methods}", MyStringUtils.removeSuffixOfString(methodCodeBody.toString(), "\n"));
+        String fullClassName = packageName + "." + className;
+        JavaFileObject builderFile = this.processingEnv.getFiler().createSourceFile(fullClassName);
+        try (Writer writer = builderFile.openWriter()) {
+            writer.write(code);
+        }
+    }
+
+    private void appendRowMappingCodeLines(ProcessorClassInfo processorClassInfo,
+                                           ArrayList<String> resultSetMappingCodeLines,
+                                           ArrayList<String> vertxRowMappingCodeLines) {
+        processorClassInfo.getFields().stream()
+                .filter(this::isMappableField)
+                .forEach(element -> {
+                    final String fieldName = element.getSimpleName().toString();
+                    final String fieldType = element.asType().toString();
+                    final String setFieldMethodName = getSetterName(element, fieldName);
+                    ColumnName columnNameAnnotation = element.getAnnotation(ColumnName.class);
+                    String databaseColumnNameToBeGet = Optional
+                            .ofNullable(columnNameAnnotation)
+                            .filter(a -> StringUtils.isNotBlank(a.name()))
+                            .map(ColumnName::name)
+                            .orElse(convertCamelToConstant(fieldName));
+                    final String fieldTypeSimpleName = getFieldTypeSimpleName(fieldType);
+                    final String resultSetFunctionWillBeUse = JavaSqlResultSetConstant.RESULT_SET_DATA_TYPE_MAP.get(fieldTypeSimpleName);
+                    final String vertxRowFunctionWillBeUse = JavaSqlResultSetConstant.VERTX_SQL_CLIENT_ROW.get(fieldTypeSimpleName);
+                    extractResultSetMappingCode(
+                            element,
+                            resultSetFunctionWillBeUse,
+                            resultSetMappingCodeLines,
+                            fieldType,
+                            databaseColumnNameToBeGet,
+                            setFieldMethodName,
+                            fieldTypeSimpleName
+                    );
+                    extractVertxRowMappingCode(
+                            element,
+                            vertxRowFunctionWillBeUse,
+                            vertxRowMappingCodeLines,
+                            fieldType,
+                            databaseColumnNameToBeGet,
+                            setFieldMethodName,
+                            fieldTypeSimpleName
+                    );
+                });
+    }
+
     private void extractResultSetMappingCode(final Element element,
                                              final String resultSetFunctionWillBeUse,
                                              final ArrayList<String> resultSetMappingCodeLines,
@@ -588,16 +953,19 @@ public class SQLMappingProcessor extends AbstractProcessor {
             );
             resultSetMappingCodeLines.add(
                     String.format(
-                            "    instance.%s(%s.valueOf(value));",
+                            "    instance.%s(value != null ? %s.valueOf(value) : null);",
                             setFieldMethodName,
                             element.asType() + CommonConstant.EMPTY_STRING
                     )
             );
+            resultSetMappingCodeLines.add("} catch (java.lang.Exception e) {");
             resultSetMappingCodeLines.add(
-                    "} catch (java.sql.SQLException e) {"
-            );
-            resultSetMappingCodeLines.add(
-                    "    log.debug(e.getMessage());"
+                    String.format(
+                            "    throw new java.lang.IllegalStateException(\"Failed to map column '%s' to field '%s' of %s\", e);",
+                            databaseColumnNameToBeGet,
+                            element.getSimpleName().toString(),
+                            element.getEnclosingElement().asType()
+                    )
             );
             resultSetMappingCodeLines.add(
                     "}"
@@ -632,22 +1000,20 @@ public class SQLMappingProcessor extends AbstractProcessor {
                             setFieldMethodName
                     )
             );
+            resultSetMappingCodeLines.add("} catch (java.lang.Exception e) {");
             resultSetMappingCodeLines.add(
-                    "} catch (java.sql.SQLException e) {"
-            );
-            resultSetMappingCodeLines.add(
-                    "    log.debug(e.getMessage());"
+                    String.format(
+                            "    throw new java.lang.IllegalStateException(\"Failed to map column '%s' to field '%s' of %s\", e);",
+                            databaseColumnNameToBeGet,
+                            element.getSimpleName().toString(),
+                            element.getEnclosingElement().asType()
+                    )
             );
             resultSetMappingCodeLines.add(
                     "}"
             );
         } else {
-            if (!LocalDateTime.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !LocalDate.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !BigDecimal.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !BigInteger.class.getSimpleName().equals(fieldTypeSimpleName) &&
-                    !"char".equals(fieldTypeSimpleName) &&
-                    !"Character".equals(fieldTypeSimpleName)) {
+            if (!isResultSetSpecialType(fieldTypeSimpleName)) {
                 resultSetMappingCodeLines.add(
                         String.format(
                                 "// ################# Unknown type to generate code for field `%s` - `%s` #################",
@@ -684,6 +1050,21 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 resultSetMappingCodeLines.add(
                         String.format(
                                 "    instance.%s(time != null ? time.toLocalDateTime() : null);",
+                                setFieldMethodName
+                        )
+                );
+            }
+            if (OffsetDateTime.class.getSimpleName().equals(fieldTypeSimpleName)) {
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    %1$s value = resultSet.getObject(\"%2$s\", java.time.OffsetDateTime.class);",
+                                fieldType,
+                                databaseColumnNameToBeGet
+                        )
+                );
+                resultSetMappingCodeLines.add(
+                        String.format(
+                                "    instance.%s(value);",
                                 setFieldMethodName
                         )
                 );
@@ -730,11 +1111,14 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         )
                 );
             }
+            resultSetMappingCodeLines.add("} catch (java.lang.Exception e) {");
             resultSetMappingCodeLines.add(
-                    "} catch (java.sql.SQLException e) {"
-            );
-            resultSetMappingCodeLines.add(
-                    "    log.debug(e.getMessage());"
+                    String.format(
+                            "    throw new java.lang.IllegalStateException(\"Failed to map column '%s' to field '%s' of %s\", e);",
+                            databaseColumnNameToBeGet,
+                            element.getSimpleName().toString(),
+                            element.getEnclosingElement().asType()
+                    )
             );
             resultSetMappingCodeLines.add(
                     "}"
@@ -761,16 +1145,19 @@ public class SQLMappingProcessor extends AbstractProcessor {
             );
             vertxRowMappingCodeLines.add(
                     String.format(
-                            "    instance.%s(%s.valueOf(value));",
+                            "    instance.%s(value != null ? %s.valueOf(value) : null);",
                             setFieldMethodName,
                             element.asType() + CommonConstant.EMPTY_STRING
                     )
             );
+            vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
             vertxRowMappingCodeLines.add(
-                    "} catch (java.lang.Throwable e) {"
-            );
-            vertxRowMappingCodeLines.add(
-                    "    log.debug(e.getMessage());"
+                    String.format(
+                            "    throw new java.lang.IllegalStateException(\"Failed to map column '%s' to field '%s' of %s\", e);",
+                            databaseColumnNameToBeGet,
+                            element.getSimpleName().toString(),
+                            element.getEnclosingElement().asType()
+                    )
             );
             vertxRowMappingCodeLines.add(
                     "}"
@@ -815,11 +1202,14 @@ public class SQLMappingProcessor extends AbstractProcessor {
                         )
                 );
             }
+            vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
             vertxRowMappingCodeLines.add(
-                    "} catch (java.lang.Throwable e) {"
-            );
-            vertxRowMappingCodeLines.add(
-                    "    log.debug(e.getMessage());"
+                    String.format(
+                            "    throw new java.lang.IllegalStateException(\"Failed to map column '%s' to field '%s' of %s\", e);",
+                            databaseColumnNameToBeGet,
+                            element.getSimpleName().toString(),
+                            element.getEnclosingElement().asType()
+                    )
             );
             vertxRowMappingCodeLines.add(
                     "}"
@@ -833,8 +1223,12 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 vertxRowMappingCodeLines.add(String.format(
                         "        instance.%s((byte) shortValue.shortValue());", setFieldMethodName));
                 vertxRowMappingCodeLines.add("    }");
-                vertxRowMappingCodeLines.add("} catch (java.lang.Throwable e) {");
-                vertxRowMappingCodeLines.add("    log.debug(e.getMessage());");
+                vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "    throw new java.lang.IllegalStateException(\"Failed to map column '%s' to field '%s' of %s\", e);",
+                        databaseColumnNameToBeGet,
+                        element.getSimpleName().toString(),
+                        element.getEnclosingElement().asType()));
                 vertxRowMappingCodeLines.add("}");
                 return;
             }
@@ -846,8 +1240,12 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 vertxRowMappingCodeLines.add(String.format(
                         "        instance.%s(strValue.charAt(0));", setFieldMethodName));
                 vertxRowMappingCodeLines.add("    }");
-                vertxRowMappingCodeLines.add("} catch (java.lang.Throwable e) {");
-                vertxRowMappingCodeLines.add("    log.debug(e.getMessage());");
+                vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "    throw new java.lang.IllegalStateException(\"Failed to map column '%s' to field '%s' of %s\", e);",
+                        databaseColumnNameToBeGet,
+                        element.getSimpleName().toString(),
+                        element.getEnclosingElement().asType()));
                 vertxRowMappingCodeLines.add("}");
                 return;
             }
@@ -874,11 +1272,14 @@ public class SQLMappingProcessor extends AbstractProcessor {
             vertxRowMappingCodeLines.add("        java.math.BigInteger bigIntValue = numericValue.bigIntegerValue();");
             vertxRowMappingCodeLines.add(String.format("        instance.%s(bigIntValue);", setFieldMethodName));
             vertxRowMappingCodeLines.add("    }");
+            vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
             vertxRowMappingCodeLines.add(
-                    "} catch (java.lang.Throwable e) {"
-            );
-            vertxRowMappingCodeLines.add(
-                    "    log.debug(e.getMessage());"
+                    String.format(
+                            "    throw new java.lang.IllegalStateException(\"Failed to map column '%s' to field '%s' of %s\", e);",
+                            databaseColumnNameToBeGet,
+                            element.getSimpleName().toString(),
+                            element.getEnclosingElement().asType()
+                    )
             );
             vertxRowMappingCodeLines.add(
                     "}"
@@ -930,11 +1331,13 @@ public class SQLMappingProcessor extends AbstractProcessor {
                     String.format("    model.%s(value);", setFieldMethodName)
             );
             vertxRowMappingCodeLines.add("    return value;");
+            vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
             vertxRowMappingCodeLines.add(
-                    "} catch (java.lang.Throwable ignored) {"
-            );
-            vertxRowMappingCodeLines.add(
-                    "    " + returnDefaultValueCode + ";"
+                    String.format(
+                            "    throw new java.lang.IllegalStateException(\"Failed to extract id column '%s' from %s\", e);",
+                            databaseColumnNameToBeGet,
+                            element.getEnclosingElement().asType()
+                    )
             );
             vertxRowMappingCodeLines.add(
                     "}"
@@ -951,8 +1354,11 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 vertxRowMappingCodeLines.add("    } else {");
                 vertxRowMappingCodeLines.add("        " + returnDefaultValueCode + ";");
                 vertxRowMappingCodeLines.add("    }");
-                vertxRowMappingCodeLines.add("} catch (java.lang.Throwable ignored) {");
-                vertxRowMappingCodeLines.add("    " + returnDefaultValueCode + ";");
+                vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "    throw new java.lang.IllegalStateException(\"Failed to extract id column '%s' from %s\", e);",
+                        databaseColumnNameToBeGet,
+                        element.getEnclosingElement().asType()));
                 vertxRowMappingCodeLines.add("}");
                 return;
             }
@@ -967,8 +1373,11 @@ public class SQLMappingProcessor extends AbstractProcessor {
                 vertxRowMappingCodeLines.add("    } else {");
                 vertxRowMappingCodeLines.add("        " + returnDefaultValueCode + ";");
                 vertxRowMappingCodeLines.add("    }");
-                vertxRowMappingCodeLines.add("} catch (java.lang.Throwable ignored) {");
-                vertxRowMappingCodeLines.add("    " + returnDefaultValueCode + ";");
+                vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
+                vertxRowMappingCodeLines.add(String.format(
+                        "    throw new java.lang.IllegalStateException(\"Failed to extract id column '%s' from %s\", e);",
+                        databaseColumnNameToBeGet,
+                        element.getEnclosingElement().asType()));
                 vertxRowMappingCodeLines.add("}");
                 return;
             }
@@ -998,11 +1407,13 @@ public class SQLMappingProcessor extends AbstractProcessor {
             vertxRowMappingCodeLines.add("    } else {");
             vertxRowMappingCodeLines.add("        " + returnDefaultValueCode + ";");
             vertxRowMappingCodeLines.add("    }");
+            vertxRowMappingCodeLines.add("} catch (java.lang.Exception e) {");
             vertxRowMappingCodeLines.add(
-                    "} catch (java.lang.Throwable ignored) {"
-            );
-            vertxRowMappingCodeLines.add(
-                    "    " + returnDefaultValueCode + ";"
+                    String.format(
+                            "    throw new java.lang.IllegalStateException(\"Failed to extract id column '%s' from %s\", e);",
+                            databaseColumnNameToBeGet,
+                            element.getEnclosingElement().asType()
+                    )
             );
             vertxRowMappingCodeLines.add(
                     "}"
@@ -1073,10 +1484,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
             return;
         }
         var idElements = processorClassInfo.getFields().stream()
+                .filter(this::isMappableField)
                 .filter(
-                        element ->
-                                !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
-                ).filter(
                         element ->
                                 Optional.ofNullable(element.getAnnotation(IdColumn.class)).isPresent()
                 ).collect(Collectors.toCollection(ArrayList::new));
@@ -1221,9 +1630,8 @@ public class SQLMappingProcessor extends AbstractProcessor {
         }
 
         processorClassInfo.getFields().stream()
-                .filter(element ->
-                        !(element.getModifiers().contains(Modifier.FINAL) || element.getModifiers().contains(Modifier.STATIC))
-                ).forEach(element -> {
+                .filter(this::isMappableField)
+                .forEach(element -> {
                     final String fieldName = element.getSimpleName().toString();
                     final String getterName = getGetterName(element, fieldName);
                     final boolean primitive = isPrimitiveType(element);
