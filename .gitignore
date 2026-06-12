@@ -67,3 +67,6 @@ data
 # ClaudeKit
 plans/
 .claude
+
+# Serena
+.serena/
