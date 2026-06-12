@@ -2,12 +2,15 @@ package vn.io.lcx.processor;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.vertx.core.Future;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang3.StringUtils;
 import vn.io.lcx.common.annotation.Component;
 import vn.io.lcx.common.utils.ExceptionUtils;
 import vn.io.lcx.common.utils.LogUtils;
 import vn.io.lcx.vertx.base.annotation.process.Auth;
+import vn.io.lcx.vertx.base.annotation.process.APIKey;
 import vn.io.lcx.vertx.base.annotation.process.Controller;
 import vn.io.lcx.vertx.base.annotation.process.Delete;
 import vn.io.lcx.vertx.base.annotation.process.Get;
@@ -32,6 +35,8 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -39,10 +44,14 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes("vn.io.lcx.vertx.base.annotation.process.RestController")
 public class RestControllerProcessor extends AbstractProcessor {
+
+    private static final String FUTURE_CLASS_NAME = Future.class.getCanonicalName();
+    private static final String FILE_UPLOAD_CLASS_NAME = FileUpload.class.getCanonicalName();
+    private static final String ROUTING_CONTEXT_CLASS_NAME = RoutingContext.class.getCanonicalName();
+    private static final String STRING_CLASS_NAME = String.class.getCanonicalName();
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -80,6 +89,14 @@ public class RestControllerProcessor extends AbstractProcessor {
                         || e.getAnnotation(Put.class) != null || e.getAnnotation(Delete.class) != null)
                 .toList();
 
+        boolean valid = true;
+        for (ExecutableElement method : methods) {
+            valid &= validateMethod(method);
+        }
+        if (!valid) {
+            return;
+        }
+
         StringBuilder classContent = new StringBuilder();
         classContent.append("package ").append(packageName).append(";\n\n");
         classContent.append("import ").append(Gson.class.getCanonicalName()).append(";\n");
@@ -98,6 +115,7 @@ public class RestControllerProcessor extends AbstractProcessor {
         classContent.append("import ").append(Put.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(Delete.class.getCanonicalName()).append(";\n");
         classContent.append("import ").append(Auth.class.getCanonicalName()).append(";\n");
+        classContent.append("import ").append(APIKey.class.getCanonicalName()).append(";\n");
 
         // Add imports for request/response types if needed (simplified for now,
         // assuming they are imported or fully qualified if complex)
@@ -138,6 +156,105 @@ public class RestControllerProcessor extends AbstractProcessor {
         }
     }
 
+    private boolean validateMethod(ExecutableElement method) {
+        boolean valid = true;
+        if (!isFutureReturnType(method.getReturnType())) {
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "@RestController route method must return " + FUTURE_CLASS_NAME + "<T>",
+                    method
+            );
+            valid = false;
+        }
+        for (VariableElement param : method.getParameters()) {
+            valid &= validateParameter(param);
+        }
+        return valid;
+    }
+
+    private boolean isFutureReturnType(TypeMirror returnType) {
+        if (!(returnType instanceof DeclaredType declaredType)) {
+            return false;
+        }
+        return declaredType.asElement().toString().equals(FUTURE_CLASS_NAME)
+                && !declaredType.getTypeArguments().isEmpty();
+    }
+
+    private boolean validateParameter(VariableElement param) {
+        int bindingAnnotationCount = bindingAnnotationCount(param);
+        if (bindingAnnotationCount > 1) {
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "Parameter `" + param.getSimpleName() + "` has multiple binding annotations",
+                    param
+            );
+            return false;
+        }
+
+        String paramType = param.asType().toString();
+        String paramName = param.getSimpleName().toString();
+        if (param.getAnnotation(PathVariable.class) != null && !paramType.equals(STRING_CLASS_NAME)) {
+            printParameterTypeError(param, "@PathVariable", STRING_CLASS_NAME, paramName);
+            return false;
+        }
+        if (param.getAnnotation(RequestParam.class) != null && !paramType.equals(STRING_CLASS_NAME)) {
+            printParameterTypeError(param, "@RequestParam", STRING_CLASS_NAME, paramName);
+            return false;
+        }
+        if (param.getAnnotation(RequestForm.class) != null && !paramType.equals(STRING_CLASS_NAME)) {
+            printParameterTypeError(param, "@RequestForm", STRING_CLASS_NAME, paramName);
+            return false;
+        }
+        if (param.getAnnotation(RequestHeader.class) != null && !paramType.equals(STRING_CLASS_NAME)) {
+            printParameterTypeError(param, "@RequestHeader", STRING_CLASS_NAME, paramName);
+            return false;
+        }
+        if (param.getAnnotation(RequestFile.class) != null && !paramType.equals(FILE_UPLOAD_CLASS_NAME)) {
+            printParameterTypeError(param, "@RequestFile", FILE_UPLOAD_CLASS_NAME, paramName);
+            return false;
+        }
+        if (bindingAnnotationCount == 0 && !paramType.equals(ROUTING_CONTEXT_CLASS_NAME)) {
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "Unsupported parameter `" + paramName + "` of type `" + paramType + "`",
+                    param
+            );
+            return false;
+        }
+        return true;
+    }
+
+    private int bindingAnnotationCount(VariableElement param) {
+        int count = 0;
+        if (param.getAnnotation(RequestBody.class) != null) {
+            count++;
+        }
+        if (param.getAnnotation(PathVariable.class) != null) {
+            count++;
+        }
+        if (param.getAnnotation(RequestParam.class) != null) {
+            count++;
+        }
+        if (param.getAnnotation(RequestForm.class) != null) {
+            count++;
+        }
+        if (param.getAnnotation(RequestFile.class) != null) {
+            count++;
+        }
+        if (param.getAnnotation(RequestHeader.class) != null) {
+            count++;
+        }
+        return count;
+    }
+
+    private void printParameterTypeError(VariableElement param, String annotation, String expectedType, String paramName) {
+        processingEnv.getMessager().printMessage(
+                Diagnostic.Kind.ERROR,
+                annotation + " parameter `" + paramName + "` must be " + expectedType,
+                param
+        );
+    }
+
     private void generateMethod(StringBuilder sb, ExecutableElement method, String controllerVarName) {
         // Copy annotations
         Post post = method.getAnnotation(Post.class);
@@ -155,6 +272,9 @@ public class RestControllerProcessor extends AbstractProcessor {
 
         if (method.getAnnotation(Auth.class) != null) {
             sb.append("    @Auth\n");
+        }
+        if (method.getAnnotation(APIKey.class) != null) {
+            sb.append("    @APIKey\n");
         }
 
         sb.append("    public void ").append(method.getSimpleName()).append("(RoutingContext ctx) {\n");
@@ -198,16 +318,6 @@ public class RestControllerProcessor extends AbstractProcessor {
                     sb.append("            ").append(paramType).append(" ").append(paramName)
                             .append(" = getRequestQueryParam(ctx, \"").append(queryName).append("\");\n");
                 } else {
-                    // Handle optional/default value.
-                    // Since getNoneRequiringRequestQueryParam returns String or null, we might need
-                    // casting if paramType is not String.
-                    // For simplicity, assuming String for now or that the base controller methods
-                    // handle generic types if implemented that way.
-                    // The base controller has: public <T> T
-                    // getNoneRequiringRequestQueryParam(RoutingContext context, String paramName,
-                    // Function<String, T> function)
-                    // But here we just want the string value or default.
-                    // Let's use getNoneRequiringRequestQueryParam(ctx, name) which returns String.
                     sb.append("            ").append(paramType).append(" ").append(paramName)
                             .append(" = getNoneRequiringRequestQueryParam(ctx, \"").append(queryName).append("\");\n");
                     if (StringUtils.isNotBlank(defaultValue)) {

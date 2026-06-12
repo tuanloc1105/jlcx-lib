@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.Compiler.javac;
@@ -18,6 +19,13 @@ class RestControllerProcessorTest {
         return javac()
                 .withProcessors(new RestControllerProcessor())
                 .compile(sources);
+    }
+
+    private boolean hasErrorDiagnostic(Compilation compilation, String messagePart) {
+        return compilation.diagnostics().stream()
+                .filter(diagnostic -> diagnostic.getKind() == Diagnostic.Kind.ERROR)
+                .map(diagnostic -> diagnostic.getMessage(null))
+                .anyMatch(message -> message.contains(messagePart));
     }
 
     @Nested
@@ -503,6 +511,193 @@ class RestControllerProcessorTest {
             String code = generated.getCharContent(false).toString();
             assertTrue(code.contains("@Auth") || code.contains("Auth"),
                     "Generated code should copy @Auth annotation to generated method");
+        }
+    }
+
+    @Nested
+    @DisplayName("Validation")
+    class Validation {
+
+        @Test
+        void apiKeyAnnotatedMethod_copiedToGenerated() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.ApiKeyRest",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.APIKey;
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/external")
+                    public class ApiKeyRest {
+                        @APIKey
+                        @Get(path = "/data")
+                        public Future<String> data() {
+                            return Future.succeededFuture("data");
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ReactiveApiKeyRest"))
+                    .findFirst()
+                    .orElseThrow();
+
+            String code = generated.getCharContent(false).toString();
+            assertTrue(code.contains("@APIKey"), "Generated method should copy @APIKey");
+            assertTrue(code.contains("@Get(path = \"/data\")"), "Generated method should keep route annotation");
+        }
+
+        @Test
+        void nonFutureReturnType_reportsDiagnostic() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.BadReturnRest",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+
+                    @RestController(path = "/bad")
+                    public class BadReturnRest {
+                        @Get(path = "/data")
+                        public String data() {
+                            return "data";
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(hasErrorDiagnostic(compilation, "Future"),
+                    "Diagnostic should mention Future return type");
+        }
+
+        @Test
+        void requestParamInteger_reportsUnsupportedType() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.BadRequestParamRest",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.RequestParam;
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/bad")
+                    public class BadRequestParamRest {
+                        @Get(path = "/data")
+                        public Future<String> data(@RequestParam("page") Integer page) {
+                            return Future.succeededFuture("data");
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+
+            assertTrue(hasErrorDiagnostic(compilation, "@RequestParam"), "Diagnostic should mention @RequestParam");
+            assertTrue(hasErrorDiagnostic(compilation, "java.lang.String"), "Diagnostic should mention supported type");
+            assertTrue(hasErrorDiagnostic(compilation, "page"), "Diagnostic should mention parameter name");
+        }
+
+        @Test
+        void requestFileRequiresFileUpload() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.BadRequestFileRest",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.RequestFile;
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Post;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/bad")
+                    public class BadRequestFileRest {
+                        @Post(path = "/upload")
+                        public Future<String> upload(@RequestFile("file") String file) {
+                            return Future.succeededFuture("data");
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(hasErrorDiagnostic(compilation, "FileUpload"),
+                    "Diagnostic should mention FileUpload");
+        }
+
+        @Test
+        void multipleBindingAnnotations_reportsAmbiguousParameter() {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.MultipleBindingRest",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.RequestHeader;
+                    import vn.io.lcx.vertx.base.annotation.process.RequestParam;
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Get;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/bad")
+                    public class MultipleBindingRest {
+                        @Get(path = "/data")
+                        public Future<String> data(@RequestParam("q") @RequestHeader("X-Q") String q) {
+                            return Future.succeededFuture("data");
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.FAILURE, compilation.status());
+            assertTrue(hasErrorDiagnostic(compilation, "multiple binding annotations"),
+                    "Diagnostic should mention multiple binding annotations");
+        }
+
+        @Test
+        void futureVoid_usesCommonResponse() throws Exception {
+            JavaFileObject source = JavaFileObjects.forSourceString(
+                    "test.VoidRest",
+                    """
+                    package test;
+
+                    import vn.io.lcx.vertx.base.annotation.process.RestController;
+                    import vn.io.lcx.vertx.base.annotation.process.Post;
+                    import io.vertx.core.Future;
+
+                    @RestController(path = "/void")
+                    public class VoidRest {
+                        @Post(path = "/run")
+                        public Future<Void> run() {
+                            return Future.succeededFuture();
+                        }
+                    }
+                    """
+            );
+
+            Compilation compilation = compile(source);
+            assertEquals(Compilation.Status.SUCCESS, compilation.status());
+
+            JavaFileObject generated = compilation.generatedSourceFiles().stream()
+                    .filter(f -> f.getName().contains("ReactiveVoidRest"))
+                    .findFirst()
+                    .orElseThrow();
+
+            assertTrue(generated.getCharContent(false).toString().contains("new CommonResponse()"),
+                    "Future<Void> should use CommonResponse");
         }
     }
 
