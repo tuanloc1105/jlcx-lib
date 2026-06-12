@@ -35,7 +35,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -278,22 +280,8 @@ public class MapperClassProcessor extends AbstractProcessor {
         TypeElement targetTypeElement = processingEnv.getElementUtils().getTypeElement(returnType);
         List<Element> targetFields = getValidFields(targetTypeElement);
 
-        // Validate all fromParameter references
-        Set<String> paramNames = sourceParams.stream()
-                .map(SourceParameterInfo::getParamName)
-                .collect(Collectors.toSet());
-        for (Mapping mapping : mappingAnnotations) {
-            String fp = mapping.fromParameter();
-            if (!fp.isEmpty() && !paramNames.contains(fp)) {
-                throw InvalidMappingException.unknownFromParameter(
-                        methodName, fp, sourceParams.stream()
-                                .map(SourceParameterInfo::getParamName).toList()
-                );
-            }
-        }
-
         List<String> mappingLines = buildMultiParamMappingLines(
-                mappingAnnotations, sourceParams, targetFields
+                methodName, returnType, mappingAnnotations, sourceParams, targetFields
         );
 
         String returnTypeSimple = CodeTemplates.getSimpleClassName(returnType);
@@ -327,30 +315,36 @@ public class MapperClassProcessor extends AbstractProcessor {
      * Processes explicit @Mapping annotations first, then auto-matches
      * remaining target fields across all source parameters (first param has priority).
      */
-    private List<String> buildMultiParamMappingLines(List<Mapping> annotations,
+    private List<String> buildMultiParamMappingLines(String methodName,
+                                                      String returnType,
+                                                      List<Mapping> annotations,
                                                       List<SourceParameterInfo> sourceParams,
                                                       List<Element> targetFields) {
 
+        validateMultiParamMappings(methodName, returnType, annotations, sourceParams, targetFields);
+
         List<String> mappingLines = new ArrayList<>();
-        Set<String> handledFields = new HashSet<>();
+        Set<String> handledTargetFieldNames = new HashSet<>();
 
         // Phase 1: Process explicit @Mapping annotations
         for (Mapping mapping : annotations) {
-            String toField = toPascalCase(mapping.toField());
+            String toFieldRawName = mapping.toField();
 
             if (mapping.skip()) {
-                handledFields.add(toField);
+                handledTargetFieldNames.add(toFieldRawName);
                 continue;
             }
 
             if (StringUtils.isNotBlank(mapping.code())) {
-                String code = String.format("\n        instance.set%s(%s);", toField, mapping.code());
-                mappingLines.add(code);
-                handledFields.add(toField);
+                FieldMappingInfo mappingInfo = fieldMappingResolver.resolveCustomMapping(
+                        toFieldRawName, toFieldRawName, null, null, mapping.code(), false
+                );
+                mappingLines.add(new MappingCodeGenerator(sourceParams.get(0).getParamName())
+                        .generateSingleMappingCode(mappingInfo));
+                handledTargetFieldNames.add(toFieldRawName);
                 continue;
             }
 
-            String fromField = toPascalCase(mapping.fromField());
             String sourceParamName;
 
             if (StringUtils.isNotBlank(mapping.fromParameter())) {
@@ -359,16 +353,19 @@ public class MapperClassProcessor extends AbstractProcessor {
                 sourceParamName = sourceParams.get(0).getParamName();
             }
 
-            String code = String.format(CodeTemplates.SETTER_LINE, toField, sourceParamName, fromField);
-            mappingLines.add(code);
-            handledFields.add(toField);
+            FieldMappingInfo mappingInfo = fieldMappingResolver.resolveCustomMapping(
+                    mapping.fromField(), toFieldRawName, null, null, null, false
+            );
+            mappingLines.add(new MappingCodeGenerator(sourceParamName).generateSingleMappingCode(mappingInfo));
+            handledTargetFieldNames.add(toFieldRawName);
         }
 
         // Phase 2: Auto-match remaining target fields across source parameters (first param has priority)
         for (Element targetField : targetFields) {
-            String targetFieldName = toPascalCase(targetField.getSimpleName().toString());
+            String targetFieldRawName = targetField.getSimpleName().toString();
+            String targetFieldName = toPascalCase(targetFieldRawName);
 
-            if (handledFields.contains(targetFieldName)) {
+            if (handledTargetFieldNames.contains(targetFieldRawName)) {
                 continue;
             }
 
@@ -387,7 +384,7 @@ public class MapperClassProcessor extends AbstractProcessor {
                         String code = String.format(CodeTemplates.SETTER_LINE,
                                 targetFieldName, sp.getParamName(), sourceFieldName);
                         mappingLines.add(code);
-                        handledFields.add(targetFieldName);
+                        handledTargetFieldNames.add(targetFieldRawName);
                         break;
                     }
                 }
@@ -395,6 +392,82 @@ public class MapperClassProcessor extends AbstractProcessor {
         }
 
         return mappingLines;
+    }
+
+    private void validateMultiParamMappings(String methodName,
+                                            String returnType,
+                                            List<Mapping> annotations,
+                                            List<SourceParameterInfo> sourceParams,
+                                            List<Element> targetFields) {
+
+        if (annotations.isEmpty()) {
+            return;
+        }
+
+        Map<String, Element> targetFieldsByName = targetFields.stream()
+                .collect(Collectors.toMap(
+                        field -> field.getSimpleName().toString(),
+                        field -> field,
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new
+                ));
+        Map<String, SourceParameterInfo> sourceParamsByName = sourceParams.stream()
+                .collect(Collectors.toMap(
+                        SourceParameterInfo::getParamName,
+                        sourceParam -> sourceParam,
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new
+                ));
+        Map<String, Map<String, Element>> sourceFieldsByParamName = new LinkedHashMap<>();
+        for (SourceParameterInfo sourceParam : sourceParams) {
+            sourceFieldsByParamName.put(sourceParam.getParamName(), sourceParam.getFields().stream()
+                    .collect(Collectors.toMap(
+                            field -> field.getSimpleName().toString(),
+                            field -> field,
+                            (existing, replacement) -> existing,
+                            LinkedHashMap::new
+                    )));
+        }
+
+        Set<String> mappedTargetFields = new HashSet<>();
+        List<String> sourceParamNames = sourceParams.stream()
+                .map(SourceParameterInfo::getParamName)
+                .toList();
+
+        for (Mapping mapping : annotations) {
+            String toField = mapping.toField();
+            if (StringUtils.isBlank(toField)) {
+                throw InvalidMappingException.invalidMappingConfig(methodName, "toField must not be blank");
+            }
+            if (!mappedTargetFields.add(toField)) {
+                throw InvalidMappingException.invalidMappingConfig(
+                        methodName,
+                        String.format("duplicate target field '%s'", toField)
+                );
+            }
+            if (!targetFieldsByName.containsKey(toField)) {
+                throw InvalidMappingException.fieldNotFound(methodName, toField, returnType);
+            }
+            if (mapping.skip() || StringUtils.isNotBlank(mapping.code())) {
+                continue;
+            }
+
+            String fromField = mapping.fromField();
+            if (StringUtils.isBlank(fromField)) {
+                throw InvalidMappingException.invalidMappingConfig(methodName, "fromField must not be blank");
+            }
+
+            String sourceParamName = StringUtils.isNotBlank(mapping.fromParameter())
+                    ? mapping.fromParameter()
+                    : sourceParams.get(0).getParamName();
+            SourceParameterInfo sourceParam = sourceParamsByName.get(sourceParamName);
+            if (sourceParam == null) {
+                throw InvalidMappingException.unknownFromParameter(methodName, sourceParamName, sourceParamNames);
+            }
+            if (!sourceFieldsByParamName.get(sourceParamName).containsKey(fromField)) {
+                throw InvalidMappingException.fieldNotFound(methodName, fromField, sourceParam.getParamType());
+            }
+        }
     }
 
     /**

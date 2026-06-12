@@ -120,6 +120,25 @@ Hibernate Reactive:
 Support classes live under `vn.io.lcx.processor.model`, `service`, and `utility`.
 Tests for field mapping and code generation live in `common-lib/src/test/java/vn/io/lcx/processor`.
 
+### Multi-Parameter Mapper Methods
+
+`MapperClassProcessor` supports mapper methods with more than one source parameter:
+
+```java
+ObjectC map(ObjectA a, ObjectB b);
+```
+
+Auto-mapping scans target fields against source parameters in declaration order. A target field is mapped from the first source parameter that has the same raw field name and exact field type.
+
+Use explicit mappings when a target field should read from a specific parameter:
+
+```java
+@Mapping(fromParameter = "b", fromField = "fieldInB", toField = "fieldInTarget")
+ObjectC map(ObjectA a, ObjectB b);
+```
+
+If `fromParameter` is blank on an explicit mapping, the first source parameter is used. Invalid `fromParameter`, missing `fromField`, missing `toField`, and duplicate explicit target fields fail during annotation processing instead of relying on generated Java compile errors. Multi-source mapping returns `null` when any source parameter is `null`.
+
 ## SQL Mapping Generation
 
 `SQLMappingProcessor` reads `@SQLMapping` on entity-like classes and emits:
