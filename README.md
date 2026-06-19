@@ -85,7 +85,7 @@ jlcx-lib/
 | Vert.x                                     | 5.1.2             | Async event loop, HTTP server, SQL clients, gRPC, Redis, Auth JWT, Micrometer |
 | Hibernate ORM                              | 7.4.1.Final       | JPA persistence (sync)                                                        |
 | Hibernate Reactive                         | 4.4.1.Final       | Non-blocking persistence                                                      |
-| HikariCP                                   | 7.0.2             | JDBC connection pooling                                                       |
+| HikariCP                                   | 7.1.0             | JDBC connection pooling                                                       |
 | Jackson                                    | 2.22.0            | JSON/XML data binding                                                         |
 | Gson                                       | 2.14.0            | JSON serialization                                                            |
 | SnakeYAML                                  | 2.6               | YAML configuration loading                                                    |
@@ -142,7 +142,7 @@ jlcx-lib/
 | ------------- | ------- |
 | JUnit Jupiter | 6.1.0   |
 | Mockito       | 5.23.0  |
-| DataFaker     | 2.5.4   |
+| DataFaker     | 2.6.0   |
 
 ### Build Tooling
 

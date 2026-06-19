@@ -48,7 +48,7 @@
         <javassist-org.javassist.version>3.31.0-GA</javassist-org.javassist.version>
         <snakeyaml-org.yaml.version>2.6</snakeyaml-org.yaml.version>
         <jbcrypt-org.mindrot.version>0.4</jbcrypt-org.mindrot.version>
-        <HikariCP-com.zaxxer.version>7.0.2</HikariCP-com.zaxxer.version>
+        <HikariCP-com.zaxxer.version>7.1.0</HikariCP-com.zaxxer.version>
         <kafka-clients-org.apache.kafka.version>4.3.0</kafka-clients-org.apache.kafka.version>
         <hibernate-core-org.hibernate.orm.version>7.4.1.Final</hibernate-core-org.hibernate.orm.version>
         <hibernate-tools-orm-org.hibernate.tool.version>7.3.8.Final</hibernate-tools-orm-org.hibernate.tool.version>
@@ -88,7 +88,7 @@
         <mockito-core-org.mockito.version>5.23.0</mockito-core-org.mockito.version>
         <mockito-junit-jupiter-org.mockito.version>5.23.0</mockito-junit-jupiter-org.mockito.version>
         <mockito-inline-org.mockito.version>5.2.0</mockito-inline-org.mockito.version>
-        <datafaker-net.datafaker.version>2.5.4</datafaker-net.datafaker.version>
+        <datafaker-net.datafaker.version>2.6.0</datafaker-net.datafaker.version>
         <h2-com.h2database.version>2.4.240</h2-com.h2database.version>
         <maven-plugin-api-org.apache.maven.version>3.9.16</maven-plugin-api-org.apache.maven.version>
         <maven-plugin-annotations-org.apache.maven.plugin-tools.version>3.15.2
@@ -115,7 +115,7 @@
         <maven-plugin-plugin-org.apache.maven.plugins.version>3.15.2
         </maven-plugin-plugin-org.apache.maven.plugins.version>
         <maven-gpg-plugin-org.apache.maven.plugins.version>3.2.8</maven-gpg-plugin-org.apache.maven.plugins.version>
-        <central-publishing-maven-plugin-org.sonatype.central.version>0.10.0
+        <central-publishing-maven-plugin-org.sonatype.central.version>0.11.0
         </central-publishing-maven-plugin-org.sonatype.central.version>
 
     </properties>
