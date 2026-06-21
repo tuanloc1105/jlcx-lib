@@ -76,6 +76,6 @@ Do not edit these unless the user explicitly asks:
 - `target/`
 - `*/target/generated-sources/annotations/`
 - frontend build output such as `dist/` or `build/`
-- generated gRPC stubs under `examples/grpc-example/grpc-client/src/main/java/com/example/grpc/` and `examples/grpc-example/grpc-server/src/main/java/com/example/grpc/`
+- generated gRPC stubs wherever the gRPC build writes them, including `target/generated-sources/` or generated `com/example/grpc/` packages if present
 
 For gRPC API changes, edit `examples/grpc-example/proto/hello.proto`, then run the relevant gRPC build script.

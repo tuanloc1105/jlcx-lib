@@ -49,6 +49,11 @@ Root scripts include Unix/macOS shell scripts and Windows PowerShell scripts:
 ./snapshot.sh
 ./release.sh
 ./osx-build.sh
+./build.ps1
+./clean.ps1
+./deploy.ps1
+./snapshot.ps1
+./release.ps1
 ```
 
 See `docs/agent/workflows.md` for example app commands, frontend checks, gRPC generation, and release/deploy script routing. No checked-in CI workflow exists in this repo; use local Maven/pnpm checks.
@@ -67,6 +72,7 @@ Read the narrow doc before editing that area:
 | Utilities, cache, mail, cron, locks, tasks, logging, constants, exceptions | `docs/utilities.md` |
 | Example apps, frontend stacks, routes, Docker/Helm, gRPC generation | `docs/examples.md`, `docs/agent/project-map.md`, `docs/agent/operations.md` |
 | Config keys, environment placeholders, demo secrets, logging config | `docs/configuration.md`, `docs/agent/operations.md` |
+| Release/deploy scripts and operational examples | `docs/agent/workflows.md`, `docs/agent/operations.md`, then inspect the exact script/config |
 | Verification commands and test layout | `docs/testing-guide.md`, `docs/agent/workflows.md` |
 
 ## Conventions And Guardrails
@@ -93,4 +99,4 @@ Read the narrow doc before editing that area:
 - The Todo Helm chart uses `DATABASE_*` names, while app config expects `REACTIVE_DATABASE_*`; treat deploy values as example material, not guaranteed production-ready config.
 - The Todo Dockerfile currently uses a Java 11 base image although the project targets Java 17.
 - `examples/hibernate-reactive-example/src/main/resources/META-INF/persistence.xml` appears stale: it lists `Author`/`Book`, while current source has `UsersEntity`/`TasksEntity`.
-- gRPC example source uses port `7070`; older README notes may mention `9090`.
+- gRPC example source uses port `7070`, while `examples/grpc-example/README.md` still mentions `9090`.

@@ -108,7 +108,9 @@ Generation/build scripts:
 - `examples/grpc-example/clean.sh`
 - `examples/grpc-example/clean.ps1`
 
-Generated stubs are written into both `examples/grpc-example/grpc-client/src/main/java/com/example/grpc/` and `examples/grpc-example/grpc-server/src/main/java/com/example/grpc/`. Edit the proto first and regenerate rather than hand-editing generated stubs.
+Generated stubs may appear under `target/generated-sources/` or generated `com/example/grpc/` packages after the build. Edit the proto first and regenerate rather than hand-editing generated stubs.
+
+Port note: current Java source listens/connects on `7070`; `examples/grpc-example/README.md` still mentions `9090`.
 
 ## CI And Quality
 
