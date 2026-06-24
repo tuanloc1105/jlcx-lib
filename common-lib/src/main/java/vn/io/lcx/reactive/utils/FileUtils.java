@@ -1,6 +1,7 @@
 package vn.io.lcx.reactive.utils;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 /**
@@ -132,8 +134,7 @@ public final class FileUtils {
     public static Future<Void> appendToFile(Vertx vertx, String filePath, String content) {
         FileSystem fs = vertx.fileSystem();
         return fs.open(filePath, new OpenOptions().setWrite(true).setAppend(true).setCreate(true))
-                .compose(file -> file.write(Buffer.buffer(content, "UTF-8"))
-                        .compose(v -> file.close()))
+                .compose(file -> file.write(Buffer.buffer(content, "UTF-8")).eventually(file::close))
                 .onSuccess(v -> logger.debug("Content appended to file: {}", filePath))
                 .onFailure(err -> logger.error("Failed to append to file: {}", filePath, err));
     }
@@ -149,8 +150,7 @@ public final class FileUtils {
     public static Future<Void> appendToFile(Vertx vertx, String filePath, Buffer content) {
         FileSystem fs = vertx.fileSystem();
         return fs.open(filePath, new OpenOptions().setWrite(true).setAppend(true).setCreate(true))
-                .compose(file -> file.write(content)
-                        .compose(v -> file.close()))
+                .compose(file -> file.write(content).eventually(file::close))
                 .onSuccess(v -> logger.debug("Content appended to file: {}", filePath))
                 .onFailure(err -> logger.error("Failed to append to file: {}", filePath, err));
     }
@@ -387,17 +387,84 @@ public final class FileUtils {
     public static Future<Void> processFileLineByLine(Vertx vertx, String filePath, Function<String, Future<Void>> handler) {
         return openFileForReading(vertx, filePath)
                 .compose(file -> {
+                    Promise<Void> result = Promise.promise();
+                    Buffer[] pendingLine = {Buffer.buffer()};
+                    AtomicBoolean completed = new AtomicBoolean();
+
+                    file.exceptionHandler(error -> closeFile(file, result, error, completed));
                     file.handler(buffer -> {
-                        String content = buffer.toString();
-                        String[] lines = content.split("\n");
-                        for (String line : lines) {
-                            if (!line.trim().isEmpty()) {
-                                handler.apply(line.trim());
-                            }
-                        }
-                    }).endHandler(v -> file.close());
-                    return Future.succeededFuture();
+                        file.pause();
+                        processCompleteLines(buffer, pendingLine, handler)
+                                .onSuccess(v -> file.resume())
+                                .onFailure(error -> closeFile(file, result, error, completed));
+                    });
+                    file.endHandler(v -> processLine(pendingLine[0], handler)
+                            .onComplete(processResult -> {
+                                if (processResult.failed()) {
+                                    closeFile(file, result, processResult.cause(), completed);
+                                } else {
+                                    closeFile(file, result, null, completed);
+                                }
+                            }));
+
+                    return result.future();
                 });
+    }
+
+    private static Future<Void> processCompleteLines(Buffer buffer, Buffer[] pendingLine, Function<String, Future<Void>> handler) {
+        Buffer pending = pendingLine[0].appendBuffer(buffer);
+
+        Future<Void> processing = Future.succeededFuture();
+        int lineStart = 0;
+        for (int index = 0; index < pending.length(); index++) {
+            if (pending.getByte(index) != '\n') {
+                continue;
+            }
+            Buffer line = pending.getBuffer(lineStart, index);
+            processing = processing.compose(v -> processLine(line, handler));
+            lineStart = index + 1;
+        }
+
+        pendingLine[0] = lineStart == pending.length()
+                ? Buffer.buffer()
+                : pending.getBuffer(lineStart, pending.length());
+        return processing;
+    }
+
+    private static Future<Void> processLine(Buffer line, Function<String, Future<Void>> handler) {
+        String trimmedLine = line.toString(StandardCharsets.UTF_8).trim();
+        if (trimmedLine.isEmpty()) {
+            return Future.succeededFuture();
+        }
+
+        try {
+            Future<Void> future = handler.apply(trimmedLine);
+            if (future == null) {
+                return Future.failedFuture(new NullPointerException("Line handler returned null"));
+            }
+            return future;
+        } catch (Throwable error) {
+            return Future.failedFuture(error);
+        }
+    }
+
+    private static void closeFile(AsyncFile file, Promise<Void> result, Throwable failure, AtomicBoolean completed) {
+        if (!completed.compareAndSet(false, true)) {
+            return;
+        }
+
+        file.exceptionHandler(null);
+        file.handler(null);
+        file.endHandler(null);
+        file.close().onComplete(closeResult -> {
+            if (failure != null) {
+                result.fail(failure);
+            } else if (closeResult.failed()) {
+                result.fail(closeResult.cause());
+            } else {
+                result.complete();
+            }
+        });
     }
 
     /**
