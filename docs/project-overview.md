@@ -87,17 +87,7 @@ There is no main `application.yaml` in `common-lib`; app configs live in example
 
 ## Dependency Source Of Truth
 
-Do not hardcode exact dependency versions into docs unless needed for a migration note. Use `pom.xml`.
-
-Current key versions at this refresh:
-
-| Dependency | Version |
-|---|---|
-| Java | 17 |
-| Vert.x | 5.1.2 |
-| Hibernate ORM | 7.4.1.Final |
-| Hibernate Reactive | 4.4.1.Final |
-| JAXB runtime | 4.0.9 |
+Do not hardcode exact dependency versions into docs unless needed for a migration note. Use Maven POMs instead: root `pom.xml` for shared versions, plus the relevant module or example `pom.xml` for local overrides.
 
 ## Editing Guidance
 

@@ -6,7 +6,7 @@ Use this file for repo navigation. For domain behavior, prefer the narrower docs
 
 - `CLAUDE.md` is the writable agent guide.
 - `AGENTS.md` and `GEMINI.md` are symlinks to `CLAUDE.md`.
-- Dependency and compiler versions come from `pom.xml`.
+- Dependency, compiler, and plugin versions come from Maven POMs: root `pom.xml` for shared versions, plus the relevant module/example `pom.xml`. Do not treat README or prose docs as version authority.
 - Root Maven modules are only `common-lib` and `processor`; examples are independent projects under `examples/`.
 
 ## Main Library

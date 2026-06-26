@@ -9,7 +9,7 @@ Keep this guide short; put durable detail in `docs/` or `docs/agent/`.
 - Use context-mode for large command output, broad searches, generated analysis, logs, and web fetches.
 - Use `rtk` for real shell commands when available; avoid dumping large raw output into chat.
 - For code changes, read the narrow domain doc first, then inspect the live symbols/files.
-- Treat `pom.xml` as the dependency/version source of truth.
+- Treat Maven POMs as the dependency/plugin/version source of truth. Use root `pom.xml` for shared versions and the relevant module/example `pom.xml`; do not trust versions copied into README or prose docs.
 
 ## Project Map
 
