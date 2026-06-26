@@ -22,7 +22,7 @@ Backend:
 - app annotation: `@VertxApplication`
 - server port: `6060`
 - data access: `@RRepository` plus custom SQL
-- auth: `@Auth` on task routes, JWT config under `config/`
+- auth: `@Auth` on task routes, JWT config under `src/main/java/com/example/lcx/config/`, demo keys under `src/main/resources/key/`
 - current repository package typo: `respository`
 
 Routes:
@@ -47,7 +47,7 @@ Frontend:
 
 - path: `examples/todo-app-example/web`
 - React 19, Vite, TypeScript, Ant Design, Tailwind 4, Axios, React Router 7
-- build output: `../src/main/resources/webroot`
+- build output: `../src/main/resources/webroot`; treat it as generated frontend output
 - scripts: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm preview`
 
 Gotchas:

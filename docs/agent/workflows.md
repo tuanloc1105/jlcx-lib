@@ -26,10 +26,10 @@ If generated-code behavior changes, verify both processor tests and at least one
 
 Unix/Linux:
 
-- `build.sh`
+- `build.sh` runs Maven dependency resolution and `clean install` with tests skipped.
 - `clean.sh`
-- `snapshot.sh`
-- `release.sh`
+- `snapshot.sh` deploys to the snapshot repository profile.
+- `release.sh` deploys to the release repository profile.
 
 macOS JDK layout:
 
@@ -39,7 +39,7 @@ Windows PowerShell:
 
 - `build.ps1`
 - `clean.ps1`
-- `deploy.ps1`
+- `deploy.ps1` runs a release-profile install and deploy.
 - `snapshot.ps1`
 - `release.ps1`
 
@@ -52,8 +52,10 @@ Todo UI:
 ```bash
 cd examples/todo-app-example/web
 pnpm install
+pnpm run dev
 pnpm run lint
 pnpm run build
+pnpm run preview
 ```
 
 Hibernate Reactive UI:
@@ -61,8 +63,10 @@ Hibernate Reactive UI:
 ```bash
 cd examples/hibernate-reactive-example/web
 pnpm install
+pnpm run dev
 pnpm run lint
 pnpm run build
+pnpm run preview
 ```
 
 Both example frontends have `pnpm-lock.yaml`. No Vitest/Jest/Playwright config is checked in.
@@ -108,7 +112,15 @@ Generation/build scripts:
 - `examples/grpc-example/clean.sh`
 - `examples/grpc-example/clean.ps1`
 
+The shell build expects `protoc` plugins under `$DEV_KIT_LOCATION/tool/`. Inspect the script before assuming it is portable.
+
 Generated stubs may appear under `target/generated-sources/` or generated `com/example/grpc/` packages after the build. Edit the proto first and regenerate rather than hand-editing generated stubs.
+
+Run server/client modules with Maven exec from `examples/grpc-example/grpc-server/` or `examples/grpc-example/grpc-client/`:
+
+```bash
+mvn exec:java -Dexec.mainClass="com.example.App"
+```
 
 Port note: current Java source listens/connects on `7070`; `examples/grpc-example/README.md` still mentions `9090`.
 
