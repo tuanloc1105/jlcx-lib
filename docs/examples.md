@@ -74,7 +74,7 @@ Backend:
 
 - main class: `com.example.App`
 - server port: `5050`
-- data access: `@HRRepository`
+- data access: `@HRRepository`; custom Hibernate Reactive queries use `HRQuery`
 - auth: `@Auth` on task routes
 - persistence provider: `org.hibernate.reactive.provider.ReactivePersistenceProvider`
 - persistence unit: `postgresql-example`

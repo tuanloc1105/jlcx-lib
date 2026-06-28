@@ -182,15 +182,26 @@ The Todo example uses this path with manual SQL queries.
 
 ## Hibernate Reactive Layer
 
-Important interface:
+Important interfaces and annotations:
 
 - `HReactiveRepository<T>`
+- `@HRRepository`
+- `@HRQuery`
+- `@HRParam`
+- `@HRModifying`
+- `@HRResultSetMapping`
 
 Generated code:
 
 - `@HRRepository` interfaces extending `HReactiveRepository` get `{RepositoryInterface}Impl`.
+- Repository methods use `Stage.Session` as the first parameter and return `Future<X>`.
+- Custom Hibernate Reactive methods must use `@HRQuery`; JPA `@Query` and Vert.x reactive SQL `@Query` are rejected for HR repositories.
+- Supported query returns are `Future<T>`, `Future<List<T>>`, `Future<Optional<T>>`, `Future<Page<T>>`, and for `@HRModifying` only, `Future<Integer>` or `Future<Void>`.
+- Query placeholders can be implicit `?`, indexed `?1`, or named `:name`; named placeholders require `@HRParam`, and mixed placeholder styles fail at compile time.
+- `Future<Page<T>>` requires final `Pageable`. Use `@HRQuery(countQuery = "...")` for complex queries such as `WITH`, `UNION`, `DISTINCT`, `GROUP BY`, `HAVING`, or fetch joins.
+- Native DTO/entity mappings use `@HRResultSetMapping` with `@HRQuery(isNative = true)`.
 
-The Hibernate Reactive example uses this path and `Stage.Session`-style APIs.
+The Hibernate Reactive example uses this path and `Stage.Session`-style APIs. If old HR code imports `vn.io.lcx.jpa.annotation.Query`, migrate it to `vn.io.lcx.reactive.annotation.HRQuery`.
 
 ## SQL Mapping Generation
 

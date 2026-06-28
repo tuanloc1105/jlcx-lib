@@ -110,6 +110,12 @@ Hibernate Reactive:
 
 - `@HRRepository` interfaces extending `HReactiveRepository<T>` get `{Name}Impl`.
 - Generated code works with `Stage.Session` style Hibernate Reactive APIs.
+- Custom query methods use `vn.io.lcx.reactive.annotation.HRQuery`, not JPA `@Query` or reactive SQL `@Query`.
+- HR query parameters use `@HRParam` for named placeholders, modifying queries use `@HRModifying`, and native result mappings use `@HRResultSetMapping`.
+- Supported HR custom returns are `Future<T>`, `Future<List<T>>`, `Future<Optional<T>>`, `Future<Page<T>>`, plus `Future<Integer>` or `Future<Void>` for `@HRModifying`.
+- Placeholders support implicit `?`, indexed `?1`, or named `:name`; mixed styles and placeholder/parameter mismatches fail during annotation processing.
+- `Future<Page<T>>` methods require final `Pageable`; simple queries can derive a count query, while complex queries should use `@HRQuery(countQuery = "...")`.
+- Migrating HR repositories from older examples means replacing `vn.io.lcx.jpa.annotation.Query` with `vn.io.lcx.reactive.annotation.HRQuery`.
 
 ## Mapper Generation
 

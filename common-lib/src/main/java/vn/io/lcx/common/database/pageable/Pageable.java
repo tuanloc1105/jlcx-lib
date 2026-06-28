@@ -22,6 +22,25 @@ public interface Pageable {
 
     void setColumnNameAndDirectionMap(Map<String, Direction> columnNameAndDirectionMap);
 
+    default Map<String, Direction> getFieldNameAndDirectionMap() {
+        return Map.of();
+    }
+
+    default void setFieldNameAndDirectionMap(Map<String, Direction> fieldNameAndDirectionMap) {
+        throw new UnsupportedOperationException();
+    }
+
+    default int getOffset() {
+        if (getPageNumber() > 0 || getPageSize() > 0) {
+            int offset = (getPageNumber() - 1) * getPageSize();
+            if (offset < 0) {
+                throw new IllegalArgumentException("Page number should be started from 1");
+            }
+            return offset;
+        }
+        throw new IllegalArgumentException("Invalid `pageNumber` and `pageSize`");
+    }
+
     Class<?> getEntityClass();
 
     void setEntityClass(Class<?> entityClass);

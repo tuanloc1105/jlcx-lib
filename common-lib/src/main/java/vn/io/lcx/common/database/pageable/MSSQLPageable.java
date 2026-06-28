@@ -68,10 +68,12 @@ public class MSSQLPageable implements Pageable {
         this.columnNameAndDirectionMap = columnNameAndDirectionMap;
     }
 
+    @Override
     public Map<String, Direction> getFieldNameAndDirectionMap() {
         return fieldNameAndDirectionMap;
     }
 
+    @Override
     public void setFieldNameAndDirectionMap(Map<String, Direction> fieldNameAndDirectionMap) {
         this.fieldNameAndDirectionMap = fieldNameAndDirectionMap;
     }

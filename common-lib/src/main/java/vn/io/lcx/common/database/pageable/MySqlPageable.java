@@ -68,10 +68,12 @@ public class MySqlPageable implements Pageable {
         this.pageSize = pageSize;
     }
 
+    @Override
     public Map<String, Direction> getFieldNameAndDirectionMap() {
         return fieldNameAndDirectionMap;
     }
 
+    @Override
     public void setFieldNameAndDirectionMap(Map<String, Direction> fieldNameAndDirectionMap) {
         this.fieldNameAndDirectionMap = fieldNameAndDirectionMap;
     }

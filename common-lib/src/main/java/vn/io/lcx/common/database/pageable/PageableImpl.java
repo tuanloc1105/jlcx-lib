@@ -26,8 +26,17 @@ public class PageableImpl implements Pageable {
         return new PageableImplBuilder();
     }
 
+    @Override
     public Map<String, Direction> getFieldNameAndDirectionMap() {
         return fieldNameAndDirectionMap;
+    }
+
+    @Override
+    public void setFieldNameAndDirectionMap(Map<String, Direction> fieldNameAndDirectionMap) {
+        this.fieldNameAndDirectionMap.clear();
+        if (fieldNameAndDirectionMap != null) {
+            this.fieldNameAndDirectionMap.putAll(fieldNameAndDirectionMap);
+        }
     }
 
     @Override
@@ -92,17 +101,6 @@ public class PageableImpl implements Pageable {
     @Override
     public String toSql() {
         throw new NotImplementedException();
-    }
-
-    public int getOffset() {
-        if (this.pageNumber > 0 || this.pageSize > 0) {
-            int offset = (pageNumber - 1) * pageSize;
-            if (offset < 0) {
-                throw new IllegalArgumentException("Page number should be started from 1");
-            }
-            return offset;
-        }
-        throw new IllegalArgumentException("Invalid `pageNumber` and `pageSize`");
     }
 
     public static class PageableImplBuilder {
